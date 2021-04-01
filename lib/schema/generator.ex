@@ -108,6 +108,30 @@ defmodule Schema.Generator do
     end
   end
 
+  defp generate_object({:file_result, field}) do
+    generate_object({:file, field})
+  end
+
+  defp generate_object({:file, field}) do
+    file =
+      field.object_type
+      |> String.to_atom()
+      |> Schema.objects()
+      |> generate()
+
+    filename = file_name(0)
+
+    case Map.get(file, :path) do
+      nil ->
+        Map.put(file, :name, filename)
+
+      path ->
+        Map.put(file, :name, filename)
+        |> Map.put(:path, Path.join(path, filename))
+    end
+    |> Map.delete(:normalized_path)
+  end
+
   defp generate_object({_name, field}) do
     field.object_type
     |> String.to_atom()
@@ -128,21 +152,24 @@ defmodule Schema.Generator do
     Enum.map(1..n, fn _ -> generate(object) end)
   end
 
-  defp generate({:version, _field}, map), do: Map.put(map, :version, "1.0")
+  defp generate({:version, _field}, map), do: Map.put(map, :version, Schema.version())
   defp generate({:lang, _field}, map), do: Map.put(map, :lang, "en")
   defp generate({:uuid, _field}, map), do: Map.put(map, :uuid, uuid())
   defp generate({:uid, _field}, map), do: Map.put(map, :uid, uuid())
-  defp generate({:domain, _field}, map), do: Map.put(map, :domain, domain())
-  defp generate({:hostname, _field}, map), do: Map.put(map, :hostname, domain())
   defp generate({:name, _field}, map), do: Map.put(map, :name, String.capitalize(word()))
+  defp generate({:creator, _field}, map), do: Map.put(map, :creator, full_name(2))
+  defp generate({:accessor, _field}, map), do: Map.put(map, :accessor, full_name(2))
+  defp generate({:modifier, _field}, map), do: Map.put(map, :modifier, full_name(2))
   defp generate({:full_name, _field}, map), do: Map.put(map, :full_name, full_name(2))
   defp generate({:shell, _field}, map), do: Map.put(map, :shell, shell())
   defp generate({:timezone, _field}, map), do: Map.put(map, :timezone, timezone())
+  defp generate({:country, _field}, map), do: Map.put(map, :country, country()[:country_name])
   defp generate({:company_name, _field}, map), do: Map.put(map, :company_name, full_name(2))
   defp generate({:owner, _field}, map), do: Map.put(map, :owner, full_name(2))
   defp generate({:md5, _field}, map), do: Map.put(map, :md5, md5())
   defp generate({:sha1, _field}, map), do: Map.put(map, :sha1, sha1())
   defp generate({:sha256, _field}, map), do: Map.put(map, :sha256, sha256())
+  defp generate({:facility, _field}, map), do: Map.put(map, :facility, facility())
   defp generate({:unmapped, _field}, map), do: Map.put(map, :unmapped, words(4))
   defp generate({:raw_data, _field}, map), do: map
 
@@ -168,26 +195,24 @@ defmodule Schema.Generator do
   end
 
   defp data(_name, "timestamp_t", _field), do: time()
-
+  defp data(_name, "hostname_t", _field), do: domain()
   defp data(_name, "ip_t", _field), do: ipv4()
-
   defp data(_name, "subnet_t", _field), do: ipv4()
-
   defp data(_name, "mac_t", _field), do: mac()
-
   defp data(_name, "ipv4_t", _field), do: ipv4()
-
   defp data(_name, "ipv6_t", _field), do: ipv6()
-
-  defp data(_name, "directory_t", _field), do: dir_file(random(6))
-
-  defp data(_name, "file_t", _field), do: file_name(random(6))
-
   defp data(_name, "email_t", _field), do: email()
-
   defp data(_name, "port_t", _field), do: random(65536)
-
   defp data(_name, "long_t", _field), do: random(65536 * 65536)
+
+  defp data(name, "path_t", _field) do
+    case name do
+      :home_dir -> dir_file(random(3))
+      :parent_dir -> dir_file(random(5))
+      :path -> dir_file(5)
+      _ -> file_name(0)
+    end
+  end
 
   defp data(_name, "integer_t", field) do
     case field[:enum] do
@@ -257,10 +282,13 @@ defmodule Schema.Generator do
     words(len) |> Enum.join(" ")
   end
 
-  def file_name(len) do
-    name = "/" <> (words(len) |> Path.join())
+  def file_name(0) do
+    word() <> file_ext()
+  end
 
-    Path.join(name, file_ext())
+  def file_name(len) do
+    name = "/" <> (words(len + 1) |> Path.join())
+    name <> file_ext()
   end
 
   def dir_file(len) do
@@ -435,6 +463,25 @@ defmodule Schema.Generator do
       "store",
       "travel",
       "web"
+    ])
+  end
+
+  def facility() do
+    Enum.random([
+      "kern",
+      "user",
+      "mail",
+      "daemon",
+      "auth",
+      "syslog",
+      "lpr",
+      "news",
+      "uucp",
+      "cron",
+      "authpriv",
+      "ftp",
+      "local0",
+      "local7"
     ])
   end
 
