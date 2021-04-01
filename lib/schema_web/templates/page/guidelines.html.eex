@@ -1,0 +1,68 @@
+<script type="text/javascript">
+  $('#extensions').hide();
+</script>
+
+<div class="container-fluid">
+
+  <h2>Guidelines and Conventions</h2>
+  <p>The Splunk Event Schema (SES) guidelines and conventions.</p>
+
+  <div>
+    <h4>Attribute Levels</h4>
+    <p>The event schema defines "Core" and "Extended" attribute.</p>
+
+    <dl class="row">
+      <dt class="col-sm-2">Core Attributes</dt>
+      <dd class="col-sm-10">
+        <p>Attributes that are most common across all use cases are defined as core attributes.<br>
+        The Core Attributes are marked as <b>Required</b>.</p>
+      </dd>
+      <dt class="col-sm-2">Extended Attributes</dt>
+      <dd class="col-sm-10">
+        <p>Any attribute that is not a core attribute is defined as an extended attribute.<br>
+        Extended attributes may apply to more narrow use cases, or may be more open to interpretation depending on the use
+        case. The Extended Attributes are marked as <b>Optional</b>.</p>
+      </dd>
+    </dl>
+
+    <h4>Guidelines for attribute names</h4>
+    <ul>
+      <li>
+        <p>Attribute names must be a valid UTF-8 sequence.</p>
+      </li>
+      <li>
+        <p>Attribute names must be all lower case.</p>
+      </li>
+      <li>
+        <p>Combine words using underscore.</p>
+      </li>
+      <li>
+        <p>No special characters except underscore.</p>
+      </li>
+      <li>
+        <p>Use present tense unless the attribute describes historical information.</p>
+      </li>
+      <li>
+        <p>Use singular and plural names properly to reflect the field content.</p>
+        <p>
+          For example, use <code class="literal">events_per_sec</code> rather than <code
+            class="literal">event_per_sec</code>.
+        </p>
+      </li>
+      <li>
+        <p>When attribute represents multiple entities, the attribute name should be pluralized and the value type should be an array.</p>
+        <p>Example: <code class="literal">process.loaded_modules</code> includes multiple values -- a loaded module names.</p>
+      </li>
+      <li>
+        <p>Avoid repetition of words.</p>
+        <p>Example: <code class="literal">host.host_ip</code> should be <code class="literal">host.ip</code>.</p>
+      </li>
+      <li>
+        <p>Avoid abbreviations when possible.</p>
+        <p>Some exceptions can be made for well-accepted abbreviation.
+        Example: <code class="literal">ip</code> attributes, or attributes such as <code class="literal">os</code>,
+        <code class="literal">geo</code>.</p>
+      </li>
+    </ul>
+  </div>
+</div>

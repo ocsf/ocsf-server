@@ -1,0 +1,32 @@
+<script type="text/javascript">
+  $('#extensions .custom-control').hide();
+</script>
+
+<h2>All Objects</h2>
+<div class="mt-2">
+  <table class="table table-striped borderless sortable">
+    <thead>
+      <tr class="title-uppercase">
+        <th style="width: 15%">Name</th>
+        <th style="width: 10%">Type</th>
+        <th style="width: 30%">Referenced By</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody class="searchable">
+      <%= for {name, map} <- @data do %>
+      <% path = Routes.static_path(@conn, "/objects/" <> Atom.to_string(name)) %>
+      <tr>
+        <td class="name"><a href="<%= path %>"><%= map.name %></a></td>
+        <td><a href="<%= path %>"><%= name %></a></td>
+        <td><%= raw links(@conn, map[:_links]) %></td>
+        <td><%= raw map[:description] %></td>
+      </tr>
+    <% end %>
+    </tbody>
+  </table>
+</div>
+
+<script
+  type="text/javascript" src='<%= Routes.static_path(@conn, "/js/attribute-search.js") %>'>
+</script>

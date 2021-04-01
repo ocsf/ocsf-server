@@ -1,0 +1,49 @@
+<script type="text/javascript">
+  $('#extensions .custom-control').hide();
+</script>
+
+<h2><%= @data.name %></h2>
+<%= description = @data[:description]; if description != "" do %>
+  <a class="collapsed" data-toggle="collapse" href="#description" role="button" aria-expanded="false" aria-controls="description">
+    <div class="text-dark"><%= raw @data[:caption] %>
+    <span class="if-collapsed" style="font-size: 70%;">
+      <i class="fas fa-arrow-down"></i>
+    </span>
+    <span class="if-not-collapsed" style="font-size: 70%;">
+      <i class="fas fa-arrow-up"></i>
+    </span>
+    </div>
+  </a>
+  <div class="text-dark collapse" id="description">
+    <div><%= raw description %></div>
+  </div>
+<% else %>
+  <div class="text-dark"><%= raw @data[:caption] %></div>
+<% end %>
+
+<div class="mt-2">
+  <table class="table table-striped borderless sortable">
+    <thead>
+      <tr class="title-uppercase">
+        <th style="width: 30%">Name</th>
+        <th style="width: 10%">ID</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody class="searchable">
+      <%= for {id, class} <- @data.classes do %>
+      <% name = Atom.to_string(id) %>
+      <% path = Routes.static_path(@conn, "/classes/" <> name) %>
+      <tr>
+        <td class="name"> <a href="<%= path %>"><%= class.name %></a></td>
+        <td><a href="<%= path %>"><%= class[:uid] %></a></td>
+        <td><%= raw class[:description] %></td>
+      </tr>
+    <% end %>
+    </tbody>
+  </table>
+</div>
+
+<script
+  type="text/javascript" src='<%= Routes.static_path(@conn, "/js/attribute-search.js") %>'>
+</script>

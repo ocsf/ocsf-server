@@ -1,0 +1,30 @@
+<script type="text/javascript">
+  $('#extensions .custom-control').hide();
+</script>
+
+<h2>All Event Classes</h2>
+<div class="mt-2">
+  <table class="table table-striped borderless sortable">
+    <thead>
+      <tr class="title-uppercase">
+        <th style="width: 30%">Name</th>
+        <th style="width: 10%">ID</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody class="searchable">
+      <%= for {name, map} <- @data do %>
+      <% path = Routes.static_path(@conn, "/classes/" <> Atom.to_string(name)) %>
+      <tr>
+        <td class="name"><a href="<%= path %>"><%= map.name %></a></td>
+        <td><a href="<%= path %>"><%= map[:uid] %></a></td>
+        <td><%= raw map[:description] %></td>
+      </tr>
+    <% end %>
+    </tbody>
+  </table>
+</div>
+
+<script
+  type="text/javascript" src='<%= Routes.static_path(@conn, "/js/attribute-search.js") %>'>
+</script>

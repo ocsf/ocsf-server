@@ -1,0 +1,37 @@
+<script type="text/javascript">
+  $('#extensions .custom-control').hide();
+</script>
+
+<h2><%= @data.name %></h2>
+<div class="text-secondary">
+  <%= raw @data.description %>
+</div>
+<div class="mt-2">
+  <table class="table table-striped borderless sortable">
+    <thead>
+      <tr class="title-uppercase">
+        <th style="width: 15%">Name</th>
+        <th style="width: 15%">Attribute</th>
+        <th style="width: 10%">Type</th>
+        <th style="width: 30%">Referenced By</th>
+        <th style="width: 30%">Description</th>
+      </tr>
+    </thead>
+    <tbody class="searchable">
+      <%= for {key, field} <- @data.attributes do %>
+      <% attribute = Atom.to_string(key) %>
+      <tr>
+        <td class="name"><%= field.name %></td>
+        <td><%= attribute %></td>
+        <td><%= raw format_type(@conn, field) %></td>
+        <td><%= raw links(@conn, field[:_links]) %></td>
+        <td><%= raw field.description %></td>
+      </tr>
+    <% end %>
+    </tbody>
+  </table>
+</div>
+
+<script
+  type="text/javascript" src='<%= Routes.static_path(@conn, "/js/attribute-search.js") %>'>
+</script>

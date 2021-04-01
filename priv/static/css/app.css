@@ -1,0 +1,123 @@
+/* This file is the main application css. */
+body {
+  font-family: 'Open Sans', open-sans, sans-serif !important;
+}
+
+h1, .h1, h2, .h2, h3, .h3, h4, .h4, h5, .h5, h6, .h6, p, .navbar, .brand, a, .td-name, td {
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+}
+
+.title-uppercase {
+  text-transform: uppercase;
+}
+
+blockquote {
+  font-style: italic;
+}
+
+blockquote small {
+  font-style: normal;
+}
+
+
+.glyphicon {
+  line-height: 1;
+}
+
+.text-reserved {
+  color: darkslateblue;
+}
+
+strong {
+  color: #403D39;
+}
+
+/*     General overwrite     */
+a {
+  color: #366BB2;
+}
+
+a:hover, a:focus {
+  color: #3091B2;
+  text-decoration: none;
+}
+
+.ui-slider-handle:focus,
+.navbar-toggle,
+input:focus,
+button:focus {
+  outline: 0 !important;
+}
+
+li {
+  margin-bottom: 4px;
+}
+/* Custom page header */
+.logo {
+  margin-right: 20px;
+}
+
+/* Custom page footer */
+.footer {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  color: #FFFFFF;
+  text-align: center;
+  background-color: gray;
+}
+
+.active {
+  border-bottom: 2px solid #00A4B7;
+}
+
+.rights {
+  position: fixed;
+  width: 100%;
+  bottom: 50px;
+}
+
+table {
+  table-layout: fixed;
+  word-wrap: break-word;
+}
+
+table.table-borderless tr td {
+  padding: 0 10px !important;
+}
+
+.borderless th {
+  border: none;
+}
+
+.name {
+  background-color: #224F8B;
+  color: lightgoldenrodyellow;
+}
+
+.name a {
+  color: white !important;
+}
+
+.name a:hover, a:focus {
+  color: #cce6ff !important;
+  text-decoration: none;
+}
+
+.capitalize {
+  text-transform: capitalize;
+}
+
+span.hidden {
+  display: none;
+}
+
+/* Collapsible description */
+[data-toggle="collapse"].collapsed .if-not-collapsed {
+  display: none;
+}
+
+[data-toggle="collapse"]:not(.collapsed) .if-collapsed {
+  display: none;
+}
