@@ -10,16 +10,7 @@ defmodule Schema.Generator do
 
   require Logger
 
-  defstruct ~w[countries names words files]a
-
-  def new(countries, names, words, files) do
-    %Generator{
-      countries: countries,
-      files: files,
-      names: names,
-      words: words
-    }
-  end
+  defstruct ~w[countries tactics techniques names words files]a
 
   @spec start :: {:error, any} | {:ok, pid}
   def start(), do: Agent.start(fn -> init() end, name: __MODULE__)
@@ -30,6 +21,11 @@ defmodule Schema.Generator do
   @data_dir "priv/data"
 
   @countries_file "country-and-continent-codes-list.json"
+
+  # MITRE ATT&CK files
+  @techniques_file "techniques.json"
+  @tactics_file "enterprise-tactics.json"
+
   @files_file "files.txt"
   @names_file "names.txt"
   @words_file "words.txt"
@@ -55,6 +51,9 @@ defmodule Schema.Generator do
 
       "fingerprint" ->
         fingerprint()
+
+      "attack" ->
+        attack()
 
       _ ->
         Enum.reduce(class.attributes, Map.new(), fn {name, field} = attribute, map ->
@@ -114,6 +113,10 @@ defmodule Schema.Generator do
     |> String.to_atom()
     |> Schema.objects()
     |> generate()
+  end
+
+  defp generate_objects(n, {:attacks, _field}) do
+    Enum.map(1..n, fn _ -> attack() end)
   end
 
   defp generate_objects(n, {_name, field}) do
@@ -208,11 +211,22 @@ defmodule Schema.Generator do
     Logger.info("Loading data files: #{dir}")
 
     countries = read_countries(Path.join(dir, @countries_file))
+
+    tactics = read_json_file(Path.join(dir, @tactics_file))
+    techniques = read_json_file(Path.join(dir, @techniques_file))
+
     files = read_file_types(Path.join(dir, @files_file))
     names = read_data_file(Path.join(dir, @names_file))
     words = read_data_file(Path.join(dir, @words_file))
 
-    new(countries, names, words, files)
+    %Generator{
+      countries: countries,
+      tactics: tactics,
+      techniques: techniques,
+      files: files,
+      names: names,
+      words: words
+    }
   end
 
   def name() do
@@ -330,6 +344,28 @@ defmodule Schema.Generator do
     Agent.get(__MODULE__, fn %Generator{countries: {len, names}} -> random_word(len, names) end)
   end
 
+  def tactics() do
+    Agent.get(__MODULE__, fn %Generator{tactics: {_len, tactics}} ->
+      words = Map.keys(tactics)
+      Enum.map(1..(random(3) + 1), fn _ -> Enum.random(words) end)
+    end)
+  end
+
+  def technique() do
+    Agent.get(__MODULE__, fn %Generator{techniques: {_len, techniques}} ->
+      Enum.random(techniques)
+    end)
+  end
+
+  def attack() do
+    {uid, name} = technique()
+
+    Map.new()
+    |> Map.put(:tactics, tactics())
+    |> Map.put(:technique_uid, uid)
+    |> Map.put(:technique_name, name)
+  end
+
   def location() do
     country = country()
 
@@ -423,5 +459,11 @@ defmodule Schema.Generator do
     list = File.read!(filename) |> Jason.decode!(keys: :atoms)
 
     {length(list), :array.from_list(list)}
+  end
+
+  defp read_json_file(filename) do
+    map = File.read!(filename) |> Jason.decode!(keys: :atoms)
+
+    {map_size(map), map}
   end
 end
