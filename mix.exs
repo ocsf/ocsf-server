@@ -2,12 +2,12 @@ defmodule Schema.MixProject do
   use Mix.Project
 
   def project do
-    build = System.get_env("BUILD_NUMBER") || "SNAPSHOT"
+    build = System.get_env("GITHUB_RUN_NUMBER") || "SNAPSHOT"
 
     [
       releases: [
         schema_server: [
-          steps: [:assemble, &write_version/1, :tar],
+          steps: [:assemble, &write_version/1],
           include_executables_for: [:unix]
         ]
       ],
