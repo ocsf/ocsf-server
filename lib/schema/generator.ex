@@ -306,6 +306,10 @@ defmodule Schema.Generator do
     :crypto.hash(:blake2s, Schema.Generator.word()) |> Base.encode16()
   end
 
+  def blake2b() do
+    :crypto.hash(:blake2b, Schema.Generator.word()) |> Base.encode16()
+  end
+
   def sha512() do
     :crypto.hash(:sha512, Schema.Generator.word()) |> Base.encode16()
   end
@@ -436,7 +440,7 @@ defmodule Schema.Generator do
           sha256()
 
         _ ->
-          sha512()
+          blake2b()
       end
 
     fingerprint = Map.put(fingerprint, :value, value)
