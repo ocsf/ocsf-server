@@ -24,7 +24,7 @@
         <td class="name"><%= field.name %></td>
         <td><%= attribute %></td>
         <td><%= raw format_type(@conn, field) %></td>
-        <td><%= raw links(@conn, field[:_links]) %></td>
+        <td><%= raw links(@conn, key, field[:_links]) %></td>
         <td><%= raw field.description %></td>
       </tr>
     <% end %>

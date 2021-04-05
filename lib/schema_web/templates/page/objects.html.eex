@@ -19,7 +19,7 @@
       <tr>
         <td class="name"><a href="<%= path %>"><%= map.name %></a></td>
         <td><a href="<%= path %>"><%= name %></a></td>
-        <td><%= raw links(@conn, map[:_links]) %></td>
+        <td><%= raw links(@conn, name, map[:_links]) %></td>
         <td><%= raw map[:description] %></td>
       </tr>
     <% end %>

@@ -86,6 +86,7 @@ defmodule Schema.Generator do
 
   defp generate_array({:fingerprints, _field}) do
     Enum.map(1..random(5), fn _ -> fingerprint() end)
+    |> Enum.uniq_by(fn map -> Map.get(map, :algorithm_id) end)
   end
 
   defp generate_array({:image_labels, _field}) do
@@ -166,9 +167,6 @@ defmodule Schema.Generator do
   defp generate({:country, _field}, map), do: Map.put(map, :country, country()[:country_name])
   defp generate({:company_name, _field}, map), do: Map.put(map, :company_name, full_name(2))
   defp generate({:owner, _field}, map), do: Map.put(map, :owner, full_name(2))
-  defp generate({:md5, _field}, map), do: Map.put(map, :md5, md5())
-  defp generate({:sha1, _field}, map), do: Map.put(map, :sha1, sha1())
-  defp generate({:sha256, _field}, map), do: Map.put(map, :sha256, sha256())
   defp generate({:facility, _field}, map), do: Map.put(map, :facility, facility())
   defp generate({:unmapped, _field}, map), do: Map.put(map, :unmapped, words(4))
   defp generate({:raw_data, _field}, map), do: map
@@ -304,8 +302,12 @@ defmodule Schema.Generator do
     ext
   end
 
-  def algorithm() do
-    Enum.random(["md5", "sha1", "sha256"])
+  def blake2() do
+    :crypto.hash(:blake2s, Schema.Generator.word()) |> Base.encode16()
+  end
+
+  def sha512() do
+    :crypto.hash(:sha512, Schema.Generator.word()) |> Base.encode16()
   end
 
   def sha256() do
@@ -413,23 +415,42 @@ defmodule Schema.Generator do
   def random_float(n, r), do: Float.ceil(r - :rand.uniform_real() * n, 4)
 
   def fingerprint() do
-    algorithm = algorithm()
+    algorithm = random(7) - 1
+
+    fingerprint =
+      Map.new()
+      |> Map.put(:algorithm_id, algorithm)
 
     value =
       case algorithm do
-        "md5" -> md5()
-        "sha1" -> sha1()
-        "sha256" -> sha256()
+        -1 ->
+          blake2()
+
+        1 ->
+          md5()
+
+        2 ->
+          sha1()
+
+        3 ->
+          sha256()
+
+        _ ->
+          sha512()
       end
 
-    Map.new()
-    |> Map.put(:algorithm, algorithm)
-    |> Map.put(:value, value)
+    fingerprint = Map.put(fingerprint, :value, value)
+
+    if algorithm == -1 do
+      Map.put(fingerprint, :algorithm, "blake2")
+    else
+      fingerprint
+    end
   end
 
-  defp random(n) when is_integer(n), do: :rand.uniform(n) - 1
+  def random(n) when is_integer(n), do: :rand.uniform(n) - 1
 
-  defp random(enum) do
+  def random(enum) do
     {name, _} = Enum.random(enum)
     name |> Atom.to_string() |> String.to_integer()
   end

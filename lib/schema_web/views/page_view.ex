@@ -1,6 +1,8 @@
 defmodule SchemaWeb.PageView do
   use SchemaWeb, :view
 
+  require Logger
+
   # def format_range([min, max]) do
   #  Integer.to_string(min) <> "-" <> Integer.to_string(max)
   # end
@@ -147,11 +149,18 @@ defmodule SchemaWeb.PageView do
     end
   end
 
-  @spec links(any, any) :: <<>> | list
-  def links(_, nil), do: ""
+  def links(_, _, nil), do: ""
 
-  def links(conn, links) do
-    groups = Enum.group_by(links, fn {type, _link, _name} -> type end)
+  def links(conn, name, links) do
+    groups =
+      Enum.group_by(links, fn
+        {type, _link, _name} ->
+          type
+
+        nil ->
+          Logger.warn("group-by: found unused attribute of '#{name}' object")
+          nil
+      end)
 
     join_html(
       to_html(:commons, conn, groups[:common]),
