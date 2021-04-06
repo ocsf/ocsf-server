@@ -96,6 +96,10 @@ table.table-borderless tr td {
   color: lightgoldenrodyellow;
 }
 
+.links {
+  padding-top: 20px;
+}
+
 .name a {
   color: white !important;
 }

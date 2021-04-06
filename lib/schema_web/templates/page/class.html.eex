@@ -50,6 +50,18 @@
   </table>
 </div>
 
+<% links = @data[:_links] %>
+<%= if links != nil do %>
+  <div class="links">
+    <h5>Referenced By</h5>
+    <div>
+      <%= raw links(@conn, @data.name, links) %>  
+    </div>
+  </div>
+  <% else %>
+  ""
+<% end %>
+
 <script>
   $('#btn-example').on('click', function(event) {
     const url = '/sample' + window.location.pathname;
