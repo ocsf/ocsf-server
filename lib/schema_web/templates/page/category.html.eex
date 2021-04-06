@@ -2,7 +2,7 @@
   $('#extensions .custom-control').hide();
 </script>
 
-<h2><%= @data.name %></h2>
+<h2><%= @data.name %> Category</h2>
 <%= description = @data[:description]; if description != "" do %>
   <a class="collapsed" data-toggle="collapse" href="#description" role="button" aria-expanded="false" aria-controls="description">
     <div class="text-dark"><%= raw @data[:caption] %>
