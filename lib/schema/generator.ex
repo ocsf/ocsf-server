@@ -168,7 +168,7 @@ defmodule Schema.Generator do
   defp generate({:company_name, _field}, map), do: Map.put(map, :company_name, full_name(2))
   defp generate({:owner, _field}, map), do: Map.put(map, :owner, full_name(2))
   defp generate({:facility, _field}, map), do: Map.put(map, :facility, facility())
-  defp generate({:unmapped, _field}, map), do: Map.put(map, :unmapped, words(4))
+  defp generate({:unmapped, _field}, map), do: map
   defp generate({:raw_data, _field}, map), do: map
 
   defp generate({name, field}, map) do
@@ -202,6 +202,8 @@ defmodule Schema.Generator do
   defp data(_name, "email_t", _field), do: email()
   defp data(_name, "port_t", _field), do: random(65536)
   defp data(_name, "long_t", _field), do: random(65536 * 65536)
+  defp data(_name, "boolean_t", _field), do: random_boolean()
+  defp data(_name, "float_t", _field), do: random_float(100, 100)
 
   defp data(name, "path_t", _field) do
     case name do
@@ -221,10 +223,6 @@ defmodule Schema.Generator do
         random(enum)
     end
   end
-
-  defp data(_name, "boolean_t", _field), do: random_boolean()
-
-  defp data(_name, "float_t", _field), do: random_float(100, 100)
 
   defp data(_name, _, _), do: word()
 
