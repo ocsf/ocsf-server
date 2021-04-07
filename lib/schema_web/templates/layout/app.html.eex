@@ -39,7 +39,7 @@
           </div>
           <div class="custom-control custom-checkbox mt-1">
             <input type="checkbox" class="custom-control-input" id="btn-extensions" autocomplete="off" />
-            <label class="custom-control-label mr-2" for="btn-extensions">Extensions</label>
+            <label class="custom-control-label mr-2" for="btn-extensions">Optional</label>
           </div>
           <div class="custom-control mr-2 mt-1">
             <button type="button" id="btn-example" class="btn btn-light btn-sm">Sample</button>
@@ -50,7 +50,7 @@
       </div>
     </nav>
 
-    <div class="pt-4">
+    <div class="pt-4 pb-4">
       <main role="main" class="container-fluid mt-5">
         <%= @inner_content %>
       </main>
