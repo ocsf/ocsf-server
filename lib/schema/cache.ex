@@ -29,11 +29,13 @@ defmodule Schema.Cache do
   @type category_t() :: map()
   @type dictionary_t() :: map()
 
-  # The schema JSON file extention.
+  # The schema JSON file extension.
   @schema_file ".json"
 
   # The default location of the schema files.
   @data_dir "../schema"
+  @ext_dir "extensions"
+
   @version_file "version.json"
 
   @categories_file "categories.json"
@@ -170,20 +172,28 @@ defmodule Schema.Cache do
       read_json_file(file)
     else
       Logger.warn("version file #{file} not found")
-      "unknown"
+      "0.0.0"
     end
   end
 
   defp read_categories(home) do
-    Path.join(home, @categories_file) |> read_json_file
+    Path.join(home, @categories_file)
+    |> read_json_file
+    |> read_json_files(Path.join(home, @ext_dir), @categories_file)
   end
 
   defp read_dictionary(home) do
-    Path.join(home, @dictionary_file) |> read_json_file
+    Path.join(home, @dictionary_file)
+    |> read_json_file
+    |> read_json_files(Path.join(home, @ext_dir), @dictionary_file)
   end
 
   defp read_classes(home, categories) do
-    classes = read_schema_files(Path.join(home, @events_dir), Map.new())
+    classes =
+      Map.new()
+      |> read_schema_files(Path.join(home, @events_dir))
+      |> read_schema_files(Path.join(home, @ext_dir), @events_dir)
+
     base = Map.get(classes, :event)
 
     classes =
@@ -194,6 +204,41 @@ defmodule Schema.Cache do
       |> Map.new()
 
     {base, classes}
+  end
+
+  defp read_objects(home) do
+    Map.new()
+    |> read_schema_files(Path.join(home, @objects_dir))
+    |> read_schema_files(Path.join(home, @ext_dir), @objects_dir)
+    |> resolve_extends()
+    # remove abstract objects
+    |> Enum.filter(fn {key, _object} ->
+      !String.starts_with?(Atom.to_string(key), "_")
+    end)
+    |> Map.new()
+  end
+
+  defp read_json_files(map, path, name) do
+    if File.dir?(path) do
+      case File.ls(path) do
+        {:ok, files} ->
+          files
+          |> Stream.map(fn file -> Path.join(path, file) end)
+          |> Enum.reduce(map, fn file, m -> read_json_files(m, file, name) end)
+
+        error ->
+          Logger.warn("unable to access #{path} directory. Error: #{inspect(error)}")
+          raise error
+      end
+    else
+      if Path.basename(path) == name do
+        Logger.info("reading extension: #{path}")
+
+        read_json_file(path) |> Utils.deep_merge(map)
+      else
+        map
+      end
+    end
   end
 
   # Add category_id, class_id, and event_uid
@@ -259,16 +304,6 @@ defmodule Schema.Cache do
     end)
   end
 
-  defp read_objects(home) do
-    read_schema_files(Path.join(home, @objects_dir), Map.new())
-    |> resolve_extends()
-    |> Enum.filter(fn {key, _object} ->
-      # remove abstract objects
-      !String.starts_with?(Atom.to_string(key), "_")
-    end)
-    |> Map.new()
-  end
-
   defp resolve_extends(data) do
     Enum.map(data, fn {name, map} -> {name, resolve_extends(data, map)} end)
   end
@@ -294,13 +329,35 @@ defmodule Schema.Cache do
     end
   end
 
-  defp read_schema_files(path, acc) do
+  defp read_schema_files(classes, path, directory) do
+    if File.dir?(path) do
+      if Path.basename(path) == directory do
+        Logger.info("reading extensions: #{path}")
+
+        read_schema_files(classes, path)
+      else
+        case File.ls(path) do
+          {:ok, files} ->
+            files
+            |> Stream.map(fn name -> Path.join(path, name) end)
+            |> Stream.filter(fn p -> File.dir?(p) end)
+            |> Enum.reduce(classes, fn file, map -> read_schema_files(map, file, directory) end)
+
+          error ->
+            Logger.warn("unable to access #{path} directory. Error: #{inspect(error)}")
+            raise error
+        end
+      end
+    end
+  end
+
+  defp read_schema_files(acc, path) do
     if File.dir?(path) do
       case File.ls(path) do
         {:ok, files} ->
           files
           |> Stream.map(fn file -> Path.join(path, file) end)
-          |> Enum.reduce(acc, fn file, map -> read_schema_files(file, map) end)
+          |> Enum.reduce(acc, fn file, map -> read_schema_files(map, file) end)
 
         error ->
           Logger.warn("unable to access #{path} directory. Error: #{inspect(error)}")
@@ -325,7 +382,7 @@ defmodule Schema.Cache do
 
       {:error, error} ->
         message = Jason.DecodeError.message(error)
-        Logger.error("Invalid JSON file: #{file}. Error: #{message}")
+        Logger.error("invalid JSON file: #{file}. Error: #{message}")
         exit(message)
     end
   end

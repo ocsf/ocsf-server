@@ -7,7 +7,7 @@ defmodule SchemaWeb.PageView do
   #  Integer.to_string(min) <> "-" <> Integer.to_string(max)
   # end
   def format_range([min, max]) do
-    "#{inspect(min)}-#{inspect(max)}"
+    format_number(min) <> "-" <> format_number(max)
   end
 
   @spec format_requirement(nil | map) :: binary
@@ -27,7 +27,7 @@ defmodule SchemaWeb.PageView do
   def format_constraints(:string_t, field) when is_map(field) do
     case Map.get(field, :max_len) do
       nil -> ""
-      max -> "Max length #{inspect(max)}"
+      max -> "Max length: " <> format_number(max)
     end
   end
 
@@ -65,7 +65,7 @@ defmodule SchemaWeb.PageView do
       nil ->
         case Map.get(field, :max_len) do
           nil -> ""
-          max -> "Max length: #{inspect(max)}"
+          max -> "Max length: " <> format_number(max)
         end
 
       r ->
@@ -85,7 +85,11 @@ defmodule SchemaWeb.PageView do
               "<a href='#{obj_path}'>#{format_type(conn, obj)}</a>"
 
             obj_name ->
-              "<a href='#{obj_path}'>#{obj_name}</a>"
+              if String.starts_with?(obj_name, "*") do
+                "<div class='text-danger'>#{obj_name}</div>"
+              else
+                "<a href='#{obj_path}'>#{obj_name}</a>"
+              end
           end
 
         _type ->
@@ -209,5 +213,9 @@ defmodule SchemaWeb.PageView do
       ["<a href='", type_path, "'>", name, " Object</a>", ", " | acc]
     end)
     |> List.delete_at(-1)
+  end
+
+  defp format_number(n) do
+    Number.Delimit.number_to_delimited(n, precision: 0)
   end
 end

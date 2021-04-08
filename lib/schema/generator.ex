@@ -229,8 +229,6 @@ defmodule Schema.Generator do
   def init() do
     dir = Application.app_dir(:schema_server, @data_dir)
 
-    Logger.info("Loading data files: #{dir}")
-
     countries = read_countries(Path.join(dir, @countries_file))
 
     tactics = read_json_file(Path.join(dir, @tactics_file))

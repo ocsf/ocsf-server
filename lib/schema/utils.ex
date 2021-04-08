@@ -70,7 +70,7 @@ defmodule Schema.Utils do
     case objects[t] do
       nil ->
         Logger.warn("Undefined object type: #{t}, for #{name}")
-        value
+        Map.put(value, :object_name, "*undefined*")
 
       object ->
         Map.put(value, :object_name, object.name)
@@ -157,8 +157,7 @@ defmodule Schema.Utils do
     Map.merge(left, right, &deep_resolve/3)
   end
 
-  # Key exists in both maps, and both values are maps as well.
-  # These can be merged recursively.
+  # Key exists in both and both values are maps as well, then they can be merged recursively
   defp deep_resolve(key, %{} = left, %{} = right) do
     if map_size(left) == 0 do
       right
