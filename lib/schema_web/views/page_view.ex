@@ -3,9 +3,6 @@ defmodule SchemaWeb.PageView do
 
   require Logger
 
-  # def format_range([min, max]) do
-  #  Integer.to_string(min) <> "-" <> Integer.to_string(max)
-  # end
   def format_range([min, max]) do
     format_number(min) <> "-" <> format_number(max)
   end
@@ -24,52 +21,86 @@ defmodule SchemaWeb.PageView do
     Map.get(field, :requirement) == "reserved"
   end
 
-  def format_constraints(:string_t, field) when is_map(field) do
-    case Map.get(field, :max_len) do
-      nil -> ""
-      max -> "Max length: " <> format_number(max)
-    end
+  def format_constraints(:string_t, field) do
+    format_string_constrains(field)
   end
 
-  def format_constraints(:integer_t, field) when is_map(field) do
-    case Map.get(field, :range) do
-      nil -> ""
-      r -> format_range(r)
-    end
+  def format_constraints(:integer_t, field) do
+    format_integer_constrains(field)
   end
 
-  def format_constraints(:boolean_t, field) when is_map(field) do
+  def format_constraints(:long_t, field) do
+    format_integer_constrains(field)
+  end
+
+  def format_constraints("string_t", field) do
+    format_string_constrains(field)
+  end
+
+  def format_constraints("integer_t", field) do
+    format_integer_constrains(field)
+  end
+
+  def format_constraints("long_t", field) do
+    format_integer_constrains(field)
+  end
+
+  def format_constraints(:boolean_t, field) do
     case Map.get(field, :values) do
       nil -> ""
-      values -> Enum.join(values, ", ")
+      values -> format_values(values)
     end
   end
 
-  def format_constraints(_, field) when is_map(field) do
-    case field[:type] do
-      "string_t" -> format_string_constrains(field)
-      "integer_t" -> format_integer_constrains(field)
-      _ -> ""
-    end
+  def format_constraints(nil, field) do
+    format_max_len(field)
+  end
+
+  # format data type constraints: values, range, regex, and max_len
+  def format_constraints(_type, field) do
+    format_constraints(Map.get(field, :type), field)
   end
 
   defp format_integer_constrains(field) do
     case Map.get(field, :range) do
-      nil -> ""
-      r -> format_range(r)
+      nil ->
+        format_values(Map.get(field, :values))
+
+      r ->
+        format_range(r)
     end
   end
 
   defp format_string_constrains(field) do
+    max_len = format_max_len(field)
+
     case Map.get(field, :regex) do
       nil ->
-        case Map.get(field, :max_len) do
-          nil -> ""
-          max -> "Max length: " <> format_number(max)
+        case max_len do
+          "" ->
+            format_values(Map.get(field, :values))
+
+          len ->
+            len
         end
 
       r ->
-        r
+        max_len <> "</br>" <> r
+    end
+  end
+
+  defp format_values(nil) do
+    ""
+  end
+
+  defp format_values(values) do
+    Enum.join(values, ", ")
+  end
+
+  defp format_max_len(field) do
+    case Map.get(field, :max_len) do
+      nil -> ""
+      max -> "Max length: " <> format_number(max)
     end
   end
 
