@@ -30,6 +30,28 @@ defmodule Schema.Generator do
   @names_file "names.txt"
   @words_file "words.txt"
 
+  def init() do
+    dir = Application.app_dir(:schema_server, @data_dir)
+
+    countries = read_countries(Path.join(dir, @countries_file))
+
+    tactics = read_json_file(Path.join(dir, @tactics_file))
+    techniques = read_json_file(Path.join(dir, @techniques_file))
+
+    files = read_file_types(Path.join(dir, @files_file))
+    names = read_data_file(Path.join(dir, @names_file))
+    words = read_data_file(Path.join(dir, @words_file))
+
+    %Generator{
+      countries: countries,
+      tactics: tactics,
+      techniques: techniques,
+      files: files,
+      names: names,
+      words: words
+    }
+  end
+
   @doc """
   Generate an event intance using the given class.
   """
@@ -74,6 +96,67 @@ defmodule Schema.Generator do
           end
         end)
     end
+  end
+
+  # don't generate unmapped and raw_data data
+  defp generate({:unmapped, _field}, map), do: map
+  defp generate({:raw_data, _field}, map), do: map
+
+  defp generate({name, field}, map) do
+    generate_field(field[:requirement], name, field, map)
+  end
+
+  #  Generate all required fields
+  defp generate_field("required", name, field, map) do
+    generate_field(name, field, map)
+  end
+
+  #  Generate 80% of the recommended fields
+  defp generate_field("recommended", name, field, map) do
+    if random(100) > 20 do
+      generate_field(name, field, map)
+    else
+      map
+    end
+  end
+
+  #  Generate 20% of the optional fields
+  defp generate_field(_requirement, name, field, map) do
+    if random(100) > 90 do
+      generate_field(name, field, map)
+    else
+      map
+    end
+  end
+
+  defp generate_field(name, %{type: "integer_t"} = field, map) do
+    case field[:enum] do
+      nil ->
+        Map.put(map, name, random(100))
+
+      enum ->
+        generate_enum_data(name, enum, map)
+    end
+  end
+
+  defp generate_field(name, field, map) do
+    Map.put(map, name, generate_data(name, field.type, field))
+  end
+
+  defp generate_enum_data(key, enum, map) do
+    name =
+      Atom.to_string(key)
+      |> String.trim("_id")
+      |> String.to_atom()
+
+    id = random_enum(enum)
+
+    if id == -1 do
+      Map.put(map, name, word())
+    else
+      Map.delete(map, name)
+    end
+    |> Map.put(key, id)
   end
 
   defp generate_array("required", name, attribute, map) do
@@ -125,7 +208,7 @@ defmodule Schema.Generator do
         generate_objects(n, attribute)
 
       type ->
-        Enum.map(1..n, fn _ -> data(name, type, field) end)
+        Enum.map(1..n, fn _ -> generate_data(name, type, field) end)
     end
   end
 
@@ -193,57 +276,26 @@ defmodule Schema.Generator do
     Enum.map(1..n, fn _ -> generate(object) end)
   end
 
-  # don't generate unmapped and raw_data data
-  defp generate({:unmapped, _field}, map), do: map
-  defp generate({:raw_data, _field}, map), do: map
+  defp generate_data(:version, _type, _field), do: Schema.version()
+  defp generate_data(:lang, _type, _field), do: "en"
+  defp generate_data(:uuid, _type, _field), do: uuid()
+  defp generate_data(:uid, _type, _field), do: uuid()
+  defp generate_data(:type, _type, _field), do: word()
+  defp generate_data(:name, _type, _field), do: String.capitalize(word())
+  defp generate_data(:creator, _type, _field), do: full_name(2)
+  defp generate_data(:accessor, _type, _field), do: full_name(2)
+  defp generate_data(:modifier, _type, _field), do: full_name(2)
+  defp generate_data(:full_name, _type, _field), do: full_name(2)
+  defp generate_data(:shell, _type, _field), do: shell()
+  defp generate_data(:timezone, _type, _field), do: timezone()
+  defp generate_data(:country, _type, _field), do: country()[:country_name]
+  defp generate_data(:company_name, _type, _field), do: full_name(2)
+  defp generate_data(:owner, _type, _field), do: full_name(2)
+  defp generate_data(:ssid, _type, _field), do: word()
+  defp generate_data(:labels, _type, _field), do: word()
+  defp generate_data(:facility, _type, _field), do: facility()
 
-  defp generate({name, field}, map) do
-    generate(field[:requirement], name, field, map)
-  end
-
-  #  Generate all required fields
-  defp generate("required", name, field, map) do
-    Map.put(map, name, data(name, field.type, field))
-  end
-
-  #  Generate 80% of the recommended fields
-  defp generate("recommended", name, field, map) do
-    if random(100) > 20 do
-      Map.put(map, name, data(name, field.type, field))
-    else
-      map
-    end
-  end
-
-  #  Generate 20% of the optional fields
-  defp generate(_requirement, name, field, map) do
-    if random(100) > 90 do
-      Map.put(map, name, data(name, field.type, field))
-    else
-      map
-    end
-  end
-
-  defp data(:version, _type, _field), do: Schema.version()
-  defp data(:lang, _type, _field), do: "en"
-  defp data(:uuid, _type, _field), do: uuid()
-  defp data(:uid, _type, _field), do: uuid()
-  defp data(:type, _type, _field), do: word()
-  defp data(:name, _type, _field), do: String.capitalize(word())
-  defp data(:creator, _type, _field), do: full_name(2)
-  defp data(:accessor, _type, _field), do: full_name(2)
-  defp data(:modifier, _type, _field), do: full_name(2)
-  defp data(:full_name, _type, _field), do: full_name(2)
-  defp data(:shell, _type, _field), do: shell()
-  defp data(:timezone, _type, _field), do: timezone()
-  defp data(:country, _type, _field), do: country()[:country_name]
-  defp data(:company_name, _type, _field), do: full_name(2)
-  defp data(:owner, _type, _field), do: full_name(2)
-  defp data(:ssid, _type, _field), do: word()
-  defp data(:labels, _type, _field), do: word()
-  defp data(:facility, _type, _field), do: facility()
-
-  defp data(key, "string_t", _field) do
+  defp generate_data(key, "string_t", _field) do
     name = Atom.to_string(key)
 
     if String.ends_with?(name, "_uid") or String.ends_with?(name, "_id") do
@@ -257,20 +309,30 @@ defmodule Schema.Generator do
     end
   end
 
-  defp data(_name, "timestamp_t", _field), do: time()
-  defp data(_name, "hostname_t", _field), do: domain()
-  defp data(_name, "ip_t", _field), do: ipv4()
-  defp data(_name, "subnet_t", _field), do: ipv4()
-  defp data(_name, "mac_t", _field), do: mac()
-  defp data(_name, "ipv4_t", _field), do: ipv4()
-  defp data(_name, "ipv6_t", _field), do: ipv6()
-  defp data(_name, "email_t", _field), do: email()
-  defp data(_name, "port_t", _field), do: random(65536)
-  defp data(_name, "long_t", _field), do: random(65536 * 65536)
-  defp data(_name, "boolean_t", _field), do: random_boolean()
-  defp data(_name, "float_t", _field), do: random_float(100, 100)
+  defp generate_data(_name, "integer_t", field) do
+    case field[:enum] do
+      nil ->
+        random(100)
 
-  defp data(name, "path_t", _field) do
+      enum ->
+        random_enum(enum)
+    end
+  end
+
+  defp generate_data(_name, "timestamp_t", _field), do: time()
+  defp generate_data(_name, "hostname_t", _field), do: domain()
+  defp generate_data(_name, "ip_t", _field), do: ipv4()
+  defp generate_data(_name, "subnet_t", _field), do: ipv4()
+  defp generate_data(_name, "mac_t", _field), do: mac()
+  defp generate_data(_name, "ipv4_t", _field), do: ipv4()
+  defp generate_data(_name, "ipv6_t", _field), do: ipv6()
+  defp generate_data(_name, "email_t", _field), do: email()
+  defp generate_data(_name, "port_t", _field), do: random(65536)
+  defp generate_data(_name, "long_t", _field), do: random(65536 * 65536)
+  defp generate_data(_name, "boolean_t", _field), do: random_boolean()
+  defp generate_data(_name, "float_t", _field), do: random_float(100, 100)
+
+  defp generate_data(name, "path_t", _field) do
     case name do
       :home_dir -> dir_file(random(3))
       :parent_dir -> dir_file(random(5))
@@ -279,39 +341,7 @@ defmodule Schema.Generator do
     end
   end
 
-  defp data(_name, "integer_t", field) do
-    case field[:enum] do
-      nil ->
-        random(100)
-
-      enum ->
-        random(enum)
-    end
-  end
-
-  defp data(_name, _, _), do: word()
-
-  def init() do
-    dir = Application.app_dir(:schema_server, @data_dir)
-
-    countries = read_countries(Path.join(dir, @countries_file))
-
-    tactics = read_json_file(Path.join(dir, @tactics_file))
-    techniques = read_json_file(Path.join(dir, @techniques_file))
-
-    files = read_file_types(Path.join(dir, @files_file))
-    names = read_data_file(Path.join(dir, @names_file))
-    words = read_data_file(Path.join(dir, @words_file))
-
-    %Generator{
-      countries: countries,
-      tactics: tactics,
-      techniques: techniques,
-      files: files,
-      names: names,
-      words: words
-    }
-  end
+  defp generate_data(_name, _, _), do: word()
 
   def name() do
     Agent.get(__MODULE__, fn %Generator{names: {len, names}} -> random_word(len, names) end)
@@ -436,9 +466,9 @@ defmodule Schema.Generator do
     (12 - random(24)) * 60
   end
 
-  def random_boolean() do
-    random(2) == 1
-  end
+  def random(n), do: :rand.uniform(n) - 1
+
+  def random_boolean(), do: random(2) == 1
 
   def country() do
     Agent.get(__MODULE__, fn %Generator{countries: {len, names}} -> random_word(len, names) end)
@@ -518,9 +548,7 @@ defmodule Schema.Generator do
     end
   end
 
-  def random(n) when is_integer(n), do: :rand.uniform(n) - 1
-
-  def random(enum) do
+  defp random_enum(enum) do
     {name, _} = Enum.random(enum)
     name |> Atom.to_string() |> String.to_integer()
   end
