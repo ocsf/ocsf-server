@@ -36,7 +36,7 @@ defmodule Schema.Generator do
   def event(nil), do: nil
 
   def event(class) do
-    Logger.info("class: #{inspect(class.name)}")
+    Logger.info("sample class: #{inspect(class.name)}")
 
     data = generate(class)
     uid = data.class_id * 1000 + (data.outcome_id &&& 0xFFFF)
@@ -153,34 +153,53 @@ defmodule Schema.Generator do
     Enum.map(1..n, fn _ -> generate(object) end)
   end
 
-  defp generate({:version, _field}, map), do: Map.put(map, :version, Schema.version())
-  defp generate({:lang, _field}, map), do: Map.put(map, :lang, "en")
-  defp generate({:uuid, _field}, map), do: Map.put(map, :uuid, uuid())
-  defp generate({:uid, _field}, map), do: Map.put(map, :uid, uuid())
-  defp generate({:name, _field}, map), do: Map.put(map, :name, String.capitalize(word()))
-  defp generate({:creator, _field}, map), do: Map.put(map, :creator, full_name(2))
-  defp generate({:accessor, _field}, map), do: Map.put(map, :accessor, full_name(2))
-  defp generate({:modifier, _field}, map), do: Map.put(map, :modifier, full_name(2))
-  defp generate({:full_name, _field}, map), do: Map.put(map, :full_name, full_name(2))
-  defp generate({:shell, _field}, map), do: Map.put(map, :shell, shell())
-  defp generate({:timezone, _field}, map), do: Map.put(map, :timezone, timezone())
-  defp generate({:country, _field}, map), do: Map.put(map, :country, country()[:country_name])
-  defp generate({:company_name, _field}, map), do: Map.put(map, :company_name, full_name(2))
-  defp generate({:owner, _field}, map), do: Map.put(map, :owner, full_name(2))
-  defp generate({:facility, _field}, map), do: Map.put(map, :facility, facility())
+  # don't generate unmapped and raw_data data
   defp generate({:unmapped, _field}, map), do: map
   defp generate({:raw_data, _field}, map), do: map
 
   defp generate({name, field}, map) do
-    requirement = field[:requirement]
+    generate(field[:requirement], name, field, map)
+  end
 
-    #  Generate all required and 20% of the optional fields
-    if requirement == "required" or random(100) > 90 do
+  #  Generate all required fields
+  defp generate("required", name, field, map) do
+    Map.put(map, name, data(name, field.type, field))
+  end
+
+  #  Generate 80% of the recommended fields
+  defp generate("recommended", name, field, map) do
+    if random(100) > 20 do
       Map.put(map, name, data(name, field.type, field))
     else
       map
     end
   end
+
+  #  Generate 20% of the optional fields
+  defp generate(_requirement, name, field, map) do
+    if random(100) > 90 do
+      Map.put(map, name, data(name, field.type, field))
+    else
+      map
+    end
+  end
+
+  defp data(:version, _type, _field), do: Schema.version()
+  defp data(:lang, _type, _field), do: "en"
+  defp data(:uuid, _type, _field), do: uuid()
+  defp data(:uid, _type, _field), do: uuid()
+  defp data(:name, _type, _field), do: String.capitalize(word())
+  defp data(:creator, _type, _field), do: full_name(2)
+  defp data(:accessor, _type, _field), do: full_name(2)
+  defp data(:modifier, _type, _field), do: full_name(2)
+  defp data(:full_name, _type, _field), do: full_name(2)
+  defp data(:shell, _type, _field), do: shell()
+  defp data(:timezone, _type, _field), do: timezone()
+  defp data(:country, _type, _field), do: country()[:country_name]
+  defp data(:company_name, _type, _field), do: full_name(2)
+  defp data(:owner, _type, _field), do: full_name(2)
+  defp data(:ssid, _type, _field), do: word()
+  defp data(:facility, _type, _field), do: facility()
 
   defp data(key, "string_t", _field) do
     name = Atom.to_string(key)
@@ -188,7 +207,11 @@ defmodule Schema.Generator do
     if String.ends_with?(name, "_uid") or String.ends_with?(name, "_id") do
       uuid()
     else
-      sentence(3)
+      if String.ends_with?(name, "_ver") do
+        version()
+      else
+        sentence(3)
+      end
     end
   end
 
@@ -274,6 +297,11 @@ defmodule Schema.Generator do
 
   def sentence(len) do
     words(len) |> Enum.join(" ")
+  end
+
+  def version() do
+    n = random(3) + 1
+    Enum.map(1..n, fn _ -> random(5) end) |> Enum.join(".")
   end
 
   def file_name(0) do

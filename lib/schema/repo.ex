@@ -4,8 +4,6 @@ defmodule Schema.Repo do
   """
   use Agent
 
-  require Logger
-
   alias Schema.Cache
 
   @spec start :: {:error, any} | {:ok, pid}
@@ -22,7 +20,6 @@ defmodule Schema.Repo do
 
   @spec categories(atom) :: nil | Cache.category_t()
   def categories(id) do
-    Logger.info("category: #{id}")
     Agent.get(__MODULE__, fn schema -> Cache.categories(schema, id) end)
   end
 
@@ -34,7 +31,6 @@ defmodule Schema.Repo do
 
   @spec classes(atom) :: nil | Cache.class_t()
   def classes(id) do
-    Logger.info("class: #{id}")
     Agent.get(__MODULE__, fn schema -> Cache.classes(schema, id) end)
   end
 
@@ -43,7 +39,6 @@ defmodule Schema.Repo do
 
   @spec objects(atom) :: nil | Cache.class_t()
   def objects(id) do
-    Logger.info("object: #{id}")
     Agent.get(__MODULE__, fn schema -> Cache.objects(schema, id) end)
   end
 end
