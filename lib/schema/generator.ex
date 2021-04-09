@@ -58,11 +58,11 @@ defmodule Schema.Generator do
       _ ->
         Enum.reduce(class.attributes, Map.new(), fn {name, field} = attribute, map ->
           if field[:is_array] == true do
-            Map.put(map, name, generate_array(attribute))
+            generate_array(field[:requirement], name, attribute, map)
           else
             case field[:type] do
               "object_t" ->
-                Map.put(map, name, generate_object(attribute))
+                generate_object(field[:requirement], name, attribute, map)
 
               nil ->
                 Logger.error("Missing class: #{name}")
@@ -73,6 +73,26 @@ defmodule Schema.Generator do
             end
           end
         end)
+    end
+  end
+
+  defp generate_array("required", name, attribute, map) do
+    Map.put(map, name, generate_array(attribute))
+  end
+
+  defp generate_array("recommended", name, attribute, map) do
+    if random(100) > 20 do
+      Map.put(map, name, generate_array(attribute))
+    else
+      map
+    end
+  end
+
+  defp generate_array(_, name, attribute, map) do
+    if random(100) > 90 do
+      Map.put(map, name, generate_array(attribute))
+    else
+      map
     end
   end
 
@@ -106,6 +126,26 @@ defmodule Schema.Generator do
 
       type ->
         Enum.map(1..n, fn _ -> data(name, type, field) end)
+    end
+  end
+
+  defp generate_object("required", name, attribute, map) do
+    Map.put(map, name, generate_object(attribute))
+  end
+
+  defp generate_object("recommended", name, attribute, map) do
+    if random(100) > 20 do
+      Map.put(map, name, generate_object(attribute))
+    else
+      map
+    end
+  end
+
+  defp generate_object(_, name, attribute, map) do
+    if random(100) > 90 do
+      Map.put(map, name, generate_object(attribute))
+    else
+      map
     end
   end
 
@@ -188,6 +228,7 @@ defmodule Schema.Generator do
   defp data(:lang, _type, _field), do: "en"
   defp data(:uuid, _type, _field), do: uuid()
   defp data(:uid, _type, _field), do: uuid()
+  defp data(:type, _type, _field), do: word()
   defp data(:name, _type, _field), do: String.capitalize(word())
   defp data(:creator, _type, _field), do: full_name(2)
   defp data(:accessor, _type, _field), do: full_name(2)
@@ -199,6 +240,7 @@ defmodule Schema.Generator do
   defp data(:company_name, _type, _field), do: full_name(2)
   defp data(:owner, _type, _field), do: full_name(2)
   defp data(:ssid, _type, _field), do: word()
+  defp data(:labels, _type, _field), do: word()
   defp data(:facility, _type, _field), do: facility()
 
   defp data(key, "string_t", _field) do
