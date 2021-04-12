@@ -172,6 +172,24 @@ defmodule SchemaWeb.SchemaController do
     end
   end
 
+  @spec validate(Plug.Conn.t(), map) :: Plug.Conn.t()
+  def validate(conn, data) do
+    case data["_json"] do
+      nil ->
+        # Validate a single events
+        response(conn, Schema.Validator.validate(data))
+
+      list when is_list(list) ->
+        # Validate a list of events
+        result = Enum.map(list, fn data -> Schema.Validator.validate(data) end)
+        response(conn, result)
+
+      other ->
+        # some other json data
+        response(conn, %{:error => "The data does not look like an event", "data" => other})
+    end
+  end
+
   defp response(conn, error, data) do
     conn
     |> put_resp_content_type("application/json")

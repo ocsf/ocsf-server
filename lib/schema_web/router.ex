@@ -50,7 +50,7 @@ defmodule SchemaWeb.Router do
     get "/classes/:id", SchemaController, :classes
 
     post "/translate", SchemaController, :translate
-    # post "/validate", SchemaController, :validate
+    post "/validate", SchemaController, :validate
   end
 
   scope "/sample", SchemaWeb do
