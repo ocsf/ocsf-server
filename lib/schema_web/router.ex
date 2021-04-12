@@ -49,7 +49,7 @@ defmodule SchemaWeb.Router do
     get "/classes", SchemaController, :classes
     get "/classes/:id", SchemaController, :classes
 
-    # post "/translate", SchemaController, :translate
+    post "/translate", SchemaController, :translate
     # post "/validate", SchemaController, :validate
   end
 

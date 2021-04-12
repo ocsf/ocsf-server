@@ -21,8 +21,18 @@ defmodule Schema do
   @spec categories :: map()
   def categories(), do: Repo.categories()
 
-  @spec categories(atom) :: nil | Cache.category_t()
+  @spec categories(atom | String.t()) :: nil | Cache.category_t()
   def categories(id) when is_atom(id), do: Repo.categories(id)
+  def categories(id) when is_binary(id), do: Repo.categories(String.to_atom(id))
+
+  @doc """
+  Finds a categoriy by the uid.
+  """
+  @spec find_categoriy(integer()) :: nil | Cache.category_t()
+  def find_categoriy(uid) when is_integer(uid) do
+    Repo.categories()[:attributes]
+    |> Enum.find(fn {_, cat} -> cat[:id] == uid end)
+  end
 
   @doc """
     Returns the event dictionary.
@@ -39,8 +49,15 @@ defmodule Schema do
   @doc """
     Returns a single event class.
   """
-  @spec classes(atom) :: nil | Cache.class_t()
+  @spec classes(atom | String.t()) :: nil | Cache.class_t()
   def classes(id) when is_atom(id), do: Repo.classes(id)
+  def classes(id) when is_binary(id), do: Repo.classes(String.to_atom(id))
+
+  @doc """
+  Finds a class by the class uid value.
+  """
+  @spec find_class(integer()) :: nil | Cache.class_t()
+  def find_class(uid) when is_integer(uid), do: Repo.find_class(uid)
 
   @doc """
     Returns all objects.
@@ -51,8 +68,9 @@ defmodule Schema do
   @doc """
     Returns a single objects.
   """
-  @spec objects(atom) :: nil | Cache.object_t()
+  @spec objects(atom | String.t()) :: nil | Cache.object_t()
   def objects(id) when is_atom(id), do: Repo.objects(id)
+  def objects(id) when is_binary(id), do: Repo.objects(String.to_atom(id))
 
   @spec to_uid(binary) :: atom
   def to_uid(name), do: Cache.to_uid(name)

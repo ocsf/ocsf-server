@@ -196,10 +196,6 @@ defmodule Schema.Generator do
     words(5)
   end
 
-  defp generate_array({:groups, _field}) do
-    words(5)
-  end
-
   defp generate_array({name, field} = attribute) do
     n = random(5)
 

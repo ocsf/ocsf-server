@@ -34,6 +34,10 @@ defmodule Schema.Repo do
     Agent.get(__MODULE__, fn schema -> Cache.classes(schema, id) end)
   end
 
+  def find_class(uid) do
+    Agent.get(__MODULE__, fn schema -> Cache.find_class(schema, uid) end)
+  end
+
   @spec objects() :: map()
   def objects(), do: Agent.get(__MODULE__, fn schema -> Cache.objects(schema) end)
 

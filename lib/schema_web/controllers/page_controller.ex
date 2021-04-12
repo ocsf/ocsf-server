@@ -23,7 +23,7 @@ defmodule SchemaWeb.PageController do
           render(conn, "category.html", data: Map.put(data, :classes, classes))
       end
     rescue
-      e -> send_resp(conn, 400, "Bad Request: #{e.message}")
+      e -> send_resp(conn, 400, "Bad Request: #{e[:message]}")
     end
   end
 
@@ -76,7 +76,7 @@ defmodule SchemaWeb.PageController do
           render(conn, "class.html", data: sort_attributes(data))
       end
     rescue
-      e -> send_resp(conn, 400, "Bad Request: #{e.message}")
+      e -> send_resp(conn, 400, "Bad Request: #{e[:message]}")
     end
   end
 
@@ -99,7 +99,7 @@ defmodule SchemaWeb.PageController do
           render(conn, "class.html", data: sort_attributes(data))
       end
     rescue
-      e -> send_resp(conn, 400, "Bad Request: #{e.message}")
+      e -> send_resp(conn, 400, "Bad Request: #{e[:message]}")
     end
   end
 

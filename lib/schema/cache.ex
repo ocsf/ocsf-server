@@ -117,6 +117,13 @@ defmodule Schema.Cache do
     end
   end
 
+  def find_class(%Cache{dictionary: dictionary, classes: classes}, uid) do
+    case Enum.find(classes, fn {_, class} -> class[:uid] == uid end) do
+      {_, class} -> enrich(class, dictionary.attributes)
+      nil -> nil
+    end
+  end
+
   @spec objects(Schema.Cache.t()) :: map()
   def objects(%Cache{objects: objects}), do: objects
 

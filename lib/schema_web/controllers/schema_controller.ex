@@ -6,8 +6,8 @@ defmodule SchemaWeb.SchemaController do
 
   require Logger
 
-  # @verbose "_mode"
-  # @spaces "_spaces"
+  @verbose "_mode"
+  @spaces "_spaces"
 
   @doc """
   Renders categories or the classes in a given category.
@@ -25,7 +25,7 @@ defmodule SchemaWeb.SchemaController do
     rescue
       e ->
         Logger.error("Unable to classes for category: #{id}. Error: #{inspect(e)}")
-        response(conn, 500, %{error: "Error: #{e.message}"})
+        response(conn, 500, %{error: "Error: #{e[:message]}"})
     end
   end
 
@@ -70,7 +70,7 @@ defmodule SchemaWeb.SchemaController do
     rescue
       e ->
         Logger.error("Unable to get class: #{id}. Error: #{inspect(e)}")
-        response(conn, 500, %{error: "Error: #{e.message}"})
+        response(conn, 500, %{error: "Error: #{e[:message]}"})
     end
   end
 
@@ -78,19 +78,29 @@ defmodule SchemaWeb.SchemaController do
     response(conn, Schema.classes())
   end
 
-  def class(conn, %{"id" => id}) do
+  def class(conn, %{"id" => id} = options) do
     try do
       case Schema.classes(Schema.to_uid(id)) do
         nil ->
           response(conn, 404, %{error: "Not Found: #{id}"})
 
-        data ->
-          response(conn, Schema.event(data))
+        class ->
+          event =
+            case Map.get(options, @verbose) do
+              nil ->
+                Schema.event(class)
+
+              verbose ->
+                Schema.event(class)
+                |> Schema.Translator.translate(verbose: verbose(verbose))
+            end
+
+          response(conn, event)
       end
     rescue
       e ->
         Logger.error("Unable to generate sample for class: #{id}. Error: #{inspect(e)}")
-        response(conn, 500, %{error: "Error: #{e.message}"})
+        response(conn, 500, %{error: "Error: #{e[:message]}"})
     end
   end
 
@@ -110,7 +120,7 @@ defmodule SchemaWeb.SchemaController do
     rescue
       e ->
         Logger.error("Unable to get object: #{id}. Error: #{inspect(e)}")
-        response(conn, 500, %{error: "Error: #{e.message}"})
+        response(conn, 500, %{error: "Error: #{e[:message]}"})
     end
   end
 
@@ -130,54 +140,36 @@ defmodule SchemaWeb.SchemaController do
     rescue
       e ->
         Logger.error("Unable to generate sample for object: #{id}. Error: #{inspect(e)}")
-        response(conn, 500, %{error: "Error: #{e.message}"})
+        response(conn, 500, %{error: "Error: #{e[:message]}"})
     end
   end
 
-  # @spec translate(Plug.Conn.t(), map) :: Plug.Conn.t()
-  # def translate(conn, data) do
-  #   options =
-  #     [verbose: verbose(data[@verbose])]
-  #     |> Keyword.put(:spaces, data[@spaces])
+  @spec translate(Plug.Conn.t(), map) :: Plug.Conn.t()
+  def translate(conn, data) do
+    options =
+      [verbose: verbose(data[@verbose])]
+      |> Keyword.put(:spaces, data[@spaces])
 
-  #   case data["_json"] do
-  #     nil ->
-  #       # Translate a single events
-  #       data =
-  #         Map.delete(data, @verbose)
-  #         |> Map.delete(@spaces)
-  #         |> Schema.Translator.translate(options)
+    case data["_json"] do
+      nil ->
+        # Translate a single events
+        data =
+          Map.delete(data, @verbose)
+          |> Map.delete(@spaces)
+          |> Schema.Translator.translate(options)
 
-  #       response(conn, data)
+        response(conn, data)
 
-  #     list when is_list(list) ->
-  #       # Translate a list of events
-  #       translated = Enum.map(list, fn data -> Schema.Translator.translate(data, options) end)
-  #       response(conn, translated)
+      list when is_list(list) ->
+        # Translate a list of events
+        translated = Enum.map(list, fn data -> Schema.Translator.translate(data, options) end)
+        response(conn, translated)
 
-  #     other ->
-  #       # some other json data
-  #       response(conn, other)
-  #   end
-  # end
-
-  # @spec validate(Plug.Conn.t(), map) :: Plug.Conn.t()
-  # def validate(conn, data) do
-  #   case data["_json"] do
-  #     nil ->
-  #       # Validate a single events
-  #       response(conn, Schema.Validator.validate(data))
-
-  #     list when is_list(list) ->
-  #       # Validate a list of events
-  #       result = Enum.map(list, fn data -> Schema.Validator.validate(data) end)
-  #       response(conn, result)
-
-  #     other ->
-  #       # some other json data
-  #       response(conn, %{:error => "The data does not look like an event", "data" => other})
-  #   end
-  # end
+      other ->
+        # some other json data
+        response(conn, other)
+    end
+  end
 
   defp response(conn, error, data) do
     conn
@@ -202,14 +194,14 @@ defmodule SchemaWeb.SchemaController do
     end
   end
 
-  # defp verbose(nil), do: 1
+  defp verbose(nil), do: 0
 
-  # defp verbose(option) when is_binary(option) do
-  #   case Integer.parse(option) do
-  #     {n, _} -> n
-  #     :error -> 0
-  #   end
-  # end
+  defp verbose(option) when is_binary(option) do
+    case Integer.parse(option) do
+      {n, _} -> n
+      :error -> 0
+    end
+  end
 
-  # defp verbose(_), do: 0
+  defp verbose(_), do: 0
 end
