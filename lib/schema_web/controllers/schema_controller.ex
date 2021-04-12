@@ -92,7 +92,10 @@ defmodule SchemaWeb.SchemaController do
 
               verbose ->
                 Schema.event(class)
-                |> Schema.Translator.translate(verbose: verbose(verbose))
+                |> Schema.Translator.translate(
+                  spaces: options[@spaces],
+                  verbose: verbose(verbose)
+                )
             end
 
           response(conn, event)
@@ -146,9 +149,7 @@ defmodule SchemaWeb.SchemaController do
 
   @spec translate(Plug.Conn.t(), map) :: Plug.Conn.t()
   def translate(conn, data) do
-    options =
-      [verbose: verbose(data[@verbose])]
-      |> Keyword.put(:spaces, data[@spaces])
+    options = [spaces: data[@spaces], verbose: verbose(data[@verbose])]
 
     case data["_json"] do
       nil ->
@@ -193,8 +194,6 @@ defmodule SchemaWeb.SchemaController do
         Map.put(data, key, updated)
     end
   end
-
-  defp verbose(nil), do: 0
 
   defp verbose(option) when is_binary(option) do
     case Integer.parse(option) do

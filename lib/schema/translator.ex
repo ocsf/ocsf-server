@@ -133,6 +133,9 @@ defmodule Schema.Translator do
     Logger.debug("translate_enum: #{name}: #{value}")
 
     case Keyword.get(options, :verbose) do
+      1 ->
+        {name, translated}
+
       2 ->
         {to_text(attribute[:name], options), translated}
 
@@ -146,7 +149,7 @@ defmodule Schema.Translator do
          }}
 
       _ ->
-        {name, translated}
+        {name, value}
     end
   end
 
