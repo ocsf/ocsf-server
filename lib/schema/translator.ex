@@ -120,7 +120,7 @@ defmodule Schema.Translator do
         {name,
          %{
            "_name" => to_text(attribute[:name], options),
-           "_type" => attribute[:type],
+           "_type" => attribute[:object_type] || attribute[:type],
            "_value" => value
          }}
 
@@ -143,7 +143,7 @@ defmodule Schema.Translator do
         {name,
          %{
            "_name" => to_text(attribute[:name], options),
-           "_type" => attribute[:type],
+           "_type" => attribute[:object_type] || attribute[:type],
            "_value" => value,
            "_enum" => translated
          }}
