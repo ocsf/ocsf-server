@@ -42,11 +42,23 @@ defmodule Schema.Inspector do
 
   defp validate_type(type, data) do
     Logger.info("validate: #{type.name}")
+    attributes = type.attributes
 
-    Enum.reduce(type.attributes, %{}, fn {name, attribute}, acc ->
-      Logger.debug("validate attribute: #{name}")
-
+    Enum.reduce(attributes, %{}, fn {name, attribute}, acc ->
       validate_data(acc, name, attribute, data[Atom.to_string(name)])
+    end)
+    |> undefined_attributes(attributes, data)
+  end
+
+  defp undefined_attributes(acc, attributes, data) do
+    Enum.reduce(data, acc, fn {key, value}, map ->
+      case attributes[String.to_atom(key)] do
+        nil ->
+          Map.put(map, key, %{:error => "Undefined attribute name", :value => value})
+
+        _attribute ->
+          map
+      end
     end)
   end
 
