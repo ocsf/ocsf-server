@@ -173,9 +173,8 @@ defmodule Schema.Inspector do
 
     if map_size(map) > 0 do
       Map.put(acc, name, %{
-        :error => "Invalid data: expected #{attribute.type} type",
-        :values => map,
-        :schema => cleanup(attribute)
+        :error => "The array contains invalid data",
+        :values => map
       })
     else
       acc
