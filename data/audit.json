@@ -1,0 +1,45 @@
+{
+  "actor_process": {
+    "file": {
+      "fingerprints": [{
+          "algorithm_id": 1, "value": "EEEC033A2C4D56D7BA16B69358779091"
+        }],
+      "name": "kerberos",
+      "type_id": 1
+    },
+    "integrity_id": 0,
+    "name": "kerberos",
+    "pid": 0
+  },
+  "category_id": 1,
+  "class_id": 400,
+  "customer_uid": "test",
+  "device": {
+    "domain": "SOI",
+    "hostname": "soi.dir.solutia.com",
+    "ip": "137.35.140.130"
+  },
+  "os": {
+    "name": "Microsoft Windows"
+  },
+  "parent_parent": {
+    "file": {
+      "type_id": 1
+    }
+  },
+  "product": {
+    "name": "Microsoft Windows"
+  },
+  "ref_event_name": "An account was successfully logged on.",
+  "ref_event_uid": "4624",
+  "session": {
+    "auth_protocol_id": 2
+  },
+  "severity_id": 1,
+  "status_id": 1,
+  "time": 1421292028000,
+  "user": {
+    "name": "iiwu"
+  },
+  "version": "1.0.0"
+}
