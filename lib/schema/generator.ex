@@ -61,41 +61,45 @@ defmodule Schema.Generator do
     Logger.info("sample class: #{inspect(class.name)}")
 
     data = generate(class)
-    uid = data.class_id * 1000 + (data.outcome_id &&& 0xFFFF)
+    outcome_id = data.outcome_id
+
+    uid =
+      if outcome_id >= 0 do
+        data.class_id * 1000 + outcome_id
+      else
+        -1
+      end
 
     Map.put(data, :event_uid, uid)
   end
 
   def generate(class) do
     case class.type do
-      "location" ->
-        location()
-
-      "fingerprint" ->
-        fingerprint()
-
-      "attack" ->
-        attack()
-
-      _ ->
-        Enum.reduce(class.attributes, Map.new(), fn {name, field} = attribute, map ->
-          if field[:is_array] == true do
-            generate_array(field[:requirement], name, attribute, map)
-          else
-            case field[:type] do
-              "object_t" ->
-                generate_object(field[:requirement], name, attribute, map)
-
-              nil ->
-                Logger.error("Missing class: #{name}")
-                map
-
-              _other ->
-                generate(attribute, map)
-            end
-          end
-        end)
+      "fingerprint" -> fingerprint()
+      "location" -> location()
+      "attack" -> attack()
+      _ -> generate_class(class)
     end
+  end
+
+  defp generate_class(class) do
+    Enum.reduce(class.attributes, Map.new(), fn {name, field} = attribute, map ->
+      if field[:is_array] == true do
+        generate_array(field[:requirement], name, attribute, map)
+      else
+        case field[:type] do
+          "object_t" ->
+            generate_object(field[:requirement], name, attribute, map)
+
+          nil ->
+            Logger.error("Missing class: #{name}")
+            map
+
+          _other ->
+            generate(attribute, map)
+        end
+      end
+    end)
   end
 
   # don't generate unmapped and raw_data data
@@ -323,8 +327,8 @@ defmodule Schema.Generator do
   defp generate_data(_name, "ipv4_t", _field), do: ipv4()
   defp generate_data(_name, "ipv6_t", _field), do: ipv6()
   defp generate_data(_name, "email_t", _field), do: email()
-  defp generate_data(_name, "port_t", _field), do: random(65536)
-  defp generate_data(_name, "long_t", _field), do: random(65536 * 65536)
+  defp generate_data(_name, "port_t", _field), do: random(65_536)
+  defp generate_data(_name, "long_t", _field), do: random(65_536 * 65_536)
   defp generate_data(_name, "boolean_t", _field), do: random_boolean()
   defp generate_data(_name, "float_t", _field), do: random_float(100, 100)
 
@@ -435,7 +439,7 @@ defmodule Schema.Generator do
   # 2001:0000:3238:DFE1:0063:0000:0000:FEFB
   def ipv6() do
     Enum.map(1..8, fn _n ->
-      random(65536)
+      random(65_536)
       |> Integer.to_string(16)
       |> String.pad_leading(4, "0")
     end)

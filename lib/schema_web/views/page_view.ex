@@ -116,11 +116,7 @@ defmodule SchemaWeb.PageView do
               "<a href='#{obj_path}'>#{format_type(conn, obj)}</a>"
 
             obj_name ->
-              if String.starts_with?(obj_name, "*") do
-                "<div class='text-danger'>#{obj_name}</div>"
-              else
-                "<a href='#{obj_path}'>#{obj_name}</a>"
-              end
+              format_object_path(obj_name, obj_path)
           end
 
         _type ->
@@ -133,6 +129,14 @@ defmodule SchemaWeb.PageView do
       type_str <> " Array"
     else
       type_str
+    end
+  end
+
+  defp format_object_path(name, path) do
+    if String.starts_with?(name, "*") do
+      "<div class='text-danger'>#{name}</div>"
+    else
+      "<a href='#{path}'>#{name}</a>"
     end
   end
 

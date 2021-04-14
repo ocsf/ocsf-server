@@ -263,6 +263,8 @@ defmodule Schema.Cache do
     Map.update!(data, :attributes, fn attributes ->
       id = attributes[:outcome_id] || %{}
       uid = attributes[:event_uid] || %{}
+      class_id = (data[:uid] || 0) * 1000
+      caption = data[:name] || "UNKNOWN"
 
       enum =
         case id[:enum] do
@@ -270,19 +272,30 @@ defmodule Schema.Cache do
             %{"0" => "UNKNOWN"}
 
           values ->
-            class_id = data[:uid] || 0
-            caption = data[:name] || "UNKNOWN"
-
             for {key, val} <- values, into: %{} do
-              id = Integer.to_string(class_id * 1000 + String.to_integer(Atom.to_string(key)))
-              name = caption <> ": " <> val[:name]
-
-              {String.to_atom(id), Map.put(val, :name, name)}
+              {
+                make_event_uid(class_id, key),
+                Map.put(val, :name, make_event_name(caption, val[:name]))
+              }
             end
         end
+        |> Map.put(make_uid(0, -1), Map.new(name: make_event_name(caption, "Other")))
+        |> Map.put(make_uid(class_id, 0), Map.new(name: make_event_name(caption, "Unknown")))
 
       Map.put(attributes, :event_uid, Map.put(uid, :enum, enum))
     end)
+  end
+
+  defp make_event_name(caption, name) do
+    caption <> ": " <> name
+  end
+
+  defp make_event_uid(class_id, key) do
+    make_uid(class_id, String.to_integer(Atom.to_string(key)))
+  end
+
+  defp make_uid(class_id, id) do
+    Integer.to_string(class_id + id) |> String.to_atom()
   end
 
   defp add_class_id(data) do
