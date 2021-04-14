@@ -1,0 +1,36 @@
+{
+  "category_id": 5,
+  "class_id": 504,
+  "curr_security_level_id": 1,
+  "curr_security_state": {
+    "state_ids": [15, 9, 6]
+  },
+  "device": {
+    "hostname": "weight.cat",
+    "hw_bios_date": "languages dealtime cover",
+    "ip": "217.152.75.134",
+    "is_managed": true,
+    "type_id": 1,
+    "uid": "8fa8ca60-9d3f-11eb-a954-005056aadf4f"
+  },
+  "entity": {
+    "name": "Ted",
+    "type": "quarters",
+    "uid": "8fa8f026-9d3f-11eb-b552-005056aadf4f",
+    "version": "1.0.0"
+  },
+  "event_uid": 504004,
+  "outcome_id": 4,
+  "prev_security_level_id": 1,
+  "prev_security_state": {
+    "state_ids": [1, 24]
+  },
+  "ref_event_uid": "8fa8e040-9d3f-11eb-a3c3-005056aadf4f",
+  "sequence": 22,
+  "severity_id": 3,
+  "time": 1618418188364,
+  "user": {
+    "name": "Chocolate"
+  },
+  "version": "1.0.0"
+}

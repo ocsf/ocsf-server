@@ -6,5 +6,6 @@
   "severity_id" => 0,
   "time" => 42,
   "version" => "1.2.3",
-  "labels" => ["test"]
+  "labels" => ["test", 42],
+  "user" => %{"name" => "roumen", "groups" => [%{"uid" => 1, "name" => "home"}]}
 }

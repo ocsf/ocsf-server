@@ -20,7 +20,7 @@ defmodule Schema.Inspector do
     "json_t"
   ]
 
-  @integer_types ["integer_t", "port_t", "timestamp_t", "long_t", "json_t"]
+  @integer_types ["port_t", "timestamp_t", "long_t", "json_t"]
   @float_types ["float_t", "json_t"]
   @boolean_types ["boolean_t", "json_t"]
 
@@ -55,7 +55,18 @@ defmodule Schema.Inspector do
   end
 
   defp validate_data(acc, name, attribute, value) when is_integer(value) do
-    validate_data_type(acc, name, attribute, value, @integer_types)
+    type = attribute.type
+
+    case type do
+      "integer_t" ->
+        case validate_enum(attribute[:enum], attribute, value) do
+          :ok -> acc
+          error -> Map.put(acc, name, error)
+        end
+
+      _ ->
+        validate_data_type(acc, name, attribute, value, @integer_types)
+    end
   end
 
   defp validate_data(acc, name, attribute, value) when is_float(value) do
@@ -120,12 +131,11 @@ defmodule Schema.Inspector do
 
   defp validate_array(acc, name, attribute, value) do
     Logger.debug("validate array: #{name}")
-    type = attribute.type
 
-    case type do
+    case attribute.type do
       "json_t" -> acc
       "object_t" -> validate_object_array(acc, name, attribute, value)
-      _simple_t -> validate_simple_array(acc, name, attribute, value)
+      _simple_type -> validate_simple_array(acc, name, attribute, value)
     end
   end
 
@@ -138,13 +148,18 @@ defmodule Schema.Inspector do
       end)
 
     if map_size(map) > 0 do
-      map =
-        Enum.map(map, fn {key, data} -> {key, data.value} end)
-        |> Map.new()
+      error =
+        if attribute[:enum] == nil do
+          "The array contains invalid data: expected #{attribute.type} type"
+        else
+          "The array contains invalid enum values"
+        end
+
+      values = Enum.map(map, fn {key, data} -> {key, data.value} end) |> Map.new()
 
       Map.put(acc, name, %{
-        :error => "Invalid data: expected #{attribute.type} type",
-        :values => map,
+        :error => error,
+        :values => values,
         :schema => cleanup(attribute)
       })
     else
@@ -219,6 +234,19 @@ defmodule Schema.Inspector do
 
   defp member?(types, type) do
     Enum.find(types, fn t -> t == type end)
+  end
+
+  # Validate a single enum value
+  defp validate_enum(nil, _attribute, _value), do: :ok
+
+  defp validate_enum(enum, attribute, value) do
+    key = Integer.to_string(value) |> String.to_atom()
+
+    if Map.has_key?(enum, key) do
+      :ok
+    else
+      %{:error => "Invalid enum value: #{value}", :value => value, :schema => cleanup(attribute)}
+    end
   end
 
   defp cleanup(attribute) do
