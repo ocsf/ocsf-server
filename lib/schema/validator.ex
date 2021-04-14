@@ -69,6 +69,36 @@ defmodule Schema.Validator do
 
   defp validate_attribute("integer_t", attribute, value), do: invalid_value(attribute, value)
 
+  defp validate_attribute("timestamp_t", attribute, value) when is_integer(value),
+    do: validate_value(attribute, value)
+
+  defp validate_attribute("timestamp_t", attribute, value) when is_list(value),
+    do: validate_array(attribute, value)
+
+  defp validate_attribute("timestamp_t", attribute, value), do: invalid_value(attribute, value)
+
+  defp validate_attribute("object_t", attribute, value) when is_map(value) do
+    case validate_value(attribute, value) do
+      :ok ->
+        name = attribute[:object_type]
+        map = validate_event(name, Schema.objects(name), value)
+
+        if Enum.empty?(map) do
+          :ok
+        else
+          map
+        end
+
+      err ->
+        err
+    end
+  end
+
+  defp validate_attribute("object_t", attribute, value) when is_list(value),
+    do: validate_array(attribute, value)
+
+  defp validate_attribute("object_t", attribute, value), do: invalid_value(attribute, value)
+
   defp validate_attribute("long_t", attribute, value) when is_integer(value),
     do: validate_value(attribute, value)
 
@@ -84,14 +114,6 @@ defmodule Schema.Validator do
     do: validate_array(attribute, value)
 
   defp validate_attribute("boolean_t", attribute, value), do: invalid_value(attribute, value)
-
-  defp validate_attribute("timestamp_t", attribute, value) when is_integer(value),
-    do: validate_value(attribute, value)
-
-  defp validate_attribute("timestamp_t", attribute, value) when is_list(value),
-    do: validate_array(attribute, value)
-
-  defp validate_attribute("timestamp_t", attribute, value), do: invalid_value(attribute, value)
 
   defp validate_attribute("hostname_t", attribute, value) when is_binary(value),
     do: validate_value(attribute, value)
@@ -133,14 +155,6 @@ defmodule Schema.Validator do
 
   defp validate_attribute("port_t", attribute, value), do: invalid_value(attribute, value)
 
-  defp validate_attribute("subnet_t", attribute, value) when is_binary(value),
-    do: validate_value(attribute, value)
-
-  defp validate_attribute("subnet_t", attribute, value) when is_list(value),
-    do: validate_array(attribute, value)
-
-  defp validate_attribute("subnet_t", attribute, value), do: invalid_value(attribute, value)
-
   defp validate_attribute("ip_t", attribute, value) when is_binary(value),
     do: validate_value(attribute, value)
 
@@ -163,6 +177,14 @@ defmodule Schema.Validator do
   defp validate_attribute("ipv6_t", attribute, value) when is_list(value),
     do: validate_array(attribute, value)
 
+  defp validate_attribute("subnet_t", attribute, value) when is_binary(value),
+    do: validate_value(attribute, value)
+
+  defp validate_attribute("subnet_t", attribute, value) when is_list(value),
+    do: validate_array(attribute, value)
+
+  defp validate_attribute("subnet_t", attribute, value), do: invalid_value(attribute, value)
+
   defp validate_attribute("ipv6_t", attribute, value), do: invalid_value(attribute, value)
 
   defp validate_attribute("float_t", attribute, value) when is_float(value),
@@ -172,28 +194,6 @@ defmodule Schema.Validator do
     do: validate_array(attribute, value)
 
   defp validate_attribute("float_t", attribute, value), do: invalid_value(attribute, value)
-
-  defp validate_attribute("object_t", attribute, value) when is_map(value) do
-    case validate_value(attribute, value) do
-      :ok ->
-        name = attribute[:object_type]
-        map = validate_event(name, Schema.objects(name), value)
-
-        if Enum.empty?(map) do
-          :ok
-        else
-          map
-        end
-
-      err ->
-        err
-    end
-  end
-
-  defp validate_attribute("object_t", attribute, value) when is_list(value),
-    do: validate_array(attribute, value)
-
-  defp validate_attribute("object_t", attribute, value), do: invalid_value(attribute, value)
 
   defp validate_attribute("json_t", _desc, _value), do: :ok
 

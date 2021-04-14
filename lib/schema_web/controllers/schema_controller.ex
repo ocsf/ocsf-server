@@ -177,11 +177,11 @@ defmodule SchemaWeb.SchemaController do
     case data["_json"] do
       nil ->
         # Validate a single events
-        response(conn, Schema.Validator.validate(data))
+        response(conn, Schema.Inspector.validate(data))
 
       list when is_list(list) ->
         # Validate a list of events
-        result = Enum.map(list, fn data -> Schema.Validator.validate(data) end)
+        result = Enum.map(list, fn data -> Schema.Inspector.validate(data) end)
         response(conn, result)
 
       other ->
