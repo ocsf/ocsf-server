@@ -87,6 +87,10 @@ table.table-borderless tr td {
   padding: 0 10px !important;
 }
 
+tr.thead-color {
+    background-color: #e0e0e0;
+}
+
 .borderless th {
   border: none;
 }

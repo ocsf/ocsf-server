@@ -14,10 +14,10 @@
 <div class="text-secondary">
   <%= raw @data[:description] %>
 </div>
-<div class="mt-2">
-  <table class="table borderless sortable">
+<div class="mt-4">
+  <table class="table table-bordered sortable">
     <thead>
-      <tr class="title-uppercase">
+      <tr class="thead-color">
         <th style="width: 12%">Name</th>
         <th style="width: 12%">Attribute</th>
         <th style="width: 8%">Requirement</th>
