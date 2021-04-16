@@ -83,7 +83,7 @@ defmodule Schema.Translator do
 
     translated =
       case enum[item] do
-        nil -> translate_category_id(name, value)
+        nil -> value
         map -> map[:name]
       end
 
@@ -158,13 +158,5 @@ defmodule Schema.Translator do
       nil -> name
       ch -> String.replace(name, " ", ch)
     end
-  end
-
-  defp translate_category_id("category_id", value) do
-    Schema.find_categoriy(value) || value
-  end
-
-  defp translate_category_id(_name, value) do
-    value
   end
 end

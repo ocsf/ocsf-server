@@ -143,7 +143,7 @@ defmodule Schema.Cache do
 
     list =
       Enum.filter(classes, fn {_name, class} ->
-        Map.get(class, :category_id) == category_id
+        Map.get(class, :category) == category_id
       end)
 
     Map.put(category, :classes, list)
@@ -310,12 +310,12 @@ defmodule Schema.Cache do
   end
 
   defp add_category_id(data, categories) do
-    category_id = data.category_id |> String.to_atom()
+    category_name = data.category |> String.to_atom()
 
-    category = categories[category_id]
+    category = categories[category_name]
 
     if category == nil do
-      exit("#{data.name} has invalid category: #{data.category_id}")
+      exit("#{data.name} has invalid category: #{category_name}")
     end
 
     update_in(data, [:attributes, :category_id, :enum], fn _enum ->

@@ -26,7 +26,7 @@
         <td class="name"> <a href="<%= path %>"><%= map.name %></a></td>
         <td><a href="<%= path %>"><%= map.id %></a></td>
         <td><%= format_range(map.class_id_range) %></td>
-        <td><%= raw map.caption %></td>
+        <td><%= raw map[:description] %></td>
       </tr>
     <% end %>
     </tbody>

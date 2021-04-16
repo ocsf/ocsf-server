@@ -1,4 +1,4 @@
-<% category = @data[:category_id] %>
+<% category = @data[:category] %>
 <%= if category !=nil do %>
 <% path = Routes.static_path(@conn, "/categories/" <> category) %>
 <h2>
