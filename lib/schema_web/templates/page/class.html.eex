@@ -1,14 +1,14 @@
 <% category = @data[:category] %>
 <%= if category !=nil do %>
 <% path = Routes.static_path(@conn, "/categories/" <> category) %>
-<h2>
-  <%= @data.name %> Class
-</h2>
-<h4>
-  <a href="<%= path %>"><%= String.capitalize(category) %> Category</a>
-</h4>
+<h2><%= @data.name %> Class</h2>
+<h4><a href="<%= path %>"><%= String.capitalize(category) %> Category</a></h4>
 <% else %>
-<h2><%= @data.name %></h2>
+  <%= if @data[:type] == "event" do %>
+    <h2><%= @data.name %></h2>
+  <% else %>
+    <h2><%= @data.name %> Object</h2>
+  <% end %>
 <% end %>
 
 <div class="text-secondary">
