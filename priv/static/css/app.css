@@ -83,6 +83,10 @@ table {
   word-wrap: break-word;
 }
 
+table tr td {
+  padding: 0 10px !important;
+}
+
 table.table-borderless tr td {
   padding: 0 10px !important;
 }
