@@ -87,6 +87,11 @@ table tr td {
   padding: 0 20px;
 }
 
+table.table-borderless tr td {
+  padding: 0 10px !important;
+  padding: 0 20px;
+}
+
 tr.thead-color {
     background-color: #e0e0e0;
 }
