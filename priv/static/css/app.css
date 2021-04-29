@@ -63,7 +63,7 @@ li {
   position: fixed;
   bottom: 0;
   width: 100%;
-  color: #FFFFFF;
+  color: lightgoldenrodyellow;
   text-align: center;
   background-color: gray;
 }
@@ -84,11 +84,7 @@ table {
 }
 
 table tr td {
-  padding: 0 10px !important;
-}
-
-table.table-borderless tr td {
-  padding: 0 10px !important;
+  padding: 0 20px;
 }
 
 tr.thead-color {

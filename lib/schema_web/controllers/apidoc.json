@@ -1,0 +1,8 @@
+{
+  "name": "schema-api",
+  "version": "1.0.0",
+  "description": "The Splunk Event Schema (SES) server API allows to access the JSON schema definitions and to validate and translate events.",
+  "title": "Schema API",
+  "url" : "http://event-schema.splunk.com/apidoc",
+  "json_body": true
+}

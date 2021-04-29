@@ -56,8 +56,8 @@ defmodule SchemaWeb.Router do
   scope "/sample", SchemaWeb do
     pipe_through :api
 
-    get "/base_event", SchemaController, :event
-    get "/objects/:id", SchemaController, :object
-    get "/classes/:id", SchemaController, :class
+    get "/base_event", SchemaController, :sample_event
+    get "/objects/:id", SchemaController, :sample_object
+    get "/classes/:id", SchemaController, :sample_class
   end
 end
