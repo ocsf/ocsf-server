@@ -25,12 +25,12 @@
         <div class="navbar-nav mr-auto">
           <a id="home_id" class="nav-item nav-link" href='<%= Routes.static_path(@conn, "/") %>'>Home</a>
           <a id="dictionary_id" class="nav-item nav-link" href='<%= Routes.static_path(@conn, "/dictionary") %>'>Dictionary</a>
-          <a id="base_outcome_id" class="nav-item nav-link" href='<%= Routes.static_path(@conn, "/base_event") %>'>Base Event</a>
+          <a id="base_event_id" class="nav-item nav-link" href='<%= Routes.static_path(@conn, "/base_event") %>'>Base Event</a>
           <a id="objects_id" class="nav-item nav-link" href='<%= Routes.static_path(@conn, "/objects") %>'>Objects</a>
           <a id="classes_id" class="nav-item nav-link" href='<%= Routes.static_path(@conn, "/classes") %>'>Event Classes</a>
           <a id="data_types_id" class="nav-item nav-link" href='<%= Routes.static_path(@conn, "/data_types") %>'>Data Types</a>
           <a id="guidelines_id" class="nav-item nav-link" href='<%= Routes.static_path(@conn, "/guidelines") %>'>Guidelines</a>
-         </div>
+        </div>
 
         <div id="extensions" class="form-inline nav-controls">
           <div class="custom-control custom-checkbox mt-1">
@@ -78,7 +78,7 @@
             $('#dictionary_id').addClass("active");
             break;
           case '/base_event':
-            $('#base_outcome_id').addClass("active");
+            $('#base_event_id').addClass("active");
             break;
           case '/objects':
             $('#objects_id').addClass("active");

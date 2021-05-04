@@ -261,7 +261,7 @@ defmodule Schema.Cache do
 
   defp add_event_uid(data) do
     Map.update!(data, :attributes, fn attributes ->
-      id = attributes[:outcome_id] || %{}
+      id = attributes[:disposition_id] || %{}
       uid = attributes[:event_uid] || %{}
       class_id = (data[:uid] || 0) * 1000
       caption = data[:name] || "UNKNOWN"

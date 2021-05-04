@@ -61,11 +61,11 @@ defmodule Schema.Generator do
     Logger.info("sample class: #{inspect(class.name)}")
 
     data = generate(class)
-    outcome_id = data.outcome_id
+    disposition_id = data.disposition_id
 
     uid =
-      if outcome_id >= 0 do
-        data.class_id * 1000 + outcome_id
+      if disposition_id >= 0 do
+        data.class_id * 1000 + disposition_id
       else
         -1
       end
