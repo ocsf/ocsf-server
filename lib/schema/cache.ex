@@ -3,7 +3,6 @@ defmodule Schema.Cache do
   This module keeps the schema in memory, aka schema cache.
   """
 
-  alias __MODULE__
   alias Schema.Utils
 
   require Logger
@@ -11,9 +10,9 @@ defmodule Schema.Cache do
   @enforce_keys [:version, :dictionary, :categories, :common, :classes, :objects]
   defstruct ~w[version dictionary common categories classes objects]a
 
-  @spec new(map()) :: Schema.Cache.t()
+  @spec new(map()) :: __MODULE__.t()
   def new(version) do
-    %Cache{
+    %__MODULE__{
       version: version,
       dictionary: Map.new(),
       categories: Map.new(),
@@ -23,7 +22,7 @@ defmodule Schema.Cache do
     }
   end
 
-  @type t() :: %Cache{}
+  @type t() :: %__MODULE__{}
   @type class_t() :: map()
   @type object_t() :: map()
   @type category_t() :: map()
@@ -47,7 +46,7 @@ defmodule Schema.Cache do
   @doc """
   Load the schema files and initialize the cache.
   """
-  @spec init :: Cache.t()
+  @spec init :: __MODULE__.t()
   def init() do
     home = data_dir()
 
@@ -79,17 +78,17 @@ defmodule Schema.Cache do
     name |> String.downcase() |> String.to_atom()
   end
 
-  @spec version(Schema.Cache.t()) :: String.t()
-  def version(%Cache{version: version}), do: version[:version]
+  @spec version(__MODULE__.t()) :: String.t()
+  def version(%__MODULE__{version: version}), do: version[:version]
 
-  @spec dictionary(Schema.Cache.t()) :: dictionary_t()
-  def dictionary(%Cache{dictionary: dictionary}), do: dictionary
+  @spec dictionary(__MODULE__.t()) :: dictionary_t()
+  def dictionary(%__MODULE__{dictionary: dictionary}), do: dictionary
 
-  @spec categories(Schema.Cache.t()) :: map()
-  def categories(%Cache{categories: categories}), do: categories
+  @spec categories(__MODULE__.t()) :: map()
+  def categories(%__MODULE__{categories: categories}), do: categories
 
-  @spec categories(Schema.Cache.t(), any) :: nil | category_t()
-  def categories(%Cache{categories: categories, classes: classes}, id) do
+  @spec categories(__MODULE__.t(), any) :: nil | category_t()
+  def categories(%__MODULE__{categories: categories, classes: classes}, id) do
     case Map.get(categories.attributes, id) do
       nil ->
         nil
@@ -99,15 +98,15 @@ defmodule Schema.Cache do
     end
   end
 
-  @spec classes(Schema.Cache.t()) :: list
-  def classes(%Cache{classes: classes}), do: classes
+  @spec classes(__MODULE__.t()) :: list
+  def classes(%__MODULE__{classes: classes}), do: classes
 
-  @spec classes(Schema.Cache.t(), atom()) :: nil | class_t()
-  def classes(%Cache{dictionary: dictionary, common: common}, :event) do
+  @spec classes(__MODULE__.t(), atom()) :: nil | class_t()
+  def classes(%__MODULE__{dictionary: dictionary, common: common}, :event) do
     enrich(common, dictionary.attributes)
   end
 
-  def classes(%Cache{dictionary: dictionary, classes: classes}, id) do
+  def classes(%__MODULE__{dictionary: dictionary, classes: classes}, id) do
     case Map.get(classes, id) do
       nil ->
         nil
@@ -117,18 +116,18 @@ defmodule Schema.Cache do
     end
   end
 
-  def find_class(%Cache{dictionary: dictionary, classes: classes}, uid) do
+  def find_class(%__MODULE__{dictionary: dictionary, classes: classes}, uid) do
     case Enum.find(classes, fn {_, class} -> class[:uid] == uid end) do
       {_, class} -> enrich(class, dictionary.attributes)
       nil -> nil
     end
   end
 
-  @spec objects(Schema.Cache.t()) :: map()
-  def objects(%Cache{objects: objects}), do: objects
+  @spec objects(__MODULE__.t()) :: map()
+  def objects(%__MODULE__{objects: objects}), do: objects
 
-  @spec objects(Schema.Cache.t(), any) :: nil | object_t()
-  def objects(%Cache{dictionary: dictionary, objects: objects}, id) do
+  @spec objects(__MODULE__.t(), any) :: nil | object_t()
+  def objects(%__MODULE__{dictionary: dictionary, objects: objects}, id) do
     case Map.get(objects, id) do
       nil ->
         nil
@@ -172,7 +171,7 @@ defmodule Schema.Cache do
       @data_dir
   end
 
-  defp read_version(home) do
+  def read_version(home) do
     file = Path.join(home, @version_file)
 
     if File.regular?(file) do
@@ -183,25 +182,29 @@ defmodule Schema.Cache do
     end
   end
 
-  defp read_categories(home) do
+  def read_categories(home) do
     Path.join(home, @categories_file)
     |> read_json_file
     |> read_json_files(Path.join(home, @ext_dir), @categories_file)
   end
 
-  defp read_dictionary(home) do
+  def read_dictionary(home) do
     Path.join(home, @dictionary_file)
     |> read_json_file
     |> read_json_files(Path.join(home, @ext_dir), @dictionary_file)
   end
 
-  defp read_classes(home, categories) do
+  def read_classes(home) do
     classes =
       Map.new()
       |> read_schema_files(Path.join(home, @events_dir))
       |> read_schema_files(Path.join(home, @ext_dir), @events_dir)
 
-    base = Map.get(classes, :event)
+    {Map.get(classes, :event), classes}
+  end
+
+  def read_classes(home, categories) do
+    {base, classes} = read_classes(home)
 
     classes =
       Stream.map(classes, fn {name, map} -> {name, resolve_extends(classes, map)} end)
@@ -213,7 +216,7 @@ defmodule Schema.Cache do
     {base, classes}
   end
 
-  defp read_objects(home) do
+  def read_objects(home) do
     Map.new()
     |> read_schema_files(Path.join(home, @objects_dir))
     |> read_schema_files(Path.join(home, @ext_dir), @objects_dir)
@@ -407,23 +410,23 @@ defmodule Schema.Cache do
     end
   end
 
-  defp set_dictionary(%Cache{} = schema, dictionary) do
+  defp set_dictionary(%__MODULE__{} = schema, dictionary) do
     struct(schema, dictionary: dictionary)
   end
 
-  defp set_categories(%Cache{} = schema, categories) do
+  defp set_categories(%__MODULE__{} = schema, categories) do
     struct(schema, categories: categories)
   end
 
-  defp set_common(%Cache{} = schema, common) do
+  defp set_common(%__MODULE__{} = schema, common) do
     struct(schema, common: common)
   end
 
-  defp set_classes(%Cache{} = schema, classes) do
+  defp set_classes(%__MODULE__{} = schema, classes) do
     struct(schema, classes: classes)
   end
 
-  defp set_objects(%Cache{} = schema, objects) do
+  defp set_objects(%__MODULE__{} = schema, objects) do
     struct(schema, objects: objects)
   end
 end
