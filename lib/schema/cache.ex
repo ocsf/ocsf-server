@@ -35,6 +35,9 @@ defmodule Schema.Cache do
   @data_dir "../schema"
   @ext_dir "extensions"
 
+  # to include event traits
+  @include :"$include"
+
   @version_file "version.json"
 
   @categories_file "categories.json"
@@ -206,14 +209,17 @@ defmodule Schema.Cache do
   def read_classes(home, categories) do
     {base, classes} = read_classes(home)
 
-    classes =
-      Stream.map(classes, fn {name, map} -> {name, resolve_extends(classes, map)} end)
+    classes = Enum.map(classes, fn class -> resolve_includes(class, home) end)
+
+    list =
+      classes
+      |> Stream.map(fn {name, map} -> {name, resolve_extends(name, classes, map)} end)
       |> Stream.filter(fn {_name, class} -> Map.has_key?(class, :uid) end)
       |> Stream.map(fn class -> enrich_class(class, categories) end)
       |> Enum.to_list()
       |> Map.new()
 
-    {base, classes}
+    {base, list}
   end
 
   def read_objects(home) do
@@ -221,8 +227,8 @@ defmodule Schema.Cache do
     |> read_schema_files(Path.join(home, @objects_dir))
     |> read_schema_files(Path.join(home, @ext_dir), @objects_dir)
     |> resolve_extends()
-    # remove abstract objects
     |> Enum.filter(fn {key, _object} ->
+      # remove abstract objects
       !String.starts_with?(Atom.to_string(key), "_")
     end)
     |> Map.new()
@@ -260,6 +266,31 @@ defmodule Schema.Cache do
       |> add_category_id(categories)
 
     {name, data}
+  end
+
+  # Add attributes from the included traits
+  defp resolve_includes({name, data}, home) do
+    {name, include(data, Map.get(data.attributes, @include), home)}
+  end
+
+  defp include(data, nil, _home), do: data
+
+  defp include(data, include, home) when is_list(include) do
+    Enum.reduce(include, data, fn file, acc -> include_file(acc, file, home) end)
+  end
+
+  defp include(data, include, home) when is_binary(include) do
+    include_file(data, include, home)
+  end
+
+  defp include_file(data, file, home) do
+    path = Path.join(home, file)
+    Logger.info("#{data[:type]} includes: #{path}")
+
+    included = read_json_file(path)
+    attributes = Utils.deep_merge(included.attributes, Map.delete(data.attributes, @include))
+
+    Map.put(data, :attributes, attributes)
   end
 
   defp add_event_uid(data) do
@@ -328,21 +359,23 @@ defmodule Schema.Cache do
   end
 
   defp resolve_extends(data) do
-    Enum.map(data, fn {name, map} -> {name, resolve_extends(data, map)} end)
+    Enum.map(data, fn {name, map} -> {name, resolve_extends(name, data, map)} end)
   end
 
-  defp resolve_extends(data, map) do
+  defp resolve_extends(name, data, map) do
     case map[:extends] do
       nil ->
         map
 
       key ->
+        Logger.info("#{name} extends: #{key}")
+
         case data[String.to_atom(key)] do
           nil ->
             exit("Error: #{map.name} extends undefined class: #{key}")
 
           base ->
-            base = resolve_extends(data, base)
+            base = resolve_extends(base[:type], data, base)
             attributes = Utils.deep_merge(base.attributes, map.attributes)
 
             Map.merge(base, map)
