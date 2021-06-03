@@ -174,6 +174,13 @@ defmodule Schema.Cache do
       @data_dir
   end
 
+  @spec read_version(
+          binary
+          | maybe_improper_list(
+              binary | maybe_improper_list(any, binary | []) | char,
+              binary | []
+            )
+        ) :: any
   def read_version(home) do
     file = Path.join(home, @version_file)
 
@@ -185,18 +192,66 @@ defmodule Schema.Cache do
     end
   end
 
+  @spec read_categories(
+          binary
+          | maybe_improper_list(
+              binary | maybe_improper_list(any, binary | []) | char,
+              binary | []
+            )
+        ) :: any
   def read_categories(home) do
     Path.join(home, @categories_file)
     |> read_json_file
     |> read_json_files(Path.join(home, @ext_dir), @categories_file)
   end
 
+  @spec read_dictionary(
+          binary
+          | maybe_improper_list(
+              binary | maybe_improper_list(any, binary | []) | char,
+              binary | []
+            )
+        ) :: any
   def read_dictionary(home) do
     Path.join(home, @dictionary_file)
     |> read_json_file
     |> read_json_files(Path.join(home, @ext_dir), @dictionary_file)
   end
 
+  @spec read_classes(
+          binary
+          | maybe_improper_list(
+              binary | maybe_improper_list(any, binary | []) | char,
+              binary | []
+            ),
+          any
+        ) :: {map, map}
+  def read_classes(home, categories) do
+    {base, classes} = read_classes(home)
+
+    classes =
+      classes
+      |> Enum.map(fn class -> resolve_includes(class, home) end)
+      |> Enum.map(fn {name, map} -> update_see_also(name, map, classes) end)
+
+    classes =
+      classes
+      |> Stream.map(fn {name, map} -> {name, resolve_extends(name, classes, map)} end)
+      |> Stream.filter(fn {_name, class} -> Map.has_key?(class, :uid) end)
+      |> Stream.map(fn class -> enrich_class(class, categories) end)
+      |> Enum.to_list()
+      |> Map.new()
+
+    {base, classes}
+  end
+
+  @spec read_classes(
+          binary
+          | maybe_improper_list(
+              binary | maybe_improper_list(any, binary | []) | char,
+              binary | []
+            )
+        ) :: {map, map}
   def read_classes(home) do
     classes =
       Map.new()
@@ -206,22 +261,13 @@ defmodule Schema.Cache do
     {Map.get(classes, :event), classes}
   end
 
-  def read_classes(home, categories) do
-    {base, classes} = read_classes(home)
-
-    classes = Enum.map(classes, fn class -> resolve_includes(class, home) end)
-
-    list =
-      classes
-      |> Stream.map(fn {name, map} -> {name, resolve_extends(name, classes, map)} end)
-      |> Stream.filter(fn {_name, class} -> Map.has_key?(class, :uid) end)
-      |> Stream.map(fn class -> enrich_class(class, categories) end)
-      |> Enum.to_list()
-      |> Map.new()
-
-    {base, list}
-  end
-
+  @spec read_objects(
+          binary
+          | maybe_improper_list(
+              binary | maybe_improper_list(any, binary | []) | char,
+              binary | []
+            )
+        ) :: map
   def read_objects(home) do
     Map.new()
     |> read_schema_files(Path.join(home, @objects_dir))
@@ -383,6 +429,34 @@ defmodule Schema.Cache do
             |> Map.put(:attributes, attributes)
         end
     end
+  end
+
+  defp update_see_also(name, map, classes) do
+    see_also = update_see_also(map[:see_also], classes)
+
+    if see_also != nil and length(see_also) > 0 do
+      Logger.info("update see_also: #{name}")
+      {name, Map.put(map, :see_also, Enum.sort(see_also))}
+    else
+      {name, map}
+    end
+  end
+
+  defp update_see_also(see_also, classes) when is_list(see_also) do
+    Enum.map(see_also, fn name ->
+      case Map.get(classes, String.to_atom(name)) do
+        nil ->
+          nil
+
+        class ->
+          {name, class.name}
+      end
+    end)
+    |> Enum.filter(fn elem -> elem != nil end)
+  end
+
+  defp update_see_also(_see_also, _classes) do
+    nil
   end
 
   defp read_schema_files(classes, path, directory) do
