@@ -117,7 +117,7 @@ defmodule Schema.Generator do
 
   #  Generate 80% of the recommended fields
   defp generate_field("recommended", name, field, map) do
-    if random(100) > 20 do
+    if random(100) > 5 do
       generate_field(name, field, map)
     else
       map
@@ -126,7 +126,7 @@ defmodule Schema.Generator do
 
   #  Generate 20% of the optional fields
   defp generate_field(_requirement, name, field, map) do
-    if random(100) > 90 do
+    if random(100) > 50 do
       generate_field(name, field, map)
     else
       map
