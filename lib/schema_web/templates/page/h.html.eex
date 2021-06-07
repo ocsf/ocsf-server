@@ -1,0 +1,95 @@
+<h2>Splunk Event Schema</h2>
+<svg id="demo" width=800 height=1500 transform="rotate(-90), translate(-0,-0)"></svg>
+
+<script type="text/javascript" src='<%= Routes.static_path(@conn, "/js/d3.v6.min.js") %>'></script>
+
+<script type="text/javascript">
+  $('#extensions .custom-control').hide();
+
+  var data = {"name": "Activity", "children": [
+                {"name": "", "children": [
+                    {"name": "E"},
+                    {"name": "E"},
+                    {"name": "E"},
+                    {"name": "E"},
+                    {"name": "E"},
+                    {"name": "E"},
+                    {"name": "F"}
+                ]},
+                {"name": "Application", "children": [
+                    {"name": "E"},
+                    {"name": "E"},
+                    {"name": "F"}
+                ]},
+                {"name": "Audit", "children": [
+                    {"name": "I"},
+                    {"name": "J"}
+                ]},
+                {"name": "Diagnostic", "children": [
+                    {"name": "E"},
+                    {"name": "E"},
+                    {"name": "F"}
+                ]},
+                {"name": "Discovery", "children": [
+                    {"name": "E"},
+                    {"name": "E"},
+                    {"name": "E"},
+                    {"name": "E"},
+                    {"name": "F"}
+                ]},
+                {"name": "Incident", "children": [
+                  {"name": "M"},
+                    {"name": "E"},
+                  {"name": "N"}
+                ]},
+                {"name": "Policy", "children": [
+                    {"name": "E"},
+                    {"name": "E"},
+                    {"name": "E"},
+                    {"name": "F"}
+                ]},
+                {"name": "Remediation", "children": [
+                    {"name": "E"},
+                    {"name": "E"},
+                    {"name": "E"},
+                    {"name": "E"},
+                    {"name": "F"}
+                ]},
+                {"name": "Security", "children": [
+                    {"name": "E"},
+                    {"name": "E"},
+                    {"name": "E"},
+                    {"name": "E"},
+                    {"name": "E"},
+                    {"name": "E"},
+                    {"name": "E"},
+                    {"name": "E"},
+                    {"name": "F"}
+                ]}
+            ]};
+
+var drawPartition = function() {
+  let root = d3.hierarchy(data).count();
+
+  let partition = d3.partition().size([800,1500]).padding(5);
+
+  partition(root);
+
+  d3.select("#demo")
+    .selectAll('rect.node')
+    .data(root.descendants())
+    .enter()
+    .append('rect')
+    .classed('node', true)
+    .attr('x', d => d.x0)
+    .attr('y', d => d.y0)
+    .attr('width', d => d.x1 - d.x0)
+    .attr('height', d => d.y1 - d.y0)
+    .attr("fill", "lightgray")
+    .attr('stroke', "darkgray")
+    ;
+};
+
+drawPartition();
+
+</script>

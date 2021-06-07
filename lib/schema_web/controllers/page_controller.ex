@@ -4,8 +4,13 @@ defmodule SchemaWeb.PageController do
   """
   use SchemaWeb, :controller
 
+  @spec guidelines(Plug.Conn.t(), any) :: Plug.Conn.t()
   def guidelines(conn, _params) do
     render(conn, "guidelines.html")
+  end
+
+  def view(conn, _params) do
+    render(conn, "h.html")
   end
 
   @doc """
