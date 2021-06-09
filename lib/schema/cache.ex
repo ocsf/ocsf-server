@@ -436,7 +436,7 @@ defmodule Schema.Cache do
 
     if see_also != nil and length(see_also) > 0 do
       Logger.info("update see_also: #{name}")
-      {name, Map.put(map, :see_also, Enum.sort(see_also))}
+      {name, Map.put(map, :see_also, see_also)}
     else
       {name, map}
     end
