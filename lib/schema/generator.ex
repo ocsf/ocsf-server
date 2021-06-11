@@ -53,7 +53,21 @@ defmodule Schema.Generator do
   end
 
   @doc """
-  Generate an event intance using the given class.
+  Generate new event class uid values for a given category.
+  """
+  @spec update_classes(binary(), integer()) :: any()
+  def update_classes(path, uid) when is_binary(path) and is_integer(uid) do
+    if File.dir?(path) do
+      read_classes(nil, path, [])
+      |> Enum.sort()
+      |> Enum.reduce(uid, fn {_, file}, next -> update_classes(file, next) end)
+    else
+      update_class_uid(path, uid)
+    end
+  end
+
+  @doc """
+  Generate an event data using a given class.
   """
   def event(nil), do: nil
 
@@ -631,5 +645,58 @@ defmodule Schema.Generator do
     map = File.read!(filename) |> Jason.decode!(keys: :atoms)
 
     {map_size(map), map}
+  end
+
+  def read_classes(path) do
+    if File.dir?(path) do
+      read_classes(nil, path, []) |> Enum.sort()
+    else
+      []
+    end
+  end
+
+  defp read_classes(name, path, list) do
+    if File.dir?(path) do
+      case File.ls(path) do
+        {:ok, files} ->
+          Enum.reduce(files, list, fn file, acc ->
+            read_classes(file, Path.join(path, file), acc)
+          end)
+
+        error ->
+          exit(error)
+      end
+    else
+      if Path.extname(name) == ".json" do
+        [{name, path} | list]
+      else
+        list
+      end
+    end
+  end
+
+  defp update_class_uid(file, uid) do
+    data = File.read!(file) |> Jason.decode!()
+
+    case Map.get(data, "uid") do
+      nil ->
+        uid
+
+      c_uid ->
+        IO.puts(
+          "#{Integer.to_string(c_uid)} -> #{Integer.to_string(uid)} #{Map.get(data, "name")}"
+        )
+
+        Map.put(data, "uid", uid) |> write_json(file)
+        uid + 1
+    end
+  end
+
+  defp write_json(data, filename) do
+    # if File.exists?(filename) do
+    #   File.rename!(filename, filename <> ".bak")
+    # end
+
+    File.write!(filename, Jason.encode!(data, pretty: true))
   end
 end
