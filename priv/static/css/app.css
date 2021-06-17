@@ -1,4 +1,5 @@
 /* This file is the main application css. */
+
 body {
   font-family: 'Open Sans', open-sans, sans-serif !important;
 }
@@ -20,7 +21,6 @@ blockquote small {
   font-style: normal;
 }
 
-
 .glyphicon {
   line-height: 1;
 }
@@ -34,6 +34,7 @@ strong {
 }
 
 /*     General overwrite     */
+
 a {
   color: #366BB2;
 }
@@ -43,22 +44,22 @@ a:hover, a:focus {
   text-decoration: none;
 }
 
-.ui-slider-handle:focus,
-.navbar-toggle,
-input:focus,
-button:focus {
+.ui-slider-handle:focus, .navbar-toggle, input:focus, button:focus {
   outline: 0 !important;
 }
 
 li {
   margin-bottom: 4px;
 }
+
 /* Custom page header */
+
 .logo {
   margin-right: 20px;
 }
 
 /* Custom page footer */
+
 .footer {
   position: fixed;
   bottom: 0;
@@ -93,7 +94,7 @@ table.table-borderless tr td {
 }
 
 tr.thead-color {
-    background-color: #e0e0e0;
+  background-color: #e0e0e0;
 }
 
 .borderless th {
@@ -128,6 +129,7 @@ span.hidden {
 }
 
 /* Collapsible description */
+
 [data-toggle="collapse"].collapsed .if-not-collapsed {
   display: none;
 }
