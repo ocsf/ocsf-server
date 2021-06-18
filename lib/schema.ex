@@ -26,15 +26,6 @@ defmodule Schema do
   def categories(id) when is_binary(id), do: Repo.categories(String.to_atom(id))
 
   @doc """
-  Finds a categoriy by the uid.
-  """
-  @spec find_categoriy(integer()) :: nil | Cache.category_t()
-  def find_categoriy(uid) when is_integer(uid) do
-    Repo.categories()[:attributes]
-    |> Enum.find(fn {_, cat} -> cat[:id] == uid end)
-  end
-
-  @doc """
     Returns the event dictionary.
   """
   @spec dictionary :: Cache.dictionary_t()
@@ -83,6 +74,7 @@ defmodule Schema do
     Schema.Generator.event(class)
   end
 
+  @spec generate(%{:type => any, optional(any) => any}) :: any
   def generate(type) when is_map(type) do
     Schema.Generator.generate(type)
   end

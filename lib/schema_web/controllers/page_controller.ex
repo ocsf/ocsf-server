@@ -117,6 +117,6 @@ defmodule SchemaWeb.PageController do
   end
 
   defp sort_by_type_id(map) do
-    Enum.sort(map, fn {_, v1}, {_, v2} -> v1.uid <= v2.uid end)
+    Enum.sort(map, fn {_, v1}, {_, v2} -> v1[:uid] <= v2[:uid] end)
   end
 end
