@@ -174,13 +174,7 @@ defmodule Schema.Cache do
       @data_dir
   end
 
-  @spec read_version(
-          binary
-          | maybe_improper_list(
-              binary | maybe_improper_list(any, binary | []) | char,
-              binary | []
-            )
-        ) :: any
+  @spec read_version(binary) :: any
   def read_version(home) do
     file = Path.join(home, @version_file)
 
@@ -192,40 +186,21 @@ defmodule Schema.Cache do
     end
   end
 
-  @spec read_categories(
-          binary
-          | maybe_improper_list(
-              binary | maybe_improper_list(any, binary | []) | char,
-              binary | []
-            )
-        ) :: any
+  @spec read_categories(binary) :: any
   def read_categories(home) do
     Path.join(home, @categories_file)
     |> read_json_file
     |> read_json_files(Path.join(home, @ext_dir), @categories_file)
   end
 
-  @spec read_dictionary(
-          binary
-          | maybe_improper_list(
-              binary | maybe_improper_list(any, binary | []) | char,
-              binary | []
-            )
-        ) :: any
+  @spec read_dictionary(binary) :: any
   def read_dictionary(home) do
     Path.join(home, @dictionary_file)
     |> read_json_file
     |> read_json_files(Path.join(home, @ext_dir), @dictionary_file)
   end
 
-  @spec read_classes(
-          binary
-          | maybe_improper_list(
-              binary | maybe_improper_list(any, binary | []) | char,
-              binary | []
-            ),
-          any
-        ) :: {map, map}
+  @spec read_classes(binary, map) :: {map, map}
   def read_classes(home, categories) do
     {base, classes} = read_classes(home)
 
@@ -245,13 +220,7 @@ defmodule Schema.Cache do
     {base, classes}
   end
 
-  @spec read_classes(
-          binary
-          | maybe_improper_list(
-              binary | maybe_improper_list(any, binary | []) | char,
-              binary | []
-            )
-        ) :: {map, map}
+  @spec read_classes(binary) :: {map, map}
   def read_classes(home) do
     classes =
       Map.new()
@@ -261,13 +230,7 @@ defmodule Schema.Cache do
     {Map.get(classes, :event), classes}
   end
 
-  @spec read_objects(
-          binary
-          | maybe_improper_list(
-              binary | maybe_improper_list(any, binary | []) | char,
-              binary | []
-            )
-        ) :: map
+  @spec read_objects(binary) :: map
   def read_objects(home) do
     Map.new()
     |> read_schema_files(Path.join(home, @objects_dir))
