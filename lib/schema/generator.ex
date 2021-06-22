@@ -306,7 +306,7 @@ defmodule Schema.Generator do
   defp generate_data(:company_name, _type, _field), do: full_name(2)
   defp generate_data(:owner, _type, _field), do: full_name(2)
   defp generate_data(:ssid, _type, _field), do: word()
-  defp generate_data(:labels, _type, _field), do: word()
+  defp generate_data(:labels, _type, _field), do: words(5)
   defp generate_data(:facility, _type, _field), do: facility()
 
   defp generate_data(key, "string_t", _field) do
