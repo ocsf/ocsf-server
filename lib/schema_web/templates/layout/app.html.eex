@@ -57,7 +57,7 @@
     </div>
 
     <div class="footer">
-      Slpunk Event Schema v<%= Schema.version() %> &copy; 2005-2021 Splunk Inc. All rights reserved.
+      Splunk Event Schema v<%= Schema.version() %> &copy; 2005-2021 Splunk Inc. All rights reserved. This content includes the ICD Schema developed by Symantec, a division of Broadcom.
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
