@@ -114,10 +114,11 @@ defmodule Schema do
             Schema.categories(name)
             |> Map.pop(:classes)
 
-          children = Enum.map(classes, fn {name, _class} ->
-            class = get_class(name)
-            Map.put(class, :value, length(class.attributes))
-          end)
+          children =
+            Enum.map(classes, fn {name, _class} ->
+              class = get_class(name)
+              Map.put(class, :value, length(class.attributes))
+            end)
 
           Map.put(cat, :children, children)
           |> Map.put(:value, length(children))
