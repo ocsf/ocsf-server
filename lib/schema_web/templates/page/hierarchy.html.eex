@@ -1,0 +1,20 @@
+<h2>Splunk Event Schema</h2>
+
+<script src="//unpkg.com/d3"></script>
+<script src="//unpkg.com/icicle-chart"></script>
+
+<div id="chart"></div>
+
+<script>
+  const color = d3.scaleOrdinal(d3.schemePaired);
+
+  fetch('api/schema').then(res => res.json()).then(data => {
+    Icicle()
+      .data(data)
+      .label('name')
+      .size('value')
+      .color((d, parent) => color(parent ? parent.data.name : null))
+      .tooltipContent((d, node) => `Size: <i>${node.value}</i>`)
+      (document.getElementById('chart'));
+  });
+</script>

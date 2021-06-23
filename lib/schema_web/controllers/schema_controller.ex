@@ -165,6 +165,18 @@ defmodule SchemaWeb.SchemaController do
     send_json_resp(conn, objects)
   end
 
+  # {
+  # @api {get} /api/schema Request the schema hierarchy
+  # @apiName Schema
+  # @apiGroup Schema
+  # @apiVersion 1.0.0
+  # @apiPermission none
+  # }
+  @spec schema(Plug.Conn.t(), any) :: Plug.Conn.t()
+  def schema(conn, _params) do
+    send_json_resp(conn, Schema.hierarchy())
+  end
+
   # ---------------------------------
   # Validation and translation API's
   # ---------------------------------
@@ -181,19 +193,19 @@ defmodule SchemaWeb.SchemaController do
   #
   # @apiParamExample {json} Request-Example:
   #     {
-  #       "class_id": 100, 
+  #       "class_id": 100,
   #       "disposition_id": 1,
   #       "severity_id": 1,
   #       "message": "This is an important message"
   #     }
-  # 
+  #
   # @apiSuccessExample {json} Success-Response:
   #     {
   #       "class_id": "Entity Audit",
   #       "message": "This is an important message",
   #       "disposition_id": "Created",
   #       "severity_id": "Informational"
-  #     }  
+  #     }
   # }
   @spec translate(Plug.Conn.t(), map) :: Plug.Conn.t()
   def translate(conn, data) do

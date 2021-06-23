@@ -9,8 +9,8 @@ defmodule SchemaWeb.PageController do
     render(conn, "guidelines.html")
   end
 
-  def view(conn, _params) do
-    render(conn, "h.html")
+  def schema(conn, _params) do
+    render(conn, "hierarchy.html")
   end
 
   @doc """

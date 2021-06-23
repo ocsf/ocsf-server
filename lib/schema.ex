@@ -26,15 +26,6 @@ defmodule Schema do
   def categories(id) when is_binary(id), do: Repo.categories(String.to_atom(id))
 
   @doc """
-  Finds a categoriy by the uid.
-  """
-  @spec find_categoriy(integer()) :: nil | Cache.category_t()
-  def find_categoriy(uid) when is_integer(uid) do
-    Repo.categories()[:attributes]
-    |> Enum.find(fn {_, cat} -> cat[:id] == uid end)
-  end
-
-  @doc """
     Returns the event dictionary.
   """
   @spec dictionary :: Cache.dictionary_t()
@@ -75,6 +66,10 @@ defmodule Schema do
   @spec to_uid(binary) :: atom
   def to_uid(name), do: Cache.to_uid(name)
 
+  @doc """
+  Returns a randomly generated sample event.
+  """
+  @spec event(atom() | map()) :: nil | map()
   def event(class) when is_atom(class) do
     Schema.classes(class) |> Schema.Generator.event()
   end
@@ -83,7 +78,58 @@ defmodule Schema do
     Schema.Generator.event(class)
   end
 
+  @doc """
+  Returns a randomly generated sample data.
+  """
+  @spec generate(map()) :: any()
   def generate(type) when is_map(type) do
     Schema.Generator.generate(type)
+  end
+
+  def remove_links(data) do
+    data
+    |> Map.delete(:_links)
+    |> remove_links(:attributes)
+  end
+
+  def remove_links(data, key) do
+    case data[key] do
+      nil ->
+        data
+
+      attributes ->
+        updated = Enum.map(attributes, fn {k, v} -> %{k => Map.delete(v, :_links)} end)
+        Map.put(data, key, updated)
+    end
+  end
+
+  def hierarchy() do
+    base = get_class(:event)
+
+    categories =
+      Stream.map(
+        Map.get(Schema.categories(), :attributes),
+        fn {name, _} ->
+          {classes, cat} =
+            Schema.categories(name)
+            |> Map.pop(:classes)
+
+          children = Enum.map(classes, fn {name, _class} ->
+            class = get_class(name)
+            Map.put(class, :value, length(class.attributes))
+          end)
+
+          Map.put(cat, :children, children)
+          |> Map.put(:value, length(children))
+        end
+      )
+      |> Enum.to_list()
+
+    Map.put(base, :children, categories)
+    |> Map.put(:value, length(categories))
+  end
+
+  defp get_class(name) do
+    Schema.classes(name) |> Schema.remove_links() |> Map.delete(:see_also)
   end
 end

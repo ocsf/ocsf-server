@@ -17,7 +17,7 @@ defmodule SchemaWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :categories
-    get "/view", PageController, :view
+    get "/schema", PageController, :schema
     get "/categories/:id", PageController, :categories
 
     get "/dictionary", PageController, :dictionary
@@ -49,6 +49,8 @@ defmodule SchemaWeb.Router do
 
     get "/classes", SchemaController, :classes
     get "/classes/:id", SchemaController, :classes
+
+    get "/schema", SchemaController, :schema
 
     post "/translate", SchemaController, :translate
     post "/validate", SchemaController, :validate
