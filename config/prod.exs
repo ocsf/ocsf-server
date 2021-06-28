@@ -12,7 +12,7 @@ config :logger,
 # To get SSL working, you will need to add the `https` key
 # to the previous section and set your `:url` port to 443:
 #
-config :schema, SchemaWeb.Endpoint,
+config :schema_server, SchemaWeb.Endpoint,
   https: [
     port: 443,
     cipher_suite: :strong,
