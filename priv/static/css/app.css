@@ -137,3 +137,16 @@ span.hidden {
 [data-toggle="collapse"]:not(.collapsed) .if-collapsed {
   display: none;
 }
+
+.tooltip-inner{
+  word-wrap: normal;
+  max-width:500px;
+  color:#2d2e2ee1;
+  text-align:center;
+  background: -webkit-gradient(linear, left top, left 25, from(#F4F4F4), color-stop(4%, #B4C8D6), to(#F4F4F4)); 
+  background: -moz-linear-gradient(top, #F4F4F4, #B4C8D6 1px, #F4F4F4 25px); 
+  border: 1px solid #161616;
+  -webkit-border-radius:6px;
+  -moz-border-radius:6px;
+  border-radius:6px;    
+}

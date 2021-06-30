@@ -224,6 +224,7 @@ defmodule Schema.Cache do
       |> read_schema_files(Path.join(home, @ext_dir), @events_dir)
       |> update_see_also()
       |> resolve_includes(home)
+      |> Enum.map(fn class -> attribute_source(class) end)
       |> Map.new()
 
     {Map.get(classes, :event), classes}
@@ -366,6 +367,18 @@ defmodule Schema.Cache do
       id = Integer.to_string(category.id) |> String.to_atom()
       %{id => Map.delete(category, :class_id_range)}
     end)
+  end
+
+  defp attribute_source({name, map}) do
+    data =
+      Map.update(map, :attributes, [], fn attributes ->
+        Enum.map(attributes, fn {key, attribute} ->
+          {key, Map.put(attribute, :_source, name)}
+        end)
+        |> Map.new()
+      end)
+
+    {name, data}
   end
 
   defp resolve_extends(data) do

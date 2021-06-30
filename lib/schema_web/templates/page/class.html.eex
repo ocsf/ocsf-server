@@ -5,7 +5,7 @@
   <h4><a href="<%= path %>"><%= String.capitalize(category) %> Category</a></h4>
 
   <% see_also = @data[:see_also] %>
-  <%= if see_also != nil do %>
+  <%= if see_also != nil and see_also != [] do %>
     <div class="container-fluid mb-3 mt-2">
       <div class="row">
         <div class="font-weight-bold">See Also:</div>
@@ -60,7 +60,7 @@
       <% end %>
 
         <td class="name"><%= field.name %></td>
-        <td><%= attribute %></td>
+        <td data-toggle="tooltip" title="<%= field[:_source] %>"><%= attribute %></td>
         <td class="capitalize"><%= format_requirement(field) %></td>
         <td><%= raw format_type(@conn, field) %></td>
         <td><%= raw format_desc(field) %></td>
@@ -86,6 +86,10 @@
   $('#btn-example').on('click', function(event) {
     const url = '/sample' + window.location.pathname;
     window.open(url,'_blank');
+  });
+
+  $(function () {
+    $('[data-toggle="tooltip"]').tooltip()
   });
 </script>
 
