@@ -60,7 +60,7 @@
       <% end %>
 
         <td class="name"><%= field.name %></td>
-        <td><%= attribute %></td>
+        <td data-toggle="tooltip" title="<%= field[:_source] %>"><%= attribute %></td>
         <td class="capitalize"><%= format_requirement(field) %></td>
         <td><%= raw format_type(@conn, field) %></td>
         <td><%= raw format_desc(field) %></td>
@@ -86,6 +86,10 @@
   $('#btn-example').on('click', function(event) {
     const url = '/sample' + window.location.pathname;
     window.open(url,'_blank');
+  });
+
+  $(function () {
+    $('[data-toggle="tooltip"]').tooltip()
   });
 </script>
 
