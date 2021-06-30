@@ -364,7 +364,7 @@ defmodule Schema.Cache do
 
     update_in(data, [:attributes, :category_id, :enum], fn _enum ->
       id = Integer.to_string(category.id) |> String.to_atom()
-      %{id => category}
+      %{id => Map.delete(category, :class_id_range)}
     end)
   end
 

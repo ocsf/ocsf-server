@@ -101,7 +101,7 @@ defmodule SchemaWeb.SchemaController do
           send_json_resp(conn, 404, %{error: "Not Found: #{id}"})
 
         data ->
-          send_json_resp(conn, remove_links(data, :attributes))
+          send_json_resp(conn, remove_links(data))
       end
     rescue
       e ->
@@ -118,7 +118,12 @@ defmodule SchemaWeb.SchemaController do
   # @apiPermission none
   # }
   def classes(conn, _params) do
-    send_json_resp(conn, Schema.classes())
+    classes =
+      Enum.map(Schema.classes(), fn {_name, class} ->
+        Map.delete(class, :see_also) |> Map.delete(:attributes)
+      end)
+
+    send_json_resp(conn, classes)
   end
 
   # {
@@ -140,7 +145,8 @@ defmodule SchemaWeb.SchemaController do
           send_json_resp(conn, 404, %{error: "Not Found: #{id}"})
 
         data ->
-          send_json_resp(conn, remove_links(data))
+          objects = remove_links(data)
+          send_json_resp(conn, objects)
       end
     rescue
       e ->
@@ -181,19 +187,19 @@ defmodule SchemaWeb.SchemaController do
   #
   # @apiParamExample {json} Request-Example:
   #     {
-  #       "class_id": 100, 
+  #       "class_id": 100,
   #       "disposition_id": 1,
   #       "severity_id": 1,
   #       "message": "This is an important message"
   #     }
-  # 
+  #
   # @apiSuccessExample {json} Success-Response:
   #     {
   #       "class_id": "Entity Audit",
   #       "message": "This is an important message",
   #       "disposition_id": "Created",
   #       "severity_id": "Informational"
-  #     }  
+  #     }
   # }
   @spec translate(Plug.Conn.t(), map) :: Plug.Conn.t()
   def translate(conn, data) do
@@ -356,6 +362,7 @@ defmodule SchemaWeb.SchemaController do
   defp remove_links(data) do
     data
     |> Map.delete(:_links)
+    |> Map.delete(:see_also)
     |> remove_links(:attributes)
   end
 
