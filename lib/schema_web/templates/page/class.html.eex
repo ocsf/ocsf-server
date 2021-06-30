@@ -5,7 +5,7 @@
   <h4><a href="<%= path %>"><%= String.capitalize(category) %> Category</a></h4>
 
   <% see_also = @data[:see_also] %>
-  <%= if see_also != nil do %>
+  <%= if see_also != nil and see_also != [] do %>
     <div class="container-fluid mb-3 mt-2">
       <div class="row">
         <div class="font-weight-bold">See Also:</div>
