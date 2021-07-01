@@ -120,7 +120,8 @@ defmodule Schema do
               Map.put(class, :value, length(class.attributes))
             end)
 
-          Map.put(cat, :children, children)
+          Map.put(cat, :type, name)
+          |> Map.put(:children, children)
           |> Map.put(:value, length(children))
         end
       )

@@ -101,6 +101,10 @@ tr.thead-color {
   border: none;
 }
 
+.schema {
+  background-color: #f2f2f2;
+}
+
 .name {
   background-color: #224F8B;
   color: lightgoldenrodyellow;
