@@ -25,8 +25,22 @@ blockquote small {
   line-height: 1;
 }
 
-.text-reserved {
-  color: darkslateblue;
+.required {
+  color: black;
+  font-weight: 500;
+}
+
+.reserved {
+  color: rgb(46, 26, 177);
+}
+
+.extension {
+  color: #403D39;
+  font-weight: 300;
+}
+
+.base-event {
+  font-style: italic;
 }
 
 strong {

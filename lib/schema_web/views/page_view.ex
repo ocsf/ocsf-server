@@ -12,12 +12,31 @@ defmodule SchemaWeb.PageView do
     Map.get(field, :requirement) || "optional"
   end
 
-  def required?(field) do
+  def field_classes(field) do
+    base =
+      if field[:_source] == :event do
+        "base-event "
+      else
+        ""
+      end
+
+    if required?(field) do
+      base <> "required"
+    else
+      if reserved?(field) do
+        base <> "reserved"
+      else
+        base <> "extension"
+      end
+    end
+  end
+
+  defp required?(field) do
     r = Map.get(field, :requirement)
     r == "required" or r == "recommended"
   end
 
-  def reserved?(field) do
+  defp reserved?(field) do
     Map.get(field, :requirement) == "reserved"
   end
 

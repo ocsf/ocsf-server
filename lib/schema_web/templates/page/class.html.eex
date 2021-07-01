@@ -49,16 +49,7 @@
       <%= for {key, field} <- @data.attributes do %>
       <% attribute = Atom.to_string(key) %>
 
-      <%= if required?(field) do %>
-        <tr class="required">
-      <% else %>
-        <%= if reserved?(field) do %>
-          <tr class="reserved text-reserved">
-        <% else %>
-          <tr class="extension text-muted">
-        <% end %>
-      <% end %>
-
+        <tr class="<%= field_classes(field)%>">
         <td class="name"><%= field.name %></td>
         <td data-toggle="tooltip" title="<%= field[:_source] %>"><%= attribute %></td>
         <td class="capitalize"><%= format_requirement(field) %></td>

@@ -34,6 +34,10 @@
 
         <div id="extensions" class="form-inline nav-controls">
           <div class="custom-control custom-checkbox mt-1">
+            <input type="checkbox" class="custom-control-input" id="btn-base-event" autocomplete="off" />
+            <label class="custom-control-label mr-2" for="btn-base-event">Base Event</label>
+          </div>
+          <div class="custom-control custom-checkbox mt-1">
             <input type="checkbox" class="custom-control-input" id="btn-reserved" autocomplete="off" />
             <label class="custom-control-label mr-2" for="btn-reserved">Reserved</label>
           </div>
@@ -42,7 +46,7 @@
             <label class="custom-control-label mr-2" for="btn-extensions">Optional</label>
           </div>
           <div class="custom-control mr-2 mt-1">
-            <button type="button" id="btn-example" class="btn btn-light btn-sm">Sample</button>
+            <button type="button" id="btn-example" class="btn btn-light">Sample</button>
           </div>
           <input type="text" id="tableSearch" onkeyup="searchInTable()"
             class="form-control" placeholder="Search" aria-label="Search" autofocus>
@@ -95,45 +99,7 @@
        }
       });
 
-    const reserved = window.localStorage.reserved === "true";
-    $('#btn-reserved').prop("checked", reserved);
-    if (reserved) {
-      $('.reserved').removeClass('d-none');
-    } else {
-      // hide
-      $('.reserved').addClass('d-none');
-    }
-
-    $('#btn-reserved').on('click', function (e) {
-      if (e.target.checked) {
-        window.localStorage.reserved = true;
-        $('.reserved').removeClass('d-none');
-      } else {
-        // hide
-        window.localStorage.reserved = false;
-        $('.reserved').addClass('d-none');
-      }
-    })
-
-    const extensions = window.localStorage.extensions === "true";
-    $('#btn-extensions').prop("checked", extensions);
-    if (extensions) {
-      $('.extension').removeClass('d-none');
-    } else {
-      // hide
-      $('.extension').addClass('d-none');
-    }
-
-    $('#btn-extensions').on('click', function (e) {
-      if (e.target.checked) {
-        window.localStorage.extensions = true;
-        $('.extension').removeClass('d-none');
-      } else {
-        // hide
-        window.localStorage.extensions = false;
-        $('.extension').addClass('d-none');
-      }
-    })
+      init_checkboxes()
 
     </script>
 
