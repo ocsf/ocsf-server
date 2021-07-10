@@ -17,7 +17,7 @@ defmodule SchemaWeb.PageView do
       if field[:_source] == :event do
         "base-event "
       else
-        ""
+        "event "
       end
 
     if required?(field) do
@@ -26,7 +26,7 @@ defmodule SchemaWeb.PageView do
       if reserved?(field) do
         base <> "reserved"
       else
-        base <> "extension"
+        base <> "optional"
       end
     end
   end

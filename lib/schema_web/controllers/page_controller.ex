@@ -101,7 +101,7 @@ defmodule SchemaWeb.PageController do
           send_resp(conn, 404, "Not Found: #{id}")
 
         data ->
-          render(conn, "class.html", data: sort_attributes(data))
+          render(conn, "object.html", data: sort_attributes(data))
       end
     rescue
       e -> send_resp(conn, 400, "Bad Request: #{e[:message]}")
