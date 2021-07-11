@@ -35,6 +35,7 @@
         <a id="objects_id" class="nav-item nav-link" href='<%= Routes.static_path(@conn, "/objects") %>'>Objects</a>
         <a id="classes_id" class="nav-item nav-link" href='<%= Routes.static_path(@conn, "/classes") %>'>Event
           Classes</a>
+        <a id="schema_map_id" class="nav-item nav-link" href='<%= Routes.static_path(@conn, "/schema") %>'>Schema Map</a>
         <a id="data_types_id" class="nav-item nav-link" href='<%= Routes.static_path(@conn, "/data_types") %>'>Data
           Types</a>
         <a id="guidelines_id" class="nav-item nav-link"
@@ -106,6 +107,9 @@
           break;
         case '/classes':
           $('#classes_id').addClass("active");
+          break;
+        case '/schema':
+          $('#schema_map_id').addClass("active");
           break;
         case '/data_types':
           $('#data_types_id').addClass("active");

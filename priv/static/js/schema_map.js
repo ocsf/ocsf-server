@@ -63,8 +63,7 @@ export default function define(runtime, observer) {
         .attr("y", function (d) { return d.y0 + 20 })
         .text(function (d) { return d.data.name })
         .style("font", "13px open-sans")
-        .attr("fill", function (d) { return color(d.data.name) })
-        .attr("fill-opacity", 1);
+        .attr("fill", function (d) { return color(d.data.name) });
 
       return svg.node();
     }

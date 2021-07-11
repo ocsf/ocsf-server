@@ -10,7 +10,7 @@ defmodule SchemaWeb.PageController do
   end
 
   def schema(conn, _params) do
-    render(conn, "hierarchy.html")
+    render(conn, "schema_map.html")
   end
 
   @doc """
