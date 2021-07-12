@@ -16,6 +16,7 @@ defmodule Schema.Utils do
 
   @links :_links
 
+  @spec update_dictionary(map, map, map, map) :: map
   @doc false
   def update_dictionary(dictionary, common, classes, objects) do
     dictionary
@@ -25,6 +26,7 @@ defmodule Schema.Utils do
     |> update_data_types(objects)
   end
 
+  @spec update_objects(map, map) :: map
   def update_objects(dictionary, objects) do
     attributes = dictionary.attributes
 

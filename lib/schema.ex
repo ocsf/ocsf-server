@@ -113,7 +113,7 @@ defmodule Schema do
     end
   end
 
-  def hierarchy() do
+  def schema_map() do
     base = get_class(:base_event)
 
     categories =

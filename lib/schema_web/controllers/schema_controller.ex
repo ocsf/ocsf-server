@@ -190,7 +190,7 @@ defmodule SchemaWeb.SchemaController do
   # }
   @spec schema(Plug.Conn.t(), any) :: Plug.Conn.t()
   def schema(conn, _params) do
-    send_json_resp(conn, Schema.hierarchy())
+    send_json_resp(conn, Schema.schema_map())
   end
 
   # ---------------------------------
