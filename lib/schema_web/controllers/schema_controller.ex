@@ -89,7 +89,7 @@ defmodule SchemaWeb.SchemaController do
   """
   @spec base_event(Plug.Conn.t(), any) :: Plug.Conn.t()
   def base_event(conn, _params) do
-    send_json_resp(conn, remove_links(Schema.classes(:event), :attributes))
+    send_json_resp(conn, remove_links(Schema.classes(:base_event), :attributes))
   end
 
   # {
@@ -295,7 +295,7 @@ defmodule SchemaWeb.SchemaController do
   """
   @spec sample_event(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def sample_event(conn, _params) do
-    send_json_resp(conn, Schema.event(:event))
+    send_json_resp(conn, Schema.event(:base_event))
   end
 
   # {

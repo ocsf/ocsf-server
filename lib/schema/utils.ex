@@ -117,7 +117,7 @@ defmodule Schema.Utils do
 
   defp add_class_links(dict, type) do
     Map.update!(dict, :attributes, fn attributes ->
-      link = {:class, type[:type] || "event", type[:name] || "*No name*"}
+      link = {:class, type[:type] || "base_event", type[:name] || "*No name*"}
 
       update_attributes(
         type[:name],

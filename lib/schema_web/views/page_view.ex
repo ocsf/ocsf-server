@@ -14,7 +14,7 @@ defmodule SchemaWeb.PageView do
 
   def field_classes(field) do
     base =
-      if field[:_source] == :event do
+      if field[:_source] == :base_event do
         "base-event "
       else
         "event "

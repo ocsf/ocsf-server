@@ -115,7 +115,7 @@ defmodule Schema.Cache do
   def classes(%__MODULE__{classes: classes}), do: classes
 
   @spec classes(__MODULE__.t(), atom()) :: nil | class_t()
-  def classes(%__MODULE__{dictionary: dictionary, common: common}, :event) do
+  def classes(%__MODULE__{dictionary: dictionary, common: common}, :base_event) do
     enrich(common, dictionary.attributes)
   end
 
@@ -237,7 +237,7 @@ defmodule Schema.Cache do
       |> Enum.map(fn class -> attribute_source(class) end)
       |> Map.new()
 
-    {Map.get(classes, :event), classes}
+    {Map.get(classes, :base_event), classes}
   end
 
   @spec read_objects(binary) :: map

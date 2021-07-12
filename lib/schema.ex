@@ -114,7 +114,7 @@ defmodule Schema do
   end
 
   def hierarchy() do
-    base = get_class(:event)
+    base = get_class(:base_event)
 
     categories =
       Stream.map(

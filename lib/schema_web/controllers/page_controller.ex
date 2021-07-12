@@ -72,7 +72,7 @@ defmodule SchemaWeb.PageController do
   """
   @spec base_event(Plug.Conn.t(), any) :: Plug.Conn.t()
   def base_event(conn, _params) do
-    data = Schema.classes(:event) |> sort_attributes
+    data = Schema.classes(:base_event) |> sort_attributes
 
     render(conn, "class.html", data: data)
   end
