@@ -34,7 +34,7 @@ defmodule SchemaWeb.PageController do
           send_resp(conn, 404, "Not Found: #{id}")
 
         data ->
-          classes = sort_by_type_id(data.classes)
+          classes = sort_by(data.classes, :uid)
           render(conn, "category.html", data: Map.put(data, :classes, classes))
       end
     rescue
@@ -43,7 +43,7 @@ defmodule SchemaWeb.PageController do
   end
 
   def categories(conn, _params) do
-    data = Schema.categories() |> sort_attributes
+    data = Schema.categories() |> sort_attributes(:id)
     render(conn, "index.html", data: data)
   end
 
@@ -96,7 +96,7 @@ defmodule SchemaWeb.PageController do
   end
 
   def classes(conn, _params) do
-    data = Schema.classes() |> sort_by_type_id
+    data = Schema.classes() |> sort_by(:uid)
     render(conn, "classes.html", data: data)
   end
 
@@ -124,14 +124,19 @@ defmodule SchemaWeb.PageController do
   end
 
   defp sort_attributes(map) do
-    Map.put(map, :attributes, sort_by_name(map.attributes))
+    sort_attributes(map, :name)
   end
 
-  defp sort_by_name(map) do
-    Enum.sort(map, fn {_, v1}, {_, v2} -> v1.name <= v2.name end)
+defp sort_attributes(map, key) do
+  Map.update!(map, :attributes, &sort_by(&1, key))
+end
+
+defp sort_by_name(map) do
+    sort_by(map, :name)
   end
 
-  defp sort_by_type_id(map) do
-    Enum.sort(map, fn {_, v1}, {_, v2} -> v1[:uid] <= v2[:uid] end)
+  defp sort_by(map, key) do
+    Enum.sort(map, fn {_, v1}, {_, v2} -> v1[key] <= v2[key] end)
   end
+
 end
