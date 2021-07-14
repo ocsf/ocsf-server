@@ -10,13 +10,16 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 %>
+<% category = @data[:category] %>
+
 <script>
-  show("#base-event");
+  <%= if category != nil and category != "finding" do %>
+    show("#base-event");
+  <% end %>
   show("#requirements");
   show("#sample-data");
 </script>
 
-<% category = @data[:category] %>
 <%= if category != nil do %>
   <% path = Routes.static_path(@conn, "/categories/" <> category) %>
   <h2><%= @data.name %> Class</h2>
