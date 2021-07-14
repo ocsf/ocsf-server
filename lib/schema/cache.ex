@@ -276,17 +276,6 @@ defmodule Schema.Cache do
     end
   end
 
-  # Add category_id, class_id, and event_uid
-  defp enrich_class({name, class}, categories) do
-    data =
-      class
-      |> add_event_uid()
-      |> add_class_id()
-      |> add_category_id(categories)
-
-    {name, data}
-  end
-
   # Add attributes from the included traits
   defp resolve_includes(classes, home) do
     Enum.map(classes, fn {name, data} ->
@@ -314,7 +303,18 @@ defmodule Schema.Cache do
     Map.put(data, :attributes, attributes)
   end
 
-  defp add_event_uid(data) do
+  # Add category_id, class_id, and event_uid
+  defp enrich_class({name, class}, categories) do
+    data =
+      class
+      |> add_event_uid(name)
+      |> add_class_id(name)
+      |> add_category_id(name, categories)
+
+    {name, data}
+  end
+
+  defp add_event_uid(data, name) do
     Map.update!(data, :attributes, fn attributes ->
       id = attributes[:disposition_id] || %{}
       uid = attributes[:event_uid] || %{}
@@ -339,6 +339,7 @@ defmodule Schema.Cache do
 
       Map.put(attributes, :event_uid, Map.put(uid, :enum, enum))
     end)
+    |> put_in([:attributes, :event_uid, :_source], name)
   end
 
   defp make_event_name(caption, name) do
@@ -353,7 +354,7 @@ defmodule Schema.Cache do
     Integer.to_string(class_id + id) |> String.to_atom()
   end
 
-  defp add_class_id(data) do
+  defp add_class_id(data, name) do
     class_id = data.uid |> Integer.to_string() |> String.to_atom()
 
     enum = %{
@@ -361,10 +362,12 @@ defmodule Schema.Cache do
       :description => data[:description]
     }
 
-    put_in(data, [:attributes, :class_id, :enum], %{class_id => enum})
+    data
+    |> put_in([:attributes, :class_id, :enum], %{class_id => enum})
+    |> put_in([:attributes, :class_id, :_source], name)
   end
 
-  defp add_category_id(data, categories) do
+  defp add_category_id(data, name, categories) do
     category_name = data.category |> String.to_atom()
 
     category = categories[category_name]
@@ -377,6 +380,7 @@ defmodule Schema.Cache do
       id = Integer.to_string(category.id) |> String.to_atom()
       %{id => Map.delete(category, :class_id_range)}
     end)
+    |> put_in([:attributes, :category_id, :_source], name)
   end
 
   defp attribute_source({name, map}) do
