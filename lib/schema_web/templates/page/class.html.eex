@@ -13,8 +13,12 @@ limitations under the License.
 <% category = @data[:category] %>
 
 <script>
-  <%= if category != nil and category != "finding" do %>
+  <%= if category == nil do %>
     show("#base-event");
+  <% else %>
+    <%= if category != "finding" do %>
+      show("#base-event");
+    <% end %>
   <% end %>
   show("#requirements");
   show("#sample-data");
