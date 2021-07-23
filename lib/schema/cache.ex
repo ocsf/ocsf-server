@@ -88,7 +88,9 @@ defmodule Schema.Cache do
   def to_uid(nil), do: nil
 
   def to_uid(name) do
-    name |> String.downcase() |> String.to_atom()
+    name
+    |> String.downcase()
+    |> String.to_atom()
   end
 
   @spec version(__MODULE__.t()) :: String.t()
@@ -154,25 +156,31 @@ defmodule Schema.Cache do
     category_id = Atom.to_string(id)
 
     list =
-      Enum.filter(classes, fn {_name, class} ->
-        Map.get(class, :category) == category_id
-      end)
+      Enum.filter(
+        classes,
+        fn {_name, class} ->
+          Map.get(class, :category) == category_id
+        end
+      )
 
     Map.put(category, :classes, list)
   end
 
   defp enrich(map, dictionary) do
     attributes =
-      Enum.map(map.attributes, fn {name, attribute} ->
-        case dictionary[name] do
-          nil ->
-            Logger.warn("undefined attribute: #{name}")
-            {name, attribute}
+      Enum.map(
+        map.attributes,
+        fn {name, attribute} ->
+          case dictionary[name] do
+            nil ->
+              Logger.warn("undefined attribute: #{name}")
+              {name, attribute}
 
-          base ->
-            {name, Utils.deep_merge(base, attribute)}
+            base ->
+              {name, Utils.deep_merge(base, attribute)}
+          end
         end
-      end)
+      )
 
     Map.put(map, :attributes, attributes)
   end
@@ -180,7 +188,8 @@ defmodule Schema.Cache do
   # The location of the schema files.
   @spec data_dir :: String.t()
   def data_dir() do
-    Application.get_env(:schema_server, __MODULE__) |> Keyword.get(:home) ||
+    Application.get_env(:schema_server, __MODULE__)
+    |> Keyword.get(:home) ||
       @data_dir
   end
 
@@ -217,7 +226,7 @@ defmodule Schema.Cache do
     classes =
       classes
       |> Stream.map(fn {name, map} -> {name, resolve_extends(name, classes, map)} end)
-      # remove intermediate classes
+        # remove intermediate classes
       |> Stream.filter(fn {_name, class} -> Map.has_key?(class, :uid) end)
       |> Stream.map(fn class -> enrich_class(class, categories) end)
       |> Enum.to_list()
@@ -234,7 +243,7 @@ defmodule Schema.Cache do
       |> read_schema_files(Path.join(home, @ext_dir), @events_dir)
       |> update_see_also()
       |> resolve_includes(home)
-      |> Enum.map(fn class -> attribute_source(class) end)
+      |> Enum.map(fn class -> attribute_source(home, class) end)
       |> Map.new()
 
     {Map.get(classes, :base_event), classes}
@@ -246,10 +255,12 @@ defmodule Schema.Cache do
     |> read_schema_files(Path.join(home, @objects_dir))
     |> read_schema_files(Path.join(home, @ext_dir), @objects_dir)
     |> resolve_extends()
-    |> Enum.filter(fn {key, _object} ->
-      # removes abstract objects
-      !String.starts_with?(Atom.to_string(key), "_")
-    end)
+    |> Enum.filter(
+         fn {key, _object} ->
+           # removes abstract objects
+           !String.starts_with?(Atom.to_string(key), "_")
+         end
+       )
     |> Map.new()
   end
 
@@ -269,7 +280,8 @@ defmodule Schema.Cache do
       if Path.basename(path) == name do
         Logger.info("reading extension: #{path}")
 
-        read_json_file(path) |> Utils.deep_merge(map)
+        read_json_file(path)
+        |> Utils.deep_merge(map)
       else
         map
       end
@@ -278,19 +290,35 @@ defmodule Schema.Cache do
 
   # Add attributes from the included traits
   defp resolve_includes(classes, home) do
-    Enum.map(classes, fn {name, data} ->
-      {name, include(data, Map.get(data.attributes, @include), home)}
-    end)
+    Enum.map(
+      classes,
+      fn {name, data} ->
+        {name, include_attributes(data, home)}
+      end
+    )
   end
 
-  defp include(data, nil, _home), do: data
+  defp include(data, home) do
+    case Map.get(data, @include) do
+      nil ->
+        data
 
-  defp include(data, include, home) when is_list(include) do
-    Enum.reduce(include, data, fn file, acc -> include_file(acc, file, home) end)
+      include ->
+        include_json_file(Map.delete(data, @include), include, home)
+    end
   end
 
-  defp include(data, include, home) when is_binary(include) do
-    include_file(data, include, home)
+  defp include_attributes(data, home) do
+    case Map.get(data.attributes, @include) do
+      nil ->
+        data
+
+      include when is_binary(include) ->
+        include_file(data, include, home)
+
+      include when is_list(include) ->
+        Enum.reduce(include, data, fn file, acc -> include_file(acc, file, home) end)
+    end
   end
 
   defp include_file(data, file, home) do
@@ -301,6 +329,15 @@ defmodule Schema.Cache do
     attributes = Utils.deep_merge(included.attributes, Map.delete(data.attributes, @include))
 
     Map.put(data, :attributes, attributes)
+  end
+
+  defp include_json_file(data, file, home) do
+    path = Path.join(home, file)
+
+    Logger.info("#{data[:type]} includes: #{path}")
+
+    read_json_file(path)
+    |> Utils.deep_merge(data)
   end
 
   # Add category_id, class_id, and event_uid
@@ -315,30 +352,34 @@ defmodule Schema.Cache do
   end
 
   defp add_event_uid(data, name) do
-    Map.update!(data, :attributes, fn attributes ->
-      id = attributes[:disposition_id] || %{}
-      uid = attributes[:event_uid] || %{}
-      class_id = (data[:uid] || 0) * 1000
-      caption = data[:name] || "UNKNOWN"
+    Map.update!(
+      data,
+      :attributes,
+      fn attributes ->
+        id = attributes[:disposition_id] || %{}
+        uid = attributes[:event_uid] || %{}
+        class_id = (data[:uid] || 0) * 1000
+        caption = data[:name] || "UNKNOWN"
 
-      enum =
-        case id[:enum] do
-          nil ->
-            %{"0" => "UNKNOWN"}
+        enum =
+          case id[:enum] do
+            nil ->
+              %{"0" => "UNKNOWN"}
 
-          values ->
-            for {key, val} <- values, into: %{} do
-              {
-                make_event_uid(class_id, key),
-                Map.put(val, :name, make_event_name(caption, val[:name]))
-              }
-            end
-        end
-        |> Map.put(make_uid(0, -1), Map.new(name: make_event_name(caption, "Other")))
-        |> Map.put(make_uid(class_id, 0), Map.new(name: make_event_name(caption, "Unknown")))
+            values ->
+              for {key, val} <- values, into: %{} do
+                {
+                  make_event_uid(class_id, key),
+                  Map.put(val, :name, make_event_name(caption, val[:name]))
+                }
+              end
+          end
+          |> Map.put(make_uid(0, -1), Map.new(name: make_event_name(caption, "Other")))
+          |> Map.put(make_uid(class_id, 0), Map.new(name: make_event_name(caption, "Unknown")))
 
-      Map.put(attributes, :event_uid, Map.put(uid, :enum, enum))
-    end)
+        Map.put(attributes, :event_uid, Map.put(uid, :enum, enum))
+      end
+    )
     |> put_in([:attributes, :event_uid, :_source], name)
   end
 
@@ -351,11 +392,14 @@ defmodule Schema.Cache do
   end
 
   defp make_uid(class_id, id) do
-    Integer.to_string(class_id + id) |> String.to_atom()
+    Integer.to_string(class_id + id)
+    |> String.to_atom()
   end
 
   defp add_class_id(data, name) do
-    class_id = data.uid |> Integer.to_string() |> String.to_atom()
+    class_id = data.uid
+               |> Integer.to_string()
+               |> String.to_atom()
 
     enum = %{
       :name => data.name,
@@ -368,7 +412,8 @@ defmodule Schema.Cache do
   end
 
   defp add_category_id(data, name, categories) do
-    category_name = data.category |> String.to_atom()
+    category_name = data.category
+                    |> String.to_atom()
 
     category = categories[category_name]
 
@@ -376,21 +421,35 @@ defmodule Schema.Cache do
       exit("#{data.name} has invalid category: #{category_name}")
     end
 
-    update_in(data, [:attributes, :category_id, :enum], fn _enum ->
-      id = Integer.to_string(category.id) |> String.to_atom()
-      %{id => Map.delete(category, :class_id_range)}
-    end)
+    update_in(
+      data,
+      [:attributes, :category_id, :enum],
+      fn _enum ->
+        id = Integer.to_string(category.id)
+             |> String.to_atom()
+        %{id => Map.delete(category, :class_id_range)}
+      end
+    )
     |> put_in([:attributes, :category_id, :_source], name)
   end
 
-  defp attribute_source({name, map}) do
+  defp attribute_source(home, {name, map}) do
     data =
-      Map.update(map, :attributes, [], fn attributes ->
-        Enum.map(attributes, fn {key, attribute} ->
-          {key, Map.put(attribute, :_source, name)}
-        end)
-        |> Map.new()
-      end)
+      Map.update(
+        map,
+        :attributes,
+        [],
+        fn attributes ->
+          Enum.map(
+            attributes,
+            fn {key, attribute} ->
+              attribute = include(attribute, home)
+              {key, Map.put(attribute, :_source, name)}
+            end
+          )
+          |> Map.new()
+        end
+      )
 
     {name, data}
   end
@@ -437,15 +496,18 @@ defmodule Schema.Cache do
   end
 
   defp update_see_also(see_also, classes) when is_list(see_also) do
-    Enum.map(see_also, fn name ->
-      case Map.get(classes, String.to_atom(name)) do
-        nil ->
-          nil
+    Enum.map(
+      see_also,
+      fn name ->
+        case Map.get(classes, String.to_atom(name)) do
+          nil ->
+            nil
 
-        class ->
-          {name, class.name}
+          class ->
+            {name, class.name}
+        end
       end
-    end)
+    )
     |> Enum.filter(fn elem -> elem != nil end)
   end
 
