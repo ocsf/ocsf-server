@@ -21,7 +21,9 @@ defmodule Schema.Application do
       # Start the endpoint when the application starts
       SchemaWeb.Endpoint,
       {Phoenix.PubSub, [name: Schema.PubSub, adapter: Phoenix.PubSub.PG2]},
-      Schema.Repo, Schema.Generator
+      Schema.JsonReader,
+      Schema.Repo,
+      Schema.Generator
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

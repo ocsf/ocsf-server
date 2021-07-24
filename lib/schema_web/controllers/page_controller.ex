@@ -72,9 +72,8 @@ defmodule SchemaWeb.PageController do
   """
   @spec base_event(Plug.Conn.t(), any) :: Plug.Conn.t()
   def base_event(conn, _params) do
-    data = Schema.classes(:base_event) |> sort_attributes
-
-    render(conn, "class.html", data: data)
+    data = Schema.classes(:base_event)
+    render(conn, "class.html", data: sort_attributes(data))
   end
 
   @doc """
@@ -127,16 +126,15 @@ defmodule SchemaWeb.PageController do
     sort_attributes(map, :name)
   end
 
-defp sort_attributes(map, key) do
-  Map.update!(map, :attributes, &sort_by(&1, key))
-end
+  def sort_attributes(map, key) do
+    Map.update!(map, :attributes, &sort_by(&1, key))
+  end
 
-defp sort_by_name(map) do
+  def sort_by_name(map) do
     sort_by(map, :name)
   end
 
-  defp sort_by(map, key) do
+  def sort_by(map, key) do
     Enum.sort(map, fn {_, v1}, {_, v2} -> v1[key] <= v2[key] end)
   end
-
 end

@@ -9,11 +9,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 defmodule Schema.Cache do
-  @moduledoc """
-  This module keeps the schema in memory, aka schema cache.
-  """
+  @moduledoc false
 
   alias Schema.Utils
+  alias Schema.JsonReader
 
   require Logger
 
@@ -38,40 +37,20 @@ defmodule Schema.Cache do
   @type category_t() :: map()
   @type dictionary_t() :: map()
 
-  # The schema JSON file extension.
-  @schema_file ".json"
-
-  # The default location of the schema files.
-  @data_dir "../schema"
-  @ext_dir "extensions"
-
-  # to include event traits
-  @include :"$include"
-
-  @version_file "version.json"
-
-  @categories_file "categories.json"
-  @dictionary_file "dictionary.json"
-
-  @events_dir "events"
-  @objects_dir "objects"
-
   @doc """
   Load the schema files and initialize the cache.
   """
   @spec init :: __MODULE__.t()
   def init() do
-    home = data_dir()
+    version = JsonReader.read_version()
 
-    Logger.info(fn -> "#{inspect(__MODULE__)}: loading schema: #{home}" end)
-
-    version = read_version(home)
     Logger.info(fn -> "#{inspect(__MODULE__)}: schema version: #{inspect(version)}" end)
 
-    categories = read_categories(home)
-    dictionary = read_dictionary(home)
-    {common, classes} = read_classes(home, categories.attributes)
-    objects = read_objects(home)
+    categories = JsonReader.read_categories()
+    dictionary = JsonReader.read_dictionary()
+
+    {common, classes} = read_classes(categories.attributes)
+    objects = read_objects()
 
     dictionary = Utils.update_dictionary(dictionary, common, classes, objects)
     objects = Utils.update_objects(dictionary, objects)
@@ -185,48 +164,14 @@ defmodule Schema.Cache do
     Map.put(map, :attributes, attributes)
   end
 
-  # The location of the schema files.
-  @spec data_dir :: String.t()
-  def data_dir() do
-    Application.get_env(:schema_server, __MODULE__)
-    |> Keyword.get(:home) ||
-      @data_dir
-  end
-
-  @spec read_version(binary) :: any
-  def read_version(home) do
-    file = Path.join(home, @version_file)
-
-    if File.regular?(file) do
-      read_json_file(file)
-    else
-      Logger.warn("version file #{file} not found")
-      "0.0.0"
-    end
-  end
-
-  @spec read_categories(binary) :: any
-  def read_categories(home) do
-    Path.join(home, @categories_file)
-    |> read_json_file
-    |> read_json_files(Path.join(home, @ext_dir), @categories_file)
-  end
-
-  @spec read_dictionary(binary) :: any
-  def read_dictionary(home) do
-    Path.join(home, @dictionary_file)
-    |> read_json_file
-    |> read_json_files(Path.join(home, @ext_dir), @dictionary_file)
-  end
-
-  @spec read_classes(binary, map) :: {map, map}
-  def read_classes(home, categories) do
-    {base, classes} = read_classes(home)
+  @spec read_classes(map) :: {map, map}
+  def read_classes(categories) do
+    {base, classes} = read_classes()
 
     classes =
       classes
       |> Stream.map(fn {name, map} -> {name, resolve_extends(name, classes, map)} end)
-        # remove intermediate classes
+      # remove intermediate classes
       |> Stream.filter(fn {_name, class} -> Map.has_key?(class, :uid) end)
       |> Stream.map(fn class -> enrich_class(class, categories) end)
       |> Enum.to_list()
@@ -235,109 +180,24 @@ defmodule Schema.Cache do
     {base, classes}
   end
 
-  @spec read_classes(binary) :: {map, map}
-  def read_classes(home) do
+  defp read_classes() do
     classes =
-      Map.new()
-      |> read_schema_files(Path.join(home, @events_dir))
-      |> read_schema_files(Path.join(home, @ext_dir), @events_dir)
+      JsonReader.read_classes()
       |> update_see_also()
-      |> resolve_includes(home)
-      |> Enum.map(fn class -> attribute_source(home, class) end)
+      |> Enum.map(fn class -> attribute_source(class) end)
       |> Map.new()
 
     {Map.get(classes, :base_event), classes}
   end
 
-  @spec read_objects(binary) :: map
-  def read_objects(home) do
-    Map.new()
-    |> read_schema_files(Path.join(home, @objects_dir))
-    |> read_schema_files(Path.join(home, @ext_dir), @objects_dir)
+  defp read_objects() do
+    JsonReader.read_objects()
     |> resolve_extends()
-    |> Enum.filter(
-         fn {key, _object} ->
-           # removes abstract objects
-           !String.starts_with?(Atom.to_string(key), "_")
-         end
-       )
+    |> Enum.filter(fn {key, _object} ->
+      # removes abstract objects
+      !String.starts_with?(Atom.to_string(key), "_")
+    end)
     |> Map.new()
-  end
-
-  defp read_json_files(map, path, name) do
-    if File.dir?(path) do
-      case File.ls(path) do
-        {:ok, files} ->
-          files
-          |> Stream.map(fn file -> Path.join(path, file) end)
-          |> Enum.reduce(map, fn file, m -> read_json_files(m, file, name) end)
-
-        error ->
-          Logger.warn("unable to access #{path} directory. Error: #{inspect(error)}")
-          raise error
-      end
-    else
-      if Path.basename(path) == name do
-        Logger.info("reading extension: #{path}")
-
-        read_json_file(path)
-        |> Utils.deep_merge(map)
-      else
-        map
-      end
-    end
-  end
-
-  # Add attributes from the included traits
-  defp resolve_includes(classes, home) do
-    Enum.map(
-      classes,
-      fn {name, data} ->
-        {name, include_attributes(data, home)}
-      end
-    )
-  end
-
-  defp include(data, home) do
-    case Map.get(data, @include) do
-      nil ->
-        data
-
-      include ->
-        include_json_file(Map.delete(data, @include), include, home)
-    end
-  end
-
-  defp include_attributes(data, home) do
-    case Map.get(data.attributes, @include) do
-      nil ->
-        data
-
-      include when is_binary(include) ->
-        include_file(data, include, home)
-
-      include when is_list(include) ->
-        Enum.reduce(include, data, fn file, acc -> include_file(acc, file, home) end)
-    end
-  end
-
-  defp include_file(data, file, home) do
-    path = Path.join(home, file)
-    Logger.info("#{data[:type]} includes: #{path}")
-
-    included = read_json_file(path)
-    attributes = Utils.deep_merge(included.attributes, Map.delete(data.attributes, @include))
-
-    Map.put(data, :attributes, attributes)
-  end
-
-  defp include_json_file(data, file, home) do
-    path = Path.join(home, file)
-
-    Logger.info("#{data[:type]} includes: #{path}")
-
-    read_json_file(path)
-    |> Utils.deep_merge(data)
   end
 
   # Add category_id, class_id, and event_uid
@@ -397,9 +257,10 @@ defmodule Schema.Cache do
   end
 
   defp add_class_id(data, name) do
-    class_id = data.uid
-               |> Integer.to_string()
-               |> String.to_atom()
+    class_id =
+      data.uid
+      |> Integer.to_string()
+      |> String.to_atom()
 
     enum = %{
       :name => data.name,
@@ -412,8 +273,9 @@ defmodule Schema.Cache do
   end
 
   defp add_category_id(data, name, categories) do
-    category_name = data.category
-                    |> String.to_atom()
+    category_name =
+      data.category
+      |> String.to_atom()
 
     category = categories[category_name]
 
@@ -425,15 +287,17 @@ defmodule Schema.Cache do
       data,
       [:attributes, :category_id, :enum],
       fn _enum ->
-        id = Integer.to_string(category.id)
-             |> String.to_atom()
+        id =
+          Integer.to_string(category.id)
+          |> String.to_atom()
+
         %{id => Map.delete(category, :class_id_range)}
       end
     )
     |> put_in([:attributes, :category_id, :_source], name)
   end
 
-  defp attribute_source(home, {name, map}) do
+  defp attribute_source({name, map}) do
     data =
       Map.update(
         map,
@@ -443,7 +307,6 @@ defmodule Schema.Cache do
           Enum.map(
             attributes,
             fn {key, attribute} ->
-              attribute = include(attribute, home)
               {key, Map.put(attribute, :_source, name)}
             end
           )
@@ -513,64 +376,6 @@ defmodule Schema.Cache do
 
   defp update_see_also(_see_also, _classes) do
     nil
-  end
-
-  defp read_schema_files(acc, path, directory) do
-    if File.dir?(path) do
-      if Path.basename(path) == directory do
-        Logger.info("reading extensions: #{path}")
-
-        read_schema_files(acc, path)
-      else
-        case File.ls(path) do
-          {:ok, files} ->
-            files
-            |> Stream.map(fn name -> Path.join(path, name) end)
-            |> Stream.filter(fn p -> File.dir?(p) end)
-            |> Enum.reduce(acc, fn file, map -> read_schema_files(map, file, directory) end)
-
-          error ->
-            Logger.warn("unable to access #{path} directory. Error: #{inspect(error)}")
-            raise error
-        end
-      end
-    end
-  end
-
-  defp read_schema_files(acc, path) do
-    if File.dir?(path) do
-      case File.ls(path) do
-        {:ok, files} ->
-          files
-          |> Stream.map(fn file -> Path.join(path, file) end)
-          |> Enum.reduce(acc, fn file, map -> read_schema_files(map, file) end)
-
-        error ->
-          Logger.warn("unable to access #{path} directory. Error: #{inspect(error)}")
-          raise error
-      end
-    else
-      if Path.extname(path) == @schema_file do
-        data = read_json_file(path)
-        Map.put(acc, String.to_atom(data.type), data)
-      else
-        acc
-      end
-    end
-  end
-
-  defp read_json_file(file) do
-    data = File.read!(file)
-
-    case Jason.decode(data, keys: :atoms) do
-      {:ok, json} ->
-        json
-
-      {:error, error} ->
-        message = Jason.DecodeError.message(error)
-        Logger.error("invalid JSON file: #{file}. Error: #{message}")
-        exit(message)
-    end
   end
 
   defp set_dictionary(%__MODULE__{} = schema, dictionary) do
