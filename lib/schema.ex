@@ -73,15 +73,22 @@ defmodule Schema do
   def objects(id) when is_atom(id), do: Repo.objects(id)
   def objects(id) when is_binary(id), do: Repo.objects(String.to_atom(id))
 
-  @spec to_uid(binary) :: atom
-  def to_uid(name), do: Cache.to_uid(name)
+  @spec to_uid(nil | binary) :: atom
+  def to_uid(nil), do: nil
+
+  def to_uid(name) do
+    name
+    |> String.downcase()
+    |> String.to_atom()
+  end
 
   @doc """
   Returns a randomly generated sample event.
   """
   @spec event(atom() | map()) :: nil | map()
   def event(class) when is_atom(class) do
-    Schema.classes(class) |> Schema.Generator.event()
+    Schema.classes(class)
+    |> Schema.Generator.event()
   end
 
   def event(class) when is_map(class) do
@@ -125,10 +132,13 @@ defmodule Schema do
             |> Map.pop(:classes)
 
           children =
-            Enum.map(classes, fn {name, _class} ->
-              class = get_class(name)
-              Map.put(class, :value, length(class.attributes))
-            end)
+            Enum.map(
+              classes,
+              fn {name, _class} ->
+                class = get_class(name)
+                Map.put(class, :value, length(class.attributes))
+              end
+            )
 
           Map.put(cat, :type, name)
           |> Map.put(:children, children)
@@ -142,6 +152,8 @@ defmodule Schema do
   end
 
   defp get_class(name) do
-    Schema.classes(name) |> Schema.remove_links() |> Map.delete(:see_also)
+    Schema.classes(name)
+    |> Schema.remove_links()
+    |> Map.delete(:see_also)
   end
 end

@@ -9,7 +9,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 defmodule Schema.Cache do
-  @moduledoc false
+  @moduledoc """
+  Builds the schema cache.
+  """
 
   alias Schema.Utils
   alias Schema.JsonReader
@@ -61,15 +63,6 @@ defmodule Schema.Cache do
     |> set_common(common)
     |> set_classes(classes)
     |> set_objects(objects)
-  end
-
-  @spec to_uid(nil | binary) :: atom
-  def to_uid(nil), do: nil
-
-  def to_uid(name) do
-    name
-    |> String.downcase()
-    |> String.to_atom()
   end
 
   @spec version(__MODULE__.t()) :: String.t()
