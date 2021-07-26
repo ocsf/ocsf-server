@@ -1,8 +1,7 @@
 defmodule Schema.JsonReader do
   @moduledoc """
-    Provides functions to read and parse json file, resolving the included files.
+    Provides functions to read and parse json files, and then resolving the included files.
   """
-
   use GenServer
 
   alias Schema.Utils
