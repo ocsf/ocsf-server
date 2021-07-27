@@ -136,7 +136,7 @@ defmodule Schema do
               classes,
               fn {name, _class} ->
                 class = get_class(name)
-                Map.put(class, :value, length(class.attributes))
+                Map.put(Map.delete(class, :attributes), :value, length(class.attributes))
               end
             )
 
@@ -147,7 +147,9 @@ defmodule Schema do
       )
       |> Enum.to_list()
 
-    Map.put(base, :children, categories)
+    base
+    |> Map.delete(:attributes)
+    |> Map.put(:children, categories)
     |> Map.put(:value, length(categories))
   end
 
