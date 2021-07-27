@@ -170,7 +170,7 @@ defmodule Schema.Utils do
   end
 
   # Key exists in both and both values are maps as well, then they can be merged recursively
-  defp deep_resolve(key, %{} = left, %{} = right) do
+  defp deep_resolve(key, left, right) when is_map(left) and is_map(right) do
     if map_size(left) == 0 do
       right
     else
@@ -179,8 +179,7 @@ defmodule Schema.Utils do
       else
         if key == :enum do
           # merge enums
-          put_required(left, right)
-          |> Enum.map(fn {k, v} ->
+          Enum.map(right, fn {k, v} ->
             item = Map.get(left, k)
 
             if map_size(v) > 0 do
@@ -206,21 +205,5 @@ defmodule Schema.Utils do
   # the value on the right.
   defp deep_resolve(_key, _left, right) do
     right
-  end
-
-  defp put_required(left, right) do
-    right
-    |> add_required(:"0", left)
-    |> add_required(:"-1", left)
-  end
-
-  defp add_required(right, key, left) do
-    put_not_nil(right, key, Map.get(left, key))
-  end
-
-  defp put_not_nil(map, _k, nil), do: map
-
-  defp put_not_nil(map, k, v) do
-    Map.put(map, k, v)
   end
 end

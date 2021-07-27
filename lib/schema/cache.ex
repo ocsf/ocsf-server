@@ -163,7 +163,7 @@ defmodule Schema.Cache do
 
     classes =
       classes
-      |> Stream.map(fn {name, map} -> {name, resolve_extends(name, classes, map)} end)
+      |> Stream.map(fn {name, map} -> {name, resolve_extends(classes, map)} end)
       # remove intermediate classes
       |> Stream.filter(fn {_name, class} -> Map.has_key?(class, :uid) end)
       |> Stream.map(fn class -> enrich_class(class, categories) end)
@@ -311,23 +311,21 @@ defmodule Schema.Cache do
   end
 
   defp resolve_extends(data) do
-    Enum.map(data, fn {name, map} -> {name, resolve_extends(name, data, map)} end)
+    Enum.map(data, fn {name, map} -> {name, resolve_extends(data, map)} end)
   end
 
-  defp resolve_extends(name, data, map) do
+  defp resolve_extends(data, map) do
     case map[:extends] do
       nil ->
         map
 
       key ->
-        Logger.info("#{name} extends: #{key}")
-
         case Map.get(data, String.to_atom(key)) do
           nil ->
             exit("Error: #{map.name} extends undefined class: #{key}")
 
           base ->
-            base = resolve_extends(base[:type], data, base)
+            base = resolve_extends(data, base)
             attributes = Utils.deep_merge(base.attributes, map.attributes)
 
             Map.merge(base, map)

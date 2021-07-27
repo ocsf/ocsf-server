@@ -64,26 +64,12 @@ defmodule Schema.JsonReader do
     GenServer.call(__MODULE__, :read_classes)
   end
 
-  @doc """
-  Reads and decodes a JSON file into a map. It will also resolve the includes.
-  """
-  @spec read_file(String.t()) :: map()
-  def read_file(filename) do
-    GenServer.call(__MODULE__, {:read, filename})
-  end
-
   @impl true
   def init(_opts) do
     init_cache()
     home = data_dir()
     Logger.info(fn -> "#{inspect(__MODULE__)}: loading schema: #{home}" end)
     {:ok, home}
-  end
-
-  @impl true
-  def handle_call({:read, filename}, _from, home) do
-    data = read_file(home, filename)
-    {:reply, data, home}
   end
 
   @impl true
@@ -111,93 +97,6 @@ defmodule Schema.JsonReader do
     {:reply, read_classes(home), home}
   end
 
-  defp read_file(home, file) do
-    Path.join(home, file) |> read_json_file() |> resolve_includes(home)
-  end
-
-  defp read_json_file(file) do
-    data = File.read!(file)
-
-    case Jason.decode(data, keys: :atoms) do
-      {:ok, json} ->
-        json
-
-      {:error, error} ->
-        message = Jason.DecodeError.message(error)
-        Logger.error("invalid JSON file: #{file}. Error: #{message}")
-        raise message
-    end
-  end
-
-  defp resolve_includes(data, home) do
-    resolve_includes(data, Map.get(data, :attributes), home)
-  end
-
-  defp resolve_includes(data, nil, _home), do: data
-
-  defp resolve_includes(data, attributes, home) do
-    case Map.get(attributes, @include) do
-      nil ->
-        data
-
-      include when is_binary(include) ->
-        include_trait(data, include, home)
-
-      include when is_list(include) ->
-        Enum.reduce(include, data, fn file, acc -> include_trait(acc, file, home) end)
-    end
-    |> include_attributes(home)
-  end
-
-  defp include_attributes(data, home) do
-    Map.update(
-      data,
-      :attributes,
-      [],
-      fn attributes ->
-        Enum.map(
-          attributes,
-          fn {name, attribute} ->
-            {name, include(attribute, home)}
-          end
-        )
-        |> Map.new()
-      end
-    )
-  end
-
-  defp include(data, home) do
-    case Map.get(data, @include) do
-      nil ->
-        data
-
-      include ->
-        include_json_file(Map.delete(data, @include), include, home)
-    end
-  end
-
-  defp include_json_file(data, file, home) do
-    Path.join(home, file)
-    |> read_json_file()
-    |> Schema.Utils.deep_merge(data)
-  end
-
-  defp include_trait(data, file, home) do
-    included =
-      case get(file) do
-        [] ->
-          read_file(home, file) |> put(file)
-
-        [{_, cached}] ->
-          cached
-      end
-
-    attributes =
-      Schema.Utils.deep_merge(included.attributes, Map.delete(data.attributes, @include))
-
-    Map.put(data, :attributes, attributes)
-  end
-
   defp read_version(home) do
     file = Path.join(home, @version_file)
 
@@ -211,14 +110,14 @@ defmodule Schema.JsonReader do
 
   defp read_categories(home) do
     Path.join(home, @categories_file)
-    |> read_json_file
-    |> read_json_files(Path.join(home, @ext_dir), @categories_file)
+    |> read_json_file()
+    |> merge_json_file(extension_file(home, @categories_file))
   end
 
   defp read_dictionary(home) do
     Path.join(home, @dictionary_file)
-    |> read_json_file
-    |> read_json_files(Path.join(home, @ext_dir), @dictionary_file)
+    |> read_json_file()
+    |> merge_json_file(extension_file(home, @dictionary_file))
   end
 
   defp read_objects(home) do
@@ -233,30 +132,14 @@ defmodule Schema.JsonReader do
     |> scan_schema_files(home, Path.join(home, @ext_dir), @events_dir)
   end
 
-  defp read_json_files(map, path, name) do
-    if File.dir?(path) do
-      case File.ls(path) do
-        {:ok, files} ->
-          files
-          |> Stream.map(fn file -> Path.join(path, file) end)
-          |> Enum.reduce(map, fn file, m -> read_json_files(m, file, name) end)
-
-        error ->
-          Logger.warn("unable to access #{path} directory. Error: #{inspect(error)}")
-          raise error
-      end
-    else
-      if Path.basename(path) == name do
-        Logger.info("reading extension: #{path}")
-
-        read_json_file(path) |> Utils.deep_merge(map)
-      else
-        map
-      end
-    end
+  defp extension_file(home, file) do
+    Path.join([home, @ext_dir, file])
   end
 
+  # scan for schema extension files
   defp scan_schema_files(acc, home, path, directory) do
+    Logger.info("scan_schema_files: #{Path.join(path, directory)}")
+
     if File.dir?(path) do
       if Path.basename(path) == directory do
         Logger.info("reading extensions: #{path}")
@@ -279,6 +162,8 @@ defmodule Schema.JsonReader do
 
   defp read_schema_files(acc, home, path) do
     if File.dir?(path) do
+      Logger.info("read_schema_files: #{path}")
+
       case File.ls(path) do
         {:ok, files} ->
           files
@@ -291,7 +176,8 @@ defmodule Schema.JsonReader do
       end
     else
       if Path.extname(path) == @schema_file do
-        data = read_json_file(home, path)
+        data = read_json_file(path) |> resolve_includes(home)
+
         Map.put(acc, String.to_atom(data.type), data)
       else
         acc
@@ -299,8 +185,100 @@ defmodule Schema.JsonReader do
     end
   end
 
-  defp read_json_file(home, file) do
-    file |> read_json_file() |> resolve_includes(home)
+  defp read_json_file(file) do
+    data = File.read!(file)
+
+    case Jason.decode(data, keys: :atoms) do
+      {:ok, json} ->
+        json
+
+      {:error, error} ->
+        message = Jason.DecodeError.message(error)
+        Logger.error("invalid JSON file: #{file}. Error: #{message}")
+        raise message
+    end
+  end
+
+  defp merge_json_file(map, path) do
+    Logger.info("merge_json_file: #{path}")
+
+    if File.exists?(path) do
+      read_json_file(path) |> Utils.deep_merge(map)
+    else
+      map
+    end
+  end
+
+  defp resolve_includes(data, home) do
+    resolve_includes(data, Map.get(data, :attributes), home)
+  end
+
+  defp resolve_includes(data, nil, _home), do: data
+
+  defp resolve_includes(data, attributes, home) do
+    case Map.get(attributes, @include) do
+      nil ->
+        data
+
+      file when is_binary(file) ->
+        include_attributes(home, file, data)
+
+      files when is_list(files) ->
+        Enum.reduce(files, data, fn file, acc -> include_attributes(home, file, acc) end)
+    end
+    |> include_enums(home)
+  end
+
+  defp include_attributes(home, file, data) do
+    included =
+      case get(file) do
+        [] ->
+          Path.join(home, file) |> read_json_file() |> resolve_includes(home) |> put(data)
+
+        [{_, cached}] ->
+          cached
+      end
+
+    attributes =
+      Schema.Utils.deep_merge(included.attributes, Map.delete(data.attributes, @include))
+
+    Map.put(data, :attributes, attributes)
+  end
+
+  defp include_enums(class, home) do
+    Map.update(class, :attributes, [], fn attributes -> merge_enums(home, attributes) end)
+  end
+
+  defp merge_enums(home, attributes) do
+    Enum.map(attributes, fn {name, attribute} ->
+      {name, merge_enum_file(home, attribute)}
+    end)
+    |> Map.new()
+  end
+
+  defp merge_enum_file(home, attribute) do
+    case Map.get(attribute, @include) do
+      nil ->
+        attribute
+
+      file ->
+        merge_enum_file(home, file, Map.delete(attribute, @include))
+    end
+  end
+
+  defp merge_enum_file(home, file, attribute) do
+    included =
+      case get(file) do
+        [] ->
+          Path.join(home, file)
+          |> read_json_file()
+          |> put(file)
+
+        [{_, cached}] ->
+          cached
+      end
+
+    Schema.Utils.deep_merge(included, attribute)
   end
 
   # ETS cache for the included json file
