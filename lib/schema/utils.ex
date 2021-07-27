@@ -17,7 +17,6 @@ defmodule Schema.Utils do
   @links :_links
 
   @spec update_dictionary(map, map, map, map) :: map
-  @doc false
   def update_dictionary(dictionary, common, classes, objects) do
     dictionary
     |> add_common_links(common)
@@ -177,25 +176,7 @@ defmodule Schema.Utils do
       if map_size(right) == 0 do
         left
       else
-        if key == :enum do
-          # merge enums
-          Enum.map(right, fn {k, v} ->
-            item = Map.get(left, k)
-
-            if map_size(v) > 0 do
-              if item == nil do
-                {k, v}
-              else
-                {k, Map.merge(item, v)}
-              end
-            else
-              {k, item}
-            end
-          end)
-          |> Enum.into(%{})
-        else
-          deep_merge(left, right)
-        end
+        deep_merge(left, right)
       end
     end
   end
