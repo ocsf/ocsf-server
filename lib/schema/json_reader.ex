@@ -221,15 +221,15 @@ defmodule Schema.JsonReader do
         data
 
       file when is_binary(file) ->
-        include_attributes(home, file, data)
+        include_traits(home, file, data)
 
       files when is_list(files) ->
-        Enum.reduce(files, data, fn file, acc -> include_attributes(home, file, acc) end)
+        Enum.reduce(files, data, fn file, acc -> include_traits(home, file, acc) end)
     end
     |> include_enums(home)
   end
 
-  defp include_attributes(home, file, data) do
+  defp include_traits(home, file, data) do
     included =
       case get(file) do
         [] ->

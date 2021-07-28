@@ -59,11 +59,12 @@ limitations under the License.
   <table class="table table-bordered sortable">
     <thead>
       <tr class="thead-color">
-        <th style="width: 12%">Name</th>
-        <th style="width: 12%">Attribute</th>
+        <th style="width: 10%">Name</th>
+        <th style="width: 10%">Attribute</th>
+        <th style="width: 8%">Group</th>
         <th style="width: 8%">Requirement</th>
         <th style="width: 8%">Type</th>
-        <th style="width: 30%">Description</th>
+        <th style="width: 26%">Description</th>
       </tr>
     </thead>
     <tbody class="searchable">
@@ -73,6 +74,7 @@ limitations under the License.
         <tr class="<%= field_classes(field)%>">
         <td class="name"><%= field.name %></td>
         <td data-toggle="tooltip" title="<%= field[:_source] %>"><%= attribute %></td>
+          <td class="capitalize"><%= field[:trait] %></td>
         <td class="capitalize"><%= format_requirement(field) %></td>
         <td><%= raw format_type(@conn, field) %></td>
         <td><%= raw format_desc(field) %></td>
