@@ -71,7 +71,7 @@ export default function define(runtime, observer) {
         .append("text")
         .attr("x", function (d) { return d.x0 + 5 })
         .attr("y", function (d) { return d.y0 + 20 })
-        .text(function (d) { return d.data.name })
+        .text(function (d) { return "[" + d.data.id + "] " + d.data.name })
         .style("font", "13px open-sans")
         .attr("fill", function (d) { return color(d.data.name) });
 

@@ -127,9 +127,7 @@ defmodule Schema do
       Stream.map(
         Map.get(Schema.categories(), :attributes),
         fn {name, _} ->
-          {classes, cat} =
-            Schema.categories(name)
-            |> Map.pop(:classes)
+          {classes, cat} = Schema.categories(name) |> Map.pop(:classes)
 
           children =
             Enum.map(
@@ -139,6 +137,7 @@ defmodule Schema do
                 Map.put(Map.delete(class, :attributes), :value, length(class.attributes))
               end
             )
+            |> Enum.sort(fn map1, map2 -> map1[:name] <= map2[:name] end)
 
           Map.put(cat, :type, name)
           |> Map.put(:children, children)
@@ -146,6 +145,7 @@ defmodule Schema do
         end
       )
       |> Enum.to_list()
+      |> Enum.sort(fn map1, map2 -> map1[:name] <= map2[:name] end)
 
     base
     |> Map.delete(:attributes)
