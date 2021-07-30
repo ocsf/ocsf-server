@@ -114,7 +114,7 @@ limitations under the License.
 <script>
     $(document).ready(function () {
 
-      const options =  init_select();
+      init_select();
 
       $("a.nav-item.nav-link.active").removeClass("active");
       switch (window.location.pathname) {

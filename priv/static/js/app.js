@@ -29,10 +29,7 @@ function show_select_attributes(list) {
 }
 
 function init_select() {
-  const name = selectAttributes;
-  let selection = $(name);
   let selected;
-
   if (window.localStorage.getItem(name) == null) {
     selected = defaultSelectedValues;
     window.localStorage.setItem(name, selected);
@@ -44,51 +41,26 @@ function init_select() {
       selected = [];
   }
 
-  $(selectAttributes).selectpicker();
-
-  selection.selectpicker('val', selected);
+  init_select_picker($(selectAttributes), selected);
 
   display_attributes(array_to_set(selected));
+}
 
+function init_select_picker(selection, selected) {
+  selection.selectpicker();
+  selection.selectpicker('val', selected);
   selection.on('changed.bs.select', function (e, clickedIndex, isSelected, oldValues) {
     const values = [];
 
     for (let i = 0; i < this.length; i++) {
-      const option = this[i].value;
       if (this[i].selected)
-        values.push(option);
+        values.push(this[i].value);
       else
         hideAll = true;
     }
     window.localStorage.setItem(name, values);
     display_attributes(new Set(values));
-
-//
-//    if (clickedIndex == null) {
-//      if (this[this.length-1].selected)
-//        show_attributes();
-//      else
-//        hide_attributes();
-//    } else {
-//      display_attributes(new Set(values));
-//    }
   });
-
-  return selected;
-}
-
-function show_attributes() {
-  const rows = document.getElementById('data-table').rows;
-  for (let i = 1; i < rows.length; i++) {
-    rows[i].classList.remove('d-none');
-  }
-}
-
-function hide_attributes() {
-  const rows = document.getElementById('data-table').rows;
-  for (let i = 1; i < rows.length; i++) {
-    rows[i].classList.add('d-none');
-  }
 }
 
 function display_attributes(options) {
