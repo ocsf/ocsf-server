@@ -14,41 +14,45 @@ limitations under the License.
 
 <script>
   <%= if category == nil do %>
-    show("#base-event");
+     enable_option("#base-event-select")
   <% else %>
     <%= if category != "finding" do %>
-      show("#base-event");
+      enable_option("#base-event-select")
     <% end %>
   <% end %>
-  show("#requirements");
+
+  enable_option("#groups-select")
+  show_select_attributes();
+
   show("#sample-data");
+
+
 </script>
 
 <%= if category != nil do %>
   <% path = Routes.static_path(@conn, "/categories/" <> category) %>
-  <h2><%= @data.name %> Class</h2>
-  <h4><a href="<%= path %>"><%= String.capitalize(category) %> Category</a></h4>
+<h2><%= @data.name %> Class</h2>
+<h4><a href="<%= path %>"><%= String.capitalize(category) %> Category</a></h4>
 
-  <% see_also = @data[:see_also] %>
-  <%= if see_also != nil and see_also != [] do %>
-    <div class="container-fluid mb-3 mt-2">
-      <div class="row">
-        <div class="font-weight-bold">See Also:</div>
-        <% [first|rest] = see_also %>
-
+<% see_also = @data[:see_also] %>
+<%= if see_also != nil and see_also != [] do %>
+<div class="container-fluid mb-3 mt-2">
+  <div class="row">
+    <div class="font-weight-bold">See Also:</div>
+    <% [first|rest] = see_also %>
         <% {key, name} = first %>
         <% class_path = Routes.static_path(@conn, "/classes/" <> key) %>
-        <a class="ml-2" href="<%= class_path %>"><%= name %></a>
+    <a class="ml-2" href="<%= class_path %>"><%= name %></a>
 
-        <%= for {key, name} <- rest do %>
-          <% class_path = Routes.static_path(@conn, "/classes/" <> key) %>
-          <a href="<%= class_path %>">, <%= name %></a>
-        <% end %>
-      </div>
-    </div>
-  <% end %>
+    <%= for {key, name} <- rest do %>
+      <% class_path = Routes.static_path(@conn, "/classes/" <> key) %>
+    <a href="<%= class_path %>">, <%= name %></a>
+    <% end %>
+  </div>
+</div>
+<% end %>
 <% else %>
-  <h2><%= @data.name %></h2>
+<h2><%= @data.name %></h2>
 <% end %>
 
 <div class="text-secondary">
@@ -56,44 +60,43 @@ limitations under the License.
 </div>
 
 <div class="mt-4">
-  <table class="table table-bordered sortable">
-    <thead>
-      <tr class="thead-color">
-        <th style="width: 10%">Name</th>
-        <th style="width: 10%">Attribute</th>
-        <th style="width: 8%">Group</th>
-        <th style="width: 8%">Requirement</th>
-        <th style="width: 8%">Type</th>
-        <th style="width: 26%">Description</th>
-      </tr>
+  <table id="data-table" class="table table-bordered sortable">
+    <thead >
+    <tr class="thead-color">
+      <th style="width: 10%">Name</th>
+      <th style="width: 10%">Attribute</th>
+      <th style="width: 8%">Group</th>
+      <th style="width: 8%">Requirement</th>
+      <th style="width: 8%">Type</th>
+      <th style="width: 26%">Description</th>
+    </tr>
     </thead>
     <tbody class="searchable">
       <%= for {key, field} <- @data.attributes do %>
-      <% attribute = Atom.to_string(key) %>
-
+        <% attribute = Atom.to_string(key) %>
         <tr class="<%= field_classes(field)%>">
-        <td class="name"><%= field.name %></td>
-        <td data-toggle="tooltip" title="<%= field[:_source] %>"><%= attribute %></td>
-          <td class="capitalize"><%= field[:trait] %></td>
-        <td class="capitalize"><%= format_requirement(field) %></td>
-        <td><%= raw format_type(@conn, field) %></td>
-        <td><%= raw format_desc(field) %></td>
-      </tr>
-    <% end %>
+          <td class="name"><%= field.name %></td>
+          <td data-toggle="tooltip" title="<%= field[:_source] %>"><%= attribute %></td>
+          <td class="capitalize"><%= field[:group] %></td>
+          <td class="capitalize"><%= format_requirement(field) %></td>
+          <td><%= raw format_type(@conn, field) %></td>
+          <td><%= raw format_desc(field) %></td>
+        </tr>
+      <% end %>
     </tbody>
   </table>
 </div>
 
 <% links = @data[:_links] %>
 <%= if links != nil do %>
-  <div class="links">
-    <h5>Referenced By</h5>
-    <div>
-      <%= raw links(@conn, @data.name, links) %>
-    </div>
+<div class="links">
+  <h5>Referenced By</h5>
+  <div>
+    <%= raw links(@conn, @data.name, links) %>
   </div>
-  <% else %>
-  <div></div>
+</div>
+<% else %>
+<div></div>
 <% end %>
 
 <script>
@@ -105,4 +108,7 @@ limitations under the License.
   $(function () {
     $('[data-toggle="tooltip"]').tooltip()
   });
+
+
+
 </script>

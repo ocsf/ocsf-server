@@ -20,14 +20,21 @@ defmodule SchemaWeb.PageView do
         "event "
       end
 
-    if required?(field) do
-      base <> "required"
+    classes = if required?(field) do
+      base <> "required "
     else
       if reserved?(field) do
-        base <> "reserved"
+        base <> "reserved "
       else
-        base <> "optional"
+        base <> "optional "
       end
+    end
+
+    group = field[:group]
+    if group != nil do
+      classes <> group <> " d-none"
+    else
+      classes <> "no-group"
     end
   end
 
@@ -211,14 +218,17 @@ defmodule SchemaWeb.PageView do
 
   def links(conn, name, links) do
     groups =
-      Enum.group_by(links, fn
-        {type, _link, _name} ->
-          type
+      Enum.group_by(
+        links,
+        fn
+          {type, _link, _name} ->
+            type
 
-        nil ->
-          Logger.warn("group-by: found unused attribute of '#{name}' object")
-          nil
-      end)
+          nil ->
+            Logger.warn("group-by: found unused attribute of '#{name}' object")
+            nil
+        end
+      )
 
     join_html(
       to_html(:commons, conn, groups[:common]),
@@ -237,35 +247,53 @@ defmodule SchemaWeb.PageView do
   defp to_html(_, _, nil), do: []
 
   defp to_html(:commons, conn, classes) do
-    Enum.sort(classes, fn {type1, _, name1}, {type2, _, name2} ->
-      type1 >= type2 and name1 >= name2
-    end)
-    |> Enum.reduce([], fn _, acc ->
-      type_path = SchemaWeb.Router.Helpers.static_path(conn, "/base_event")
-      ["<a href='", type_path, "'>", " Base Event</a>", ", " | acc]
-    end)
+    Enum.sort(
+      classes,
+      fn {type1, _, name1}, {type2, _, name2} ->
+        type1 >= type2 and name1 >= name2
+      end
+    )
+    |> Enum.reduce(
+         [],
+         fn _, acc ->
+           type_path = SchemaWeb.Router.Helpers.static_path(conn, "/base_event")
+           ["<a href='", type_path, "'>", " Base Event</a>", ", " | acc]
+         end
+       )
     |> List.delete_at(-1)
   end
 
   defp to_html(:classes, conn, classes) do
-    Enum.sort(classes, fn {type1, _, name1}, {type2, _, name2} ->
-      type1 >= type2 and name1 >= name2
-    end)
-    |> Enum.reduce([], fn {_type, link, name}, acc ->
-      type_path = SchemaWeb.Router.Helpers.static_path(conn, "/classes/" <> link)
-      ["<a href='", type_path, "'>", name, " Event</a>", ", " | acc]
-    end)
+    Enum.sort(
+      classes,
+      fn {type1, _, name1}, {type2, _, name2} ->
+        type1 >= type2 and name1 >= name2
+      end
+    )
+    |> Enum.reduce(
+         [],
+         fn {_type, link, name}, acc ->
+           type_path = SchemaWeb.Router.Helpers.static_path(conn, "/classes/" <> link)
+           ["<a href='", type_path, "'>", name, " Event</a>", ", " | acc]
+         end
+       )
     |> List.delete_at(-1)
   end
 
   defp to_html(:objects, conn, objects) do
-    Enum.sort(objects, fn {type1, _, name1}, {type2, _, name2} ->
-      type1 >= type2 and name1 >= name2
-    end)
-    |> Enum.reduce([], fn {_type, link, name}, acc ->
-      type_path = SchemaWeb.Router.Helpers.static_path(conn, "/objects/" <> link)
-      ["<a href='", type_path, "'>", name, " Object</a>", ", " | acc]
-    end)
+    Enum.sort(
+      objects,
+      fn {type1, _, name1}, {type2, _, name2} ->
+        type1 >= type2 and name1 >= name2
+      end
+    )
+    |> Enum.reduce(
+         [],
+         fn {_type, link, name}, acc ->
+           type_path = SchemaWeb.Router.Helpers.static_path(conn, "/objects/" <> link)
+           ["<a href='", type_path, "'>", name, " Object</a>", ", " | acc]
+         end
+       )
     |> List.delete_at(-1)
   end
 

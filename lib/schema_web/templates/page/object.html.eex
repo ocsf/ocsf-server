@@ -11,8 +11,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 %>
 <script>
-  show("#requirements");
+  show_select_attributes();
   show("#sample-data");
+
 </script>
 
 <h2><%= @data.name %> Object</h2>
@@ -22,42 +23,41 @@ limitations under the License.
 </div>
 
 <div class="mt-4">
-  <table class="table table-bordered sortable">
+  <table id="data-table" class="table table-bordered sortable">
     <thead>
-      <tr class="thead-color">
-        <th style="width: 12%">Name</th>
-        <th style="width: 12%">Attribute</th>
-        <th style="width: 8%">Requirement</th>
-        <th style="width: 8%">Type</th>
-        <th style="width: 30%">Description</th>
-      </tr>
+    <tr class="thead-color">
+      <th style="width: 12%">Name</th>
+      <th style="width: 12%">Attribute</th>
+      <th style="width: 8%">Requirement</th>
+      <th style="width: 8%">Type</th>
+      <th style="width: 30%">Description</th>
+    </tr>
     </thead>
     <tbody class="searchable">
       <%= for {key, field} <- @data.attributes do %>
-      <% attribute = Atom.to_string(key) %>
-
+        <% attribute = Atom.to_string(key) %>
         <tr class="<%= field_classes(field)%>">
-        <td class="name"><%= field.name %></td>
-        <td data-toggle="tooltip" title="<%= field[:_source] %>"><%= attribute %></td>
-        <td class="capitalize"><%= format_requirement(field) %></td>
-        <td><%= raw format_type(@conn, field) %></td>
-        <td><%= raw format_desc(field) %></td>
-      </tr>
-    <% end %>
+          <td class="name"><%= field.name %></td>
+          <td data-toggle="tooltip" title="<%= field[:_source] %>"><%= attribute %></td>
+          <td class="capitalize"><%= format_requirement(field) %></td>
+          <td><%= raw format_type(@conn, field) %></td>
+          <td><%= raw format_desc(field) %></td>
+        </tr>
+      <% end %>
     </tbody>
   </table>
 </div>
 
 <% links = @data[:_links] %>
 <%= if links != nil do %>
-  <div class="links">
-    <h5>Referenced By</h5>
-    <div>
-      <%= raw links(@conn, @data.name, links) %>
-    </div>
+<div class="links">
+  <h5>Referenced By</h5>
+  <div>
+    <%= raw links(@conn, @data.name, links) %>
   </div>
-  <% else %>
-  <div></div>
+</div>
+<% else %>
+<div></div>
 <% end %>
 
 <script>
@@ -65,4 +65,6 @@ limitations under the License.
     const url = '/sample' + window.location.pathname;
     window.open(url,'_blank');
   });
+
+
 </script>
