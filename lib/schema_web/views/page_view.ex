@@ -34,6 +34,7 @@ defmodule SchemaWeb.PageView do
     if group != nil do
       classes <> group <> " d-none"
     else
+      Logger.warn("no group: #{field.name}")
       classes <> "no-group"
     end
   end
