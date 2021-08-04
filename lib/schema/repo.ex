@@ -55,4 +55,9 @@ defmodule Schema.Repo do
   def objects(id) do
     Agent.get(__MODULE__, fn schema -> Cache.objects(schema, id) end)
   end
+
+  @spec reload :: :ok
+  def reload() do
+    Agent.cast(__MODULE__, fn _ -> Cache.init() end)
+  end
 end

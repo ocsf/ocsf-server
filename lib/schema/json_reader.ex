@@ -187,9 +187,7 @@ defmodule Schema.JsonReader do
       end
     else
       if Path.extname(path) == @schema_file do
-        data = read_json_file(path)
-               |> resolve_includes(home)
-
+        data = read_json_file(path) |> resolve_includes(home)
         Map.put(acc, String.to_atom(data.type), data)
       else
         acc
@@ -215,9 +213,7 @@ defmodule Schema.JsonReader do
     Logger.info("merge_json_file: #{path}")
 
     if File.exists?(path) do
-      read_json_file(path)
-      |> Utils.deep_merge(map)
-    else
+      read_json_file(path) |> Utils.deep_merge(map) else
       map
     end
   end
