@@ -57,6 +57,9 @@ defmodule Schema.Cache do
     dictionary = Utils.update_dictionary(dictionary, common, classes, objects)
     objects = Utils.update_objects(dictionary, objects)
 
+    # clean up the cached files
+    JsonReader.cleanup()
+
     new(version)
     |> set_categories(categories)
     |> set_dictionary(dictionary)

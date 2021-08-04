@@ -30,7 +30,7 @@ defmodule Schema.JsonReader do
   end
 
   @doc """
-  The location of the schema files.  
+  The location of the schema files.
   """
   @spec data_dir :: String.t()
   def data_dir() do
@@ -64,11 +64,16 @@ defmodule Schema.JsonReader do
     GenServer.call(__MODULE__, :read_classes)
   end
 
+  @spec cleanup() :: :ok
+  def cleanup() do
+    GenServer.cast(__MODULE__, :delete)
+  end
+
   @impl true
   def init(_opts) do
     init_cache()
     home = data_dir()
-    Logger.info(fn -> "#{inspect(__MODULE__)}: loading schema: #{home}" end)
+    Logger.info(fn -> "#{inspect(__MODULE__)}: reading schema from: #{home}" end)
     {:ok, home}
   end
 
@@ -95,6 +100,12 @@ defmodule Schema.JsonReader do
   @impl true
   def handle_call(:read_classes, _from, home) do
     {:reply, read_classes(home), home}
+  end
+
+  @impl true
+  def handle_cast(:delete, home) do
+    delete()
+    {:stop, :normal, home}
   end
 
   defp read_version(home) do
@@ -176,7 +187,8 @@ defmodule Schema.JsonReader do
       end
     else
       if Path.extname(path) == @schema_file do
-        data = read_json_file(path) |> resolve_includes(home)
+        data = read_json_file(path)
+               |> resolve_includes(home)
 
         Map.put(acc, String.to_atom(data.type), data)
       else
@@ -203,7 +215,8 @@ defmodule Schema.JsonReader do
     Logger.info("merge_json_file: #{path}")
 
     if File.exists?(path) do
-      read_json_file(path) |> Utils.deep_merge(map)
+      read_json_file(path)
+      |> Utils.deep_merge(map)
     else
       map
     end
@@ -233,7 +246,10 @@ defmodule Schema.JsonReader do
     included =
       case get(file) do
         [] ->
-          Path.join(home, file) |> read_json_file() |> resolve_includes(home) |> put(data)
+          Path.join(home, file)
+          |> read_json_file()
+          |> resolve_includes(home)
+          |> put(data)
 
         [{_, cached}] ->
           cached
@@ -250,9 +266,12 @@ defmodule Schema.JsonReader do
   end
 
   defp merge_enums(home, attributes) do
-    Enum.map(attributes, fn {name, attribute} ->
-      {name, merge_enum_file(home, attribute)}
-    end)
+    Enum.map(
+      attributes,
+      fn {name, attribute} ->
+        {name, merge_enum_file(home, attribute)}
+      end
+    )
     |> Map.new()
   end
 
@@ -303,7 +322,7 @@ defmodule Schema.JsonReader do
     :ets.lookup(__MODULE__, path)
   end
 
-  # defp delete() do
-  #   :ets.delete(__MODULE__)
-  # end
+  defp delete() do
+    :ets.delete(__MODULE__)
+  end
 end
