@@ -44,21 +44,23 @@ defmodule Schema.Cache do
   """
   @spec init :: __MODULE__.t()
   def init() do
+    # profile = "extensions"
+    profile = nil
     version = JsonReader.read_version()
 
     Logger.info(fn -> "#{inspect(__MODULE__)}: schema version: #{inspect(version)}" end)
 
-    categories = JsonReader.read_categories()
-    dictionary = JsonReader.read_dictionary()
+    categories = JsonReader.read_categories(profile)
+    dictionary = JsonReader.read_dictionary(profile)
 
-    {common, classes} = read_classes(categories.attributes)
-    objects = read_objects()
-
-    dictionary = Utils.update_dictionary(dictionary, common, classes, objects)
-    objects = Utils.update_objects(dictionary, objects)
+    {common, classes} = read_classes(profile, categories.attributes)
+    objects = read_objects(profile)
 
     # clean up the cached files
     JsonReader.cleanup()
+
+    dictionary = Utils.update_dictionary(dictionary, common, classes, objects)
+    objects = Utils.update_objects(dictionary, objects)
 
     new(version)
     |> set_categories(categories)
@@ -160,9 +162,9 @@ defmodule Schema.Cache do
     Map.put(map, :attributes, attributes)
   end
 
-  @spec read_classes(map) :: {map, map}
-  def read_classes(categories) do
-    {base, classes} = read_classes()
+  @spec read_classes(String.t() | nil, map) :: {map, map}
+  def read_classes(profile, categories) do
+    {base, classes} = read_classes(profile)
 
     classes =
       classes
@@ -176,9 +178,9 @@ defmodule Schema.Cache do
     {base, classes}
   end
 
-  defp read_classes() do
+  defp read_classes(profile) do
     classes =
-      JsonReader.read_classes()
+      JsonReader.read_classes(profile)
       |> update_see_also()
       |> Enum.map(fn class -> attribute_source(class) end)
       |> Map.new()
@@ -186,8 +188,8 @@ defmodule Schema.Cache do
     {Map.get(classes, :base_event), classes}
   end
 
-  defp read_objects() do
-    JsonReader.read_objects()
+  defp read_objects(profile) do
+    JsonReader.read_objects(profile)
     |> resolve_extends()
     |> Enum.filter(fn {key, _object} ->
       # removes abstract objects

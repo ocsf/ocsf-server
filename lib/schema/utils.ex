@@ -169,7 +169,7 @@ defmodule Schema.Utils do
   end
 
   # Key exists in both and both values are maps as well, then they can be merged recursively
-  defp deep_resolve(key, left, right) when is_map(left) and is_map(right) do
+  defp deep_resolve(_key, left, right) when is_map(left) and is_map(right) do
     if map_size(left) == 0 do
       right
     else

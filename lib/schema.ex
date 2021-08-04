@@ -77,9 +77,7 @@ defmodule Schema do
   def to_uid(nil), do: nil
 
   def to_uid(name) do
-    name
-    |> String.downcase()
-    |> String.to_atom()
+    String.downcase(name) |> String.to_atom()
   end
 
   @doc """
@@ -87,8 +85,7 @@ defmodule Schema do
   """
   @spec event(atom() | map()) :: nil | map()
   def event(class) when is_atom(class) do
-    Schema.classes(class)
-    |> Schema.Generator.event()
+    Schema.classes(class) |> Schema.Generator.event()
   end
 
   def event(class) when is_map(class) do
@@ -102,13 +99,9 @@ defmodule Schema do
   def generate(type) when is_map(type) do
     Schema.Generator.generate(type)
   end
-
   def remove_links(data) do
-    data
-    |> Map.delete(:_links)
-    |> remove_links(:attributes)
+    Map.delete(data, :_links) |> remove_links(:attributes)
   end
-
   def remove_links(data, key) do
     case data[key] do
       nil ->
@@ -119,7 +112,6 @@ defmodule Schema do
         Map.put(data, key, updated)
     end
   end
-
   def schema_map() do
     base = get_class(:base_event)
 

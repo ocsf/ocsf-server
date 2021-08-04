@@ -11,7 +11,6 @@ defmodule Schema.JsonReader do
   @data_dir "../schema"
   @events_dir "events"
   @objects_dir "objects"
-  @ext_dir "extensions"
 
   # The schema JSON file extension
   @schema_file ".json"
@@ -44,24 +43,24 @@ defmodule Schema.JsonReader do
     GenServer.call(__MODULE__, :read_version)
   end
 
-  @spec read_categories() :: any()
-  def read_categories() do
-    GenServer.call(__MODULE__, :read_categories)
+  @spec read_categories(String.t() | nil) :: term()
+  def read_categories(ext_dir) do
+    GenServer.call(__MODULE__, {:read_categories, ext_dir})
   end
 
-  @spec read_dictionary() :: any()
-  def read_dictionary() do
-    GenServer.call(__MODULE__, :read_dictionary)
+  @spec read_dictionary(String.t() | nil) :: any()
+  def read_dictionary(ext_dir) do
+    GenServer.call(__MODULE__, {:read_dictionary, ext_dir})
   end
 
-  @spec read_objects() :: map()
-  def read_objects() do
-    GenServer.call(__MODULE__, :read_objects)
+  @spec read_objects(String.t() | nil) :: map()
+  def read_objects(ext_dir) do
+    GenServer.call(__MODULE__, {:read_objects, ext_dir})
   end
 
-  @spec read_classes() :: map()
-  def read_classes() do
-    GenServer.call(__MODULE__, :read_classes)
+  @spec read_classes(String.t() | nil) :: map()
+  def read_classes(ext_dir) do
+    GenServer.call(__MODULE__, {:read_classes, ext_dir})
   end
 
   @spec cleanup() :: :ok
@@ -83,23 +82,23 @@ defmodule Schema.JsonReader do
   end
 
   @impl true
-  def handle_call(:read_categories, _from, home) do
-    {:reply, read_categories(home), home}
+  def handle_call({:read_categories, ext_dir}, _from, home) do
+    {:reply, read_categories(home, ext_dir), home}
   end
 
   @impl true
-  def handle_call(:read_dictionary, _from, home) do
-    {:reply, read_dictionary(home), home}
+  def handle_call({:read_dictionary, ext_dir}, _from, home) do
+    {:reply, read_dictionary(home, ext_dir), home}
   end
 
   @impl true
-  def handle_call(:read_objects, _from, home) do
-    {:reply, read_objects(home), home}
+  def handle_call({:read_objects, ext_dir}, _from, home) do
+    {:reply, read_objects(home, ext_dir), home}
   end
 
   @impl true
-  def handle_call(:read_classes, _from, home) do
-    {:reply, read_classes(home), home}
+  def handle_call({:read_classes, ext_dir}, _from, home) do
+    {:reply, read_classes(home, ext_dir), home}
   end
 
   @impl true
@@ -119,32 +118,44 @@ defmodule Schema.JsonReader do
     end
   end
 
-  defp read_categories(home) do
+  defp read_categories(home, nil) do
+    Path.join(home, @categories_file) |> read_json_file()
+  end
+
+  defp read_categories(home, ext_dir) do
     Path.join(home, @categories_file)
     |> read_json_file()
-    |> merge_json_file(extension_file(home, @categories_file))
+    |> merge_json_file(Path.join([home, ext_dir, @categories_file]))
   end
 
-  defp read_dictionary(home) do
+  defp read_dictionary(home, nil) do
+    Path.join(home, @dictionary_file) |> read_json_file()
+  end
+
+  defp read_dictionary(home, ext_dir) do
     Path.join(home, @dictionary_file)
     |> read_json_file()
-    |> merge_json_file(extension_file(home, @dictionary_file))
+    |> merge_json_file(Path.join([home, ext_dir, @dictionary_file]))
   end
 
-  defp read_objects(home) do
+  defp read_objects(home, nil) do
+    read_schema_files(Map.new(), home, Path.join(home, @objects_dir))
+  end
+
+  defp read_objects(home, ext_dir) do
     Map.new()
     |> read_schema_files(home, Path.join(home, @objects_dir))
-    |> scan_schema_files(home, Path.join(home, @ext_dir), @objects_dir)
+    |> scan_schema_files(home, Path.join(home, ext_dir), @objects_dir)
   end
 
-  defp read_classes(home) do
+  defp read_classes(home, nil) do
+    read_schema_files(Map.new(), home, Path.join(home, @events_dir))
+  end
+
+  defp read_classes(home, ext_dir) do
     Map.new()
     |> read_schema_files(home, Path.join(home, @events_dir))
-    |> scan_schema_files(home, Path.join(home, @ext_dir), @events_dir)
-  end
-
-  defp extension_file(home, file) do
-    Path.join([home, @ext_dir, file])
+    |> scan_schema_files(home, Path.join(home, ext_dir), @events_dir)
   end
 
   # scan for schema extension files
@@ -213,7 +224,8 @@ defmodule Schema.JsonReader do
     Logger.info("merge_json_file: #{path}")
 
     if File.exists?(path) do
-      read_json_file(path) |> Utils.deep_merge(map) else
+      read_json_file(path) |> Utils.deep_merge(map)
+    else
       map
     end
   end
