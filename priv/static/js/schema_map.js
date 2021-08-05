@@ -9,6 +9,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 export default function define(runtime, observer) {
+  let width = 900;
+  let height = 525;
+
   const main = runtime.module();
   const fileAttachments = new Map([["schema.json", new URL("/api/schema", import.meta.url)]]);
 
@@ -27,8 +30,12 @@ export default function define(runtime, observer) {
 
   main.variable("tile").define("tile", ["Generators", "viewof tile"], (G, _) => G.input(_));
 
-  main.variable(observer("chart")).define("chart", ["treemap", "data", "d3", "width", "height", "color"],
-    function (treemap, data, d3, width, height, color) {
+  main.variable(observer("chart")).define("chart", ["treemap", "data", "d3", "color"],
+    function (treemap, data, d3,  color) {
+      if (data.children.length > 3) {
+        width = 1000;
+        height = 825;              
+      }
       const root = treemap(data);
 
       const svg = d3.create("svg")
@@ -83,7 +90,7 @@ export default function define(runtime, observer) {
     return (FileAttachment("schema.json").json())
   });
 
-  main.variable("treemap").define("treemap", ["d3", "tile", "width", "height"], function (d3, tile, width, height) {
+  main.variable("treemap").define("treemap", ["d3", "tile"], function (d3, tile) {
     return (
       data => d3.treemap()
         .tile(tile)
@@ -95,8 +102,6 @@ export default function define(runtime, observer) {
         (d3.hierarchy(data).sum(d => d.value)))
   });
 
-  main.variable("width").define("width", function () { return (950) });
-  main.variable("height").define("height", function () { return (850) });
   main.variable("format").define("format", ["d3"], function (d3) { return (d3.format(",d")) });
   main.variable("color").define("color", ["d3"], function (d3) { return (d3.scaleOrdinal(d3.schemeCategory10)) });
   main.variable("d3").define("d3", ["require"], function (require) { return (require("d3@6")) });

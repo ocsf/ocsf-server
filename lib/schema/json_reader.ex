@@ -24,8 +24,9 @@ defmodule Schema.JsonReader do
   @categories_file "categories.json"
   @dictionary_file "dictionary.json"
 
-  def start_link(_opts) do
-    GenServer.start_link(__MODULE__, [], name: __MODULE__)
+  def start_link(opts \\ nil) do
+    Logger.info("starting json reader with: #{inspect(opts)}")
+    GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
 
   @doc """
@@ -33,7 +34,9 @@ defmodule Schema.JsonReader do
   """
   @spec data_dir :: String.t()
   def data_dir() do
-    Application.get_env(:schema_server, __MODULE__) |> Keyword.get(:home) || @data_dir
+    home = Application.get_env(:schema_server, __MODULE__) |> Keyword.get(:home) || @data_dir
+    Logger.info(fn -> "#{inspect(__MODULE__)}: schema directory: #{home}" end)
+    home
   end
 
   @spec read_version() :: map()
@@ -41,24 +44,24 @@ defmodule Schema.JsonReader do
     GenServer.call(__MODULE__, :read_version)
   end
 
-  @spec read_categories(String.t() | nil) :: term()
-  def read_categories(ext_dir) do
-    GenServer.call(__MODULE__, {:read_categories, ext_dir})
+  @spec read_categories() :: term()
+  def read_categories() do
+    GenServer.call(__MODULE__, :read_categories)
   end
 
-  @spec read_dictionary(String.t() | nil) :: any()
-  def read_dictionary(ext_dir) do
-    GenServer.call(__MODULE__, {:read_dictionary, ext_dir})
+  @spec read_dictionary() :: any()
+  def read_dictionary() do
+    GenServer.call(__MODULE__, :read_dictionary)
   end
 
-  @spec read_objects(String.t() | nil) :: map()
-  def read_objects(ext_dir) do
-    GenServer.call(__MODULE__, {:read_objects, ext_dir})
+  @spec read_objects() :: map()
+  def read_objects() do
+    GenServer.call(__MODULE__, :read_objects)
   end
 
-  @spec read_classes(String.t() | nil) :: map()
-  def read_classes(ext_dir) do
-    GenServer.call(__MODULE__, {:read_classes, ext_dir})
+  @spec read_classes() :: map()
+  def read_classes() do
+    GenServer.call(__MODULE__, :read_classes)
   end
 
   @spec cleanup() :: :ok
@@ -67,42 +70,41 @@ defmodule Schema.JsonReader do
   end
 
   @impl true
-  def init(_opts) do
+  @spec init(String.t()) :: {:ok, term()}
+  def init(ext_dir) do
     init_cache()
-    home = data_dir()
-    Logger.info(fn -> "#{inspect(__MODULE__)}: reading schema from: #{home}" end)
-    {:ok, home}
+    {:ok, {data_dir(), ext_dir}}
   end
 
   @impl true
-  def handle_call(:read_version, _from, home) do
-    {:reply, read_version(home), home}
+  def handle_call(:read_version, _from, {home, _ext_dir} = state) do
+    {:reply, read_version(home), state}
   end
 
   @impl true
-  def handle_call({:read_categories, ext_dir}, _from, home) do
-    {:reply, read_categories(home, ext_dir), home}
+  def handle_call(:read_categories, _from, {home, ext_dir} = state) do
+    {:reply, read_categories(home, ext_dir), state}
   end
 
   @impl true
-  def handle_call({:read_dictionary, ext_dir}, _from, home) do
-    {:reply, read_dictionary(home, ext_dir), home}
+  def handle_call(:read_dictionary, _from, {home, ext_dir} = state) do
+    {:reply, read_dictionary(home, ext_dir), state}
   end
 
   @impl true
-  def handle_call({:read_objects, ext_dir}, _from, home) do
-    {:reply, read_objects(home, ext_dir), home}
+  def handle_call(:read_objects, _from, {home, ext_dir} = state) do
+    {:reply, read_objects(home, ext_dir), state}
   end
 
   @impl true
-  def handle_call({:read_classes, ext_dir}, _from, home) do
-    {:reply, read_classes(home, ext_dir), home}
+  def handle_call(:read_classes, _from, {home, ext_dir} = state) do
+    {:reply, read_classes(home, ext_dir), state}
   end
 
   @impl true
-  def handle_cast(:delete, home) do
+  def handle_cast(:delete, state) do
     delete()
-    {:stop, :normal, home}
+    {:noreply, state}
   end
 
   defp read_version(home) do
@@ -328,6 +330,6 @@ defmodule Schema.JsonReader do
   end
 
   defp delete() do
-    :ets.delete(__MODULE__)
+    :ets.delete_all_objects(__MODULE__)
   end
 end

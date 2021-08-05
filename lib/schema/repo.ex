@@ -17,10 +17,10 @@ defmodule Schema.Repo do
   alias Schema.Cache
 
   @spec start :: {:error, any} | {:ok, pid}
-  def start(), do: Agent.start(fn -> Cache.init(nil) end, name: __MODULE__)
+  def start(), do: Agent.start(fn -> Cache.init() end, name: __MODULE__)
 
   @spec start_link(any) :: {:error, any} | {:ok, pid}
-  def start_link(_), do: Agent.start_link(fn -> Cache.init(nil) end, name: __MODULE__)
+  def start_link(_), do: Agent.start_link(fn -> Cache.init() end, name: __MODULE__)
 
   @spec version :: String.t()
   def version(), do: Agent.get(__MODULE__, fn schema -> Cache.version(schema) end)
@@ -56,9 +56,8 @@ defmodule Schema.Repo do
     Agent.get(__MODULE__, fn schema -> Cache.objects(schema, id) end)
   end
 
-  @spec reload(String.t() | nil) :: :ok
-  def reload(profile \\ nil) do
-    # profile = "extensions"
-    Agent.cast(__MODULE__, fn _ -> Cache.init(profile) end)
+  @spec reload() :: :ok
+  def reload() do
+    Agent.cast(__MODULE__, fn _ -> Cache.init() end)
   end
 end

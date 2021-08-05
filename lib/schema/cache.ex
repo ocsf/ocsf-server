@@ -42,17 +42,17 @@ defmodule Schema.Cache do
   @doc """
   Load the schema files and initialize the cache.
   """
-  @spec init(String.t() | nil) :: __MODULE__.t()
-  def init(profile) do
+  @spec init() :: __MODULE__.t()
+  def init() do
     version = JsonReader.read_version()
 
     Logger.info(fn -> "#{inspect(__MODULE__)}: schema version: #{inspect(version)}" end)
 
-    categories = JsonReader.read_categories(profile)
-    dictionary = JsonReader.read_dictionary(profile)
+    categories = JsonReader.read_categories()
+    dictionary = JsonReader.read_dictionary()
 
-    {common, classes} = read_classes(profile, categories.attributes)
-    objects = read_objects(profile)
+    {common, classes} = read_classes(categories.attributes)
+    objects = read_objects()
 
     # clean up the cached files
     JsonReader.cleanup()
@@ -160,9 +160,9 @@ defmodule Schema.Cache do
     Map.put(map, :attributes, attributes)
   end
 
-  @spec read_classes(String.t() | nil, map) :: {map, map}
-  def read_classes(profile, categories) do
-    {base, classes} = read_classes(profile)
+  @spec read_classes(map) :: {map, map}
+  def read_classes(categories) do
+    {base, classes} = read_classes()
 
     classes =
       classes
@@ -176,9 +176,9 @@ defmodule Schema.Cache do
     {base, classes}
   end
 
-  defp read_classes(profile) do
+  defp read_classes() do
     classes =
-      JsonReader.read_classes(profile)
+      JsonReader.read_classes()
       |> update_see_also()
       |> Enum.map(fn class -> attribute_source(class) end)
       |> Map.new()
@@ -186,8 +186,8 @@ defmodule Schema.Cache do
     {Map.get(classes, :base_event), classes}
   end
 
-  defp read_objects(profile) do
-    JsonReader.read_objects(profile)
+  defp read_objects() do
+    JsonReader.read_objects()
     |> resolve_extends()
     |> Enum.filter(fn {key, _object} ->
       # removes abstract objects
