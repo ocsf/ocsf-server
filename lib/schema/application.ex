@@ -18,12 +18,13 @@ defmodule Schema.Application do
   def start(_type, _args) do
     # List all child processes to be supervised
     children = [
-      # Start the endpoint when the application starts
-      SchemaWeb.Endpoint,
-      {Phoenix.PubSub, [name: Schema.PubSub, adapter: Phoenix.PubSub.PG2]},
       Schema.JsonReader,
       Schema.Repo,
-      Schema.Generator
+      Schema.Generator,
+
+      # Start the endpoint when the application starts
+      SchemaWeb.Endpoint,
+      {Phoenix.PubSub, [name: Schema.PubSub, adapter: Phoenix.PubSub.PG2]}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

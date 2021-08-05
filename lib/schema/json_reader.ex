@@ -33,9 +33,7 @@ defmodule Schema.JsonReader do
   """
   @spec data_dir :: String.t()
   def data_dir() do
-    :schema_server
-    |> Application.get_env(__MODULE__)
-    |> Keyword.get(:home) || @data_dir
+    Application.get_env(:schema_server, __MODULE__) |> Keyword.get(:home) || @data_dir
   end
 
   @spec read_version() :: map()
@@ -311,7 +309,6 @@ defmodule Schema.JsonReader do
   # ETS cache for the included json file
   defp init_cache() do
     name = __MODULE__
-
     case :ets.info(name) do
       :undefined ->
         :ets.new(name, [:set, :protected, :named_table])

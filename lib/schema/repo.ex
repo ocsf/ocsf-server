@@ -57,7 +57,7 @@ defmodule Schema.Repo do
   end
 
   @spec reload(String.t() | nil) :: :ok
-  def reload(profile) do
+  def reload(profile \\ nil) do
     # profile = "extensions"
     Agent.cast(__MODULE__, fn _ -> Cache.init(profile) end)
   end
