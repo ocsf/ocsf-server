@@ -42,10 +42,8 @@ defmodule Schema.Cache do
   @doc """
   Load the schema files and initialize the cache.
   """
-  @spec init :: __MODULE__.t()
-  def init() do
-    # profile = "extensions"
-    profile = nil
+  @spec init(String.t() | nil) :: __MODULE__.t()
+  def init(profile) do
     version = JsonReader.read_version()
 
     Logger.info(fn -> "#{inspect(__MODULE__)}: schema version: #{inspect(version)}" end)
