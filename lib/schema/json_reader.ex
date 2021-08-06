@@ -64,6 +64,11 @@ defmodule Schema.JsonReader do
     GenServer.call(__MODULE__, :read_classes)
   end
 
+  @spec profile(String.t()) :: :ok
+  def profile(name) do
+    GenServer.cast(__MODULE__, {:profile, name})
+  end
+
   @spec cleanup() :: :ok
   def cleanup() do
     GenServer.cast(__MODULE__, :delete)
@@ -99,6 +104,11 @@ defmodule Schema.JsonReader do
   @impl true
   def handle_call(:read_classes, _from, {home, ext_dir} = state) do
     {:reply, read_classes(home, ext_dir), state}
+  end
+
+  @impl true
+  def handle_cast({:profile, name}, {home, _ext_dir}) do
+    {:noreply, {home, name}}
   end
 
   @impl true

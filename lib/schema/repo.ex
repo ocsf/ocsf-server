@@ -60,4 +60,10 @@ defmodule Schema.Repo do
   def reload() do
     Agent.cast(__MODULE__, fn _ -> Cache.init() end)
   end
+
+  @spec reload(String.t()) :: :ok
+  def reload(profile) do
+    Schema.JsonReader.profile(profile)
+    Agent.cast(__MODULE__, fn _ -> Cache.init() end)
+  end
 end
