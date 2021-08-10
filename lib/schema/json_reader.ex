@@ -64,6 +64,11 @@ defmodule Schema.JsonReader do
     GenServer.call(__MODULE__, :read_classes)
   end
 
+  @spec profile() :: :ok
+  def profile() do
+    GenServer.cast(__MODULE__, {:profile, nil})
+  end
+
   @spec profile(String.t()) :: :ok
   def profile(name) do
     GenServer.cast(__MODULE__, {:profile, name})
@@ -135,7 +140,7 @@ defmodule Schema.JsonReader do
   defp read_categories(home, ext_dir) do
     Path.join(home, @categories_file)
     |> read_json_file()
-    |> merge_json_file(Path.join([home, ext_dir, @categories_file]))
+		|> merge_json_file(Path.join(home, ext_dir), @categories_file)
   end
 
   defp read_dictionary(home, nil) do
@@ -145,7 +150,7 @@ defmodule Schema.JsonReader do
   defp read_dictionary(home, ext_dir) do
     Path.join(home, @dictionary_file)
     |> read_json_file()
-    |> merge_json_file(Path.join([home, ext_dir, @dictionary_file]))
+		|> merge_json_file(Path.join(home, ext_dir), @dictionary_file)
   end
 
   defp read_objects(home, nil) do
@@ -159,7 +164,8 @@ defmodule Schema.JsonReader do
   end
 
   defp read_classes(home, nil) do
-    read_schema_files(Map.new(), home, Path.join(home, @events_dir))
+		Map.new()
+		|> read_schema_files(home, Path.join(home, @events_dir))
   end
 
   defp read_classes(home, ext_dir) do
@@ -230,13 +236,26 @@ defmodule Schema.JsonReader do
     end
   end
 
-  defp merge_json_file(map, path) do
-    Logger.info("merge_json_file: #{path}")
+  def merge_json_file(map, path, filename) do
+    if File.dir?(path) do
+      Logger.info("merge_json_file: #{path} #{filename}")
 
-    if File.exists?(path) do
-      read_json_file(path) |> Utils.deep_merge(map)
+      case File.ls(path) do
+        {:ok, files} ->
+          files
+          |> Stream.map(fn file -> Path.join(path, file) end)
+          |> Enum.reduce(map, fn file, map -> merge_json_file(map, file, filename) end)
+
+        error ->
+          Logger.warn("merge_json_file: unable to access #{path} directory. Error: #{inspect(error)}")
+          raise error
+      end
     else
-      map
+      if Path.basename(path) == filename do
+				read_json_file(path) |> Utils.deep_merge(map)
+      else
+        map
+      end
     end
   end
 
