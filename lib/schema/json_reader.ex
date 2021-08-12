@@ -195,6 +195,8 @@ defmodule Schema.JsonReader do
             raise error
         end
       end
+    else
+      acc
     end
   end
 
