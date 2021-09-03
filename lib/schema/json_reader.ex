@@ -18,6 +18,9 @@ defmodule Schema.JsonReader do
   # The Schema version file
   @version_file "version.json"
 
+  # The Schema profile file
+  @profile_file "profile.json"
+
   # The include directive
   @include :"$include"
 
@@ -129,32 +132,46 @@ defmodule Schema.JsonReader do
       read_json_file(file)
     else
       Logger.warn("version file #{file} not found")
-      "0.0.0"
+      %{"version" => "0.0.0"}
+    end
+  end
+
+  def read_profile(dir) do
+    file = Path.join(dir, @profile_file)
+
+    if File.regular?(file) do
+      read_json_file(file)
+    else
+      Logger.warn("profile file #{file} not found")
+      :none
     end
   end
 
   defp read_categories(home, nil) do
-    Path.join(home, @categories_file) |> read_json_file()
+    Path.join(home, @categories_file)
+    |> read_json_file()
   end
 
   defp read_categories(home, ext_dir) do
     Path.join(home, @categories_file)
     |> read_json_file()
-		|> merge_json_file(Path.join(home, ext_dir), @categories_file)
+    |> merge_json_file(Path.join(home, ext_dir), @categories_file)
   end
 
   defp read_dictionary(home, nil) do
-    Path.join(home, @dictionary_file) |> read_json_file()
+    Path.join(home, @dictionary_file)
+    |> read_json_file()
   end
 
   defp read_dictionary(home, ext_dir) do
     Path.join(home, @dictionary_file)
     |> read_json_file()
-		|> merge_json_file(Path.join(home, ext_dir), @dictionary_file)
+    |> merge_json_file(Path.join(home, ext_dir), @dictionary_file)
   end
 
   defp read_objects(home, nil) do
-    read_schema_files(Map.new(), home, Path.join(home, @objects_dir))
+    Map.new()
+    |> read_schema_files(home, Path.join(home, @objects_dir))
   end
 
   defp read_objects(home, ext_dir) do
@@ -164,8 +181,8 @@ defmodule Schema.JsonReader do
   end
 
   defp read_classes(home, nil) do
-		Map.new()
-		|> read_schema_files(home, Path.join(home, @events_dir))
+    Map.new()
+    |> read_schema_files(home, Path.join(home, @events_dir))
   end
 
   defp read_classes(home, ext_dir) do
@@ -249,12 +266,15 @@ defmodule Schema.JsonReader do
           |> Enum.reduce(map, fn file, map -> merge_json_file(map, file, filename) end)
 
         error ->
-          Logger.warn("merge_json_file: unable to access #{path} directory. Error: #{inspect(error)}")
+          Logger.warn(
+            "merge_json_file: unable to access #{path} directory. Error: #{inspect(error)}"
+          )
+
           raise error
       end
     else
       if Path.basename(path) == filename do
-				read_json_file(path) |> Utils.deep_merge(map)
+        read_json_file(path) |> Utils.deep_merge(map)
       else
         map
       end
@@ -342,6 +362,7 @@ defmodule Schema.JsonReader do
   # ETS cache for the included json file
   defp init_cache() do
     name = __MODULE__
+
     case :ets.info(name) do
       :undefined ->
         :ets.new(name, [:set, :protected, :named_table])

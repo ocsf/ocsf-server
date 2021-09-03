@@ -46,7 +46,7 @@ defmodule Schema.Cache do
   def init() do
     version = JsonReader.read_version()
 
-    Logger.info(fn -> "#{inspect(__MODULE__)}: schema version: #{inspect(version)}" end)
+    Logger.info(fn -> "#{inspect(__MODULE__)}: schema version: #{version.version}" end)
 
     categories = JsonReader.read_categories()
     dictionary = JsonReader.read_dictionary()
@@ -142,22 +142,40 @@ defmodule Schema.Cache do
   end
 
   defp enrich(map, dictionary) do
-    attributes =
-      Enum.map(
-        map.attributes,
-        fn {name, attribute} ->
-          case dictionary[name] do
-            nil ->
-              Logger.warn("undefined attribute: #{name}")
-              {name, attribute}
+    Map.update!(map, :attributes, fn list -> update_attributes(list, dictionary) end)
+  end
 
-            base ->
-              {name, Utils.deep_merge(base, attribute)}
+  defp update_attributes(list, dictionary) do
+    Enum.map(list, fn {name, attribute} ->
+      case dictionary[name] do
+        nil ->
+          Logger.warn("undefined attribute: #{name}")
+          {name, attribute}
+
+        base ->
+          {name, Utils.deep_merge(base, attribute)}
+      end
+    end)
+  end
+
+  defp expand_attributes(list, dictionary) do
+    Enum.map(list, fn {name, attribute} ->
+      case dictionary[name] do
+        nil ->
+          Logger.warn("undefined attribute: #{name}")
+          {name, attribute}
+
+        base ->
+          a = Utils.deep_merge(base, attribute)
+
+          if a.type == "object_t" do
+            Logger.info("found object: #{a.object_type}")
+            # enrich(object, dictionary)
           end
-        end
-      )
 
-    Map.put(map, :attributes, attributes)
+          {name, a}
+      end
+    end)
   end
 
   @spec read_classes(map) :: {map, map}
