@@ -34,7 +34,7 @@ defmodule SchemaWeb.PageController do
           send_resp(conn, 404, "Not Found: #{id}")
 
         data ->
-          classes = sort_by(data.classes, :uid)
+          classes = sort_by_name(data.classes)
           render(conn, "category.html", data: Map.put(data, :classes, classes))
       end
     rescue
@@ -95,7 +95,7 @@ defmodule SchemaWeb.PageController do
   end
 
   def classes(conn, _params) do
-    data = Schema.classes() |> sort_by(:uid)
+    data = Schema.classes() |> sort_by_name()
     render(conn, "classes.html", data: data)
   end
 
