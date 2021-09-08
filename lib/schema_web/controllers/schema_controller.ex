@@ -88,8 +88,10 @@ defmodule SchemaWeb.SchemaController do
   Renders the base event attributes.
   """
   @spec base_event(Plug.Conn.t(), any) :: Plug.Conn.t()
-  def base_event(conn, _params) do
-    send_json_resp(conn, remove_links(Schema.classes(:base_event), :attributes))
+  def base_event(conn, params) do
+    base = Schema.classes(:base_event) |> add_objects(params)
+
+    send_json_resp(conn, base)
   end
 
   # {
@@ -104,14 +106,14 @@ defmodule SchemaWeb.SchemaController do
   Renders event classes.
   """
   @spec classes(Plug.Conn.t(), any) :: Plug.Conn.t()
-  def classes(conn, %{"id" => id}) do
+  def classes(conn, %{"id" => id} = params) do
     try do
       case Schema.classes(Schema.to_uid(id)) do
         nil ->
           send_json_resp(conn, 404, %{error: "Not Found: #{id}"})
 
         data ->
-          send_json_resp(conn, remove_links(data))
+          send_json_resp(conn, add_objects(data, params))
       end
     rescue
       e ->
@@ -148,15 +150,14 @@ defmodule SchemaWeb.SchemaController do
   Renders objects.
   """
   @spec objects(Plug.Conn.t(), map) :: Plug.Conn.t()
-  def objects(conn, %{"id" => id}) do
+  def objects(conn, %{"id" => id} = params) do
     try do
       case Schema.objects(Schema.to_uid(id)) do
         nil ->
           send_json_resp(conn, 404, %{error: "Not Found: #{id}"})
 
         data ->
-          objects = remove_links(data)
-          send_json_resp(conn, objects)
+          send_json_resp(conn, add_objects(data, params))
       end
     rescue
       e ->
@@ -416,6 +417,40 @@ defmodule SchemaWeb.SchemaController do
 
         Map.put(data, :classes, updated)
     end
+  end
+
+  def add_objects(data, %{"objects" => "1"}) do
+    objects = update_objects(Map.new(), data[:attributes])
+
+    if map_size(objects) > 0 do
+      Map.put(data, :objects, objects)
+    else
+      data
+    end
+    |> remove_links()
+  end
+  
+  def add_objects(data, _params) do
+    remove_links(data)
+  end
+  
+  defp update_objects(objects, attributes) do
+    Enum.reduce(attributes, objects, fn {_name, field}, acc ->
+      case field[:type] do
+        "object_t" ->
+          type = field[:object_type] |> String.to_atom()
+
+          if Map.has_key?(acc, type) do
+            acc
+          else
+            object = Schema.objects(type)
+            Map.put(acc, type, remove_links(object)) |> update_objects(object[:attributes])
+          end
+
+        _other ->
+          acc
+      end
+    end)
   end
 
   defp verbose(option) when is_binary(option) do
