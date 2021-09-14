@@ -18,8 +18,8 @@ defmodule Schema.JsonReader do
   # The Schema version file
   @version_file "version.json"
 
-  # The Schema profile file
-  @profile_file "profile.json"
+  # The Schema extension file
+  @extension_file "extension.json"
 
   # The include directive
   @include :"$include"
@@ -67,14 +67,14 @@ defmodule Schema.JsonReader do
     GenServer.call(__MODULE__, :read_classes)
   end
 
-  @spec profile() :: :ok
-  def profile() do
-    GenServer.cast(__MODULE__, {:profile, nil})
+  @spec extension() :: :ok
+  def extension() do
+    GenServer.cast(__MODULE__, {:extension, nil})
   end
 
-  @spec profile(String.t()) :: :ok
-  def profile(name) do
-    GenServer.cast(__MODULE__, {:profile, name})
+  @spec extension(String.t()) :: :ok
+  def extension(name) do
+    GenServer.cast(__MODULE__, {:extension, name})
   end
 
   @spec cleanup() :: :ok
@@ -115,7 +115,7 @@ defmodule Schema.JsonReader do
   end
 
   @impl true
-  def handle_cast({:profile, name}, {home, _ext_dir}) do
+  def handle_cast({:extension, name}, {home, _ext_dir}) do
     {:noreply, {home, name}}
   end
 
@@ -136,13 +136,13 @@ defmodule Schema.JsonReader do
     end
   end
 
-  def read_profile(dir) do
-    file = Path.join(dir, @profile_file)
+  def read_extension(dir) do
+    file = Path.join(dir, @extension_file)
 
     if File.regular?(file) do
       read_json_file(file)
     else
-      Logger.warn("profile file #{file} not found")
+      Logger.warn("extension file #{file} not found")
       :none
     end
   end

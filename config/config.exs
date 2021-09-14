@@ -34,7 +34,7 @@ config :phoenix_markdown, :earmark, %{
 
 # Configures the location of the schema files
 config :schema_server, Schema.JsonReader, home: System.get_env("SCHEMA_DIR")
-config :schema_server, Schema.Application, profile: System.get_env("SCHEMA_PROFILE")
+config :schema_server, Schema.Application, extension: System.get_env("SCHEMA_EXTENSION")
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

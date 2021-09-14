@@ -58,13 +58,13 @@ defmodule Schema.Repo do
 
   @spec reload() :: :ok
   def reload() do
-    Schema.JsonReader.profile()
+    Schema.JsonReader.extension()
     Agent.cast(__MODULE__, fn _ -> Cache.init() end)
   end
 
   @spec reload(String.t()) :: :ok
-  def reload(profile) do
-    Schema.JsonReader.profile(profile)
+  def reload(extension) do
+    Schema.JsonReader.extension(extension)
     Agent.cast(__MODULE__, fn _ -> Cache.init() end)
   end
 end
