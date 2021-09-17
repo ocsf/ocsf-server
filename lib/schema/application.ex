@@ -16,11 +16,11 @@ defmodule Schema.Application do
   use Application
 
   def start(_type, _args) do
-    profile = Application.get_env(:schema_server, __MODULE__) |> Keyword.get(:profile)
+    extension= Application.get_env(:schema_server, __MODULE__) |> Keyword.get(:extension)
 
     # List all child processes to be supervised
     children = [
-      {Schema.JsonReader, profile},
+      {Schema.JsonReader, extension},
       Schema.Repo,
       Schema.Generator,
 
