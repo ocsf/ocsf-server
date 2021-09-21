@@ -158,26 +158,6 @@ defmodule Schema.Cache do
     end)
   end
 
-  defp expand_attributes(list, dictionary) do
-    Enum.map(list, fn {name, attribute} ->
-      case dictionary[name] do
-        nil ->
-          Logger.warn("undefined attribute: #{name}")
-          {name, attribute}
-
-        base ->
-          a = Utils.deep_merge(base, attribute)
-
-          if a.type == "object_t" do
-            Logger.info("found object: #{a.object_type}")
-            # enrich(object, dictionary)
-          end
-
-          {name, a}
-      end
-    end)
-  end
-
   @spec read_classes(map) :: {map, map}
   def read_classes(categories) do
     {base, classes} = read_classes()
@@ -214,7 +194,7 @@ defmodule Schema.Cache do
     |> Map.new()
   end
 
-  # Add category_id, class_id, and event_uid
+  # Add category_id, class_id, and event_id
   defp enrich_class({name, class}, categories) do
     data =
       class
@@ -231,7 +211,7 @@ defmodule Schema.Cache do
       :attributes,
       fn attributes ->
         id = attributes[:disposition_id] || %{}
-        uid = attributes[:event_uid] || %{}
+        uid = attributes[:event_id] || %{}
         class_id = (data[:uid] || 0) * 1000
         caption = data[:name] || "UNKNOWN"
 
@@ -243,7 +223,7 @@ defmodule Schema.Cache do
             values ->
               for {key, val} <- values, into: %{} do
                 {
-                  make_event_uid(class_id, key),
+                  make_event_id(class_id, key),
                   Map.put(val, :name, make_event_name(caption, val[:name]))
                 }
               end
@@ -251,17 +231,17 @@ defmodule Schema.Cache do
           |> Map.put(make_uid(0, -1), Map.new(name: make_event_name(caption, "Other")))
           |> Map.put(make_uid(class_id, 0), Map.new(name: make_event_name(caption, "Unknown")))
 
-        Map.put(attributes, :event_uid, Map.put(uid, :enum, enum))
+        Map.put(attributes, :event_id, Map.put(uid, :enum, enum))
       end
     )
-    |> put_in([:attributes, :event_uid, :_source], name)
+    |> put_in([:attributes, :event_id, :_source], name)
   end
 
   defp make_event_name(caption, name) do
     caption <> ": " <> name
   end
 
-  defp make_event_uid(class_id, key) do
+  defp make_event_id(class_id, key) do
     make_uid(class_id, String.to_integer(Atom.to_string(key)))
   end
 
