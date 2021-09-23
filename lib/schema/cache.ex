@@ -46,8 +46,6 @@ defmodule Schema.Cache do
   def init() do
     version = JsonReader.read_version()
 
-    Logger.info(fn -> "#{inspect(__MODULE__)}: schema version: #{version.version}" end)
-
     categories = JsonReader.read_categories()
     dictionary = JsonReader.read_dictionary()
 

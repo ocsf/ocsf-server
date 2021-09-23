@@ -62,7 +62,7 @@ defmodule Schema.Repo do
     Agent.cast(__MODULE__, fn _ -> Cache.init() end)
   end
 
-  @spec reload(String.t()) :: :ok
+  @spec reload(String.t() | list()) :: :ok
   def reload(extension) do
     Schema.JsonReader.extension(extension)
     Agent.cast(__MODULE__, fn _ -> Cache.init() end)
