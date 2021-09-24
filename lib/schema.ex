@@ -36,7 +36,7 @@ defmodule Schema do
   def categories(id) when is_binary(id), do: Repo.categories(String.to_atom(id))
 
   @doc """
-    Returns the event dictionary.
+    Returns the attribute dictionary.
   """
   @spec dictionary :: Cache.dictionary_t()
   def dictionary(), do: Repo.dictionary()

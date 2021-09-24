@@ -31,7 +31,7 @@ limitations under the License.
       <%= for {name, map} <- @data.attributes do %>
       <% path = Routes.static_path(@conn, "/categories/" <> Atom.to_string(name)) %>
       <tr>
-        <td class="name"> <a href="<%= path %>"><%= map.name %></a></td>
+        <td class="name"> <a href="<%= path %>"><%= raw format_name(map) %></a></td>
         <td class="text-center"><a href="<%= path %>"><%= map.id %></a></td>
         <td class="text-center"><%= format_range(map.class_id_range) %></td>
         <td><%= raw map[:description] %></td>

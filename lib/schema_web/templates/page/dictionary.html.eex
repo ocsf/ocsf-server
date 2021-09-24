@@ -29,7 +29,7 @@ limitations under the License.
       <%= for {key, field} <- @data.attributes do %>
       <% attribute = Atom.to_string(key) %>
       <tr>
-        <td class="name"><%= field.name %></td>
+        <td class="name"><%= raw format_name(field) %></td>
         <td><%= attribute %></td>
         <td><%= raw format_type(@conn, field) %></td>
         <td><%= raw links(@conn, key, field[:_links]) %></td>

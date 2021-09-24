@@ -3,6 +3,16 @@ defmodule SchemaWeb.PageView do
 
   require Logger
 
+  def format_name(field) do
+    extension = Map.get(field, :extension)
+
+    if extension == nil do
+      field.name
+    else
+      field.name <> " <sup>#{extension}</sup>"
+    end
+  end
+
   def format_range([min, max]) do
     format_number(min) <> "-" <> format_number(max)
   end
@@ -20,17 +30,19 @@ defmodule SchemaWeb.PageView do
         "event "
       end
 
-    classes = if required?(field) do
-      base <> "required "
-    else
-      if reserved?(field) do
-        base <> "reserved "
+    classes =
+      if required?(field) do
+        base <> "required "
       else
-        base <> "optional "
+        if reserved?(field) do
+          base <> "reserved "
+        else
+          base <> "optional "
+        end
       end
-    end
 
     group = field[:group]
+
     if group != nil do
       classes <> group <> " d-none"
     else
@@ -254,12 +266,12 @@ defmodule SchemaWeb.PageView do
       end
     )
     |> Enum.reduce(
-         [],
-         fn _, acc ->
-           type_path = SchemaWeb.Router.Helpers.static_path(conn, "/base_event")
-           ["<a href='", type_path, "'>", " Base Event</a>", ", " | acc]
-         end
-       )
+      [],
+      fn _, acc ->
+        type_path = SchemaWeb.Router.Helpers.static_path(conn, "/base_event")
+        ["<a href='", type_path, "'>", " Base Event</a>", ", " | acc]
+      end
+    )
     |> List.delete_at(-1)
   end
 
@@ -271,12 +283,12 @@ defmodule SchemaWeb.PageView do
       end
     )
     |> Enum.reduce(
-         [],
-         fn {_type, link, name}, acc ->
-           type_path = SchemaWeb.Router.Helpers.static_path(conn, "/classes/" <> link)
-           ["<a href='", type_path, "'>", name, " Event</a>", ", " | acc]
-         end
-       )
+      [],
+      fn {_type, link, name}, acc ->
+        type_path = SchemaWeb.Router.Helpers.static_path(conn, "/classes/" <> link)
+        ["<a href='", type_path, "'>", name, " Event</a>", ", " | acc]
+      end
+    )
     |> List.delete_at(-1)
   end
 
@@ -288,12 +300,12 @@ defmodule SchemaWeb.PageView do
       end
     )
     |> Enum.reduce(
-         [],
-         fn {_type, link, name}, acc ->
-           type_path = SchemaWeb.Router.Helpers.static_path(conn, "/objects/" <> link)
-           ["<a href='", type_path, "'>", name, " Object</a>", ", " | acc]
-         end
-       )
+      [],
+      fn {_type, link, name}, acc ->
+        type_path = SchemaWeb.Router.Helpers.static_path(conn, "/objects/" <> link)
+        ["<a href='", type_path, "'>", name, " Object</a>", ", " | acc]
+      end
+    )
     |> List.delete_at(-1)
   end
 
