@@ -181,7 +181,7 @@ defmodule Schema.JsonReader do
     objects = read_schema_files(Map.new(), home, Path.join(home, @objects_dir))
 
     Enum.reduce(extensions, objects, fn path, acc ->
-      merge_extenstion_files(acc, home, Path.join(path, @objects_dir))
+      merge_extenstion_files(acc, "splunk", home, Path.join(path, @objects_dir))
     end)
   end
 
@@ -193,7 +193,7 @@ defmodule Schema.JsonReader do
     events = read_schema_files(Map.new(), home, Path.join(home, @events_dir))
 
     Enum.reduce(extensions, events, fn path, acc ->
-      merge_extenstion_files(acc, home, Path.join(path, @events_dir))
+      merge_extenstion_files(acc, "splunk", home, Path.join(path, @events_dir))
     end)
   end
 
@@ -247,11 +247,41 @@ defmodule Schema.JsonReader do
     end
   end
 
-  defp merge_extenstion_files(acc, home, path) do
+  defp merge_extenstion_files(acc, extension, home, path) do
     if File.dir?(path) do
-      read_schema_files(acc, home, path)
+      read_extenstion_files(acc, extension, home, path)
     else
       acc
+    end
+  end
+
+  defp read_extenstion_files(acc, extension, home, path) do
+    if File.dir?(path) do
+      Logger.info(fn -> "#{inspect(__MODULE__)} read files: #{path}" end)
+
+      case File.ls(path) do
+        {:ok, files} ->
+          files
+          |> Stream.map(fn file -> Path.join(path, file) end)
+          |> Enum.reduce(acc, fn file, map ->
+            read_extenstion_files(map, extension, home, file)
+          end)
+
+        error ->
+          Logger.warn("unable to access #{path} directory. Error: #{inspect(error)}")
+          raise error
+      end
+    else
+      if Path.extname(path) == @schema_file do
+        data =
+          read_json_file(path)
+          |> resolve_includes(home)
+          |> Map.put(@extension, extension)
+
+        Map.put(acc, String.to_atom(data.type), data)
+      else
+        acc
+      end
     end
   end
 
