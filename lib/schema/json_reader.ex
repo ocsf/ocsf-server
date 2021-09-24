@@ -24,14 +24,13 @@ defmodule Schema.JsonReader do
   # The Schema extension file
   @extension_file "extension.json"
 
-  # The include directive
   # The Schema extension type
   @extension :extension
 
+  # The include directive
   @include :"$include"
 
   def start_link(opts \\ []) do
-    Logger.info(fn -> "#{inspect(__MODULE__)} start with: #{inspect(opts)}" end)
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
 
@@ -90,38 +89,38 @@ defmodule Schema.JsonReader do
     home = data_dir()
     extensions = extensions(home, ext_dir)
     Logger.info(fn -> "#{inspect(__MODULE__)} schema    : #{home}" end)
-    Logger.info(fn -> "#{inspect(__MODULE__)} extensions: #{inspect(extensions)}" end)
+    Logger.info(fn -> "#{inspect(__MODULE__)} extensions: #{inspect(ext_dir)}" end)
     {:ok, {home, extensions}}
   end
 
   @impl true
-  def handle_call(:read_version, _from, {home, _ext_dir} = state) do
+  def handle_call(:read_version, _from, {home, _ext} = state) do
     {:reply, read_version(home), state}
   end
 
   @impl true
-  def handle_call(:read_categories, _from, {home, ext_dir} = state) do
-    {:reply, read_categories(home, ext_dir), state}
+  def handle_call(:read_categories, _from, {home, ext} = state) do
+    {:reply, read_categories(home, ext), state}
   end
 
   @impl true
-  def handle_call(:read_dictionary, _from, {home, ext_dir} = state) do
-    {:reply, read_dictionary(home, ext_dir), state}
+  def handle_call(:read_dictionary, _from, {home, ext} = state) do
+    {:reply, read_dictionary(home, ext), state}
   end
 
   @impl true
-  def handle_call(:read_objects, _from, {home, ext_dir} = state) do
-    {:reply, read_objects(home, ext_dir), state}
+  def handle_call(:read_objects, _from, {home, ext} = state) do
+    {:reply, read_objects(home, ext), state}
   end
 
   @impl true
-  def handle_call(:read_classes, _from, {home, ext_dir} = state) do
-    {:reply, read_classes(home, ext_dir), state}
+  def handle_call(:read_classes, _from, {home, ext} = state) do
+    {:reply, read_classes(home, ext), state}
   end
 
   @impl true
-  def handle_cast({:extension, ext_dir}, {home, _ext_dir}) do
-    {:noreply, {home, extensions(home, ext_dir)}}
+  def handle_cast({:extension, ext}, {home, _ext}) do
+    {:noreply, {home, extensions(home, ext)}}
   end
 
   @impl true
@@ -156,8 +155,8 @@ defmodule Schema.JsonReader do
   defp read_categories(home, extensions) do
     categories = Path.join(home, @categories_file) |> read_json_file()
 
-    Enum.reduce(extensions, categories, fn path, acc ->
-      merge_extension(acc, "splunk", Path.join(path, @categories_file))
+    Enum.reduce(extensions, categories, fn {path, ext}, acc ->
+      merge_extension(acc, ext.type, Path.join(path, @categories_file))
     end)
   end
 
@@ -168,8 +167,8 @@ defmodule Schema.JsonReader do
   defp read_dictionary(home, extensions) do
     dictionary = Path.join(home, @dictionary_file) |> read_json_file()
 
-    Enum.reduce(extensions, dictionary, fn path, acc ->
-      merge_extension(acc, "splunk", Path.join(path, @dictionary_file))
+    Enum.reduce(extensions, dictionary, fn {path, ext}, acc ->
+      merge_extension(acc, ext.type, Path.join(path, @dictionary_file))
     end)
   end
 
@@ -180,8 +179,8 @@ defmodule Schema.JsonReader do
   defp read_objects(home, extensions) do
     objects = read_schema_files(Map.new(), home, Path.join(home, @objects_dir))
 
-    Enum.reduce(extensions, objects, fn path, acc ->
-      merge_extenstion_files(acc, "splunk", home, Path.join(path, @objects_dir))
+    Enum.reduce(extensions, objects, fn {path, ext}, acc ->
+      merge_extenstion_files(acc, ext.type, home, Path.join(path, @objects_dir))
     end)
   end
 
@@ -192,8 +191,8 @@ defmodule Schema.JsonReader do
   defp read_classes(home, extensions) do
     events = read_schema_files(Map.new(), home, Path.join(home, @events_dir))
 
-    Enum.reduce(extensions, events, fn path, acc ->
-      merge_extenstion_files(acc, "splunk", home, Path.join(path, @events_dir))
+    Enum.reduce(extensions, events, fn {path, ext}, acc ->
+      merge_extenstion_files(acc, ext.type, home, Path.join(path, @events_dir))
     end)
   end
 
@@ -372,17 +371,6 @@ defmodule Schema.JsonReader do
     Schema.Utils.deep_merge(included, attribute)
   end
 
-  defp read_extension(path) do
-    file = Path.join(path, @extension_file)
-
-    if File.regular?(file) do
-      read_json_file(file)
-    else
-      Logger.warn("extension file #{file} not found")
-      :none
-    end
-  end
-
   def extensions(_home, nil), do: []
   def extensions(_home, []), do: []
 
@@ -394,7 +382,7 @@ defmodule Schema.JsonReader do
     Enum.reduce(list, [], fn path, acc ->
       find_extensions(home, path, acc)
     end)
-    |> Enum.uniq()
+    |> Enum.uniq_by(fn {path, _} -> path end)
   end
 
   defp find_extensions(home, path, list) do
@@ -413,27 +401,35 @@ defmodule Schema.JsonReader do
 
   defp find_extensions(path, list) do
     if File.dir?(path) do
-      if extension_dir?(path) do
-        [path | list]
-      else
-        case File.ls(path) do
-          {:ok, files} ->
-            files
-            |> Enum.map(fn file -> Path.join(path, file) end)
-            |> Enum.reduce(list, fn file, acc -> find_extensions(file, acc) end)
+      case read_extension(path) do
+        false ->
+          case File.ls(path) do
+            {:ok, files} ->
+              files
+              |> Enum.map(fn file -> Path.join(path, file) end)
+              |> Enum.reduce(list, fn file, acc -> find_extensions(file, acc) end)
 
-          error ->
-            Logger.warn("unable to access #{path} directory. Error: #{inspect(error)}")
-            raise error
-        end
+            error ->
+              Logger.warn("unable to access #{path} directory. Error: #{inspect(error)}")
+              raise error
+          end
+
+        data ->
+          [{path, data} | list]
       end
     else
       list
     end
   end
 
-  defp extension_dir?(path) do
-    Path.join(path, @extension_file) |> File.regular?()
+  defp read_extension(path) do
+    file = Path.join(path, @extension_file)
+
+    if File.regular?(file) do
+      read_json_file(file)
+    else
+      false
+    end
   end
 
   # ETS cache for the included json files
