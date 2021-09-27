@@ -16,7 +16,7 @@ limitations under the License.
 
 </script>
 
-<h2><%= @data.name %> Object</h2>
+<h2><%= @data.name %> Object <span class="text-secondary"><small><%= @data[:extension] || "" %></small></span></h2>
 
 <div class="text-secondary">
   <%= raw @data[:description] %>
@@ -37,7 +37,7 @@ limitations under the License.
       <%= for {key, field} <- @data.attributes do %>
         <% attribute = Atom.to_string(key) %>
         <tr class="<%= field_classes(field)%>">
-          <td class="name"><%= field.name %></td>
+          <td class="name"><%= raw format_name(field) %></td>
           <td data-toggle="tooltip" title="<%= field[:_source] %>"><%= attribute %></td>
           <td class="capitalize"><%= format_requirement(field) %></td>
           <td><%= raw format_type(@conn, field) %></td>
