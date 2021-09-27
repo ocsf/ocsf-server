@@ -94,7 +94,7 @@ defmodule Schema.Generator do
         -1
       end
 
-    Map.put(data, :event_uid, uid)
+    Map.put(data, :event_id, uid)
   end
 
   def generate(class) do
@@ -136,6 +136,11 @@ defmodule Schema.Generator do
 
   #  Generate all required fields
   defp generate_field("required", name, field, map) do
+    generate_field(name, field, map)
+  end
+
+  defp generate_field("reserved", name, field, map) do
+    Logger.debug("reserved: #{name}")
     generate_field(name, field, map)
   end
 
@@ -312,6 +317,10 @@ defmodule Schema.Generator do
   defp generate_data(:full_name, _type, _field), do: full_name(2)
   defp generate_data(:shell, _type, _field), do: shell()
   defp generate_data(:timezone, _type, _field), do: timezone()
+
+  defp generate_data(:event_time, _type, _field),
+    do: time() |> DateTime.from_unix!(:microsecond) |> DateTime.to_iso8601()
+
   defp generate_data(:country, _type, _field), do: country()[:country_name]
   defp generate_data(:company_name, _type, _field), do: full_name(2)
   defp generate_data(:owner, _type, _field), do: full_name(2)
@@ -322,13 +331,17 @@ defmodule Schema.Generator do
   defp generate_data(key, "string_t", _field) do
     name = Atom.to_string(key)
 
-    if String.ends_with?(name, "_uid") or String.ends_with?(name, "_id") do
+    if String.ends_with?(name, "_uid") do
       uuid()
     else
       if String.ends_with?(name, "_ver") do
         version()
       else
-        sentence(3)
+        if String.ends_with?(name, "_code") do
+          word()
+        else
+          sentence(3)
+        end
       end
     end
   end
