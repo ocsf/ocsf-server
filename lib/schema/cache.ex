@@ -18,8 +18,8 @@ defmodule Schema.Cache do
 
   require Logger
 
-  @enforce_keys [:version, :dictionary, :categories, :common, :classes, :objects]
-  defstruct ~w[version dictionary common categories classes objects]a
+  @enforce_keys [:version, :dictionary, :categories, :base_event, :classes, :objects]
+  defstruct ~w[version dictionary base_event categories classes objects]a
 
   @spec new(map()) :: __MODULE__.t()
   def new(version) do
@@ -27,7 +27,7 @@ defmodule Schema.Cache do
       version: version,
       dictionary: Map.new(),
       categories: Map.new(),
-      common: Map.new(),
+      base_event: Map.new(),
       classes: Map.new(),
       objects: Map.new()
     }
@@ -51,19 +51,19 @@ defmodule Schema.Cache do
     categories = JsonReader.read_categories() |> update_categories()
     dictionary = JsonReader.read_dictionary()
 
-    {common, classes} = read_classes(categories.attributes)
+    {base_event, classes} = read_classes(categories.attributes)
     objects = read_objects()
 
     # clean up the cached files
     JsonReader.cleanup()
 
-    dictionary = Utils.update_dictionary(dictionary, common, classes, objects)
+    dictionary = Utils.update_dictionary(dictionary, base_event, classes, objects)
     objects = Utils.update_objects(dictionary, objects)
 
     new(version)
     |> set_categories(categories)
     |> set_dictionary(dictionary)
-    |> set_common(common)
+    |> set_base_event(base_event)
     |> set_classes(classes)
     |> set_objects(objects)
   end
@@ -92,8 +92,8 @@ defmodule Schema.Cache do
   def classes(%__MODULE__{classes: classes}), do: classes
 
   @spec classes(__MODULE__.t(), atom()) :: nil | class_t()
-  def classes(%__MODULE__{dictionary: dictionary, common: common}, :base_event) do
-    enrich(common, dictionary.attributes)
+  def classes(%__MODULE__{dictionary: dictionary, base_event: base_event}, :base_event) do
+    enrich(base_event, dictionary.attributes)
   end
 
   def classes(%__MODULE__{dictionary: dictionary, classes: classes}, id) do
@@ -242,7 +242,6 @@ defmodule Schema.Cache do
     end
   end
 
-  # common category
   defp category_id(id, ext) when id < @multiplier, do: ext * @multiplier + id
   defp category_id(id, _ext), do: id
 
@@ -413,8 +412,8 @@ defmodule Schema.Cache do
     struct(schema, categories: categories)
   end
 
-  defp set_common(%__MODULE__{} = schema, common) do
-    struct(schema, common: common)
+  defp set_base_event(%__MODULE__{} = schema, base_event) do
+    struct(schema, base_event: base_event)
   end
 
   defp set_classes(%__MODULE__{} = schema, classes) do
