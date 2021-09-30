@@ -23,7 +23,6 @@ limitations under the License.
       <tr class="thead-color">
         <th style="width: 20%">Name</th>
         <th class="text-center" style="width: 5%">ID</th>
-        <th class="text-center" style="width: 15%">Class IDs</th>
         <th>Description</th>
       </tr>
     </thead>
@@ -32,8 +31,7 @@ limitations under the License.
       <% path = Routes.static_path(@conn, "/categories/" <> Atom.to_string(name)) %>
       <tr>
         <td class="name"> <a href="<%= path %>"><%= raw format_name(map) %></a></td>
-        <td class="text-center"><a href="<%= path %>"><%= map.id %></a></td>
-        <td class="text-center"><%= format_range(map.class_id_range) %></td>
+        <td class="text-center"><a href="<%= path %>"><%= map.uid %></a></td>
         <td><%= raw map[:description] %></td>
       </tr>
     <% end %>

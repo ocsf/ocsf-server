@@ -82,7 +82,7 @@ defmodule Schema.Generator do
   def event(nil), do: nil
 
   def event(class) do
-    Logger.info("sample class: #{inspect(class.name)}")
+    Logger.info("generate class: #{inspect(class.name)}")
 
     data = generate(class)
     disposition_id = data.disposition_id

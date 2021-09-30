@@ -39,12 +39,12 @@ defmodule Schema.JsonReader do
     GenServer.call(__MODULE__, :read_version)
   end
 
-  @spec read_categories() :: term()
+  @spec read_categories() :: map()
   def read_categories() do
     GenServer.call(__MODULE__, :read_categories)
   end
 
-  @spec read_dictionary() :: any()
+  @spec read_dictionary() :: map()
   def read_dictionary() do
     GenServer.call(__MODULE__, :read_dictionary)
   end
@@ -59,20 +59,24 @@ defmodule Schema.JsonReader do
     GenServer.call(__MODULE__, :read_classes)
   end
 
-  @spec extension() :: :ok
-  def extension() do
-    GenServer.cast(__MODULE__, {:extension, []})
+  @spec set_extension() :: :ok
+  def set_extension() do
+    GenServer.cast(__MODULE__, {:set_extension, []})
   end
 
-  @spec extension(String.t()) :: :ok
-  def extension(name) when is_binary(name) do
-    GenServer.cast(__MODULE__, {:extension, [name]})
+  @spec set_extension(String.t()) :: :ok
+  def set_extension(name) when is_binary(name) do
+    GenServer.cast(__MODULE__, {:set_extension, [name]})
   end
 
-  def extension(list) when is_list(list) do
-    GenServer.cast(__MODULE__, {:extension, list})
+  def set_extension(list) when is_list(list) do
+    GenServer.cast(__MODULE__, {:set_extension, list})
   end
 
+  def extensions() do
+    GenServer.call(__MODULE__, :extensions)
+  end
+  
   @spec cleanup() :: :ok
   def cleanup() do
     GenServer.cast(__MODULE__, :delete)
@@ -119,7 +123,13 @@ defmodule Schema.JsonReader do
   end
 
   @impl true
-  def handle_cast({:extension, ext}, {home, _ext}) do
+  def handle_call(:extensions, _from, {_home, ext} = state) do
+    extensions = Enum.map(ext, fn {_path, ext} -> {ext.type, ext} end) |> Map.new()
+    {:reply, extensions, state}
+  end
+
+  @impl true
+  def handle_cast({:set_extension, ext}, {home, _ext}) do
     {:noreply, {home, extensions(home, ext)}}
   end
 
@@ -156,7 +166,7 @@ defmodule Schema.JsonReader do
     categories = Path.join(home, @categories_file) |> read_json_file()
 
     Enum.reduce(extensions, categories, fn {path, ext}, acc ->
-      merge_extension(acc, ext.type, Path.join(path, @categories_file))
+      merge_extension(acc, ext, Path.join(path, @categories_file))
     end)
   end
 
@@ -168,7 +178,7 @@ defmodule Schema.JsonReader do
     dictionary = Path.join(home, @dictionary_file) |> read_json_file()
 
     Enum.reduce(extensions, dictionary, fn {path, ext}, acc ->
-      merge_extension(acc, ext.type, Path.join(path, @dictionary_file))
+      merge_extension(acc, ext, Path.join(path, @dictionary_file))
     end)
   end
 
@@ -180,7 +190,7 @@ defmodule Schema.JsonReader do
     objects = read_schema_files(Map.new(), home, Path.join(home, @objects_dir))
 
     Enum.reduce(extensions, objects, fn {path, ext}, acc ->
-      merge_extenstion_files(acc, ext.type, home, Path.join(path, @objects_dir))
+      merge_extenstion_files(acc, ext, home, Path.join(path, @objects_dir))
     end)
   end
 
@@ -192,7 +202,7 @@ defmodule Schema.JsonReader do
     events = read_schema_files(Map.new(), home, Path.join(home, @events_dir))
 
     Enum.reduce(extensions, events, fn {path, ext}, acc ->
-      merge_extenstion_files(acc, ext.type, home, Path.join(path, @events_dir))
+      merge_extenstion_files(acc, ext, home, Path.join(path, @events_dir))
     end)
   end
 
@@ -234,27 +244,27 @@ defmodule Schema.JsonReader do
     end
   end
 
-  defp merge_extension(acc, extension, path) do
+  defp merge_extension(acc, ext, path) do
     if File.regular?(path) do
-      Logger.info(fn -> "#{inspect(__MODULE__)} read file : #{extension} #{path}" end)
+      Logger.info(fn -> "#{inspect(__MODULE__)} read file : #{ext.type} #{path}" end)
 
       read_json_file(path)
-      |> add_extention_type(extension)
+      |> add_extention_type(ext)
       |> Utils.deep_merge(acc)
     else
       acc
     end
   end
 
-  defp merge_extenstion_files(acc, extension, home, path) do
+  defp merge_extenstion_files(acc, ext, home, path) do
     if File.dir?(path) do
-      read_extenstion_files(acc, extension, home, path)
+      read_extenstion_files(acc, ext, home, path)
     else
       acc
     end
   end
 
-  defp read_extenstion_files(acc, extension, home, path) do
+  defp read_extenstion_files(acc, ext, home, path) do
     if File.dir?(path) do
       Logger.info(fn -> "#{inspect(__MODULE__)} read files: #{path}" end)
 
@@ -263,7 +273,7 @@ defmodule Schema.JsonReader do
           files
           |> Stream.map(fn file -> Path.join(path, file) end)
           |> Enum.reduce(acc, fn file, map ->
-            read_extenstion_files(map, extension, home, file)
+            read_extenstion_files(map, ext, home, file)
           end)
 
         error ->
@@ -275,7 +285,8 @@ defmodule Schema.JsonReader do
         data =
           read_json_file(path)
           |> resolve_includes(home)
-          |> Map.put(@extension, extension)
+          |> Map.put(@extension, ext.type)
+          |> Map.put(:extension_id, ext.uid)
 
         Map.put(acc, String.to_atom(data.type), data)
       else
@@ -284,10 +295,15 @@ defmodule Schema.JsonReader do
     end
   end
 
-  defp add_extention_type(map, extension) do
+  defp add_extention_type(map, ext) do
     Map.update!(map, :attributes, fn attributes ->
       Enum.map(attributes, fn {name, value} ->
-        {name, Map.put(value, @extension, extension)}
+        updated =
+        value
+        |> Map.put(@extension, ext.type)
+        |> Map.put(:extension_id, ext.uid)
+        
+        {name, updated}
       end)
       |> Map.new()
     end)

@@ -39,6 +39,8 @@ defmodule Schema.Cache do
   @type category_t() :: map()
   @type dictionary_t() :: map()
 
+  @multiplier 100
+
   @doc """
   Load the schema files and initialize the cache.
   """
@@ -46,7 +48,7 @@ defmodule Schema.Cache do
   def init() do
     version = JsonReader.read_version()
 
-    categories = JsonReader.read_categories()
+    categories = JsonReader.read_categories() |> update_categories()
     dictionary = JsonReader.read_dictionary()
 
     {common, classes} = read_classes(categories.attributes)
@@ -196,21 +198,62 @@ defmodule Schema.Cache do
   defp enrich_class({name, class}, categories) do
     data =
       class
-      |> add_event_uid(name)
+      |> update_class_id(categories)
+      |> add_event_id(name)
       |> add_class_id(name)
       |> add_category_id(name, categories)
 
     {name, data}
   end
 
-  defp add_event_uid(data, name) do
+  defp update_categories(categories) do
+    Map.update!(categories, :attributes, fn attributes ->
+      Enum.map(attributes, fn {name, cat} ->
+        case cat[:extension_id] do
+          nil -> {name, cat}
+          ext -> update_category_id(name, cat, ext)
+        end
+      end)
+      |> Map.new()
+    end)
+  end
+
+  defp update_category_id(name, category, nil) do
+    {name, category}
+  end
+
+  defp update_category_id(name, category, extension) do
+    {name, Map.update!(category, :uid, fn uid -> extension * @multiplier + uid end)}
+  end
+
+  defp update_class_id(class, categories) do
+    category = Map.get(categories, String.to_atom(class.category))
+
+    case class[:extension_id] do
+      nil ->
+        Map.update!(class, :uid, fn uid ->
+          category.uid * @multiplier + uid
+        end)
+
+      ext ->
+        Map.update!(class, :uid, fn uid ->
+          category_id(category.uid, ext) * @multiplier + uid
+        end)
+    end
+  end
+
+  # common category
+  defp category_id(id, ext) when id < @multiplier, do: ext * @multiplier + id
+  defp category_id(id, _ext), do: id
+
+  defp add_event_id(data, name) do
     Map.update!(
       data,
       :attributes,
       fn attributes ->
         id = attributes[:disposition_id] || %{}
         uid = attributes[:event_id] || %{}
-        class_id = (data[:uid] || 0) * 1000
+        class_id = (data[:uid] || 0) * @multiplier
         caption = data[:name] || "UNKNOWN"
 
         enum =
@@ -244,8 +287,7 @@ defmodule Schema.Cache do
   end
 
   defp make_uid(class_id, id) do
-    Integer.to_string(class_id + id)
-    |> String.to_atom()
+    Integer.to_string(class_id + id) |> String.to_atom()
   end
 
   defp add_class_id(data, name) do
@@ -265,9 +307,7 @@ defmodule Schema.Cache do
   end
 
   defp add_category_id(data, name, categories) do
-    category_name =
-      data.category
-      |> String.to_atom()
+    category_name = data.category |> String.to_atom()
 
     category = categories[category_name]
 
@@ -279,11 +319,8 @@ defmodule Schema.Cache do
       data,
       [:attributes, :category_id, :enum],
       fn _enum ->
-        id =
-          Integer.to_string(category.id)
-          |> String.to_atom()
-
-        %{id => Map.delete(category, :class_id_range)}
+        id = Integer.to_string(category.uid) |> String.to_atom()
+        %{id => category}
       end
     )
     |> put_in([:attributes, :category_id, :_source], name)
