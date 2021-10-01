@@ -41,6 +41,20 @@ defmodule Schema.Cache do
 
   @multiplier 100
 
+  @spec to_uid(binary) :: atom
+  def to_uid(name) do
+    String.to_existing_atom(name)
+  end
+
+  @spec to_uid(binary | nil, binary) :: atom
+  def to_uid(nil, name) do
+    String.to_existing_atom(name)
+  end
+
+  def to_uid(extension, name) do
+    Path.join(extension, name) |> String.to_existing_atom()
+  end
+
   @doc """
   Load the schema files and initialize the cache.
   """
@@ -227,7 +241,7 @@ defmodule Schema.Cache do
   end
 
   defp update_class_id(class, categories) do
-    category = Map.get(categories, String.to_atom(class.category))
+    category = Map.get(categories, String.to_atom(class[:category]))
 
     case class[:extension_id] do
       nil ->
@@ -306,7 +320,7 @@ defmodule Schema.Cache do
   end
 
   defp add_category_id(data, name, categories) do
-    category_name = data.category |> String.to_atom()
+    category_name = data[:category] |> String.to_atom()
 
     category = categories[category_name]
 
@@ -422,18 +436,5 @@ defmodule Schema.Cache do
 
   defp set_objects(%__MODULE__{} = schema, objects) do
     struct(schema, objects: objects)
-  end
-
-  @spec to_uid(binary) :: atom
-  def to_uid(name) do
-    String.to_existing_atom(name)
-  end
-
-  def to_uid(nil, name) do
-    String.to_existing_atom(name)
-  end
-
-  def to_uid(extension, name) do
-    Path.join(extension, name) |> String.to_existing_atom()
   end
 end

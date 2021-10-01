@@ -48,8 +48,8 @@ defmodule Schema do
   @doc """
     Returns all event classes.
   """
+  @spec classes() :: map()
   def classes(), do: Repo.classes()
-  @spec classes() :: list()
 
   @doc """
     Returns a single event class.
@@ -58,7 +58,7 @@ defmodule Schema do
   def classes(id) when is_binary(id), do: Repo.classes(to_uid(id))
   def classes(id) when is_atom(id), do: Repo.classes(id)
 
-  @spec classes(nil | String.t(), String.t()) :: nil | map
+  @spec classes(nil | String.t(), String.t()) :: nil | map()
   def classes(nil, id) when is_binary(id), do: Repo.classes(to_uid(id))
   def classes(_extension,  id) when is_binary(id), do: Repo.classes(to_uid(id))
 
@@ -81,7 +81,7 @@ defmodule Schema do
   def objects(id) when is_binary(id), do: Repo.objects(to_uid(id))
   def objects(id) when is_atom(id), do: Repo.objects(id)
 
-  @spec objects(nil | String.t(), String.t()) :: nil | map
+  @spec objects(nil | String.t(), String.t()) :: nil | map()
   def objects(nil, id) when is_binary(id), do: Repo.objects(to_uid(id))
   def objects(_extension, id) when is_binary(id), do: Repo.objects(to_uid(id))
 

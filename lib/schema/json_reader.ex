@@ -5,6 +5,7 @@ defmodule Schema.JsonReader do
   use GenServer
 
   alias Schema.Utils
+
   require Logger
 
   # The default location of the schema files
@@ -23,9 +24,6 @@ defmodule Schema.JsonReader do
 
   # The Schema extension file
   @extension_file "extension.json"
-
-  # The Schema extension type
-  @extension :extension
 
   # The include directive
   @include :"$include"
@@ -248,9 +246,16 @@ defmodule Schema.JsonReader do
     if File.regular?(path) do
       Logger.info(fn -> "#{inspect(__MODULE__)} read file : #{ext[:type]} #{path}" end)
 
-      read_json_file(path)
-      |> add_extension_type(ext)
-      |> Utils.deep_merge(acc)
+      map = read_json_file(path)
+
+      attributes =
+        Enum.map(map[:attributes], fn {name, value} ->
+          updated = add_extension(value, ext)
+          {name, updated}
+        end)
+        |> Map.new()
+
+      Map.put(acc, :attributes, Map.merge(attributes, acc[:attributes]))
     else
       acc
     end
@@ -285,8 +290,7 @@ defmodule Schema.JsonReader do
         data =
           read_json_file(path)
           |> resolve_includes(home)
-          |> Map.put(@extension, ext[:type])
-          |> Map.put(:extension_id, ext[:uid])
+          |> add_extension(ext)
 
         Map.put(acc, String.to_atom(data[:type]), data)
       else
@@ -295,18 +299,10 @@ defmodule Schema.JsonReader do
     end
   end
 
-  defp add_extension_type(map, ext) do
-    Map.update!(map, :attributes, fn attributes ->
-      Enum.map(attributes, fn {name, value} ->
-        updated =
-          value
-          |> Map.put(@extension, ext[:type])
-          |> Map.put(:extension_id, ext[:uid])
-
-        {name, updated}
-      end)
-      |> Map.new()
-    end)
+  defp add_extension(map, ext) do
+    map
+    |> Map.put(:extension, ext[:type])
+    |> Map.put(:extension_id, ext[:uid])
   end
 
   defp resolve_includes(data, home) do
@@ -343,7 +339,7 @@ defmodule Schema.JsonReader do
       end
 
     attributes =
-      Schema.Utils.deep_merge(included[:attributes], Map.delete(data[:attributes], @include))
+      Utils.deep_merge(included[:attributes], Map.delete(data[:attributes], @include))
 
     Map.put(data, :attributes, attributes)
   end
@@ -384,7 +380,7 @@ defmodule Schema.JsonReader do
           cached
       end
 
-    Schema.Utils.deep_merge(included, attribute)
+    Utils.deep_merge(included, attribute)
   end
 
   def extensions(_home, nil), do: []

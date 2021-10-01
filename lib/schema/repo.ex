@@ -36,7 +36,7 @@ defmodule Schema.Repo do
   @spec dictionary :: Cache.dictionary_t()
   def dictionary(), do: Agent.get(__MODULE__, fn schema -> Cache.dictionary(schema) end)
 
-  @spec classes() :: list()
+  @spec classes() :: map()
   def classes(), do: Agent.get(__MODULE__, fn schema -> Cache.classes(schema) end)
 
   @spec classes(atom) :: nil | Cache.class_t()
