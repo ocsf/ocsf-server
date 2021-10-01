@@ -37,7 +37,7 @@ defmodule SchemaWeb.SchemaController do
   @spec categories(Plug.Conn.t(), map) :: Plug.Conn.t()
   def categories(conn, %{"id" => id}) do
     try do
-      case Schema.categories(Schema.to_uid(id)) do
+      case Schema.categories(id) do
         nil ->
           send_json_resp(conn, 404, %{error: "Not Found: #{id}"})
 
@@ -108,7 +108,7 @@ defmodule SchemaWeb.SchemaController do
   @spec classes(Plug.Conn.t(), any) :: Plug.Conn.t()
   def classes(conn, %{"id" => id} = params) do
     try do
-      case Schema.classes(Schema.to_uid(id)) do
+      case Schema.classes(id) do
         nil ->
           send_json_resp(conn, 404, %{error: "Not Found: #{id}"})
 
@@ -152,7 +152,7 @@ defmodule SchemaWeb.SchemaController do
   @spec objects(Plug.Conn.t(), map) :: Plug.Conn.t()
   def objects(conn, %{"id" => id} = params) do
     try do
-      case Schema.objects(Schema.to_uid(id)) do
+      case Schema.objects(id) do
         nil ->
           send_json_resp(conn, 404, %{error: "Not Found: #{id}"})
 
@@ -314,7 +314,7 @@ defmodule SchemaWeb.SchemaController do
   @spec sample_class(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def sample_class(conn, %{"id" => id} = options) do
     try do
-      case Schema.classes(Schema.to_uid(id)) do
+      case Schema.classes(id) do
         nil ->
           send_json_resp(conn, 404, %{error: "Not Found: #{id}"})
 
@@ -356,7 +356,7 @@ defmodule SchemaWeb.SchemaController do
   @spec sample_object(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def sample_object(conn, %{"id" => id}) do
     try do
-      case Schema.objects(Schema.to_uid(id)) do
+      case Schema.objects(id) do
         nil ->
           send_json_resp(conn, 404, %{error: "Not Found: #{id}"})
 
@@ -429,11 +429,11 @@ defmodule SchemaWeb.SchemaController do
     end
     |> remove_links()
   end
-  
+
   def add_objects(data, _params) do
     remove_links(data)
   end
-  
+
   defp update_objects(objects, attributes) do
     Enum.reduce(attributes, objects, fn {_name, field}, acc ->
       case field[:type] do

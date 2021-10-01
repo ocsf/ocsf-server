@@ -29,8 +29,9 @@ defmodule SchemaWeb.PageController do
   @spec categories(Plug.Conn.t(), map) :: Plug.Conn.t()
   def categories(conn, %{"id" => id} = params) do
     extension = params["extension"]
+
     try do
-      case Schema.categories(Schema.to_uid(extension, id)) do
+      case Schema.categories(extension, id) do
         nil ->
           send_resp(conn, 404, "Not Found: #{id}")
 
@@ -39,7 +40,7 @@ defmodule SchemaWeb.PageController do
           render(conn, "category.html", data: Map.put(data, :classes, classes))
       end
     rescue
-      e -> send_resp(conn, 400, "Bad Request: #{e[:message]}")
+      e -> send_resp(conn, 400, "Bad Request: #{inspect(e)}")
     end
   end
 
@@ -53,8 +54,7 @@ defmodule SchemaWeb.PageController do
   """
   @spec data_types(Plug.Conn.t(), any) :: Plug.Conn.t()
   def data_types(conn, _params) do
-    data = Schema.dictionary()[:types] |> sort_attributes
-
+    data = Schema.dictionary()[:types] |> sort_attributes()
     render(conn, "data_types.html", data: data)
   end
 
@@ -63,8 +63,7 @@ defmodule SchemaWeb.PageController do
   """
   @spec dictionary(Plug.Conn.t(), any) :: Plug.Conn.t()
   def dictionary(conn, _params) do
-    data = Schema.dictionary() |> sort_attributes
-
+    data = Schema.dictionary() |> sort_attributes()
     render(conn, "dictionary.html", data: data)
   end
 
@@ -81,9 +80,10 @@ defmodule SchemaWeb.PageController do
   Renders event classes.
   """
   @spec classes(Plug.Conn.t(), any) :: Plug.Conn.t()
-  def classes(conn, %{"id" => id}) do
+  def classes(conn, %{"id" => id} = params) do
+    extension = params["extension"]
     try do
-      case Schema.classes(Schema.to_uid(id)) do
+      case Schema.classes(extension, id) do
         nil ->
           send_resp(conn, 404, "Not Found: #{id}")
 
@@ -104,9 +104,10 @@ defmodule SchemaWeb.PageController do
   Renders objects.
   """
   @spec objects(Plug.Conn.t(), map) :: Plug.Conn.t()
-  def objects(conn, %{"id" => id}) do
+  def objects(conn, %{"id" => id} = params) do
+    extension = params["extension"]
     try do
-      case Schema.objects(Schema.to_uid(id)) do
+      case Schema.objects(extension, id) do
         nil ->
           send_resp(conn, 404, "Not Found: #{id}")
 
@@ -114,12 +115,12 @@ defmodule SchemaWeb.PageController do
           render(conn, "object.html", data: sort_attributes(data))
       end
     rescue
-      e -> send_resp(conn, 400, "Bad Request: #{e[:message]}")
+      e -> send_resp(conn, 400, "Bad Request: #{inspect(e)}")
     end
   end
 
   def objects(conn, _params) do
-    data = Schema.objects() |> sort_by_name
+    data = Schema.objects() |> sort_by_name()
     render(conn, "objects.html", data: data)
   end
 

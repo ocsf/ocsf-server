@@ -423,4 +423,17 @@ defmodule Schema.Cache do
   defp set_objects(%__MODULE__{} = schema, objects) do
     struct(schema, objects: objects)
   end
+
+  @spec to_uid(binary) :: atom
+  def to_uid(name) do
+    String.to_existing_atom(name)
+  end
+
+  def to_uid(nil, name) do
+    String.to_existing_atom(name)
+  end
+
+  def to_uid(extension, name) do
+    Path.join(extension, name) |> String.to_existing_atom()
+  end
 end

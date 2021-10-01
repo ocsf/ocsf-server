@@ -32,8 +32,12 @@ defmodule Schema do
   def categories(), do: Repo.categories()
 
   @spec categories(atom | String.t()) :: nil | Cache.category_t()
+  def categories(id) when is_binary(id), do: Repo.categories(to_uid(id))
   def categories(id) when is_atom(id), do: Repo.categories(id)
-  def categories(id) when is_binary(id), do: Repo.categories(String.to_atom(id))
+
+  @spec categories(String.t() | nil, atom | String.t()) :: nil | Cache.category_t()
+  def categories(nil, id) when is_binary(id), do: Repo.categories(to_uid(id))
+  def categories(_extension, id) when is_binary(id), do: Repo.categories(to_uid(id))
 
   @doc """
     Returns the attribute dictionary.
@@ -51,8 +55,12 @@ defmodule Schema do
     Returns a single event class.
   """
   @spec classes(atom | String.t()) :: nil | Cache.class_t()
+  def classes(id) when is_binary(id), do: Repo.classes(to_uid(id))
   def classes(id) when is_atom(id), do: Repo.classes(id)
-  def classes(id) when is_binary(id), do: Repo.classes(String.to_atom(id))
+
+  @spec classes(nil | String.t(), String.t()) :: nil | map
+  def classes(nil, id) when is_binary(id), do: Repo.classes(to_uid(id))
+  def classes(_extension,  id) when is_binary(id), do: Repo.classes(to_uid(id))
 
   @doc """
   Finds a class by the class uid value.
@@ -70,25 +78,12 @@ defmodule Schema do
     Returns a single objects.
   """
   @spec objects(atom | String.t()) :: nil | Cache.object_t()
+  def objects(id) when is_binary(id), do: Repo.objects(to_uid(id))
   def objects(id) when is_atom(id), do: Repo.objects(id)
-  def objects(id) when is_binary(id), do: Repo.objects(String.to_atom(id))
 
-  @spec to_uid(nil | binary) :: atom
-  def to_uid(nil), do: nil
-
-  def to_uid(name) do
-    String.downcase(name) |> String.to_atom()
-  end
-
-  def to_uid(nil, nil), do: nil
-
-  def to_uid(nil, name) do
-    String.downcase(name) |> String.to_atom()
-  end
-
-  def to_uid(extension, name) do
-    Path.join(extension, name) |> String.downcase(name) |> String.to_atom()
-  end
+  @spec objects(nil | String.t(), String.t()) :: nil | map
+  def objects(nil, id) when is_binary(id), do: Repo.objects(to_uid(id))
+  def objects(_extension, id) when is_binary(id), do: Repo.objects(to_uid(id))
 
   @doc """
   Returns a randomly generated sample event.
@@ -122,6 +117,8 @@ defmodule Schema do
         Map.put(data, key, updated)
     end
   end
+
+  @spec schema_map :: %{:children => list, :value => non_neg_integer, optional(any) => any}
   def schema_map() do
     base = get_class(:base_event)
 
@@ -159,5 +156,9 @@ defmodule Schema do
     Schema.classes(name)
     |> Schema.remove_links()
     |> Map.delete(:see_also)
+  end
+
+  defp to_uid(name) do
+     String.downcase(name) |> Cache.to_uid()
   end
 end
