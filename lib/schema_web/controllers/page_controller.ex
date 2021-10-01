@@ -27,14 +27,15 @@ defmodule SchemaWeb.PageController do
   Renders categories or the classes in a given category.
   """
   @spec categories(Plug.Conn.t(), map) :: Plug.Conn.t()
-  def categories(conn, %{"id" => id}) do
+  def categories(conn, %{"id" => id} = params) do
+    extension = params["extension"]
     try do
-      case Schema.categories(Schema.to_uid(id)) do
+      case Schema.categories(Schema.to_uid(extension, id)) do
         nil ->
           send_resp(conn, 404, "Not Found: #{id}")
 
         data ->
-          classes = sort_by_name(data.classes)
+          classes = sort_by_name(data[:classes])
           render(conn, "category.html", data: Map.put(data, :classes, classes))
       end
     rescue
@@ -90,7 +91,7 @@ defmodule SchemaWeb.PageController do
           render(conn, "class.html", data: sort_attributes(data))
       end
     rescue
-      e -> send_resp(conn, 400, "Bad Request: #{e[:message]}")
+      e -> send_resp(conn, 400, "Bad Request: #{inspect(e)}")
     end
   end
 

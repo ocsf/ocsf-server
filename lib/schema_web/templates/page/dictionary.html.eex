@@ -10,9 +10,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 %>
-<h2><%= @data.name %></h2>
+<h2><%= @data[:name] %></h2>
 <div class="text-secondary">
-  <%= raw @data.description %>
+  <%= raw @data[:description] %>
 </div>
 <div class="mt-4">
   <table class="table table-striped table-bordered sortable">
@@ -26,16 +26,16 @@ limitations under the License.
       </tr>
     </thead>
     <tbody class="searchable">
-      <%= for {key, field} <- @data.attributes do %>
-      <% attribute = Atom.to_string(key) %>
-      <tr>
-        <td class="name"><%= raw format_name(field) %></td>
-        <td><%= attribute %></td>
-        <td><%= raw format_type(@conn, field) %></td>
-        <td><%= raw links(@conn, key, field[:_links]) %></td>
-        <td><%= raw field.description %></td>
-      </tr>
-    <% end %>
+      <%= for {key, field} <- @data[:attributes] do %>
+        <% name = Atom.to_string(key) %>
+        <tr>
+          <td class="name"><%= raw format_name(name, field) %></td>
+          <td><%= name %></td>
+          <td><%= raw format_type(@conn, field) %></td>
+          <td><%= raw links(@conn, key, field[:_links]) %></td>
+          <td><%= raw field[:description] %></td>
+        </tr>
+      <% end %>
     </tbody>
   </table>
 </div>

@@ -27,7 +27,7 @@ defmodule Schema.Utils do
 
   @spec update_objects(map, map) :: map
   def update_objects(dictionary, objects) do
-    attributes = dictionary.attributes
+    attributes = dictionary[:attributes]
 
     Enum.map(objects, fn {name, object} ->
       links = object_links(attributes, Atom.to_string(name))
@@ -57,14 +57,14 @@ defmodule Schema.Utils do
 
   defp update_data_types(dictionary, objects) do
     Map.update!(dictionary, :attributes, fn attributes ->
-      update_data_types(attributes, dictionary.types[:attributes], objects)
+      update_data_types(attributes, get_in(dictionary, [:types, :attributes]), objects)
     end)
   end
 
   defp update_data_types(attributes, types, objects) do
     Enum.map(attributes, fn {name, value} ->
       data =
-        if value.type == "object_t" do
+        if value[:type] == "object_t" do
           update_object_type(name, value, objects)
         else
           update_data_type(name, value, types)
@@ -84,12 +84,12 @@ defmodule Schema.Utils do
         Map.put(value, :object_name, "*undefined*")
 
       object ->
-        Map.put(value, :object_name, object.name)
+        Map.put(value, :object_name, object[:name])
     end
   end
 
   defp update_data_type(name, value, types) do
-    type = value.type
+    type = value[:type]
 
     case types[String.to_atom(type)] do
       nil ->
@@ -97,7 +97,7 @@ defmodule Schema.Utils do
         value
 
       type ->
-        Map.put(value, :type_name, type.name)
+        Map.put(value, :type_name, type[:name])
     end
   end
 

@@ -2,14 +2,14 @@ defmodule SchemaWeb.PageView do
   use SchemaWeb, :view
 
   require Logger
-
-  def format_name(field) do
-    extension = Map.get(field, :extension)
+  def format_name(name, field) do
+    extension = field[:extension]
+    name = field[:name] || name
 
     if extension == nil do
-      field.name
+      name
     else
-      field.name <> " <sup>#{extension}</sup>"
+      name <> " <sup>#{extension}</sup>"
     end
   end
 

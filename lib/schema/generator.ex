@@ -82,7 +82,7 @@ defmodule Schema.Generator do
   def event(nil), do: nil
 
   def event(class) do
-    Logger.info("generate class: #{inspect(class.name)}")
+    Logger.info("generate class: #{inspect(class[:name])}")
 
     data = generate(class)
     disposition_id = data.disposition_id
@@ -98,7 +98,7 @@ defmodule Schema.Generator do
   end
 
   def generate(class) do
-    case class.type do
+    case class[:type] do
       "fingerprint" -> fingerprint()
       "location" -> location()
       "attack" -> attack()
@@ -107,7 +107,7 @@ defmodule Schema.Generator do
   end
 
   defp generate_class(class) do
-    Enum.reduce(class.attributes, Map.new(), fn {name, field} = attribute, map ->
+    Enum.reduce(class[:attributes], Map.new(), fn {name, field} = attribute, map ->
       if field[:is_array] == true do
         generate_array(field[:requirement], name, attribute, map)
       else
@@ -173,7 +173,7 @@ defmodule Schema.Generator do
   end
 
   defp generate_field(name, field, map) do
-    Map.put(map, name, generate_data(name, field.type, field))
+    Map.put(map, name, generate_data(name, field[:type], field))
   end
 
   defp generate_enum_data(key, enum, map) do

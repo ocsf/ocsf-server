@@ -51,7 +51,7 @@ defmodule Schema.Cache do
     categories = JsonReader.read_categories() |> update_categories()
     dictionary = JsonReader.read_dictionary()
 
-    {base_event, classes} = read_classes(categories.attributes)
+    {base_event, classes} = read_classes(categories[:attributes])
     objects = read_objects()
 
     # clean up the cached files
@@ -79,7 +79,7 @@ defmodule Schema.Cache do
 
   @spec categories(__MODULE__.t(), any) :: nil | category_t()
   def categories(%__MODULE__{categories: categories, classes: classes}, id) do
-    case Map.get(categories.attributes, id) do
+    case Map.get(categories[:attributes], id) do
       nil ->
         nil
 
@@ -93,7 +93,7 @@ defmodule Schema.Cache do
 
   @spec classes(__MODULE__.t(), atom()) :: nil | class_t()
   def classes(%__MODULE__{dictionary: dictionary, base_event: base_event}, :base_event) do
-    enrich(base_event, dictionary.attributes)
+    enrich(base_event, dictionary[:attributes])
   end
 
   def classes(%__MODULE__{dictionary: dictionary, classes: classes}, id) do
@@ -102,13 +102,13 @@ defmodule Schema.Cache do
         nil
 
       class ->
-        enrich(class, dictionary.attributes)
+        enrich(class, dictionary[:attributes])
     end
   end
 
   def find_class(%__MODULE__{dictionary: dictionary, classes: classes}, uid) do
     case Enum.find(classes, fn {_, class} -> class[:uid] == uid end) do
-      {_, class} -> enrich(class, dictionary.attributes)
+      {_, class} -> enrich(class, dictionary[:attributes])
       nil -> nil
     end
   end
@@ -123,7 +123,7 @@ defmodule Schema.Cache do
         nil
 
       object ->
-        enrich(object, dictionary.attributes)
+        enrich(object, dictionary[:attributes])
     end
   end
 
@@ -232,12 +232,12 @@ defmodule Schema.Cache do
     case class[:extension_id] do
       nil ->
         Map.update!(class, :uid, fn uid ->
-          category.uid * @multiplier + uid
+          category[:uid] * @multiplier + uid
         end)
 
       ext ->
         Map.update!(class, :uid, fn uid ->
-          category_id(category.uid, ext) * @multiplier + uid
+          category_id(category[:uid], ext) * @multiplier + uid
         end)
     end
   end
@@ -291,12 +291,12 @@ defmodule Schema.Cache do
 
   defp add_class_id(data, name) do
     class_id =
-      data.uid
+      data[:uid]
       |> Integer.to_string()
       |> String.to_atom()
 
     enum = %{
-      :name => data.name,
+      :name => data[:name],
       :description => data[:description]
     }
 
@@ -311,14 +311,14 @@ defmodule Schema.Cache do
     category = categories[category_name]
 
     if category == nil do
-      exit("#{data.name} has invalid category: #{category_name}")
+      exit("#{data[:name]} has invalid category: #{category_name}")
     end
 
     update_in(
       data,
       [:attributes, :category_id, :enum],
       fn _enum ->
-        id = Integer.to_string(category.uid) |> String.to_atom()
+        id = Integer.to_string(category[:uid]) |> String.to_atom()
         %{id => category}
       end
     )
@@ -357,11 +357,11 @@ defmodule Schema.Cache do
       key ->
         case Map.get(data, String.to_atom(key)) do
           nil ->
-            exit("Error: #{map.name} extends undefined class: #{key}")
+            exit("Error: #{map[:name]} extends undefined class: #{key}")
 
           base ->
             base = resolve_extends(data, base)
-            attributes = Utils.deep_merge(base.attributes, map.attributes)
+            attributes = Utils.deep_merge(base[:attributes], map[:attributes])
 
             Map.merge(base, map)
             |> Map.delete(:extends)
@@ -393,7 +393,7 @@ defmodule Schema.Cache do
             nil
 
           class ->
-            {name, class.name}
+            {name, class[:name]}
         end
       end
     )

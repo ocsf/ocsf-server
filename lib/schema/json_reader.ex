@@ -76,7 +76,7 @@ defmodule Schema.JsonReader do
   def extensions() do
     GenServer.call(__MODULE__, :extensions)
   end
-  
+
   @spec cleanup() :: :ok
   def cleanup() do
     GenServer.cast(__MODULE__, :delete)
@@ -124,7 +124,7 @@ defmodule Schema.JsonReader do
 
   @impl true
   def handle_call(:extensions, _from, {_home, ext} = state) do
-    extensions = Enum.map(ext, fn {_path, ext} -> {ext.type, ext} end) |> Map.new()
+    extensions = Enum.map(ext, fn {_path, ext} -> {ext[:type], ext} end) |> Map.new()
     {:reply, extensions, state}
   end
 
@@ -190,7 +190,7 @@ defmodule Schema.JsonReader do
     objects = read_schema_files(Map.new(), home, Path.join(home, @objects_dir))
 
     Enum.reduce(extensions, objects, fn {path, ext}, acc ->
-      merge_extenstion_files(acc, ext, home, Path.join(path, @objects_dir))
+      merge_extension_files(acc, ext, home, Path.join(path, @objects_dir))
     end)
   end
 
@@ -202,7 +202,7 @@ defmodule Schema.JsonReader do
     events = read_schema_files(Map.new(), home, Path.join(home, @events_dir))
 
     Enum.reduce(extensions, events, fn {path, ext}, acc ->
-      merge_extenstion_files(acc, ext, home, Path.join(path, @events_dir))
+      merge_extension_files(acc, ext, home, Path.join(path, @events_dir))
     end)
   end
 
@@ -223,7 +223,7 @@ defmodule Schema.JsonReader do
     else
       if Path.extname(path) == @schema_file do
         data = read_json_file(path) |> resolve_includes(home)
-        Map.put(acc, String.to_atom(data.type), data)
+        Map.put(acc, String.to_atom(data[:type]), data)
       else
         acc
       end
@@ -246,25 +246,25 @@ defmodule Schema.JsonReader do
 
   defp merge_extension(acc, ext, path) do
     if File.regular?(path) do
-      Logger.info(fn -> "#{inspect(__MODULE__)} read file : #{ext.type} #{path}" end)
+      Logger.info(fn -> "#{inspect(__MODULE__)} read file : #{ext[:type]} #{path}" end)
 
       read_json_file(path)
-      |> add_extention_type(ext)
+      |> add_extension_type(ext)
       |> Utils.deep_merge(acc)
     else
       acc
     end
   end
 
-  defp merge_extenstion_files(acc, ext, home, path) do
+  defp merge_extension_files(acc, ext, home, path) do
     if File.dir?(path) do
-      read_extenstion_files(acc, ext, home, path)
+      read_extension_files(acc, ext, home, path)
     else
       acc
     end
   end
 
-  defp read_extenstion_files(acc, ext, home, path) do
+  defp read_extension_files(acc, ext, home, path) do
     if File.dir?(path) do
       Logger.info(fn -> "#{inspect(__MODULE__)} read files: #{path}" end)
 
@@ -273,7 +273,7 @@ defmodule Schema.JsonReader do
           files
           |> Stream.map(fn file -> Path.join(path, file) end)
           |> Enum.reduce(acc, fn file, map ->
-            read_extenstion_files(map, ext, home, file)
+            read_extension_files(map, ext, home, file)
           end)
 
         error ->
@@ -285,24 +285,24 @@ defmodule Schema.JsonReader do
         data =
           read_json_file(path)
           |> resolve_includes(home)
-          |> Map.put(@extension, ext.type)
-          |> Map.put(:extension_id, ext.uid)
+          |> Map.put(@extension, ext[:type])
+          |> Map.put(:extension_id, ext[:uid])
 
-        Map.put(acc, String.to_atom(data.type), data)
+        Map.put(acc, String.to_atom(data[:type]), data)
       else
         acc
       end
     end
   end
 
-  defp add_extention_type(map, ext) do
+  defp add_extension_type(map, ext) do
     Map.update!(map, :attributes, fn attributes ->
       Enum.map(attributes, fn {name, value} ->
         updated =
-        value
-        |> Map.put(@extension, ext.type)
-        |> Map.put(:extension_id, ext.uid)
-        
+          value
+          |> Map.put(@extension, ext[:type])
+          |> Map.put(:extension_id, ext[:uid])
+
         {name, updated}
       end)
       |> Map.new()
@@ -343,7 +343,7 @@ defmodule Schema.JsonReader do
       end
 
     attributes =
-      Schema.Utils.deep_merge(included.attributes, Map.delete(data.attributes, @include))
+      Schema.Utils.deep_merge(included[:attributes], Map.delete(data[:attributes], @include))
 
     Map.put(data, :attributes, attributes)
   end

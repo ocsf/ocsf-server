@@ -80,6 +80,16 @@ defmodule Schema do
     String.downcase(name) |> String.to_atom()
   end
 
+  def to_uid(nil, nil), do: nil
+
+  def to_uid(nil, name) do
+    String.downcase(name) |> String.to_atom()
+  end
+
+  def to_uid(extension, name) do
+    Path.join(extension, name) |> String.downcase(name) |> String.to_atom()
+  end
+
   @doc """
   Returns a randomly generated sample event.
   """
@@ -126,7 +136,7 @@ defmodule Schema do
               classes,
               fn {name, _class} ->
                 class = get_class(name)
-                Map.put(Map.delete(class, :attributes), :value, length(class.attributes))
+                Map.put(Map.delete(class, :attributes), :value, length(class[:attributes]))
               end
             )
             |> Enum.sort(fn map1, map2 -> map1[:name] <= map2[:name] end)

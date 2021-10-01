@@ -51,8 +51,8 @@ defmodule Schema.Inspector do
   end
 
   defp validate_type(type, data) do
-    Logger.info("validate: #{type.name}")
-    attributes = type.attributes
+    Logger.info("validate: #{type[:name]}")
+    attributes = type[:attributes]
 
     Enum.reduce(attributes, %{}, fn {name, attribute}, acc ->
       validate_data(acc, name, attribute, data[Atom.to_string(name)])
@@ -77,7 +77,7 @@ defmodule Schema.Inspector do
   end
 
   defp validate_data(acc, name, attribute, value) when is_integer(value) do
-    type = attribute.type
+    type = attribute[:type]
 
     case type do
       "integer_t" ->
@@ -100,7 +100,7 @@ defmodule Schema.Inspector do
   end
 
   defp validate_data(acc, name, attribute, value) when is_map(value) do
-    type = attribute.type
+    type = attribute[:type]
 
     case type do
       "object_t" -> validate_object(acc, name, attribute, value)
@@ -110,7 +110,7 @@ defmodule Schema.Inspector do
   end
 
   defp validate_data(acc, name, attribute, value) when is_list(value) do
-    type = attribute.type
+    type = attribute[:type]
 
     case type do
       "json_t" ->
@@ -154,7 +154,7 @@ defmodule Schema.Inspector do
   defp validate_array(acc, name, attribute, value) do
     Logger.debug("validate array: #{name}")
 
-    case attribute.type do
+    case attribute[:type] do
       "json_t" -> acc
       "object_t" -> validate_object_array(acc, name, attribute, value)
       _simple_type -> validate_simple_array(acc, name, attribute, value)
@@ -172,7 +172,7 @@ defmodule Schema.Inspector do
     if map_size(map) > 0 do
       error =
         if attribute[:enum] == nil do
-          "The array contains invalid data: expected #{attribute.type} type"
+          "The array contains invalid data: expected #{attribute[:type]} type"
         else
           "The array contains invalid enum values"
         end
@@ -235,7 +235,7 @@ defmodule Schema.Inspector do
 
   # check the attribute value type
   defp validate_data_type(acc, name, attribute, value, types) do
-    type = attribute.type
+    type = attribute[:type]
 
     case member?(types, type) do
       nil ->

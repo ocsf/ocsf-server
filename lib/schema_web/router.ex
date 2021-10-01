@@ -27,17 +27,24 @@ defmodule SchemaWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :categories
-    get "/schema", PageController, :schema
     get "/categories/:id", PageController, :categories
+    get "/categories/:extension/:id", PageController, :categories
+
+    get "/schema", PageController, :schema
+    get "/schema/:extension", PageController, :schema
 
     get "/dictionary", PageController, :dictionary
+    get "/dictionary/:extension", PageController, :dictionary
+    
     get "/base_event", PageController, :base_event
 
     get "/classes", PageController, :classes
     get "/classes/:id", PageController, :classes
+    get "/classes/:extension/:id", PageController, :classes
 
     get "/objects", PageController, :objects
     get "/objects/:id", PageController, :objects
+    get "/objects/:extension/:id", PageController, :objects
 
     get "/guidelines", PageController, :guidelines
     get "/data_types", PageController, :data_types
@@ -50,17 +57,23 @@ defmodule SchemaWeb.Router do
     get "/", SchemaController, :categories
     get "/categories", SchemaController, :categories
     get "/categories/:id", SchemaController, :categories
+    get "/categories/:extension/:id", SchemaController, :categories
 
     get "/dictionary", SchemaController, :dictionary
+    get "/dictionary/:extension", SchemaController, :dictionary
+
     get "/base_event", SchemaController, :base_event
 
     get "/objects", SchemaController, :objects
     get "/objects/:id", SchemaController, :objects
+    get "/objects/:extension/:id", SchemaController, :objects
 
     get "/classes", SchemaController, :classes
     get "/classes/:id", SchemaController, :classes
+    get "/classes/:extension/:id", SchemaController, :classes
 
     get "/schema", SchemaController, :schema
+    get "/schema/:extension", SchemaController, :schema
 
     post "/translate", SchemaController, :translate
     post "/validate", SchemaController, :validate
