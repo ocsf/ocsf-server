@@ -59,7 +59,7 @@ export default function define(runtime, observer) {
       // Add title for the classes
       leaf
         .append("a")
-        .attr("xlink:href", function (d) { return "/classes/" + d.data.type; })
+        .attr("xlink:href", function (d) { return "/classes/" + make_path(d.data.extension, d.data.type); })
         .append("text")
         .selectAll("tspan")
         .data(d => d.data.name.split(/(?=[A-Z][a-z])|\s+/g).concat(d.data.uid))
@@ -107,4 +107,12 @@ export default function define(runtime, observer) {
   main.variable("d3").define("d3", ["require"], function (require) { return (require("d3@6")) });
 
   return main;
+}
+
+function make_path(extension, type) {
+  if (extension == null) {
+    return type;
+  }
+
+  return extension + "/" + type;
 }

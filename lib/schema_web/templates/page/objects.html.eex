@@ -27,7 +27,7 @@ limitations under the License.
         <% path = Routes.static_path(@conn, "/objects/" <> name) %>
         <tr>
           <td class="name"><a href="<%= path %>"><%= raw format_name(name, map) %></a></td>
-          <td><a href="<%= path %>"><%= name %></a></td>
+          <td><a href="<%= path %>"><%= map[:type] %></a></td>
           <td><%= raw links(@conn, name, map[:_links]) %></td>
           <td><%= raw map[:description] %></td>
         </tr>

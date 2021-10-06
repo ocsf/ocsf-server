@@ -248,11 +248,21 @@ defmodule Schema.JsonReader do
 
       map = read_json_file(path)
 
+      ext_type = ext[:type]
+      ext_uid = ext[:uid]
+
       attributes =
-        Enum.map(map[:attributes], fn {name, value} ->
-          updated = add_extension(value, ext)
-          {name, updated}
-        end)
+        if map[:type] == "category" do
+          Enum.map(map[:attributes], fn {name, value} ->
+            updated = add_extension(value, ext_type, ext_uid)
+            {Utils.make_key(ext_type, name), updated}
+          end)
+        else
+          Enum.map(map[:attributes], fn {name, value} ->
+            updated = add_extension(value, ext_type, ext_uid)
+            {name, updated}
+          end)
+        end
         |> Map.new()
 
       Map.put(acc, :attributes, Map.merge(attributes, acc[:attributes]))
@@ -290,19 +300,20 @@ defmodule Schema.JsonReader do
         data =
           read_json_file(path)
           |> resolve_includes(home)
-          |> add_extension(ext)
+          |> add_extension(ext[:type], ext[:uid])
 
-        Map.put(acc, String.to_atom(data[:type]), data)
+        name = Utils.make_key(ext[:type], data[:type])
+        Map.put(acc, name, data)
       else
         acc
       end
     end
   end
 
-  defp add_extension(map, ext) do
+  defp add_extension(map, type, uid) do
     map
-    |> Map.put(:extension, ext[:type])
-    |> Map.put(:extension_id, ext[:uid])
+    |> Map.put(:extension, type)
+    |> Map.put(:extension_id, uid)
   end
 
   defp resolve_includes(data, home) do
@@ -338,8 +349,7 @@ defmodule Schema.JsonReader do
           cached
       end
 
-    attributes =
-      Utils.deep_merge(included[:attributes], Map.delete(data[:attributes], @include))
+    attributes = Utils.deep_merge(included[:attributes], Map.delete(data[:attributes], @include))
 
     Map.put(data, :attributes, attributes)
   end

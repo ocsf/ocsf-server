@@ -16,6 +16,54 @@ defmodule Schema.Utils do
 
   @links :_links
 
+  @spec make_key(binary() | nil, binary() | atom()) :: atom()
+  def make_key(nil, name) when is_atom(name) do
+    name
+  end
+
+  def make_key(extension, name) when is_atom(name) do
+    make_key(extension, Atom.to_string(name))
+  end
+
+  def make_key(extension, name) do
+    make_path(extension, name) |> String.to_atom()
+  end
+
+  def make_path(nil, name), do: name
+  def make_path(extension, name), do: Path.join(extension, name)
+
+  def find_entity(map, entity, key) when is_atom(key) do
+    case entity[:extension] do
+      nil ->
+        {key, map[key]}
+
+      extension ->
+        ext_key = make_key(extension, key)
+
+        case Map.get(map, ext_key) do
+          nil -> {key, map[key]}
+          other -> {ext_key, other}
+        end
+    end
+  end
+
+  def find_entity(map, entity, name) do
+    key = String.to_atom(name)
+
+    case entity[:extension] do
+      nil ->
+        {key, map[key]}
+
+      extension ->
+        ext_key = make_key(extension, key)
+
+        case Map.get(map, ext_key) do
+          nil -> {key, map[key]}
+          other -> {ext_key, other}
+        end
+    end
+  end
+
   @spec update_dictionary(map, map, map, map) :: map
   def update_dictionary(dictionary, common, classes, objects) do
     dictionary
@@ -44,8 +92,8 @@ defmodule Schema.Utils do
   end
 
   defp link_classes(dictionary, classes) do
-    Enum.reduce(classes, dictionary, fn {_, type}, acc ->
-      add_class_links(acc, type)
+    Enum.reduce(classes, dictionary, fn class, acc ->
+      add_class_links(acc, class)
     end)
   end
 
@@ -76,15 +124,16 @@ defmodule Schema.Utils do
   end
 
   defp update_object_type(name, value, objects) do
-    t = String.to_atom(value.object_type)
+    key = value[:object_type]
 
-    case objects[t] do
-      nil ->
-        Logger.warn("Undefined object type: #{t}, for #{name}")
+    case find_entity(objects, value, key) do
+      {_, nil} ->
+        Logger.warn("Undefined object type: #{value[:extension]}/#{key}, for #{name}")
         Map.put(value, :object_name, "*undefined*")
 
-      object ->
+      {_key, object} ->
         Map.put(value, :object_name, object[:name])
+        |> Map.put(:object_type, make_path(object[:extension], key))
     end
   end
 
@@ -101,14 +150,13 @@ defmodule Schema.Utils do
     end
   end
 
-  # Adds attribute-used-by links to the dictionary.
-  defp add_common_links(dict, type) do
+  # Adds attribute's used-by links to the dictionary.
+  defp add_common_links(dict, class) do
     Map.update!(dict, :attributes, fn attributes ->
-      link = {:common, type[:type], type[:name]}
+      link = {:common, class[:type], class[:name]}
 
       update_attributes(
-        type[:name],
-        type[:attributes],
+        class,
         attributes,
         link,
         &update_dictionary_links/2
@@ -116,13 +164,18 @@ defmodule Schema.Utils do
     end)
   end
 
-  defp add_class_links(dict, type) do
+  defp add_class_links(dict, {name, class}) do
     Map.update!(dict, :attributes, fn attributes ->
-      link = {:class, type[:type] || "base_event", type[:name] || "*No name*"}
+      type =
+        case class[:type] do
+          nil -> "base_event"
+          _ -> Atom.to_string(name)
+        end
+
+      link = {:class, type, class[:name] || "*No name*"}
 
       update_attributes(
-        type[:name],
-        type[:attributes],
+        class,
         attributes,
         link,
         &update_dictionary_links/2
@@ -137,29 +190,32 @@ defmodule Schema.Utils do
     end)
   end
 
-  defp add_object_links(dict, {link, obj}) do
-    Map.update!(dict, :attributes, fn attributes ->
-      link = {:object, Atom.to_string(link), obj[:name] || "*No name*"}
-      update_attributes(obj[:name], obj[:attributes], attributes, link, &update_object_links/2)
-    end)
-  end
-
-  defp update_attributes(name, target, attributes, link, update_links) do
-    Enum.reduce(target, attributes, fn {k, _v}, acc ->
-      case acc[k] do
-        nil ->
-          Logger.error("dictionary: missing attribute: #{k} for #{name}")
-          acc
-
-        item ->
-          Map.put(acc, k, update_links.(item, link))
-      end
+  defp add_object_links(dict, {name, obj}) do
+    Map.update!(dict, :attributes, fn dictionary ->
+      link = {:object, Atom.to_string(name), obj[:name] || "*No name*"}
+      update_attributes(obj, dictionary, link, &update_object_links/2)
     end)
   end
 
   defp update_object_links(item, link) do
     Map.update(item, @links, [link], fn links ->
       [link | links]
+    end)
+  end
+
+  defp update_attributes(item, dictionary, link, update_links) do
+    name = item[:name]
+    attributes = item[:attributes]
+
+    Enum.reduce(attributes, dictionary, fn {k, _v}, acc ->
+      case find_entity(acc, item, k) do
+        {_, nil} ->
+          Logger.error("dictionary: missing attribute: #{k} for #{name}")
+          acc
+
+        {_key, item} ->
+          Map.put(acc, k, update_links.(item, link))
+      end
     end)
   end
 

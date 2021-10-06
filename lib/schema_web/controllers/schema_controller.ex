@@ -35,9 +35,11 @@ defmodule SchemaWeb.SchemaController do
   Renders categories or the classes in a given category.
   """
   @spec categories(Plug.Conn.t(), map) :: Plug.Conn.t()
-  def categories(conn, %{"id" => id}) do
+  def categories(conn, %{"id" => id} = params) do
+    extension = params["extension"]
+
     try do
-      case Schema.categories(id) do
+      case Schema.categories(extension, id) do
         nil ->
           send_json_resp(conn, 404, %{error: "Not Found: #{id}"})
 
@@ -107,8 +109,10 @@ defmodule SchemaWeb.SchemaController do
   """
   @spec classes(Plug.Conn.t(), any) :: Plug.Conn.t()
   def classes(conn, %{"id" => id} = params) do
+    extension = params["extension"]
+
     try do
-      case Schema.classes(id) do
+      case Schema.classes(extension, id) do
         nil ->
           send_json_resp(conn, 404, %{error: "Not Found: #{id}"})
 
@@ -151,8 +155,10 @@ defmodule SchemaWeb.SchemaController do
   """
   @spec objects(Plug.Conn.t(), map) :: Plug.Conn.t()
   def objects(conn, %{"id" => id} = params) do
+    extension = params["extension"]
+
     try do
-      case Schema.objects(id) do
+      case Schema.objects(extension, id) do
         nil ->
           send_json_resp(conn, 404, %{error: "Not Found: #{id}"})
 

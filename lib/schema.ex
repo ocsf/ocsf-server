@@ -18,6 +18,7 @@ defmodule Schema do
   """
   alias Schema.Repo
   alias Schema.Cache
+  alias Schema.Utils
 
   @doc """
     Returns the schema version string.
@@ -37,7 +38,7 @@ defmodule Schema do
 
   @spec categories(String.t() | nil, atom | String.t()) :: nil | Cache.category_t()
   def categories(nil, id) when is_binary(id), do: Repo.categories(to_uid(id))
-  def categories(_extension, id) when is_binary(id), do: Repo.categories(to_uid(id))
+  def categories(extension, id) when is_binary(id), do: Repo.categories(Utils.make_key(extension, id))
 
   @doc """
     Returns the attribute dictionary.
@@ -60,7 +61,7 @@ defmodule Schema do
 
   @spec classes(nil | String.t(), String.t()) :: nil | map()
   def classes(nil, id) when is_binary(id), do: Repo.classes(to_uid(id))
-  def classes(_extension,  id) when is_binary(id), do: Repo.classes(to_uid(id))
+  def classes(extension,  id) when is_binary(id), do: Repo.classes(Utils.make_key(extension, id))
 
   @doc """
   Finds a class by the class uid value.
@@ -83,7 +84,7 @@ defmodule Schema do
 
   @spec objects(nil | String.t(), String.t()) :: nil | map()
   def objects(nil, id) when is_binary(id), do: Repo.objects(to_uid(id))
-  def objects(_extension, id) when is_binary(id), do: Repo.objects(to_uid(id))
+  def objects(extension, id) when is_binary(id), do: Repo.objects(Utils.make_key(extension, id))
 
   @doc """
   Returns a randomly generated sample event.

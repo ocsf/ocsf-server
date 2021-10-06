@@ -2,6 +2,7 @@ defmodule SchemaWeb.PageView do
   use SchemaWeb, :view
 
   require Logger
+
   def format_name(name, field) do
     extension = field[:extension]
     name = field[:name] || name

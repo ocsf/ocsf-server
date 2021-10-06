@@ -223,10 +223,7 @@ defmodule Schema.Cache do
   defp update_categories(categories) do
     Map.update!(categories, :attributes, fn attributes ->
       Enum.map(attributes, fn {name, cat} ->
-        case cat[:extension_id] do
-          nil -> {name, cat}
-          ext -> update_category_id(name, cat, ext)
-        end
+        update_category_id(name, cat, cat[:extension_id])
       end)
       |> Map.new()
     end)
@@ -241,7 +238,9 @@ defmodule Schema.Cache do
   end
 
   defp update_class_id(class, categories) do
-    category = Map.get(categories, String.to_atom(class[:category]))
+    {_key, category} = Utils.find_entity(categories, class, class[:category])
+
+    class = Map.put(class, :category_name, category[:name])
 
     case class[:extension_id] do
       nil ->
@@ -250,9 +249,18 @@ defmodule Schema.Cache do
         end)
 
       ext ->
-        Map.update!(class, :uid, fn uid ->
-          category_id(category[:uid], ext) * @multiplier + uid
-        end)
+        category_id = category[:uid]
+
+        if category_id < @multiplier do
+          Map.update!(class, :uid, fn uid ->
+            category_id(category_id, ext) * @multiplier + uid
+          end)
+        else
+          Map.update!(class, :uid, fn uid ->
+            category_id(category_id, ext) * @multiplier + uid
+          end)
+          |> Map.update!(:category, fn category -> Path.join(class[:extension], category) end)
+        end
     end
   end
 
@@ -277,13 +285,16 @@ defmodule Schema.Cache do
             values ->
               for {key, val} <- values, into: %{} do
                 {
-                  make_event_id(class_id, key),
-                  Map.put(val, :name, make_event_name(caption, val[:name]))
+                  make_enum_id(class_id, key),
+                  Map.put(val, :name, make_enum_name(caption, val[:name]))
                 }
               end
           end
-          |> Map.put(make_uid(0, -1), Map.new(name: make_event_name(caption, "Other")))
-          |> Map.put(make_uid(class_id, 0), Map.new(name: make_event_name(caption, "Unknown")))
+          |> Map.put(integer_to_id(0, -1), Map.new(name: make_enum_name(caption, "Other")))
+          |> Map.put(
+            integer_to_id(class_id, 0),
+            Map.new(name: make_enum_name(caption, "Unknown"))
+          )
 
         Map.put(attributes, :event_id, Map.put(uid, :enum, enum))
       end
@@ -291,15 +302,15 @@ defmodule Schema.Cache do
     |> put_in([:attributes, :event_id, :_source], name)
   end
 
-  defp make_event_name(caption, name) do
+  defp make_enum_name(caption, name) do
     caption <> ": " <> name
   end
 
-  defp make_event_id(class_id, key) do
-    make_uid(class_id, String.to_integer(Atom.to_string(key)))
+  defp make_enum_id(class_id, key) do
+    integer_to_id(class_id, String.to_integer(Atom.to_string(key)))
   end
 
-  defp make_uid(class_id, id) do
+  defp integer_to_id(class_id, id) do
     Integer.to_string(class_id + id) |> String.to_atom()
   end
 
@@ -319,17 +330,15 @@ defmodule Schema.Cache do
     |> put_in([:attributes, :class_id, :_source], name)
   end
 
-  defp add_category_id(data, name, categories) do
-    category_name = data[:category] |> String.to_atom()
-
-    category = categories[category_name]
+  defp add_category_id(class, name, categories) do
+    {_key, category} = Utils.find_entity(categories, class, class[:category])
 
     if category == nil do
-      exit("#{data[:name]} has invalid category: #{category_name}")
+      exit("#{class[:name]} has invalid category: #{class[:category]}")
     end
 
     update_in(
-      data,
+      class,
       [:attributes, :category_id, :enum],
       fn _enum ->
         id = Integer.to_string(category[:uid]) |> String.to_atom()
@@ -359,63 +368,79 @@ defmodule Schema.Cache do
     {name, data}
   end
 
-  defp resolve_extends(data) do
-    Enum.map(data, fn {name, map} -> {name, resolve_extends(data, map)} end)
+  defp resolve_extends(classes) do
+    Enum.map(classes, fn {name, class} -> {name, resolve_extends(classes, class)} end)
   end
 
-  defp resolve_extends(data, map) do
-    case map[:extends] do
+  defp resolve_extends(classes, class) do
+    case class[:extends] do
       nil ->
-        map
+        class
 
-      key ->
-        case Map.get(data, String.to_atom(key)) do
+      extends ->
+        case super_class(classes, class, extends) do
           nil ->
-            exit("Error: #{map[:name]} extends undefined class: #{key}")
+            exit("Error: #{class[:name]} extends undefined class: #{extends}")
 
           base ->
-            base = resolve_extends(data, base)
-            attributes = Utils.deep_merge(base[:attributes], map[:attributes])
+            base = resolve_extends(classes, base)
+            attributes = Utils.deep_merge(base[:attributes], class[:attributes])
 
-            Map.merge(base, map)
+            Map.merge(base, class)
             |> Map.delete(:extends)
             |> Map.put(:attributes, attributes)
         end
     end
   end
 
-  defp update_see_also(classes) do
-    Enum.map(classes, fn {name, map} -> update_see_also(name, map, classes) end)
-  end
+  defp super_class(classes, class, extends) do
+    case class[:extension] do
+      nil ->
+        Map.get(classes, String.to_atom(extends))
 
-  defp update_see_also(name, map, classes) do
-    see_also = update_see_also(map[:see_also], classes)
-
-    if see_also != nil and length(see_also) > 0 do
-      {name, Map.put(map, :see_also, see_also)}
-    else
-      {name, map}
+      extension ->
+        case Map.get(classes, Utils.make_key(extension, extends)) do
+          nil -> Map.get(classes, String.to_atom(extends))
+          other -> other
+        end
     end
   end
 
-  defp update_see_also(see_also, classes) when is_list(see_also) do
-    Enum.map(
-      see_also,
-      fn name ->
-        case Map.get(classes, String.to_atom(name)) do
-          nil ->
-            nil
-
-          class ->
-            {name, class[:name]}
-        end
-      end
-    )
-    |> Enum.filter(fn elem -> elem != nil end)
+  defp update_see_also(classes) do
+    Enum.map(classes, fn {name, class} -> update_see_also(name, class, classes) end)
   end
 
-  defp update_see_also(_see_also, _classes) do
-    nil
+  defp update_see_also(name, class, classes) do
+    see_also = find_see_also_classes(class, classes)
+
+    if see_also != nil and length(see_also) > 0 do
+      {name, Map.put(class, :see_also, see_also)}
+    else
+      {name, Map.delete(class, :see_also)}
+    end
+  end
+
+  defp find_see_also_classes(class, classes) do
+    see_also = class[:see_also]
+
+    if see_also != nil do
+      Enum.map(
+        see_also,
+        fn name ->
+          case Utils.find_entity(classes, class, name) do
+            {_, nil} ->
+              Logger.warn("find_see_also_classes: #{name} not found")
+              nil
+
+            {_key, class} ->
+              {Utils.make_path(class[:extension], name), class[:name]}
+          end
+        end
+      )
+      |> Enum.filter(fn elem -> elem != nil end)
+    else
+      nil
+    end
   end
 
   defp set_dictionary(%__MODULE__{} = schema, dictionary) do

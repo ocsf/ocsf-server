@@ -82,13 +82,15 @@ defmodule SchemaWeb.PageController do
   @spec classes(Plug.Conn.t(), any) :: Plug.Conn.t()
   def classes(conn, %{"id" => id} = params) do
     extension = params["extension"]
+
     try do
       case Schema.classes(extension, id) do
         nil ->
           send_resp(conn, 404, "Not Found: #{id}")
 
         data ->
-          render(conn, "class.html", data: sort_attributes(data))
+          sorted = sort_attributes(data)
+          render(conn, "class.html", data: sorted)
       end
     rescue
       e -> send_resp(conn, 400, "Bad Request: #{inspect(e)}")
@@ -106,6 +108,7 @@ defmodule SchemaWeb.PageController do
   @spec objects(Plug.Conn.t(), map) :: Plug.Conn.t()
   def objects(conn, %{"id" => id} = params) do
     extension = params["extension"]
+
     try do
       case Schema.objects(extension, id) do
         nil ->
