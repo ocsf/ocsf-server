@@ -85,7 +85,7 @@ defmodule Schema.Generator do
     Logger.info("generate class: #{inspect(class[:name])}")
 
     data = generate(class)
-    disposition_id = data.disposition_id
+    disposition_id = data[:disposition_id]
 
     uid =
       if disposition_id >= 0 do
@@ -140,7 +140,6 @@ defmodule Schema.Generator do
   end
 
   defp generate_field("reserved", name, field, map) do
-    Logger.debug("reserved: #{name}")
     generate_field(name, field, map)
   end
 
