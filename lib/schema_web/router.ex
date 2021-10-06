@@ -35,7 +35,7 @@ defmodule SchemaWeb.Router do
 
     get "/dictionary", PageController, :dictionary
     get "/dictionary/:extension", PageController, :dictionary
-    
+
     get "/base_event", PageController, :base_event
 
     get "/classes", PageController, :classes
@@ -83,7 +83,11 @@ defmodule SchemaWeb.Router do
     pipe_through :api
 
     get "/base_event", SchemaController, :sample_event
+
     get "/objects/:id", SchemaController, :sample_object
+    get "/objects/:extension/:id", SchemaController, :sample_object
+
     get "/classes/:id", SchemaController, :sample_class
+    get "/classes/:extension/:id", SchemaController, :sample_class
   end
 end

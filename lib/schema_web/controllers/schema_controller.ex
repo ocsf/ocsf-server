@@ -319,8 +319,10 @@ defmodule SchemaWeb.SchemaController do
   """
   @spec sample_class(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def sample_class(conn, %{"id" => id} = options) do
+    extension = options["extension"]
+
     try do
-      case Schema.classes(id) do
+      case Schema.classes(extension, id) do
         nil ->
           send_json_resp(conn, 404, %{error: "Not Found: #{id}"})
 
@@ -360,9 +362,11 @@ defmodule SchemaWeb.SchemaController do
   Returns an object sample data for the given name.
   """
   @spec sample_object(Plug.Conn.t(), map()) :: Plug.Conn.t()
-  def sample_object(conn, %{"id" => id}) do
+  def sample_object(conn, %{"id" => id} = options) do
+    extension = options["extension"]
+
     try do
-      case Schema.objects(id) do
+      case Schema.objects(extension, id) do
         nil ->
           send_json_resp(conn, 404, %{error: "Not Found: #{id}"})
 
