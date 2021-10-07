@@ -251,7 +251,8 @@ defmodule Schema.JsonReader do
       ext_type = ext[:type]
       ext_uid = ext[:uid]
 
-      attributes =
+      # dictionary
+      ext_attributes =
         if map[:type] == "category" do
           Enum.map(map[:attributes], fn {name, value} ->
             updated = add_extension(value, ext_type, ext_uid)
@@ -265,7 +266,17 @@ defmodule Schema.JsonReader do
         end
         |> Map.new()
 
-      Map.put(acc, :attributes, Map.merge(attributes, acc[:attributes]))
+      Map.put(
+        acc,
+        :attributes,
+        Map.merge(acc[:attributes], ext_attributes, fn key, v1, v2 ->
+          Logger.warn(
+            "dictionary: '#{ext[:type]}' extension attempts to overwrite attribute '#{key}': #{inspect(v1)},\n\twith #{inspect(v2)}"
+          )
+
+          v1
+        end)
+      )
     else
       acc
     end
