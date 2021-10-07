@@ -23,6 +23,11 @@ defmodule SchemaWeb.PageController do
     render(conn, "schema_map.html")
   end
 
+  def extensions(conn, _params) do
+    data = Schema.extensions()
+    render(conn, "extensions.html", data: data)
+  end
+
   @doc """
   Renders categories or the classes in a given category.
   """

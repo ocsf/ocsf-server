@@ -27,6 +27,12 @@ defmodule Schema do
   def version(), do: Repo.version()
 
   @doc """
+    Returns the event extensions.
+  """
+  @spec extensions :: map()
+  def extensions(), do: Schema.JsonReader.extensions()
+
+  @doc """
     Returns the event categories.
   """
   @spec categories :: map()
@@ -38,7 +44,9 @@ defmodule Schema do
 
   @spec categories(String.t() | nil, atom | String.t()) :: nil | Cache.category_t()
   def categories(nil, id) when is_binary(id), do: Repo.categories(to_uid(id))
-  def categories(extension, id) when is_binary(id), do: Repo.categories(Utils.make_key(extension, id))
+
+  def categories(extension, id) when is_binary(id),
+    do: Repo.categories(Utils.make_key(extension, id))
 
   @doc """
     Returns the attribute dictionary.
@@ -61,7 +69,7 @@ defmodule Schema do
 
   @spec classes(nil | String.t(), String.t()) :: nil | map()
   def classes(nil, id) when is_binary(id), do: Repo.classes(to_uid(id))
-  def classes(extension,  id) when is_binary(id), do: Repo.classes(Utils.make_key(extension, id))
+  def classes(extension, id) when is_binary(id), do: Repo.classes(Utils.make_key(extension, id))
 
   @doc """
   Finds a class by the class uid value.
@@ -105,9 +113,11 @@ defmodule Schema do
   def generate(type) when is_map(type) do
     Schema.Generator.generate(type)
   end
+
   def remove_links(data) do
     Map.delete(data, :_links) |> remove_links(:attributes)
   end
+
   def remove_links(data, key) do
     case data[key] do
       nil ->
@@ -160,6 +170,6 @@ defmodule Schema do
   end
 
   defp to_uid(name) do
-     String.downcase(name) |> Cache.to_uid()
+    String.downcase(name) |> Cache.to_uid()
   end
 end
