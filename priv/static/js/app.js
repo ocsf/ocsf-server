@@ -11,6 +11,7 @@
 
 const defaultSelectedValues = ["base-event", "reserved", "classification", "context", "occurrence", "origination", "primary"];
 const selectAttributes = "#attributes-select";
+const storageKey = "selected-attributes"
 
 function hide(name) {
   $(name).addClass('d-none');
@@ -30,11 +31,11 @@ function show_select_attributes(list) {
 
 function init_select() {
   let selected;
-  if (window.localStorage.getItem(name) == null) {
+  if (window.localStorage.getItem(storageKey) == null) {
     selected = defaultSelectedValues;
-    window.localStorage.setItem(name, selected);
+    window.localStorage.setItem(storageKey, selected);
   } else {
-    const data = window.localStorage.getItem(name);
+    const data = window.localStorage.getItem(storageKey);
     if (data.length > 0)
       selected = data.split(",");
     else
@@ -58,7 +59,7 @@ function init_select_picker(selection, selected) {
       else
         hideAll = true;
     }
-    window.localStorage.setItem(name, values);
+    window.localStorage.setItem(storageKey, values);
     display_attributes(new Set(values));
   });
 }

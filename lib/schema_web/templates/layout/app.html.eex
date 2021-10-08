@@ -112,38 +112,38 @@ limitations under the License.
 <script type="text/javascript" src='<%= Routes.static_path(@conn, "/js/sorttable.js") %>'></script>
 
 <script>
-    $(document).ready(function () {
+  $(document).ready(function () {
 
-      init_select();
+    init_select();
 
-      $("a.nav-item.nav-link.active").removeClass("active");
-      switch (window.location.pathname) {
-        case '/':
-          $('#home_id').addClass("active");
-          break;
-        case '/dictionary':
-          $('#dictionary_id').addClass("active");
-          break;
-        case '/base_event':
-          $('#base_event_id').addClass("active");
-          break;
-        case '/objects':
-          $('#objects_id').addClass("active");
-          break;
-        case '/classes':
-          $('#classes_id').addClass("active");
-          break;
-        case '/schema':
-          $('#schema_map_id').addClass("active");
-          break;
-        case '/data_types':
-          $('#data_types_id').addClass("active");
-          break;
-        case '/guidelines':
-          $('#guidelines_id').addClass("active");
-          break;
-      }
-    });
+    $("a.nav-item.nav-link.active").removeClass("active");
+    switch (window.location.pathname) {
+      case '/':
+        $('#home_id').addClass("active");
+        break;
+      case '/dictionary':
+        $('#dictionary_id').addClass("active");
+        break;
+      case '/base_event':
+        $('#base_event_id').addClass("active");
+        break;
+      case '/objects':
+        $('#objects_id').addClass("active");
+        break;
+      case '/classes':
+        $('#classes_id').addClass("active");
+        break;
+      case '/schema':
+        $('#schema_map_id').addClass("active");
+        break;
+      case '/data_types':
+        $('#data_types_id').addClass("active");
+        break;
+      case '/guidelines':
+        $('#guidelines_id').addClass("active");
+        break;
+    }
+  });
 </script>
 </body>
 </html>
