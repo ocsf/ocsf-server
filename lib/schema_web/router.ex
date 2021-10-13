@@ -26,8 +26,10 @@ defmodule SchemaWeb.Router do
   scope "/", SchemaWeb do
     pipe_through :browser
 
-    get "/", PageController, :categories
+    get "/", PageController, :extensions
     get "/extensions", PageController, :extensions
+
+    get "/categories", PageController, :categories
 
     get "/categories/:id", PageController, :categories
     get "/categories/:extension/:id", PageController, :categories
@@ -56,7 +58,6 @@ defmodule SchemaWeb.Router do
   scope "/api", SchemaWeb do
     pipe_through :api
 
-    get "/", SchemaController, :categories
     get "/categories", SchemaController, :categories
     get "/categories/:id", SchemaController, :categories
     get "/categories/:extension/:id", SchemaController, :categories

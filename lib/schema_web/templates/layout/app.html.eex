@@ -45,16 +45,29 @@ limitations under the License.
 
   <div class="collapse navbar-collapse" id="navbarCollapse">
     <div class="extensions navbar-nav mr-auto">
-      <a id="home_id" class="nav-item nav-link" href='<%= Routes.static_path(@conn, "/") %>'>Home</a>
+      <a id="home_id" class="nav-item nav-link" 
+        href='<%= Routes.static_path(@conn, "/") %>'>Extensions
+      </a>
+      <a id="categories_id" class="nav-item nav-link"
+        href='<%= Routes.static_path(@conn, "/categories") %>'>Categories
+      </a>
       <a id="dictionary_id" class="nav-item nav-link"
          href='<%= Routes.static_path(@conn, "/dictionary") %>'>Dictionary</a>
-      <a id="base_event_id" class="nav-item nav-link" href='<%= Routes.static_path(@conn, "/base_event") %>'>Base
-        Event</a>
-      <a id="objects_id" class="nav-item nav-link" href='<%= Routes.static_path(@conn, "/objects") %>'>Objects</a>
-      <a id="classes_id" class="nav-item nav-link" href='<%= Routes.static_path(@conn, "/classes") %>'>Event Classes</a>
-      <a id="schema_map_id" class="nav-item nav-link" href='<%= Routes.static_path(@conn, "/schema") %>'>Schema Map</a>
-      <a id="data_types_id" class="nav-item nav-link" href='<%= Routes.static_path(@conn, "/data_types") %>'>Data
-        Types</a>
+      <a id="base_event_id" class="nav-item nav-link"
+        href='<%= Routes.static_path(@conn, "/base_event") %>'>Base Event
+      </a>
+      <a id="objects_id" class="nav-item nav-link"
+        href='<%= Routes.static_path(@conn, "/objects") %>'>Objects
+      </a>
+      <a id="classes_id" class="nav-item nav-link"
+        href='<%= Routes.static_path(@conn, "/classes") %>'>Event Classes
+      </a>
+      <a id="schema_map_id" class="nav-item nav-link" 
+        href='<%= Routes.static_path(@conn, "/schema") %>'>Schema Map
+      </a>
+      <a id="data_types_id" class="nav-item nav-link" 
+        href='<%= Routes.static_path(@conn, "/data_types") %>'>Data Types
+      </a>
       <a id="guidelines_id" class="nav-item nav-link"
          href='<%= Routes.static_path(@conn, "/guidelines") %>'>Guidelines</a>
     </div>
@@ -125,6 +138,9 @@ limitations under the License.
     switch (window.location.pathname) {
       case '/':
         $('#home_id').addClass("active");
+        break;
+      case '/categories':
+        $('#categories_id').addClass("active");
         break;
       case '/dictionary':
         $('#dictionary_id').addClass("active");
