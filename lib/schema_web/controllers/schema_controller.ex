@@ -39,7 +39,7 @@ defmodule SchemaWeb.SchemaController do
     extension = params["extension"]
 
     try do
-      case Schema.categories(extension, id) do
+      case Schema.category(extension, id) do
         nil ->
           send_json_resp(conn, 404, %{error: "Not Found: #{id}"})
 
@@ -91,7 +91,7 @@ defmodule SchemaWeb.SchemaController do
   """
   @spec base_event(Plug.Conn.t(), any) :: Plug.Conn.t()
   def base_event(conn, params) do
-    base = Schema.classes(:base_event) |> add_objects(params)
+    base = Schema.class(:base_event) |> add_objects(params)
 
     send_json_resp(conn, base)
   end
@@ -112,7 +112,7 @@ defmodule SchemaWeb.SchemaController do
     extension = params["extension"]
 
     try do
-      case Schema.classes(extension, id) do
+      case Schema.class(extension, id) do
         nil ->
           send_json_resp(conn, 404, %{error: "Not Found: #{id}"})
 
@@ -158,7 +158,7 @@ defmodule SchemaWeb.SchemaController do
     extension = params["extension"]
 
     try do
-      case Schema.objects(extension, id) do
+      case Schema.object(extension, id) do
         nil ->
           send_json_resp(conn, 404, %{error: "Not Found: #{id}"})
 
@@ -322,7 +322,7 @@ defmodule SchemaWeb.SchemaController do
     extension = options["extension"]
 
     try do
-      case Schema.classes(extension, id) do
+      case Schema.class(extension, id) do
         nil ->
           send_json_resp(conn, 404, %{error: "Not Found: #{id}"})
 
@@ -366,7 +366,7 @@ defmodule SchemaWeb.SchemaController do
     extension = options["extension"]
 
     try do
-      case Schema.objects(extension, id) do
+      case Schema.object(extension, id) do
         nil ->
           send_json_resp(conn, 404, %{error: "Not Found: #{id}"})
 
@@ -453,7 +453,7 @@ defmodule SchemaWeb.SchemaController do
           if Map.has_key?(acc, type) do
             acc
           else
-            object = Schema.objects(type)
+            object = Schema.object(type)
             Map.put(acc, type, remove_links(object)) |> update_objects(object[:attributes])
           end
 

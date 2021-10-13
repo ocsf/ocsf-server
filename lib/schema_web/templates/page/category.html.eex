@@ -27,8 +27,12 @@ limitations under the License.
       <% name = Atom.to_string(id) %>
       <% path = Routes.static_path(@conn, "/classes/" <> name) %>
       <tr>
-        <td class="name"> <a href="<%= path %>"><%= raw format_name(name, class) %></a></td>
-        <td><a href="<%= path %>"><%= class[:uid] %></a></td>
+        <td class="name">
+          <a href="<%= path %>"><%= raw format_name(name, class) %></a>
+        </td>
+        <td>
+          <a href="<%= path %>"><%= class[:uid] %></a>
+        </td>
         <td><%= raw class[:description] %></td>
       </tr>
     <% end %>

@@ -16,6 +16,11 @@ defmodule Schema.Repo do
 
   alias Schema.Cache
 
+  @typedoc """
+  Defines a set of extensions.
+  """
+  @type extensions() :: MapSet.t(binary())
+
   @spec start :: {:error, any} | {:ok, pid}
   def start(), do: Agent.start(fn -> Cache.init() end, name: __MODULE__)
 
@@ -26,21 +31,66 @@ defmodule Schema.Repo do
   def version(), do: Agent.get(__MODULE__, fn schema -> Cache.version(schema) end)
 
   @spec categories :: map()
-  def categories(), do: Agent.get(__MODULE__, fn schema -> Cache.categories(schema) end)
+  def categories() do
+    Agent.get(__MODULE__, fn schema -> Cache.categories(schema) end)
+  end
 
-  @spec categories(atom) :: nil | Cache.category_t()
-  def categories(id) do
+  @spec categories(extensions() | nil) :: map()
+  def categories(nil) do
+    Agent.get(__MODULE__, fn schema -> Cache.categories(schema) end)
+  end
+
+  def categories(extensions) do
+    Agent.get(__MODULE__, fn schema ->
+      Cache.categories(schema)
+      |> Map.update!(:attributes, fn attributes ->
+        filter(attributes, extensions)
+      end)
+    end)
+  end
+
+  @spec category(atom) :: nil | Cache.category_t()
+  def category(id) do
     Agent.get(__MODULE__, fn schema -> Cache.categories(schema, id) end)
   end
 
-  @spec dictionary :: Cache.dictionary_t()
-  def dictionary(), do: Agent.get(__MODULE__, fn schema -> Cache.dictionary(schema) end)
+  @spec dictionary() :: Cache.dictionary_t()
+  def dictionary() do
+    Agent.get(__MODULE__, fn schema -> Cache.dictionary(schema) end)
+  end
+
+  @spec dictionary(extensions() | nil) :: Cache.dictionary_t()
+  def dictionary(nil) do
+    Agent.get(__MODULE__, fn schema -> Cache.dictionary(schema) end)
+  end
+
+  def dictionary(extensions) do
+    Agent.get(__MODULE__, fn schema ->
+      Cache.dictionary(schema)
+      |> Map.update!(:attributes, fn attributes ->
+        filter(attributes, extensions)
+      end)
+    end)
+  end
 
   @spec classes() :: map()
-  def classes(), do: Agent.get(__MODULE__, fn schema -> Cache.classes(schema) end)
+  def classes() do
+    Agent.get(__MODULE__, fn schema -> Cache.classes(schema) end)
+  end
 
-  @spec classes(atom) :: nil | Cache.class_t()
-  def classes(id) do
+  @spec classes(extensions() | nil) :: map()
+  def classes(nil) do
+    Agent.get(__MODULE__, fn schema -> Cache.classes(schema) end)
+  end
+
+  def classes(extensions) do
+    Agent.get(__MODULE__, fn schema ->
+      Cache.classes(schema) |> filter(extensions)
+    end)
+  end
+
+  @spec class(atom) :: nil | Cache.class_t()
+  def class(id) do
     Agent.get(__MODULE__, fn schema -> Cache.classes(schema, id) end)
   end
 
@@ -49,10 +99,25 @@ defmodule Schema.Repo do
   end
 
   @spec objects() :: map()
-  def objects(), do: Agent.get(__MODULE__, fn schema -> Cache.objects(schema) end)
+  def objects() do
+    Agent.get(__MODULE__, fn schema -> Cache.objects(schema) end)
+  end
 
-  @spec objects(atom) :: nil | Cache.class_t()
-  def objects(id) do
+  @spec objects(extensions() | nil) :: map()
+  def objects(nil) do
+    Agent.get(__MODULE__, fn schema -> Cache.objects(schema) end)
+  end
+
+  def objects(extensions) do
+    Agent.get(__MODULE__, fn schema ->
+      Cache.objects(schema) |> filter(extensions)
+    end)
+  end
+
+  @spec object(atom) :: nil | Cache.class_t()
+  def object(nil), do: nil
+
+  def object(id) do
     Agent.get(__MODULE__, fn schema -> Cache.objects(schema, id) end)
   end
 
@@ -66,5 +131,13 @@ defmodule Schema.Repo do
   def reload(extension) do
     Schema.JsonReader.set_extension(extension)
     Agent.cast(__MODULE__, fn _ -> Cache.init() end)
+  end
+
+  defp filter(objects, extensions) do
+    Enum.filter(objects, fn {_k, f} ->
+      extension = f[:extension]
+      extension == nil or MapSet.member?(extensions, extension)
+    end)
+    |> Map.new()
   end
 end

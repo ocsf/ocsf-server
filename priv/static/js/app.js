@@ -9,6 +9,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+function get_selected_extensions() {
+  const data = window.localStorage.getItem("selected-extensions");
+
+  return data == null ? [] : new Map(JSON.parse(data));
+}
+
+function selected_extensions(selected) {
+  if (selected.size > 0) {
+    const params = [];
+
+  selected.forEach(function (value, name) {
+    if (value) {
+      params.push(name);
+    }
+  });
+
+    return '?extensions=' + params.toString()
+  }
+
+  return '';
+}
+
+function extensions_params() {
+  return selected_extensions(get_selected_extensions());
+}
+
 const defaultSelectedValues = ["base-event", "reserved", "classification", "context", "occurrence", "origination", "primary"];
 const selectAttributes = "#attributes-select";
 const storageKey = "selected-attributes"

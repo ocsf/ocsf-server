@@ -34,9 +34,10 @@ defmodule SchemaWeb.PageController do
   @spec categories(Plug.Conn.t(), map) :: Plug.Conn.t()
   def categories(conn, %{"id" => id} = params) do
     extension = params["extension"]
+    _extensions = parse_extensions(params["extensions"])
 
     try do
-      case Schema.categories(extension, id) do
+      case Schema.category(extension, id) do
         nil ->
           send_resp(conn, 404, "Not Found: #{id}")
 
@@ -49,8 +50,12 @@ defmodule SchemaWeb.PageController do
     end
   end
 
-  def categories(conn, _params) do
-    data = Schema.categories() |> sort_attributes(:id)
+  def categories(conn, params) do
+    data =
+      parse_extensions(params["extensions"])
+      |> Schema.categories()
+      |> sort_attributes(:id)
+
     render(conn, "index.html", data: data)
   end
 
@@ -67,8 +72,12 @@ defmodule SchemaWeb.PageController do
   Renders the attribute dictionary.
   """
   @spec dictionary(Plug.Conn.t(), any) :: Plug.Conn.t()
-  def dictionary(conn, _params) do
-    data = Schema.dictionary() |> sort_attributes()
+  def dictionary(conn, params) do
+    data =
+      parse_extensions(params["extensions"])
+      |> Schema.dictionary()
+      |> sort_attributes()
+
     render(conn, "dictionary.html", data: data)
   end
 
@@ -77,7 +86,7 @@ defmodule SchemaWeb.PageController do
   """
   @spec base_event(Plug.Conn.t(), any) :: Plug.Conn.t()
   def base_event(conn, _params) do
-    data = Schema.classes(:base_event)
+    data = Schema.class(:base_event)
     render(conn, "class.html", data: sort_attributes(data))
   end
 
@@ -89,7 +98,7 @@ defmodule SchemaWeb.PageController do
     extension = params["extension"]
 
     try do
-      case Schema.classes(extension, id) do
+      case Schema.class(extension, id) do
         nil ->
           send_resp(conn, 404, "Not Found: #{id}")
 
@@ -102,8 +111,12 @@ defmodule SchemaWeb.PageController do
     end
   end
 
-  def classes(conn, _params) do
-    data = Schema.classes() |> sort_by_name()
+  def classes(conn, params) do
+    data =
+      parse_extensions(params["extensions"])
+      |> Schema.classes()
+      |> sort_by_name()
+
     render(conn, "classes.html", data: data)
   end
 
@@ -115,7 +128,7 @@ defmodule SchemaWeb.PageController do
     extension = params["extension"]
 
     try do
-      case Schema.objects(extension, id) do
+      case Schema.object(extension, id) do
         nil ->
           send_resp(conn, 404, "Not Found: #{id}")
 
@@ -127,8 +140,12 @@ defmodule SchemaWeb.PageController do
     end
   end
 
-  def objects(conn, _params) do
-    data = Schema.objects() |> sort_by_name()
+  def objects(conn, params) do
+    data =
+      parse_extensions(params["extensions"])
+      |> Schema.objects()
+      |> sort_by_name()
+
     render(conn, "objects.html", data: data)
   end
 
@@ -147,4 +164,8 @@ defmodule SchemaWeb.PageController do
   def sort_by(map, key) do
     Enum.sort(map, fn {_, v1}, {_, v2} -> v1[key] <= v2[key] end)
   end
+
+  @spec parse_extensions(binary() | nil) :: MapSet.t(binary()) | nil
+  defp parse_extensions(nil), do: nil
+  defp parse_extensions(ext), do: String.split(ext, ",") |> MapSet.new()
 end

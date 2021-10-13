@@ -268,7 +268,7 @@ defmodule Schema.Generator do
     file =
       field.object_type
       |> String.to_atom()
-      |> Schema.objects()
+      |> Schema.object()
       |> generate()
 
     filename = file_name(0)
@@ -287,7 +287,7 @@ defmodule Schema.Generator do
   defp generate_object({_name, field}) do
     field.object_type
     |> String.to_atom()
-    |> Schema.objects()
+    |> Schema.object()
     |> generate()
   end
 
@@ -299,7 +299,7 @@ defmodule Schema.Generator do
     object =
       field.object_type
       |> String.to_atom()
-      |> Schema.objects()
+      |> Schema.object()
 
     Enum.map(1..n, fn _ -> generate(object) end)
   end

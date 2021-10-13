@@ -38,21 +38,27 @@ defmodule Schema do
   @spec categories :: map()
   def categories(), do: Repo.categories()
 
-  @spec categories(atom | String.t()) :: nil | Cache.category_t()
-  def categories(id) when is_binary(id), do: Repo.categories(to_uid(id))
-  def categories(id) when is_atom(id), do: Repo.categories(id)
+  @spec categories(Repo.extensions()) :: map()
+  def categories(extensions), do: Repo.categories(extensions)
 
-  @spec categories(String.t() | nil, atom | String.t()) :: nil | Cache.category_t()
-  def categories(nil, id) when is_binary(id), do: Repo.categories(to_uid(id))
+  @spec category(atom | String.t()) :: nil | Cache.category_t()
+  def category(id) when is_binary(id), do: Repo.category(to_uid(id))
+  def category(id) when is_atom(id), do: Repo.category(id)
 
-  def categories(extension, id) when is_binary(id),
-    do: Repo.categories(Utils.make_key(extension, id))
+  @spec category(String.t() | nil, atom | String.t()) :: nil | Cache.category_t()
+  def category(nil, id) when is_binary(id), do: Repo.category(to_uid(id))
+
+  def category(extension, id) when is_binary(id),
+    do: Repo.category(Utils.make_key(extension, id))
+
+  @spec dictionary() :: Cache.dictionary_t()
+  def dictionary(), do: Repo.dictionary()
 
   @doc """
     Returns the attribute dictionary.
   """
-  @spec dictionary :: Cache.dictionary_t()
-  def dictionary(), do: Repo.dictionary()
+  @spec dictionary(Repo.extensions()) :: Cache.dictionary_t()
+  def dictionary(extensions), do: Repo.dictionary(extensions)
 
   @doc """
     Returns all event classes.
@@ -60,16 +66,19 @@ defmodule Schema do
   @spec classes() :: map()
   def classes(), do: Repo.classes()
 
+  @spec classes(Repo.extensions()) :: map()
+  def classes(extensions), do: Repo.classes(extensions)
+
   @doc """
     Returns a single event class.
   """
-  @spec classes(atom | String.t()) :: nil | Cache.class_t()
-  def classes(id) when is_binary(id), do: Repo.classes(to_uid(id))
-  def classes(id) when is_atom(id), do: Repo.classes(id)
+  @spec class(atom | String.t()) :: nil | Cache.class_t()
+  def class(id) when is_binary(id), do: Repo.class(to_uid(id))
+  def class(id) when is_atom(id), do: Repo.class(id)
 
-  @spec classes(nil | String.t(), String.t()) :: nil | map()
-  def classes(nil, id) when is_binary(id), do: Repo.classes(to_uid(id))
-  def classes(extension, id) when is_binary(id), do: Repo.classes(Utils.make_key(extension, id))
+  @spec class(nil | String.t(), String.t()) :: nil | map()
+  def class(nil, id) when is_binary(id), do: Repo.class(to_uid(id))
+  def class(extension, id) when is_binary(id), do: Repo.class(Utils.make_key(extension, id))
 
   @doc """
   Finds a class by the class uid value.
@@ -83,23 +92,26 @@ defmodule Schema do
   @spec objects() :: map()
   def objects(), do: Repo.objects()
 
+  @spec objects(Repo.extensions()) :: map()
+  def objects(extensions), do: Repo.objects(extensions)
+
   @doc """
     Returns a single objects.
   """
-  @spec objects(atom | String.t()) :: nil | Cache.object_t()
-  def objects(id) when is_binary(id), do: Repo.objects(to_uid(id))
-  def objects(id) when is_atom(id), do: Repo.objects(id)
+  @spec object(atom | String.t()) :: nil | Cache.object_t()
+  def object(id) when is_binary(id), do: Repo.object(to_uid(id))
+  def object(id) when is_atom(id), do: Repo.object(id)
 
-  @spec objects(nil | String.t(), String.t()) :: nil | map()
-  def objects(nil, id) when is_binary(id), do: Repo.objects(to_uid(id))
-  def objects(extension, id) when is_binary(id), do: Repo.objects(Utils.make_key(extension, id))
+  @spec object(nil | String.t(), String.t()) :: nil | map()
+  def object(nil, id) when is_binary(id), do: Repo.object(to_uid(id))
+  def object(extension, id) when is_binary(id), do: Repo.object(Utils.make_key(extension, id))
 
   @doc """
   Returns a randomly generated sample event.
   """
   @spec event(atom() | map()) :: nil | map()
   def event(class) when is_atom(class) do
-    Schema.classes(class) |> Schema.Generator.event()
+    Schema.class(class) |> Schema.Generator.event()
   end
 
   def event(class) when is_map(class) do
@@ -135,9 +147,9 @@ defmodule Schema do
 
     categories =
       Stream.map(
-        Map.get(Schema.categories(), :attributes),
+        Map.get(Repo.categories(), :attributes),
         fn {name, _} ->
-          {classes, cat} = Schema.categories(name) |> Map.pop(:classes)
+          {classes, cat} = Repo.category(name) |> Map.pop(:classes)
 
           children =
             Enum.map(
@@ -164,7 +176,7 @@ defmodule Schema do
   end
 
   defp get_class(name) do
-    Schema.classes(name)
+    Repo.class(name)
     |> Schema.remove_links()
     |> Map.delete(:see_also)
   end

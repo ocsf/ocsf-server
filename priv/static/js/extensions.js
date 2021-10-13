@@ -1,5 +1,4 @@
 // extensions.js
-const extensionsKey = "selected-extensions";
 let extensions = new Map();
 
 function init_extensions() {
@@ -27,13 +26,8 @@ function init_extensions() {
   });
 }
 
-function save_extensions() {
-  const data = JSON.stringify(Array.from(extensions.entries()));
-  window.localStorage.setItem(extensionsKey, data);
-}
-
 function read_extensions() {
-  const data = window.localStorage.getItem(extensionsKey);
+  const data = window.localStorage.getItem("selected-extensions");
 
   if (data == null) {
     $('.checkbox').each(function() {
@@ -58,11 +52,16 @@ function check_select_all() {
   }
 }
 
-function get_selected_extensions() {
-  const selected = [];
-  extensions.forEach(function(checked, extension) {
-    if (checked) selected.push(extension);
-  });
+function save_extensions() {
+  const data = JSON.stringify(Array.from(extensions.entries()));
+  window.localStorage.setItem("selected-extensions", data);
 
-  return selected;
+  const params = selected_extensions(extensions);
+  $(".extensions a").each(function() {
+    this.href = parse_url(this.href) + params;
+  });
+}
+
+function parse_url( url ) {
+  return url.split("?")[0];
 }

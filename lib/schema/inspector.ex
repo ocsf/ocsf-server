@@ -192,7 +192,7 @@ defmodule Schema.Inspector do
   defp validate_object_array(acc, name, attribute, value) do
     object =
       attribute[:object_type]
-      |> Schema.objects()
+      |> Schema.object()
 
     {map, _count} =
       Enum.reduce(value, {Map.new(), 0}, fn data, {map, count} ->
@@ -220,7 +220,7 @@ defmodule Schema.Inspector do
 
   defp validate_object(acc, name, attribute, value) do
     attribute[:object_type]
-    |> Schema.objects()
+    |> Schema.object()
     |> validate_type(value)
     |> valid?(acc, name)
   end

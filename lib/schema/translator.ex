@@ -65,12 +65,12 @@ defmodule Schema.Translator do
   end
 
   defp translate_attribute("object_t", name, attribute, value, options) when is_map(value) do
-    translated = translate_event(Schema.objects(attribute[:object_type]), value, options)
+    translated = translate_event(Schema.object(attribute[:object_type]), value, options)
     translate_attribute(name, attribute, translated, options)
   end
 
   defp translate_attribute("object_t", name, attribute, value, options) when is_list(value) do
-    obj_type = Schema.objects(attribute[:object_type])
+    obj_type = Schema.object(attribute[:object_type])
 
     translated =
       Enum.map(value, fn data ->
