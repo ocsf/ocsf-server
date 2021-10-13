@@ -46,10 +46,15 @@ defmodule Schema do
   def category(id) when is_atom(id), do: Repo.category(id)
 
   @spec category(String.t() | nil, atom | String.t()) :: nil | Cache.category_t()
-  def category(nil, id) when is_binary(id), do: Repo.category(to_uid(id))
+  def category(nil, id) when is_binary(id),
+    do: Repo.category(to_uid(id))
 
   def category(extension, id) when is_binary(id),
     do: Repo.category(Utils.make_key(extension, id))
+
+  @spec category(Repo.extensions(), String.t(), String.t()) :: nil | Cache.category_t()
+  def category(extensions, extension, id) when is_binary(id),
+    do: Repo.category(extensions, Utils.make_key(extension, id))
 
   @spec dictionary() :: Cache.dictionary_t()
   def dictionary(), do: Repo.dictionary()
@@ -77,8 +82,11 @@ defmodule Schema do
   def class(id) when is_atom(id), do: Repo.class(id)
 
   @spec class(nil | String.t(), String.t()) :: nil | map()
-  def class(nil, id) when is_binary(id), do: Repo.class(to_uid(id))
-  def class(extension, id) when is_binary(id), do: Repo.class(Utils.make_key(extension, id))
+  def class(nil, id) when is_binary(id),
+    do: Repo.class(to_uid(id))
+
+  def class(extension, id) when is_binary(id),
+    do: Repo.class(Utils.make_key(extension, id))
 
   @doc """
   Finds a class by the class uid value.

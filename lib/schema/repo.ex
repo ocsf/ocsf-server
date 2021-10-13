@@ -54,6 +54,20 @@ defmodule Schema.Repo do
     Agent.get(__MODULE__, fn schema -> Cache.categories(schema, id) end)
   end
 
+  @spec category(extensions() | nil, atom) :: nil | Cache.category_t()
+  def category(nil, id) do
+    Agent.get(__MODULE__, fn schema -> Cache.categories(schema, id) end)
+  end
+
+  def category(extensions, id) do
+    Agent.get(__MODULE__, fn schema ->
+      Cache.categories(schema, id)
+      |> Map.update!(:classes, fn class ->
+        filter(class, extensions)
+      end)
+    end)
+  end
+
   @spec dictionary() :: Cache.dictionary_t()
   def dictionary() do
     Agent.get(__MODULE__, fn schema -> Cache.dictionary(schema) end)

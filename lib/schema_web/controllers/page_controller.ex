@@ -34,10 +34,10 @@ defmodule SchemaWeb.PageController do
   @spec categories(Plug.Conn.t(), map) :: Plug.Conn.t()
   def categories(conn, %{"id" => id} = params) do
     extension = params["extension"]
-    _extensions = parse_extensions(params["extensions"])
+    extensions = parse_extensions(params["extensions"])
 
     try do
-      case Schema.category(extension, id) do
+      case Schema.category(extensions, extension, id) do
         nil ->
           send_resp(conn, 404, "Not Found: #{id}")
 
