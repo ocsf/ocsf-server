@@ -404,8 +404,6 @@ defmodule Schema.JsonReader do
     Utils.deep_merge(included, attribute)
   end
 
-  def extensions(_home, nil), do: []
-  def extensions(_home, []), do: []
 
   def extensions(home, path) when is_binary(path) do
     find_extensions(home, path, [])
