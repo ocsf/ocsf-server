@@ -46,9 +46,6 @@ defmodule Schema do
   def category(id) when is_atom(id), do: Repo.category(id)
 
   @spec category(String.t() | nil, atom | String.t()) :: nil | Cache.category_t()
-  def category(nil, id) when is_binary(id),
-    do: Repo.category(to_uid(id))
-
   def category(extension, id) when is_binary(id),
     do: Repo.category(Utils.make_key(extension, id))
 
@@ -82,9 +79,6 @@ defmodule Schema do
   def class(id) when is_atom(id), do: Repo.class(id)
 
   @spec class(nil | String.t(), String.t()) :: nil | map()
-  def class(nil, id) when is_binary(id),
-    do: Repo.class(to_uid(id))
-
   def class(extension, id) when is_binary(id),
     do: Repo.class(Utils.make_key(extension, id))
 
@@ -111,8 +105,8 @@ defmodule Schema do
   def object(id) when is_atom(id), do: Repo.object(id)
 
   @spec object(nil | String.t(), String.t()) :: nil | map()
-  def object(nil, id) when is_binary(id), do: Repo.object(to_uid(id))
-  def object(extension, id) when is_binary(id), do: Repo.object(Utils.make_key(extension, id))
+  def object(extension, id) when is_binary(id),
+    do: Repo.object(Utils.make_key(extension, id))
 
   @doc """
   Returns a randomly generated sample event.
