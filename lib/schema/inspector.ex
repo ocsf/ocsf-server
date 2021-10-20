@@ -130,8 +130,8 @@ defmodule Schema.Inspector do
     case attribute[:requirement] do
       "required" ->
         Map.put(acc, name, %{
-          :error => "Missing required attribute",
-          :schema => cleanup(attribute)
+          :error => "Missing required attribute"
+          # :schema => cleanup(attribute)
         })
 
       _ ->
@@ -142,8 +142,8 @@ defmodule Schema.Inspector do
   defp validate_data(acc, name, attribute, value) do
     Map.put(acc, name, %{
       :error => "Unhanded attribute",
-      :value => value,
-      :schema => cleanup(attribute)
+      :value => value
+      # :schema => cleanup(attribute)
     })
   end
 
@@ -181,8 +181,8 @@ defmodule Schema.Inspector do
 
       Map.put(acc, name, %{
         :error => error,
-        :values => values,
-        :schema => cleanup(attribute)
+        :values => values
+        # :schema => cleanup(attribute)
       })
     else
       acc
@@ -249,8 +249,8 @@ defmodule Schema.Inspector do
   defp invalid_data_type(attribute, value, type) do
     %{
       :error => "Invalid data: expected #{type} type",
-      :value => value,
-      :schema => cleanup(attribute)
+      :value => value
+      # :schema => cleanup(attribute)
     }
   end
 
@@ -267,7 +267,10 @@ defmodule Schema.Inspector do
     if Map.has_key?(enum, key) do
       :ok
     else
-      %{:error => "Invalid enum value: #{value}", :value => value, :schema => cleanup(attribute)}
+      %{
+        :error => "Invalid enum value: #{value}",
+        :value => value
+        # :schema => cleanup(attribute)}
     end
   end
 
