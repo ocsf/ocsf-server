@@ -139,7 +139,7 @@ defmodule Schema.Inspector do
     end
   end
 
-  defp validate_data(acc, name, attribute, value) do
+  defp validate_data(acc, name, _attribute, value) do
     Map.put(acc, name, %{
       :error => "Unhanded attribute",
       :value => value
@@ -246,7 +246,7 @@ defmodule Schema.Inspector do
     end
   end
 
-  defp invalid_data_type(attribute, value, type) do
+  defp invalid_data_type(_attribute, value, type) do
     %{
       :error => "Invalid data: expected #{type} type",
       :value => value
@@ -261,7 +261,7 @@ defmodule Schema.Inspector do
   # Validate a single enum value
   defp validate_enum(nil, _attribute, _value), do: :ok
 
-  defp validate_enum(enum, attribute, value) do
+  defp validate_enum(enum, _attribute, value) do
     key = Integer.to_string(value) |> String.to_atom()
 
     if Map.has_key?(enum, key) do
@@ -270,11 +270,12 @@ defmodule Schema.Inspector do
       %{
         :error => "Invalid enum value: #{value}",
         :value => value
-        # :schema => cleanup(attribute)}
+        # :schema => cleanup(attribute)
+      }
     end
   end
 
-  defp cleanup(attribute) do
-    Map.delete(attribute, :_links)
-  end
+  # defp cleanup(attribute) do
+  #   Map.delete(attribute, :_links)
+  # end
 end

@@ -96,7 +96,7 @@ limitations under the License.
   </div>
 </div>
 <% else %>
-<div></div>
+  <div></div>
 <% end %>
 
 <script>
