@@ -35,10 +35,10 @@ blockquote small {
   font-weight: 500;
 }
 
-sup {
+/*sup {
   color: lightyellow;
 }
-
+*/
 .optional {
   color: #403D39;
   font-weight: 300;

@@ -30,9 +30,12 @@ limitations under the License.
         <td class="name">
           <a href="<%= path %>"><%= raw format_name(name, class) %></a>
         </td>
-        <td>
-          <a href="<%= path %>"><%= class[:uid] %></a>
-        </td>
+          <% uid = class[:uid] %>
+          <%= if uid != nil and uid > 0 do %>
+            <td><a href="<%= path %>"><%= uid %></a></td>
+          <% else %>
+            <td></td>
+          <% end %>
         <td><%= raw class[:description] %></td>
       </tr>
     <% end %>

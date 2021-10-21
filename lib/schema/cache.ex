@@ -244,7 +244,7 @@ defmodule Schema.Cache do
 
     case class[:extension_id] do
       nil ->
-        Map.update!(class, :uid, fn uid ->
+        Map.update(class, :uid, 0, fn uid ->
           category[:uid] * @multiplier + uid
         end)
 
@@ -252,11 +252,11 @@ defmodule Schema.Cache do
         category_id = category[:uid]
 
         if category_id < @multiplier do
-          Map.update!(class, :uid, fn uid ->
+          Map.update(class, :uid, 0, fn uid ->
             category_id(category_id, ext) * @multiplier + uid
           end)
         else
-          Map.update!(class, :uid, fn uid ->
+          Map.update(class, :uid, 0, fn uid ->
             category_id(category_id, ext) * @multiplier + uid
           end)
           |> Map.update!(:category, fn category -> Path.join(class[:extension], category) end)
@@ -280,7 +280,8 @@ defmodule Schema.Cache do
         enum =
           case id[:enum] do
             nil ->
-              %{"0" => "UNKNOWN"}
+              Logger.warn("class '#{name}' has no disposition_id values")
+              %{}
 
             values ->
               for {key, val} <- values, into: %{} do
@@ -290,7 +291,10 @@ defmodule Schema.Cache do
                 }
               end
           end
-          |> Map.put(integer_to_id(0, -1), Map.new(name: make_enum_name(caption, "Other")))
+          |> Map.put(
+            integer_to_id(0, -1),
+            Map.new(name: make_enum_name(caption, "Other"))
+          )
           |> Map.put(
             integer_to_id(class_id, 0),
             Map.new(name: make_enum_name(caption, "Unknown"))
@@ -334,17 +338,18 @@ defmodule Schema.Cache do
     {_key, category} = Utils.find_entity(categories, class, class[:category])
 
     if category == nil do
-      exit("#{class[:name]} has invalid category: #{class[:category]}")
+      Logger.warn("class '#{class[:type]}' has an invalid or missing category")
+      class
+    else
+      update_in(
+        class,
+        [:attributes, :category_id, :enum],
+        fn _enum ->
+          id = Integer.to_string(category[:uid]) |> String.to_atom()
+          %{id => category}
+        end
+      )
     end
-
-    update_in(
-      class,
-      [:attributes, :category_id, :enum],
-      fn _enum ->
-        id = Integer.to_string(category[:uid]) |> String.to_atom()
-        %{id => category}
-      end
-    )
     |> put_in([:attributes, :category_id, :_source], name)
   end
 
