@@ -28,7 +28,6 @@ limitations under the License.
         href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/css/bootstrap-select.min.css">
 
   <link rel="stylesheet" href='<%= Routes.static_path(@conn, "/css/app.css") %>'/>
-
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
           integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
           crossorigin="anonymous"></script>
@@ -37,75 +36,88 @@ limitations under the License.
 </head>
 
 <body class="bg-light">
-<nav class="navbar fixed-top navbar-light bg-light navbar-expand-md pt-3">
+
+<nav class="navbar navbar-expand-md navbar-light bg-light">
   <img src='<%= Routes.static_path(@conn, "/images/home.svg") %>' class="logo" alt="">
-  <button class="navbar-toggler" data-toggle="collapse" data-target="#navbarCollapse">
+
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse">
     <span class="navbar-toggler-icon"></span>
   </button>
 
-  <div class="collapse navbar-collapse" id="navbarCollapse">
-    <div class="extensions navbar-nav mr-auto">
-      <a id="home_id" class="nav-item nav-link" 
-        href='<%= Routes.static_path(@conn, "/") %>'>Extensions
-      </a>
-      <a id="categories_id" class="nav-item nav-link"
-        href='<%= Routes.static_path(@conn, "/categories") %>'>Categories
-      </a>
-      <a id="dictionary_id" class="nav-item nav-link"
-         href='<%= Routes.static_path(@conn, "/dictionary") %>'>Dictionary</a>
-      <a id="base_event_id" class="nav-item nav-link"
-        href='<%= Routes.static_path(@conn, "/base_event") %>'>Base Event
-      </a>
-      <a id="objects_id" class="nav-item nav-link"
-        href='<%= Routes.static_path(@conn, "/objects") %>'>Objects
-      </a>
-      <a id="classes_id" class="nav-item nav-link"
-        href='<%= Routes.static_path(@conn, "/classes") %>'>Event Classes
-      </a>
-      <a id="schema_map_id" class="nav-item nav-link" 
-        href='<%= Routes.static_path(@conn, "/schema") %>'>Schema Map
-      </a>
-      <a id="data_types_id" class="nav-item nav-link" 
-        href='<%= Routes.static_path(@conn, "/data_types") %>'>Data Types
-      </a>
-      <a id="guidelines_id" class="nav-item nav-link"
-         href='<%= Routes.static_path(@conn, "/guidelines") %>'>Guidelines</a>
-    </div>
+  <div class="collapse navbar-collapse w-100 flex-md-column" id="navbarCollapse">
+    <ul class="navbar-nav ml-auto mb-2 mb-md-0">
+      <li id="home_id" class="nav-item">
+        <a class="nav-link py-1" href='<%= Routes.static_path(@conn, "/") %>'>Extensions</a>
+      </li>
+      <li id="categories_id" class="nav-item">
+        <a class="nav-link py-1" href='<%= Routes.static_path(@conn, "/categories") %>'>Categories</a>
+      </li>
+      <li id="dictionary_id" class="nav-item">
+        <a class="nav-link py-1" href='<%= Routes.static_path(@conn, "/dictionary") %>'>Dictionary</a>
+      </li>
+      <li id="base_event_id" class="nav-item">
+        <a class="nav-link py-1" href='<%= Routes.static_path(@conn, "/base_event") %>'>Base Event</a>
+      </li>
+      <li id="objects_id"  class="nav-item">
+        <a class="nav-link py-1" href='<%= Routes.static_path(@conn, "/objects") %>'>Objects</a>
+      </li>
+      <li id="classes_id" class="nav-item">
+        <a class="nav-link py-1" href='<%= Routes.static_path(@conn, "/classes") %>'>Event Classes</a>
+      </li>
+      <li id="schema_map_id" class="nav-item">
+        <a class="nav-link py-1" href='<%= Routes.static_path(@conn, "/schema") %>'>Schema Map</a>
+      </li>
+      <li id="data_types_id" class="nav-item">
+        <a class="nav-link py-1" href='<%= Routes.static_path(@conn, "/data_types") %>'>Data Types</a>
+      </li>
+      <li id="guidelines_id" class="nav-item">
+        <a class="nav-link py-1" href='<%= Routes.static_path(@conn, "/guidelines") %>'>Guidelines</a>
+      </li>
+    </ul>
 
-    <div class="form-inline nav-controls">
-      <select multiple
-              id="attributes-select"
-              class="selectpicker form-control mr-2 d-none"
-              data-selected-text-format="count > 5"
-              data-actions-box="true"
-              data-width="auto">
-        <option selected disabled id="base-event-select" class="base-event" value="base-event" title="Base Event">Base
-          Event Attributes
-        </option>
-        <optgroup disabled id="groups-select" label="Groups">
-          <option selected value="classification">Classification</option>
-          <option selected value="context">Context</option>
-          <option selected value="occurrence">Occurrence</option>
-          <option selected value="origination">Origination</option>
-          <option selected value="primary">Primary</option>
-        </optgroup>
-        <optgroup id="requirements-select" label="Requirements">
-          <option selected class="reserved" value="reserved" title="Reserved">Reserved Attributes</option>
-          <option class="optional" value="optional" title="Optional">Optional Attributes</option>
-        </optgroup>
-      </select>
-      <div id="sample-data" class="custom-control mr-4 d-none">
-        <button type="button" id="btn-example" class="btn btn-outline-secondary">Sample Data</button>
-      </div>
+    <form class="form-inline ml-auto">
+      <ul class="navbar-nav mb-2 mb-md-0">
+        <li class="nav-item mr-2">
+          <select multiple
+                  id="attributes-select"
+                  class="selectpicker d-none"
+                  data-selected-text-format="count > 3"
+                  data-actions-box="true"
+                  data-width="auto">
+            <option selected disabled id="base-event-select" class="base-event" value="base-event" title="Base Event">Base
+              Event Attributes
+            </option>
+            <optgroup disabled id="groups-select" label="Groups">
+              <option selected value="classification">Classification</option>
+              <option selected value="context">Context</option>
+              <option selected value="occurrence">Occurrence</option>
+              <option selected value="origination">Origination</option>
+              <option selected value="primary">Primary</option>
+            </optgroup>
+            <optgroup id="requirements-select" label="Requirements">
+              <option selected class="reserved" value="reserved" title="Reserved">Reserved Attributes</option>
+              <option class="optional" value="optional" title="Optional">Optional Attributes</option>
+            </optgroup>
+          </select>
+        </li>
 
-      <input type="text" id="tableSearch" onkeyup="searchInTable()" class="form-control" placeholder="Search"
-             aria-label="Search" autofocus>
-    </div>
+        <li class="nav-item mr-2">
+          <div id="sample-data" class="d-none">
+            <button type="button" id="btn-example" class="btn btn-outline-secondary">Sample Data</button>
+          </div>
+        </li>
+
+        <li class="nav-item">
+          <input type="text" id="tableSearch" onkeyup="searchInTable()" class="form-control border-dark" placeholder="Search" autofocus>
+        </li>
+      </form>
+    </ul>
   </div>
 </nav>
 
-<div class="pt-4 pb-4">
-  <main role="main" class="container-fluid mt-5">
+
+<div class="pb-4">
+  <main role="main" class="container-fluid">
     <%= @inner_content %>
   </main>
 </div>

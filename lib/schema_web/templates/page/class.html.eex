@@ -13,14 +13,7 @@ limitations under the License.
 <% category = @data[:category] %>
 
 <script>
-  <%= if category == nil do %>
-     enable_option("#base-event-select")
-  <% else %>
-    <%= if category != "finding" do %>
-      enable_option("#base-event-select")
-    <% end %>
-  <% end %>
-
+  enable_option("#base-event-select")
   enable_option("#groups-select")
   show_select_attributes();
 
@@ -30,7 +23,7 @@ limitations under the License.
 <%= if category != nil do %>
   <% path = Routes.static_path(@conn, "/categories/" <> category) %>
   <h2>
-    <%= @data[:name] %> Class <span class="text-secondary"><small><%= @data[:extension] || "" %></small></span>
+    <%= @data[:name] %> <span class="text-secondary">Event Class <small><%= @data[:extension] || "" %></small></span>
   </h2>
 
   <h4><a href="<%= path %>"><%= @data[:category_name] %> Category</a></h4>
@@ -65,10 +58,10 @@ limitations under the License.
     <tr class="thead-color">
       <th style="width: 10%">Name</th>
       <th style="width: 10%">Attribute</th>
-      <th style="width: 8%">Group</th>
-      <th style="width: 8%">Requirement</th>
+      <th style="width: 10%">Group</th>
+      <th style="width: 10%">Requirement</th>
       <th style="width: 8%">Type</th>
-      <th style="width: 26%">Description</th>
+      <th>Description</th>
     </tr>
     </thead>
     <tbody class="searchable">
