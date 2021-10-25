@@ -85,16 +85,21 @@ defmodule Schema.Generator do
     Logger.info("generate class: #{inspect(class[:name])}")
 
     data = generate(class)
-    disposition_id = data[:disposition_id]
 
-    uid =
-      if disposition_id >= 0 do
-        data.class_id * 1000 + disposition_id
-      else
-        -1
-      end
+    case data[:disposition_id] do
+      nil ->
+        data
 
-    Map.put(data, :event_id, uid)
+      disposition_id ->
+        uid =
+          if disposition_id >= 0 do
+            data.class_id * 1000 + disposition_id
+          else
+            -1
+          end
+
+        Map.put(data, :event_id, uid)
+    end
   end
 
   def generate(class) do
