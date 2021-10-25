@@ -75,7 +75,7 @@ limitations under the License.
       </li>
     </ul>
 
-    <form class="form-inline ml-auto">
+    <div class="form-inline ml-auto">
       <ul class="navbar-nav mb-2 mb-md-0">
         <li class="nav-item mr-2">
           <select multiple
@@ -110,7 +110,7 @@ limitations under the License.
         <li class="nav-item">
           <input type="text" id="tableSearch" onkeyup="searchInTable()" class="form-control border-dark" placeholder="Search" autofocus>
         </li>
-      </form>
+      </div>
     </ul>
   </div>
 </nav>
