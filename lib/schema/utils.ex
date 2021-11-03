@@ -138,11 +138,19 @@ defmodule Schema.Utils do
   end
 
   defp update_data_type(name, value, types) do
-    type = value[:type]
+    type =
+      case value[:type] do
+        nil ->
+          Logger.warn("Missing data type for: #{name}, will use string_t type.")
+          "string_t"
+
+        t ->
+          t
+      end
 
     case types[String.to_atom(type)] do
       nil ->
-        Logger.warn("Undefined type: #{name}: #{type}")
+        Logger.warn("Undefined data type: #{name}: #{type}")
         value
 
       type ->
