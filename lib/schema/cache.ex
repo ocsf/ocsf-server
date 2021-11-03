@@ -40,6 +40,7 @@ defmodule Schema.Cache do
   @type dictionary_t() :: map()
 
   @multiplier 100
+  @class_multiplier 1000
 
   @spec to_uid(binary) :: atom
   def to_uid(name) do
@@ -180,7 +181,7 @@ defmodule Schema.Cache do
       classes
       |> Stream.map(fn {name, map} -> {name, resolve_extends(classes, map)} end)
       # remove intermediate classes
-      |> Stream.filter(fn {_name, class} -> Map.has_key?(class, :uid) end)
+      # |> Stream.filter(fn {_name, class} -> Map.has_key?(class, :uid) end)
       |> Stream.map(fn class -> enrich_class(class, categories) end)
       |> Enum.to_list()
       |> Map.new()
@@ -245,19 +246,19 @@ defmodule Schema.Cache do
     case class[:extension_id] do
       nil ->
         Map.update(class, :uid, 0, fn uid ->
-          category[:uid] * @multiplier + uid
+          category[:uid] * @class_multiplier + uid
         end)
 
       ext ->
         category_id = category[:uid]
 
-        if category_id < @multiplier do
+        if category_id < @class_multiplier do
           Map.update(class, :uid, 0, fn uid ->
-            category_id(category_id, ext) * @multiplier + uid
+            category_id(category_id, ext) * @class_multiplier + uid
           end)
         else
           Map.update(class, :uid, 0, fn uid ->
-            category_id(category_id, ext) * @multiplier + uid
+            category_id(category_id, ext) * @class_multiplier + uid
           end)
           |> Map.update!(:category, fn category -> Path.join(class[:extension], category) end)
         end
@@ -284,11 +285,17 @@ defmodule Schema.Cache do
               %{}
 
             values ->
-              for {key, val} <- values, into: %{} do
-                {
-                  make_enum_id(class_id, key),
-                  Map.put(val, :name, make_enum_name(caption, val[:name]))
-                }
+              for {key, val} = value <- values, into: %{} do
+                case key do
+                  :"-1" ->
+                    value
+
+                  _ ->
+                    {
+                      make_enum_id(class_id, key),
+                      Map.put(val, :name, make_enum_name(caption, val[:name]))
+                    }
+                end
               end
           end
           |> Map.put(
