@@ -149,9 +149,18 @@ defmodule Schema.Cache do
       Enum.filter(
         classes,
         fn {_name, class} ->
-          Map.get(class, :category) == category_id
+          cat = Map.get(class, :category)
+          if cat == category_id do
+            true
+          else
+            to_uid(Map.get(class, :extension), cat) == id
+          end
         end
       )
+
+      if length(list) == 0 do
+        Logger.warn("Empty class list: #{category_id}")
+      end
 
     Map.put(category, :classes, list)
   end
@@ -181,7 +190,7 @@ defmodule Schema.Cache do
       classes
       |> Stream.map(fn {name, map} -> {name, resolve_extends(classes, map)} end)
       # remove intermediate classes
-      # |> Stream.filter(fn {_name, class} -> Map.has_key?(class, :uid) end)
+      |> Stream.filter(fn {_name, class} -> Map.has_key?(class, :uid) end)
       |> Stream.map(fn class -> enrich_class(class, categories) end)
       |> Enum.to_list()
       |> Map.new()

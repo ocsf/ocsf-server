@@ -45,7 +45,7 @@ defmodule Schema do
   def category(id) when is_binary(id), do: Repo.category(to_uid(id))
   def category(id) when is_atom(id), do: Repo.category(id)
 
-  @spec category(String.t() | nil, atom | String.t()) :: nil | Cache.category_t()
+  @spec category(String.t() | nil, String.t()) :: nil | Cache.category_t()
   def category(extension, id) when is_binary(id),
     do: Repo.category(Utils.make_key(extension, id))
 
