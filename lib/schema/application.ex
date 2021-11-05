@@ -17,8 +17,10 @@ defmodule Schema.Application do
 
   def start(_type, _args) do
     extension =
-      Application.get_env(:schema_server, __MODULE__)
-      |> Keyword.get(:extension) || []
+      case Application.get_env(:schema_server, __MODULE__) |> Keyword.get(:extension) do
+        nil -> []
+        ext -> String.split(ext, ",")
+      end
 
     # List all child processes to be supervised
     children = [

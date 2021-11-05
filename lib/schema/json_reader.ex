@@ -89,10 +89,11 @@ defmodule Schema.JsonReader do
   def init(ext_dir) do
     init_cache()
     home = data_dir()
-    extensions = extensions(home, ext_dir)
+
     Logger.info(fn -> "#{inspect(__MODULE__)} schema    : #{home}" end)
     Logger.info(fn -> "#{inspect(__MODULE__)} extensions: #{inspect(ext_dir)}" end)
-    {:ok, {home, extensions}}
+
+    {:ok, {home, extensions(home, ext_dir)}}
   end
 
   @impl true
@@ -403,7 +404,6 @@ defmodule Schema.JsonReader do
 
     Utils.deep_merge(included, attribute)
   end
-
 
   def extensions(home, path) when is_binary(path) do
     find_extensions(home, path, [])
