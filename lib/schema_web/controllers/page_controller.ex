@@ -34,7 +34,7 @@ defmodule SchemaWeb.PageController do
   @spec categories(Plug.Conn.t(), map) :: Plug.Conn.t()
   def categories(conn, %{"id" => id} = params) do
     extension = params["extension"]
-    extensions = parse_extensions(params["extensions"])
+    extensions = Schema.parse_extensions(params["extensions"])
 
     try do
       case Schema.category(extensions, extension, id) do
@@ -52,7 +52,7 @@ defmodule SchemaWeb.PageController do
 
   def categories(conn, params) do
     data =
-      parse_extensions(params["extensions"])
+      Schema.parse_extensions(params["extensions"])
       |> Schema.categories()
       |> sort_attributes(:id)
 
@@ -74,7 +74,7 @@ defmodule SchemaWeb.PageController do
   @spec dictionary(Plug.Conn.t(), any) :: Plug.Conn.t()
   def dictionary(conn, params) do
     data =
-      parse_extensions(params["extensions"])
+      Schema.parse_extensions(params["extensions"])
       |> Schema.dictionary()
       |> sort_attributes()
 
@@ -113,7 +113,7 @@ defmodule SchemaWeb.PageController do
 
   def classes(conn, params) do
     data =
-      parse_extensions(params["extensions"])
+      Schema.parse_extensions(params["extensions"])
       |> Schema.classes()
       |> sort_by_name()
 
@@ -142,7 +142,7 @@ defmodule SchemaWeb.PageController do
 
   def objects(conn, params) do
     data =
-      parse_extensions(params["extensions"])
+      Schema.parse_extensions(params["extensions"])
       |> Schema.objects()
       |> sort_by_name()
 
@@ -164,8 +164,4 @@ defmodule SchemaWeb.PageController do
   def sort_by(map, key) do
     Enum.sort(map, fn {_, v1}, {_, v2} -> v1[key] <= v2[key] end)
   end
-
-  @spec parse_extensions(binary() | nil) :: MapSet.t(binary()) | nil
-  defp parse_extensions(nil), do: nil
-  defp parse_extensions(ext), do: String.split(ext, ",") |> MapSet.new()
 end

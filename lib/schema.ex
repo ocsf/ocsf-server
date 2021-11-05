@@ -143,13 +143,17 @@ defmodule Schema do
     end
   end
 
-  @spec schema_map :: %{:children => list, :value => non_neg_integer, optional(any) => any}
-  def schema_map() do
+  @spec schema_map(Repo.extensions()) :: %{
+          :children => list,
+          :value => non_neg_integer,
+          optional(any) => any
+        }
+  def schema_map(extensions) do
     base = get_class(:base_event)
 
     categories =
       Stream.map(
-        Map.get(Repo.categories(), :attributes),
+        Map.get(Repo.categories(extensions), :attributes),
         fn {name, _} ->
           {classes, cat} = Repo.category(name) |> Map.pop(:classes)
 
@@ -186,4 +190,8 @@ defmodule Schema do
   defp to_uid(name) do
     String.downcase(name) |> Cache.to_uid()
   end
+
+  @spec parse_extensions(binary() | nil) :: MapSet.t(binary()) | nil
+  def parse_extensions(nil), do: nil
+  def parse_extensions(ext), do: String.split(ext, ",") |> MapSet.new()
 end

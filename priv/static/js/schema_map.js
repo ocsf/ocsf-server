@@ -13,7 +13,8 @@ export default function define(runtime, observer) {
   let height = 525;
 
   const main = runtime.module();
-  const fileAttachments = new Map([["schema.json", new URL("/api/schema", import.meta.url)]]);
+  const params = extensions_params();
+  const fileAttachments = new Map([["schema.json", new URL("/api/schema" + params, import.meta.url)]]);
 
   main.builtin("FileAttachment", runtime.fileAttachments(name => fileAttachments.get(name)));
 
@@ -33,7 +34,7 @@ export default function define(runtime, observer) {
   main.variable(observer("chart")).define("chart", ["treemap", "data", "d3", "color"],
     function (treemap, data, d3,  color) {
       if (data.children.length > 3) {
-        width = 1000;
+        width = 1200;
         height = 825;              
       }
       const root = treemap(data);
@@ -59,7 +60,7 @@ export default function define(runtime, observer) {
       // Add title for the classes
       leaf
         .append("a")
-        .attr("xlink:href", function (d) { return "/classes/" + make_path(d.data.extension, d.data.type); })
+        .attr("xlink:href", function (d) { return "/classes/" + make_path(d.data.extension, d.data.type) + params; })
         .append("text")
         .selectAll("tspan")
         .data(d => d.data.name.split(/(?=[A-Z][a-z])|\s+/g).concat(d.data.uid))
@@ -74,7 +75,7 @@ export default function define(runtime, observer) {
         .data(root.descendants().filter(function (d) { return d.depth == 1 }))
         .enter()
         .append("a")
-        .attr("xlink:href", function (d) { return "/categories/" + d.data.type; })
+        .attr("xlink:href", function (d) { return "/categories/" + d.data.type + params; })
         .append("text")
         .attr("x", function (d) { return d.x0 + 5 })
         .attr("y", function (d) { return d.y0 + 20 })

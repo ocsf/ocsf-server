@@ -196,8 +196,12 @@ defmodule SchemaWeb.SchemaController do
   # @apiPermission none
   # }
   @spec schema(Plug.Conn.t(), any) :: Plug.Conn.t()
-  def schema(conn, _params) do
-    send_json_resp(conn, Schema.schema_map())
+  def schema(conn, params) do
+    data =
+      Schema.parse_extensions(params["extensions"])
+      |> Schema.schema_map()
+
+    send_json_resp(conn, data)
   end
 
   # ---------------------------------

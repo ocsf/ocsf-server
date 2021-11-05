@@ -45,7 +45,7 @@ limitations under the License.
   </button>
 
   <div class="collapse navbar-collapse w-100 flex-md-column" id="navbarCollapse">
-    <ul class="navbar-nav ml-auto mb-2 mb-md-0">
+    <ul class="extensions navbar-nav ml-auto mb-2 mb-md-0">
       <li id="home_id" class="nav-item">
         <a class="nav-link py-1" href='<%= Routes.static_path(@conn, "/") %>'>Extensions</a>
       </li>
