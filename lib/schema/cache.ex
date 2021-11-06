@@ -150,6 +150,7 @@ defmodule Schema.Cache do
         classes,
         fn {_name, class} ->
           cat = Map.get(class, :category)
+
           if cat == category_id do
             true
           else
@@ -158,9 +159,9 @@ defmodule Schema.Cache do
         end
       )
 
-      if length(list) == 0 do
-        Logger.warn("Empty class list: #{category_id}")
-      end
+    if length(list) == 0 do
+      Logger.warn("Empty class list: #{category_id}")
+    end
 
     Map.put(category, :classes, list)
   end
@@ -248,8 +249,11 @@ defmodule Schema.Cache do
   end
 
   defp update_class_id(class, categories) do
-    {_key, category} = Utils.find_entity(categories, class, class[:category])
+    {key, category} = Utils.find_entity(categories, class, class[:category])
 
+    Logger.info("update_class #{class[:name]} -> category #{key}")
+
+    class = Map.put(class, :category, Atom.to_string(key))
     class = Map.put(class, :category_name, category[:name])
 
     case class[:extension_id] do

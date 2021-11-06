@@ -32,24 +32,11 @@ defmodule Schema.Utils do
   def make_path(nil, name), do: name
   def make_path(extension, name), do: Path.join(extension, name)
 
-  def find_entity(map, entity, key) when is_atom(key) do
-    case entity[:extension] do
-      nil ->
-        {key, map[key]}
-
-      extension ->
-        ext_key = make_key(extension, key)
-
-        case Map.get(map, ext_key) do
-          nil -> {key, map[key]}
-          other -> {ext_key, other}
-        end
-    end
+  def find_entity(map, entity, name) when is_binary(name) do
+    find_entity(map, entity, String.to_atom(name))
   end
 
-  def find_entity(map, entity, name) do
-    key = String.to_atom(name)
-
+  def find_entity(map, entity, key) do
     case entity[:extension] do
       nil ->
         {key, map[key]}
