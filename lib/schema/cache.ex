@@ -251,8 +251,6 @@ defmodule Schema.Cache do
   defp update_class_id(class, categories) do
     {key, category} = Utils.find_entity(categories, class, class[:category])
 
-    Logger.info("update_class #{class[:name]} -> category #{key}")
-
     class = Map.put(class, :category, Atom.to_string(key))
     class = Map.put(class, :category_name, category[:name])
 
