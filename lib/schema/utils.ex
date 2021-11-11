@@ -45,8 +45,11 @@ defmodule Schema.Utils do
         ext_key = make_key(extension, key)
 
         case Map.get(map, ext_key) do
-          nil -> {key, map[key]}
-          other -> {ext_key, other}
+          nil ->
+            {key, map[key]}
+
+          other ->
+            {ext_key, other}
         end
     end
   end
@@ -114,13 +117,14 @@ defmodule Schema.Utils do
     key = value[:object_type]
 
     case find_entity(objects, value, key) do
-      {_, nil} ->
-        Logger.warn("Undefined object type: #{value[:extension]}/#{key}, for #{name}")
-        Map.put(value, :object_name, "*undefined*")
+      {key, nil} ->
+        Logger.warn("Undefined object type: #{key}, for #{name}")
+        Map.put(value, :object_name, "_undefined_")
 
-      {_key, object} ->
-        Map.put(value, :object_name, object[:name])
-        |> Map.put(:object_type, make_path(object[:extension], key))
+      {key, object} ->
+        value
+        |> Map.put(:object_name, object[:name])
+        |> Map.put(:object_type, Atom.to_string(key))
     end
   end
 
