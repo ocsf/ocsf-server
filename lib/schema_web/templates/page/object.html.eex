@@ -60,6 +60,16 @@ limitations under the License.
 <div></div>
 <% end %>
 
+<% constraints = @data[:constraints] %>
+<%= if constraints != nil do %>
+<div class="constraints">
+  <h5>Constraints</h5>
+  <div>
+    <%= raw constraints(constraints) %>
+  </div>
+</div>
+<% end %>
+
 <script>
   $('#btn-example').on('click', function(event) {
     const url = '/sample' + window.location.pathname;

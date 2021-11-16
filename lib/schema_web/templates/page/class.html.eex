@@ -80,16 +80,14 @@ limitations under the License.
   </table>
 </div>
 
-<% links = @data[:_links] %>
-<%= if links != nil do %>
-<div class="links">
-  <h5>Referenced By</h5>
+<% constraints = @data[:constraints] %>
+<%= if constraints != nil do %>
+<div class="constraints">
+  <h5>Constraints</h5>
   <div>
-    <%= raw links(@conn, @data[:name], links) %>
+    <%= raw constraints(constraints) %>
   </div>
 </div>
-<% else %>
-  <div></div>
 <% end %>
 
 <script>
