@@ -228,10 +228,12 @@ defmodule SchemaWeb.PageView do
   end
 
   def constraints(rules) do
-    text = Enum.reduce(rules, [], fn ({name, list}, acc) ->
-      IO.puts("#{inspect(acc)}")
-      constraints(name, list, acc)
-    end)
+    text =
+      Enum.reduce(rules, [], fn {name, list}, acc ->
+        IO.puts("#{inspect(acc)}")
+        constraints(name, list, acc)
+      end)
+
     IO.puts("#{inspect(text)}")
     text
   end
@@ -239,20 +241,25 @@ defmodule SchemaWeb.PageView do
   def constraints(_name, nil, acc) do
     acc
   end
+
   def constraints(_name, [], acc) do
     acc
   end
 
   def constraints(:at_least_one, list, acc) do
-    ["At least one attribute must be present: <tt>", Enum.join(list, ", "), "</tt><br/>" | acc]
+    [
+      "At least one attribute must be present: <strong>",
+      Enum.join(list, ", "),
+      "</strong><br/>" | acc
+    ]
   end
 
   def constraints(:just_one, list, acc) do
-    ["Only one attribute can be present: <tt>", Enum.join(list, ", "), "</tt><br/>" | acc]
+    ["Only one attribute can be present: <strong>", Enum.join(list, ", "), "</strong><br/>" | acc]
   end
 
   def constraints(name, list, acc) do
-    [Atom.to_string(name), ": <tt>", Enum.join(list, ", "), "</tt><br/>" | acc]
+    [Atom.to_string(name), ": <strong>", Enum.join(list, ", "), "</strong><br/>" | acc]
   end
 
   def links(_, _, nil), do: ""
