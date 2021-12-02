@@ -234,7 +234,6 @@ defmodule SchemaWeb.PageView do
         constraints(name, list, acc)
       end)
 
-    IO.puts("#{inspect(text)}")
     text
   end
 
