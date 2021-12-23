@@ -17,7 +17,7 @@ defmodule Schema.MixProject do
     [
       releases: [
         schema_server: [
-          steps: [:assemble, &write_version/1],
+          steps: [:assemble, :tar, &write_version/1],
           include_executables_for: [:unix]
         ]
       ],
