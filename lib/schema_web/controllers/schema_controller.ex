@@ -80,6 +80,21 @@ defmodule SchemaWeb.SchemaController do
   end
 
   # {
+  # @api {get} /api/data_types Request Data types
+  # @apiName DataTypes
+  # @apiGroup Schema
+  # @apiVersion 1.0.0
+  # @apiPermission none
+  # }
+  @doc """
+  Renders the data types.
+  """
+  @spec data_types(Plug.Conn.t(), any) :: Plug.Conn.t()
+  def data_types(conn, _params) do
+    send_json_resp(conn, get_in(Schema.dictionary(), [:types, :attributes]))
+  end
+
+  # {
   # @api {get} /api/base_event Request Base Event
   # @apiName Base Event
   # @apiGroup Schema
