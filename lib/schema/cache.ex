@@ -261,18 +261,9 @@ defmodule Schema.Cache do
         end)
 
       ext ->
-        category_id = category[:uid]
-
-        if category_id < @class_multiplier do
-          Map.update(class, :uid, 0, fn uid ->
-            category_id(category_id, ext) * @class_multiplier + uid
-          end)
-        else
-          Map.update(class, :uid, 0, fn uid ->
-            category_id(category_id, ext) * @class_multiplier + uid
-          end)
-          |> Map.update!(:category, fn category -> Path.join(class[:extension], category) end)
-        end
+        Map.update(class, :uid, 0, fn uid ->
+          category_id(category[:uid], ext) * @class_multiplier + uid
+        end)
     end
   end
 
@@ -353,22 +344,28 @@ defmodule Schema.Cache do
   end
 
   defp add_category_id(class, name, categories) do
-    {_key, category} = Utils.find_entity(categories, class, class[:category])
+    case class[:category] do
+      nil ->
+        Logger.warn("class '#{class[:type]}' has no category")
 
-    if category == nil do
-      Logger.warn("class '#{class[:type]}' has an invalid or missing category")
-      class
-    else
-      update_in(
-        class,
-        [:attributes, :category_id, :enum],
-        fn _enum ->
-          id = Integer.to_string(category[:uid]) |> String.to_atom()
-          %{id => category}
+      cat_name ->
+        {_key, category} = Utils.find_entity(categories, class, cat_name)
+
+        if category == nil do
+          Logger.warn("class '#{class[:type]}' has an invalid category: #{cat_name}")
+          class
+        else
+          update_in(
+            class,
+            [:attributes, :category_id, :enum],
+            fn _enum ->
+              id = Integer.to_string(category[:uid]) |> String.to_atom()
+              %{id => category}
+            end
+          )
         end
-      )
+        |> put_in([:attributes, :category_id, :_source], name)
     end
-    |> put_in([:attributes, :category_id, :_source], name)
   end
 
   defp attribute_source({name, map}) do
