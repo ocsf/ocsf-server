@@ -22,7 +22,7 @@ defmodule Schema.MixProject do
         ]
       ],
       app: :schema_server,
-      version: "1.4.0-#{build}",
+      version: "1.4.1-#{build}",
       elixir: "~> 1.11",
       elixirc_paths: elixirc_paths(Mix.env()),
       compilers: [:phoenix, :gettext] ++ Mix.compilers(),
@@ -37,7 +37,7 @@ defmodule Schema.MixProject do
   def application do
     [
       mod: {Schema.Application, []},
-      extra_applications: [:logger, :crypto, :earmark, :html_entities, :runtime_tools]
+      extra_applications: [:logger, :crypto, :runtime_tools]
     ]
   end
 
