@@ -190,39 +190,48 @@ defmodule Schema.Inspector do
   end
 
   defp validate_object_array(acc, name, attribute, value) do
-    object =
-      attribute[:object_type]
-      |> Schema.object()
+    case attribute[:object_type] do
+      "data" ->
+        acc
 
-    {map, _count} =
-      Enum.reduce(value, {Map.new(), 0}, fn data, {map, count} ->
-        result = validate_type(object, data)
+      object_type ->
+        object = Schema.object(object_type)
 
-        map =
-          if map_size(result) > 0 do
-            Map.put(map, "#{count}", result)
-          else
-            map
-          end
+        {map, _count} =
+          Enum.reduce(value, {Map.new(), 0}, fn data, {map, count} ->
+            result = validate_type(object, data)
 
-        {map, count + 1}
-      end)
+            map =
+              if map_size(result) > 0 do
+                Map.put(map, "#{count}", result)
+              else
+                map
+              end
 
-    if map_size(map) > 0 do
-      Map.put(acc, name, %{
-        :error => "The array contains invalid data",
-        :values => map
-      })
-    else
-      acc
+            {map, count + 1}
+          end)
+
+        if map_size(map) > 0 do
+          Map.put(acc, name, %{
+            :error => "The array contains invalid data",
+            :values => map
+          })
+        else
+          acc
+        end
     end
   end
 
   defp validate_object(acc, name, attribute, value) do
-    attribute[:object_type]
-    |> Schema.object()
-    |> validate_type(value)
-    |> valid?(acc, name)
+    case attribute[:object_type] do
+      "data" ->
+        acc
+
+      object_type ->
+        Schema.object(object_type)
+        |> validate_type(value)
+        |> valid?(acc, name)
+    end
   end
 
   defp valid?(map, acc, name) do
