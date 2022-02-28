@@ -159,16 +159,15 @@ defmodule Schema do
 
           children =
             classes
-            |> Enum.filter(fn {_name, class} ->
+            |> Stream.filter(fn {_name, class} ->
               extension = class[:extension]
               extension == nil or MapSet.member?(extensions, extension)
             end)
-            |> Enum.map(
-              fn {name, _class} ->
-                class = get_class(name)
-                Map.put(Map.delete(class, :attributes), :value, length(class[:attributes]))
-              end
-            )
+            |> Stream.map(fn {_name, class} ->
+              data = Map.delete(class, :attributes) |> Map.delete(:_links) |> Map.delete(:see_also)
+
+              Map.put(data, :value, map_size(class[:attributes]))
+            end)
             |> Enum.sort(fn map1, map2 -> map1[:name] <= map2[:name] end)
 
           Map.put(cat, :type, name)
