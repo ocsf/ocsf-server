@@ -34,8 +34,8 @@ export default function define(runtime, observer) {
   main.variable(observer("chart")).define("chart", ["treemap", "data", "d3", "color"],
     function (treemap, data, d3,  color) {
       if (data.children.length > 3) {
-        width = 1200;
-        height = 825;              
+        width = 850;
+        height = 1200;              
       }
       const root = treemap(data);
 
