@@ -24,7 +24,38 @@ defmodule SchemaWeb.SchemaController do
   # -------------------
 
   # {
-  # @api {get} /api/categories/:name Request Category
+  # @api {get} /api/data_types Request Data types
+  # @apiName DataTypes
+  # @apiGroup Schema
+  # @apiVersion 1.0.0
+  # @apiPermission none
+  # }
+  @doc """
+  Renders the data types.
+  """
+  @spec data_types(Plug.Conn.t(), any) :: Plug.Conn.t()
+  def data_types(conn, _params) do
+    send_json_resp(conn, get_in(Schema.dictionary(), [:types, :attributes]))
+  end
+
+  # {
+  # @api {get} /api/schema Request the schema hierarchy
+  # @apiName Schema
+  # @apiGroup Schema
+  # @apiVersion 1.0.0
+  # @apiPermission none
+  # }
+  @spec schema(Plug.Conn.t(), any) :: Plug.Conn.t()
+  def schema(conn, params) do
+    data =
+      Schema.parse_extensions(params["extensions"])
+      |> Schema.schema_map()
+
+    send_json_resp(conn, data)
+  end
+
+  # {
+  # @api {get} /api/categories/:name Request Category classes
   # @apiName Category
   # @apiGroup Schema
   # @apiVersion 1.0.0
@@ -36,10 +67,8 @@ defmodule SchemaWeb.SchemaController do
   """
   @spec categories(Plug.Conn.t(), map) :: Plug.Conn.t()
   def categories(conn, %{"id" => id} = params) do
-    extension = params["extension"]
-
     try do
-      case Schema.category(extension, id) do
+      case category_classes(params) do
         nil ->
           send_json_resp(conn, 404, %{error: "Not Found: #{id}"})
 
@@ -48,7 +77,7 @@ defmodule SchemaWeb.SchemaController do
       end
     rescue
       e ->
-        Logger.error("Unable to classes for category: #{id}. Error: #{inspect(e)}")
+        Logger.error("Unable to load the classes for category: #{id}. Error: #{inspect(e)}")
         send_json_resp(conn, 500, %{error: "Error: #{e[:message]}"})
     end
   end
@@ -60,8 +89,21 @@ defmodule SchemaWeb.SchemaController do
   # @apiVersion 1.0.0
   # @apiPermission none
   # }
-  def categories(conn, _params) do
-    send_json_resp(conn, Schema.categories())
+  def categories(conn, params) do
+    send_json_resp(conn, categories(params))
+  end
+
+  @spec categories(map) :: map
+  def categories(params) do
+    Schema.parse_extensions(params["extensions"]) |> Schema.categories()
+  end
+
+  @spec category_classes(map) :: map | nil
+  def category_classes(%{"id" => id} = params) do
+    extension = params["extension"]
+    extensions = Schema.parse_extensions(params["extensions"])
+
+    Schema.category(extensions, extension, id)
   end
 
   # {
@@ -75,23 +117,18 @@ defmodule SchemaWeb.SchemaController do
   Renders the attribute dictionary.
   """
   @spec dictionary(Plug.Conn.t(), any) :: Plug.Conn.t()
-  def dictionary(conn, _params) do
-    send_json_resp(conn, remove_links(Schema.dictionary(), :attributes))
+  def dictionary(conn, params) do
+    data = dictionary(params) |> remove_links(:attributes)
+
+    send_json_resp(conn, data)
   end
 
-  # {
-  # @api {get} /api/data_types Request Data types
-  # @apiName DataTypes
-  # @apiGroup Schema
-  # @apiVersion 1.0.0
-  # @apiPermission none
-  # }
   @doc """
-  Renders the data types.
+  Renders the dictionary.
   """
-  @spec data_types(Plug.Conn.t(), any) :: Plug.Conn.t()
-  def data_types(conn, _params) do
-    send_json_resp(conn, get_in(Schema.dictionary(), [:types, :attributes]))
+  @spec dictionary(map) :: map
+  def dictionary(params) do
+    Schema.parse_extensions(params["extensions"]) |> Schema.dictionary()
   end
 
   # {
@@ -148,13 +185,18 @@ defmodule SchemaWeb.SchemaController do
   # @apiVersion 1.0.0
   # @apiPermission none
   # }
-  def classes(conn, _params) do
+  def classes(conn, params) do
     classes =
-      Enum.map(Schema.classes(), fn {_name, class} ->
+      Enum.map(classes(params), fn {_name, class} ->
         Map.delete(class, :see_also) |> Map.delete(:attributes)
       end)
 
     send_json_resp(conn, classes)
+  end
+
+  @spec classes(map) :: map
+  def classes(params) do
+    Schema.parse_extensions(params["extensions"]) |> Schema.classes()
   end
 
   # {
@@ -194,29 +236,18 @@ defmodule SchemaWeb.SchemaController do
   # @apiVersion 1.0.0
   # @apiPermission none
   # }
-  def objects(conn, _params) do
+  def objects(conn, params) do
     objects =
-      Enum.map(Schema.objects(), fn {_name, map} ->
+      Enum.map(objects(params), fn {_name, map} ->
         Map.delete(map, :_links)
       end)
 
     send_json_resp(conn, objects)
   end
 
-  # {
-  # @api {get} /api/schema Request the schema hierarchy
-  # @apiName Schema
-  # @apiGroup Schema
-  # @apiVersion 1.0.0
-  # @apiPermission none
-  # }
-  @spec schema(Plug.Conn.t(), any) :: Plug.Conn.t()
-  def schema(conn, params) do
-    data =
-      Schema.parse_extensions(params["extensions"])
-      |> Schema.schema_map()
-
-    send_json_resp(conn, data)
+  @spec objects(map) :: map
+  def objects(params) do
+    Schema.parse_extensions(params["extensions"]) |> Schema.objects()
   end
 
   # ---------------------------------

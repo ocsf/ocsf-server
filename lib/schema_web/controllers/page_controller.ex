@@ -14,18 +14,33 @@ defmodule SchemaWeb.PageController do
   """
   use SchemaWeb, :controller
 
+  alias SchemaWeb.SchemaController
+
   @spec guidelines(Plug.Conn.t(), any) :: Plug.Conn.t()
   def guidelines(conn, _params) do
     render(conn, "guidelines.html")
   end
 
+  @spec schema(Plug.Conn.t(), any) :: Plug.Conn.t()
   def schema(conn, _params) do
     render(conn, "schema_map.html")
   end
 
+  @spec extensions(Plug.Conn.t(), any) :: Plug.Conn.t()
   def extensions(conn, _params) do
     data = Schema.extensions()
+
     render(conn, "extensions.html", data: data)
+  end
+
+  @doc """
+  Renders the data types.
+  """
+  @spec data_types(Plug.Conn.t(), any) :: Plug.Conn.t()
+  def data_types(conn, _params) do
+    data = Schema.dictionary()[:types] |> sort_attributes()
+
+    render(conn, "data_types.html", data: data)
   end
 
   @doc """
@@ -33,11 +48,8 @@ defmodule SchemaWeb.PageController do
   """
   @spec categories(Plug.Conn.t(), map) :: Plug.Conn.t()
   def categories(conn, %{"id" => id} = params) do
-    extension = params["extension"]
-    extensions = Schema.parse_extensions(params["extensions"])
-
     try do
-      case Schema.category(extensions, extension, id) do
+      case SchemaController.category_classes(params) do
         nil ->
           send_resp(conn, 404, "Not Found: #{id}")
 
@@ -51,21 +63,9 @@ defmodule SchemaWeb.PageController do
   end
 
   def categories(conn, params) do
-    data =
-      Schema.parse_extensions(params["extensions"])
-      |> Schema.categories()
-      |> sort_attributes(:id)
+    data = SchemaController.categories(params) |> sort_attributes(:id)
 
     render(conn, "index.html", data: data)
-  end
-
-  @doc """
-  Renders the data types.
-  """
-  @spec data_types(Plug.Conn.t(), any) :: Plug.Conn.t()
-  def data_types(conn, _params) do
-    data = Schema.dictionary()[:types] |> sort_attributes()
-    render(conn, "data_types.html", data: data)
   end
 
   @doc """
@@ -73,10 +73,7 @@ defmodule SchemaWeb.PageController do
   """
   @spec dictionary(Plug.Conn.t(), any) :: Plug.Conn.t()
   def dictionary(conn, params) do
-    data =
-      Schema.parse_extensions(params["extensions"])
-      |> Schema.dictionary()
-      |> sort_attributes()
+    data = SchemaController.dictionary(params) |> sort_attributes()
 
     render(conn, "dictionary.html", data: data)
   end
@@ -112,10 +109,7 @@ defmodule SchemaWeb.PageController do
   end
 
   def classes(conn, params) do
-    data =
-      Schema.parse_extensions(params["extensions"])
-      |> Schema.classes()
-      |> sort_by_name()
+    data = SchemaController.classes(params) |> sort_by_name()
 
     render(conn, "classes.html", data: data)
   end
@@ -141,10 +135,7 @@ defmodule SchemaWeb.PageController do
   end
 
   def objects(conn, params) do
-    data =
-      Schema.parse_extensions(params["extensions"])
-      |> Schema.objects()
-      |> sort_by_name()
+    data = SchemaController.objects(params) |> sort_by_name()
 
     render(conn, "objects.html", data: data)
   end

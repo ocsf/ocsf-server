@@ -158,8 +158,12 @@ defmodule Schema do
           {classes, cat} = Repo.category(name) |> Map.pop(:classes)
 
           children =
-            Enum.map(
-              classes,
+            classes
+            |> Enum.filter(fn {_name, class} ->
+              extension = class[:extension]
+              extension == nil or MapSet.member?(extensions, extension)
+            end)
+            |> Enum.map(
               fn {name, _class} ->
                 class = get_class(name)
                 Map.put(Map.delete(class, :attributes), :value, length(class[:attributes]))
@@ -192,6 +196,7 @@ defmodule Schema do
   end
 
   @spec parse_extensions(binary() | nil) :: MapSet.t(binary()) | nil
-  def parse_extensions(nil), do: nil
+  def parse_extensions(nil), do: MapSet.new()
+  def parse_extensions(""), do: MapSet.new()
   def parse_extensions(ext), do: String.split(ext, ",") |> MapSet.new()
 end
