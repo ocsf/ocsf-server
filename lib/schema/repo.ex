@@ -51,17 +51,17 @@ defmodule Schema.Repo do
 
   @spec category(atom) :: nil | Cache.category_t()
   def category(id) do
-    Agent.get(__MODULE__, fn schema -> Cache.categories(schema, id) end)
+    Agent.get(__MODULE__, fn schema -> Cache.category(schema, id) end)
   end
 
   @spec category(extensions() | nil, atom) :: nil | Cache.category_t()
   def category(nil, id) do
-    Agent.get(__MODULE__, fn schema -> Cache.categories(schema, id) end)
+    Agent.get(__MODULE__, fn schema -> Cache.category(schema, id) end)
   end
 
   def category(extensions, id) do
     Agent.get(__MODULE__, fn schema ->
-      Cache.categories(schema, id)
+      Cache.category(schema, id)
       |> Map.update!(:classes, fn class ->
         filter(class, extensions)
       end)
@@ -105,7 +105,7 @@ defmodule Schema.Repo do
 
   @spec class(atom) :: nil | Cache.class_t()
   def class(id) do
-    Agent.get(__MODULE__, fn schema -> Cache.classes(schema, id) end)
+    Agent.get(__MODULE__, fn schema -> Cache.class(schema, id) end)
   end
 
   def find_class(uid) do
@@ -132,7 +132,7 @@ defmodule Schema.Repo do
   def object(nil), do: nil
 
   def object(id) do
-    Agent.get(__MODULE__, fn schema -> Cache.objects(schema, id) end)
+    Agent.get(__MODULE__, fn schema -> Cache.object(schema, id) end)
   end
 
   @spec reload() :: :ok
@@ -147,8 +147,8 @@ defmodule Schema.Repo do
     Agent.cast(__MODULE__, fn _ -> Cache.init() end)
   end
 
-  defp filter(objects, extensions) do
-    Enum.filter(objects, fn {_k, f} ->
+  defp filter(data, extensions) do
+    Enum.filter(data, fn {_k, f} ->
       extension = f[:extension]
       extension == nil or MapSet.member?(extensions, extension)
     end)

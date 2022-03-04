@@ -92,8 +92,8 @@ defmodule Schema.Cache do
   @spec categories(__MODULE__.t()) :: map()
   def categories(%__MODULE__{categories: categories}), do: categories
 
-  @spec categories(__MODULE__.t(), any) :: nil | category_t()
-  def categories(%__MODULE__{categories: categories, classes: classes}, id) do
+  @spec category(__MODULE__.t(), any) :: nil | category_t()
+  def category(%__MODULE__{categories: categories, classes: classes}, id) do
     case Map.get(categories[:attributes], id) do
       nil ->
         nil
@@ -106,12 +106,12 @@ defmodule Schema.Cache do
   @spec classes(__MODULE__.t()) :: list
   def classes(%__MODULE__{classes: classes}), do: classes
 
-  @spec classes(__MODULE__.t(), atom()) :: nil | class_t()
-  def classes(%__MODULE__{dictionary: dictionary, base_event: base_event}, :base_event) do
+  @spec class(__MODULE__.t(), atom()) :: nil | class_t()
+  def class(%__MODULE__{dictionary: dictionary, base_event: base_event}, :base_event) do
     enrich(base_event, dictionary[:attributes])
   end
 
-  def classes(%__MODULE__{dictionary: dictionary, classes: classes}, id) do
+  def class(%__MODULE__{dictionary: dictionary, classes: classes}, id) do
     case Map.get(classes, id) do
       nil ->
         nil
@@ -131,8 +131,8 @@ defmodule Schema.Cache do
   @spec objects(__MODULE__.t()) :: map()
   def objects(%__MODULE__{objects: objects}), do: objects
 
-  @spec objects(__MODULE__.t(), any) :: nil | object_t()
-  def objects(%__MODULE__{dictionary: dictionary, objects: objects}, id) do
+  @spec object(__MODULE__.t(), any) :: nil | object_t()
+  def object(%__MODULE__{dictionary: dictionary, objects: objects}, id) do
     case Map.get(objects, id) do
       nil ->
         nil
