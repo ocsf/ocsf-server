@@ -191,7 +191,7 @@ defmodule Schema.Inspector do
 
   defp validate_object_array(acc, name, attribute, value) do
     case attribute[:object_type] do
-      "data" ->
+      "object" ->
         acc
 
       object_type ->
@@ -224,7 +224,7 @@ defmodule Schema.Inspector do
 
   defp validate_object(acc, name, attribute, value) do
     case attribute[:object_type] do
-      "data" ->
+      "object" ->
         acc
 
       object_type ->
