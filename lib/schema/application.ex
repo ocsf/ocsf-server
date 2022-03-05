@@ -15,6 +15,7 @@ defmodule Schema.Application do
 
   use Application
 
+  @spec start(any, any) :: {:error, any} | {:ok, pid}
   def start(_type, _args) do
     extension =
       case Application.get_env(:schema_server, __MODULE__) |> Keyword.get(:extension) do

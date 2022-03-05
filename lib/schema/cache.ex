@@ -42,20 +42,6 @@ defmodule Schema.Cache do
   @multiplier 100
   @class_multiplier 1000
 
-  @spec to_uid(binary) :: atom
-  def to_uid(name) do
-    String.to_existing_atom(name)
-  end
-
-  @spec to_uid(binary | nil, binary) :: atom
-  def to_uid(nil, name) do
-    String.to_existing_atom(name)
-  end
-
-  def to_uid(extension, name) do
-    Path.join(extension, name) |> String.to_existing_atom()
-  end
-
   @doc """
   Load the schema files and initialize the cache.
   """
@@ -83,6 +69,18 @@ defmodule Schema.Cache do
     |> set_objects(objects)
   end
 
+  @doc """
+    Returns the event extensions.
+  """
+  @spec extensions :: map()
+  def extensions(), do: Schema.JsonReader.extensions()
+
+  @spec reset :: :ok
+  def reset(), do: Schema.JsonReader.reset()
+
+  @spec reset(binary) :: :ok
+  def reset(path), do: Schema.JsonReader.reset(path)
+
   @spec version(__MODULE__.t()) :: String.t()
   def version(%__MODULE__{version: version}), do: version[:version]
 
@@ -93,14 +91,8 @@ defmodule Schema.Cache do
   def categories(%__MODULE__{categories: categories}), do: categories
 
   @spec category(__MODULE__.t(), any) :: nil | category_t()
-  def category(%__MODULE__{categories: categories, classes: classes}, id) do
-    case Map.get(categories[:attributes], id) do
-      nil ->
-        nil
-
-      category ->
-        add_classes({id, category}, classes)
-    end
+  def category(%__MODULE__{categories: categories}, id) do
+    Map.get(categories[:attributes], id)
   end
 
   @spec classes(__MODULE__.t()) :: list
@@ -121,6 +113,7 @@ defmodule Schema.Cache do
     end
   end
 
+  @spec find_class(Schema.Cache.t(), any) :: nil | map
   def find_class(%__MODULE__{dictionary: dictionary, classes: classes}, uid) do
     case Enum.find(classes, fn {_, class} -> class[:uid] == uid end) do
       {_, class} -> enrich(class, dictionary[:attributes])
@@ -140,30 +133,6 @@ defmodule Schema.Cache do
       object ->
         enrich(object, dictionary[:attributes])
     end
-  end
-
-  defp add_classes({id, category}, classes) do
-    category_id = Atom.to_string(id)
-
-    list =
-      Enum.filter(
-        classes,
-        fn {_name, class} ->
-          cat = Map.get(class, :category)
-
-          if cat == category_id do
-            true
-          else
-            to_uid(Map.get(class, :extension), cat) == id
-          end
-        end
-      )
-
-    if length(list) == 0 do
-      Logger.warn("Empty class list: #{category_id}")
-    end
-
-    Map.put(category, :classes, list)
   end
 
   defp enrich(map, dictionary) do

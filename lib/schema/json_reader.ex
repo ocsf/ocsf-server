@@ -57,18 +57,18 @@ defmodule Schema.JsonReader do
     GenServer.call(__MODULE__, :read_classes)
   end
 
-  @spec set_extension() :: :ok
-  def set_extension() do
-    GenServer.cast(__MODULE__, {:set_extension, []})
+  @spec reset() :: :ok
+  def reset() do
+    GenServer.cast(__MODULE__, {:reset, []})
   end
 
-  @spec set_extension(String.t()) :: :ok
-  def set_extension(name) when is_binary(name) do
-    GenServer.cast(__MODULE__, {:set_extension, [name]})
+  @spec reset(String.t()) :: :ok
+  def reset(name) when is_binary(name) do
+    GenServer.cast(__MODULE__, {:reset, [name]})
   end
 
-  def set_extension(list) when is_list(list) do
-    GenServer.cast(__MODULE__, {:set_extension, list})
+  def reset(list) when is_list(list) do
+    GenServer.cast(__MODULE__, {:reset, list})
   end
 
   def extensions() do
@@ -128,7 +128,7 @@ defmodule Schema.JsonReader do
   end
 
   @impl true
-  def handle_cast({:set_extension, ext}, {home, _ext}) do
+  def handle_cast({:reset, ext}, {home, _ext}) do
     {:noreply, {home, extensions(home, ext)}}
   end
 

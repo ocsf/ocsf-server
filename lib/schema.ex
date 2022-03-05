@@ -20,6 +20,8 @@ defmodule Schema do
   alias Schema.Cache
   alias Schema.Utils
 
+  @dialyzer :no_improper_lists
+
   @doc """
     Returns the schema version string.
   """
@@ -30,7 +32,19 @@ defmodule Schema do
     Returns the event extensions.
   """
   @spec extensions :: map()
-  def extensions(), do: Schema.JsonReader.extensions()
+  def extensions(), do: Cache.extensions()
+
+  @doc """
+    Reloads the event schema without the extensions.
+  """
+  @spec reload() :: :ok
+  def reload(), do:  Repo.reload()
+
+  @doc """
+    Reloads the event schema with extensions from the given path.
+  """
+  @spec reload(String.t() | list()) :: :ok
+  def reload(path), do: Repo.reload(path)
 
   @doc """
     Returns the event categories.
@@ -128,17 +142,23 @@ defmodule Schema do
     Schema.Generator.generate(type)
   end
 
+  @spec remove_links(map()) :: map()
   def remove_links(data) do
-    Map.delete(data, :_links) |> remove_links(:attributes)
+    reduce(data, :_links)
   end
 
-  def remove_links(data, key) do
+  @spec reduce(map(), any) :: map()
+  def reduce(data, name) do
+    Map.delete(data, name) |> reduce(:attributes, name)
+  end
+
+  defp reduce(data, key, name) do
     case data[key] do
       nil ->
         data
 
       attributes ->
-        updated = Enum.map(attributes, fn {k, v} -> %{k => Map.delete(v, :_links)} end)
+        updated = Enum.map(attributes, fn {k, v} -> %{k => Map.delete(v, name)} end)
         Map.put(data, key, updated)
     end
   end
@@ -164,7 +184,8 @@ defmodule Schema do
               extension == nil or MapSet.member?(extensions, extension)
             end)
             |> Stream.map(fn {_name, class} ->
-              data = Map.delete(class, :attributes) |> Map.delete(:_links) |> Map.delete(:see_also)
+              data =
+                Map.delete(class, :attributes) |> Map.delete(:_links) |> Map.delete(:see_also)
 
               Map.put(data, :value, map_size(class[:attributes]))
             end)
@@ -191,7 +212,7 @@ defmodule Schema do
   end
 
   defp to_uid(name) do
-    String.downcase(name) |> Cache.to_uid()
+    String.downcase(name) |> String.to_existing_atom()
   end
 
   @spec parse_extensions(binary() | nil) :: MapSet.t(binary()) | nil

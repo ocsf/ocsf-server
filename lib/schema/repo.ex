@@ -43,28 +43,37 @@ defmodule Schema.Repo do
   def categories(extensions) do
     Agent.get(__MODULE__, fn schema ->
       Cache.categories(schema)
-      |> Map.update!(:attributes, fn attributes ->
-        filter(attributes, extensions)
-      end)
+      |> Map.update!(:attributes, fn attributes -> filter(attributes, extensions) end)
     end)
   end
 
   @spec category(atom) :: nil | Cache.category_t()
   def category(id) do
-    Agent.get(__MODULE__, fn schema -> Cache.category(schema, id) end)
+    Agent.get(__MODULE__, fn schema ->
+      case Cache.category(schema, id) do
+        nil ->
+          nil
+
+        category ->
+          add_classes({id, category}, Cache.classes(schema))
+      end
+    end)
   end
 
   @spec category(extensions() | nil, atom) :: nil | Cache.category_t()
   def category(nil, id) do
-    Agent.get(__MODULE__, fn schema -> Cache.category(schema, id) end)
+    category(id)
   end
 
   def category(extensions, id) do
     Agent.get(__MODULE__, fn schema ->
-      Cache.category(schema, id)
-      |> Map.update!(:classes, fn class ->
-        filter(class, extensions)
-      end)
+      case Cache.category(schema, id) do
+        nil ->
+          nil
+
+        category ->
+          add_classes(extensions, {id, category}, Cache.classes(schema))
+      end
     end)
   end
 
@@ -108,6 +117,7 @@ defmodule Schema.Repo do
     Agent.get(__MODULE__, fn schema -> Cache.class(schema, id) end)
   end
 
+  @spec find_class(any) :: nil | map
   def find_class(uid) do
     Agent.get(__MODULE__, fn schema -> Cache.find_class(schema, uid) end)
   end
@@ -137,13 +147,13 @@ defmodule Schema.Repo do
 
   @spec reload() :: :ok
   def reload() do
-    Schema.JsonReader.set_extension()
+    Cache.reset()
     Agent.cast(__MODULE__, fn _ -> Cache.init() end)
   end
 
   @spec reload(String.t() | list()) :: :ok
-  def reload(extension) do
-    Schema.JsonReader.set_extension(extension)
+  def reload(path) do
+    Cache.reset(path)
     Agent.cast(__MODULE__, fn _ -> Cache.init() end)
   end
 
@@ -153,5 +163,51 @@ defmodule Schema.Repo do
       extension == nil or MapSet.member?(extensions, extension)
     end)
     |> Map.new()
+  end
+
+  defp add_classes({id, category}, classes) do
+    category_id = Atom.to_string(id)
+
+    list =
+      Enum.filter(
+        classes,
+        fn {_name, class} ->
+          cat = Map.get(class, :category)
+          cat == category_id or to_uid(class[:extension], cat) == id
+        end
+      )
+
+    Map.put(category, :classes, list)
+  end
+
+  defp add_classes(extensions, {id, category}, classes) do
+    category_id = Atom.to_string(id)
+
+    list =
+      Enum.filter(
+        classes,
+        fn {_name, class} ->
+          cat = class[:category]
+
+          case class[:extension] do
+            nil ->
+              cat == category_id
+
+            ext ->
+              MapSet.member?(extensions, ext) and
+                (cat == category_id or to_uid(ext, cat) == id)
+          end
+        end
+      )
+
+    Map.put(category, :classes, list)
+  end
+
+  defp to_uid(nil, name) do
+    String.to_existing_atom(name)
+  end
+
+  defp to_uid(extension, name) do
+    Path.join(extension, name) |> String.to_existing_atom()
   end
 end
