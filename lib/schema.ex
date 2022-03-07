@@ -153,7 +153,7 @@ defmodule Schema do
           optional(any) => any
         }
   def schema_map(extensions) do
-    base = Repo.class(:base_event)
+    base = Repo.class(:base_event) |> Map.delete(:attributes)
 
     categories =
       Stream.map(
@@ -184,7 +184,6 @@ defmodule Schema do
       |> Enum.sort(fn map1, map2 -> map1[:name] <= map2[:name] end)
 
     base
-    |> Map.delete(:attributes)
     |> Map.put(:children, categories)
     |> Map.put(:value, length(categories))
   end
@@ -192,9 +191,4 @@ defmodule Schema do
   defp to_uid(name) do
     String.downcase(name) |> String.to_existing_atom()
   end
-
-  @spec parse_extensions(binary() | nil) :: MapSet.t(binary()) | nil
-  def parse_extensions(nil), do: MapSet.new()
-  def parse_extensions(""), do: MapSet.new()
-  def parse_extensions(ext), do: String.split(ext, ",") |> MapSet.new()
 end

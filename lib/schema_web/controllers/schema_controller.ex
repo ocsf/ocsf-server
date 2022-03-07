@@ -48,7 +48,7 @@ defmodule SchemaWeb.SchemaController do
   @spec schema(Plug.Conn.t(), any) :: Plug.Conn.t()
   def schema(conn, params) do
     data =
-      Schema.parse_extensions(params["extensions"])
+      parse_extensions(params["extensions"])
       |> Schema.schema_map()
 
     send_json_resp(conn, data)
@@ -95,13 +95,13 @@ defmodule SchemaWeb.SchemaController do
 
   @spec categories(map) :: map
   def categories(params) do
-    Schema.parse_extensions(params["extensions"]) |> Schema.categories()
+    parse_extensions(params["extensions"]) |> Schema.categories()
   end
 
   @spec category_classes(map) :: map | nil
   def category_classes(%{"id" => id} = params) do
     extension = params["extension"]
-    extensions = Schema.parse_extensions(params["extensions"])
+    extensions = parse_extensions(params["extensions"])
 
     Schema.category(extensions, extension, id)
   end
@@ -128,7 +128,7 @@ defmodule SchemaWeb.SchemaController do
   """
   @spec dictionary(map) :: map
   def dictionary(params) do
-    Schema.parse_extensions(params["extensions"]) |> Schema.dictionary()
+    parse_extensions(params["extensions"]) |> Schema.dictionary()
   end
 
   # {
@@ -196,7 +196,7 @@ defmodule SchemaWeb.SchemaController do
 
   @spec classes(map) :: map
   def classes(params) do
-    Schema.parse_extensions(params["extensions"]) |> Schema.classes()
+    parse_extensions(params["extensions"]) |> Schema.classes()
   end
 
   # {
@@ -247,7 +247,7 @@ defmodule SchemaWeb.SchemaController do
 
   @spec objects(map) :: map
   def objects(params) do
-    Schema.parse_extensions(params["extensions"]) |> Schema.objects()
+    parse_extensions(params["extensions"]) |> Schema.objects()
   end
 
   # ---------------------------------
@@ -521,4 +521,9 @@ defmodule SchemaWeb.SchemaController do
   end
 
   defp verbose(_), do: 0
+
+  defp parse_extensions(nil), do: MapSet.new()
+  defp parse_extensions(""), do: MapSet.new()
+  defp parse_extensions(ext), do: String.split(ext, ",") |> MapSet.new()
+
 end
