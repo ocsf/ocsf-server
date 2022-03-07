@@ -38,7 +38,7 @@ defmodule Schema do
     Reloads the event schema without the extensions.
   """
   @spec reload() :: :ok
-  def reload(), do:  Repo.reload()
+  def reload(), do: Repo.reload()
 
   @doc """
     Reloads the event schema with extensions from the given path.
@@ -52,26 +52,31 @@ defmodule Schema do
   @spec categories :: map()
   def categories(), do: Repo.categories()
 
+  @doc """
+    Returns the event categories defined in the given extension set.
+  """
   @spec categories(Repo.extensions()) :: map()
   def categories(extensions), do: Repo.categories(extensions)
 
+  @doc """
+    Returns a single category with its classes.
+  """
   @spec category(atom | String.t()) :: nil | Cache.category_t()
-  def category(id) when is_binary(id), do: Repo.category(to_uid(id))
   def category(id) when is_atom(id), do: Repo.category(id)
-
-  @spec category(String.t() | nil, String.t()) :: nil | Cache.category_t()
-  def category(extension, id) when is_binary(id),
-    do: Repo.category(Utils.make_key(extension, id))
+  def category(id) when is_binary(id), do: Repo.category(to_uid(id))
 
   @spec category(Repo.extensions(), String.t(), String.t()) :: nil | Cache.category_t()
-  def category(extensions, extension, id) when is_binary(id),
+  def category(extensions, extension, id),
     do: Repo.category(extensions, Utils.make_key(extension, id))
 
+  @doc """
+    Returns the attribute dictionary.
+  """
   @spec dictionary() :: Cache.dictionary_t()
   def dictionary(), do: Repo.dictionary()
 
   @doc """
-    Returns the attribute dictionary.
+    Returns the attribute dictionary including the extension.
   """
   @spec dictionary(Repo.extensions()) :: Cache.dictionary_t()
   def dictionary(extensions), do: Repo.dictionary(extensions)
@@ -142,34 +147,13 @@ defmodule Schema do
     Schema.Generator.generate(type)
   end
 
-  @spec remove_links(map()) :: map()
-  def remove_links(data) do
-    reduce(data, :_links)
-  end
-
-  @spec reduce(map(), any) :: map()
-  def reduce(data, name) do
-    Map.delete(data, name) |> reduce(:attributes, name)
-  end
-
-  defp reduce(data, key, name) do
-    case data[key] do
-      nil ->
-        data
-
-      attributes ->
-        updated = Enum.map(attributes, fn {k, v} -> %{k => Map.delete(v, name)} end)
-        Map.put(data, key, updated)
-    end
-  end
-
   @spec schema_map(Repo.extensions()) :: %{
           :children => list,
           :value => non_neg_integer,
           optional(any) => any
         }
   def schema_map(extensions) do
-    base = get_class(:base_event)
+    base = Repo.class(:base_event)
 
     categories =
       Stream.map(
@@ -203,12 +187,6 @@ defmodule Schema do
     |> Map.delete(:attributes)
     |> Map.put(:children, categories)
     |> Map.put(:value, length(categories))
-  end
-
-  defp get_class(name) do
-    Repo.class(name)
-    |> Schema.remove_links()
-    |> Map.delete(:see_also)
   end
 
   defp to_uid(name) do
