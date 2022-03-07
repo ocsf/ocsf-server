@@ -76,7 +76,7 @@ defmodule Schema.Utils do
 
   defp object_links(dictionary, name) do
     Enum.filter(dictionary, fn {_name, map} -> Map.get(map, :object_type) == name end)
-    |> Enum.map(fn {_, map} -> Map.get(map, :_links) end)
+    |> Enum.map(fn {_, map} -> Map.get(map, @links) end)
     |> List.flatten()
     |> Enum.uniq()
   end

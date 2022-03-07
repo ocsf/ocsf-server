@@ -62,12 +62,12 @@ defmodule Schema do
     Returns a single category with its classes.
   """
   @spec category(atom | String.t()) :: nil | Cache.category_t()
-  def category(id) when is_atom(id), do: Repo.category(id)
-  def category(id) when is_binary(id), do: Repo.category(to_uid(id))
+  def category(id) when is_atom(id), do: get_category(id)
+  def category(id) when is_binary(id), do: get_category(to_uid(id))
 
   @spec category(Repo.extensions(), String.t(), String.t()) :: nil | Cache.category_t()
   def category(extensions, extension, id),
-    do: Repo.category(extensions, Utils.make_key(extension, id))
+    do: get_category(extensions, Utils.make_key(extension, id))
 
   @doc """
     Returns the attribute dictionary.
@@ -153,7 +153,7 @@ defmodule Schema do
           optional(any) => any
         }
   def schema_map(extensions) do
-    base = Repo.class(:base_event) |> Map.delete(:attributes)
+    base = Repo.class(:base_event) |> delete_attributes()
 
     categories =
       Stream.map(
@@ -168,10 +168,7 @@ defmodule Schema do
               extension == nil or MapSet.member?(extensions, extension)
             end)
             |> Stream.map(fn {_name, class} ->
-              data =
-                Map.delete(class, :attributes) |> Map.delete(:_links) |> Map.delete(:see_also)
-
-              Map.put(data, :value, map_size(class[:attributes]))
+              reduce_class(class) |> Map.put(:value, map_size(class[:attributes]))
             end)
             |> Enum.sort(fn map1, map2 -> map1[:name] <= map2[:name] end)
 
@@ -180,7 +177,6 @@ defmodule Schema do
           |> Map.put(:value, length(children))
         end
       )
-      |> Enum.to_list()
       |> Enum.sort(fn map1, map2 -> map1[:name] <= map2[:name] end)
 
     base
@@ -190,5 +186,30 @@ defmodule Schema do
 
   defp to_uid(name) do
     String.downcase(name) |> String.to_existing_atom()
+  end
+
+  defp get_category(id) do
+    Repo.category(id) |> reduce_category()
+  end
+
+  defp get_category(extensions, id) do
+    Repo.category(extensions, id) |> reduce_category()
+  end
+
+  defp reduce_category(data) do
+    Map.update(data, :classes, [], fn classes ->
+      Enum.map(classes, fn {name, class} ->
+        {name, reduce_class(class)}
+      end)
+    end)
+  end
+
+  @spec reduce_class(map) :: map
+  def reduce_class(data) do
+    delete_attributes(data) |> Map.delete(:see_also)
+  end
+
+  defp delete_attributes(data) do
+    Map.delete(data, :attributes)
   end
 end

@@ -73,7 +73,7 @@ defmodule SchemaWeb.SchemaController do
           send_json_resp(conn, 404, %{error: "Not Found: #{id}"})
 
         data ->
-          send_json_resp(conn, cleanup_classes(data))
+          send_json_resp(conn, data)
       end
     rescue
       e ->
@@ -188,7 +188,7 @@ defmodule SchemaWeb.SchemaController do
   def classes(conn, params) do
     classes =
       Enum.map(classes(params), fn {_name, class} ->
-        Map.delete(class, :see_also) |> Map.delete(:attributes)
+        Schema.reduce_class(class)
       end)
 
     send_json_resp(conn, classes)
@@ -445,7 +445,6 @@ defmodule SchemaWeb.SchemaController do
   defp remove_links(data) do
     data
     |> Map.delete(:_links)
-    |> Map.delete(:see_also)
     |> remove_links(:attributes)
   end
 
@@ -461,21 +460,6 @@ defmodule SchemaWeb.SchemaController do
           end)
 
         Map.put(data, key, updated)
-    end
-  end
-
-  defp cleanup_classes(data) do
-    case data[:classes] do
-      nil ->
-        data
-
-      list ->
-        updated =
-          Enum.map(list, fn {k, v} ->
-            %{k => Map.delete(v, :_links) |> Map.delete(:see_also)}
-          end)
-
-        Map.put(data, :classes, updated)
     end
   end
 

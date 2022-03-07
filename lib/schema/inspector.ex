@@ -283,8 +283,4 @@ defmodule Schema.Inspector do
       }
     end
   end
-
-  # defp cleanup(attribute) do
-  #   Map.delete(attribute, :_links)
-  # end
 end
