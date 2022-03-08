@@ -16,19 +16,25 @@ defmodule Schema.Utils do
 
   @links :_links
 
-  @spec make_key(binary() | nil, binary() | atom()) :: atom()
-  def make_key(nil, name) when is_atom(name) do
+  @spec to_uid(binary) :: atom
+  def to_uid(name) do
+    String.downcase(name) |> String.to_atom()
+  end
+
+  @spec to_uid(binary() | nil, binary() | atom()) :: atom()
+  def to_uid(nil, name) when is_atom(name) do
     name
   end
 
-  def make_key(extension, name) when is_atom(name) do
-    make_key(extension, Atom.to_string(name))
+  def to_uid(extension, name) when is_atom(name) do
+    to_uid(extension, Atom.to_string(name))
   end
 
-  def make_key(extension, name) do
-    make_path(extension, name) |> String.to_atom()
+  def to_uid(extension, name) do
+    make_path(extension, name) |> to_uid()
   end
 
+  @spec make_path(binary() | nil, binary()) :: binary()
   def make_path(nil, name), do: name
   def make_path(extension, name), do: Path.join(extension, name)
 
@@ -42,7 +48,7 @@ defmodule Schema.Utils do
         {key, map[key]}
 
       extension ->
-        ext_key = make_key(extension, key)
+        ext_key = to_uid(extension, key)
 
         case Map.get(map, ext_key) do
           nil ->

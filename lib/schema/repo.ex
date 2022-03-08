@@ -15,6 +15,7 @@ defmodule Schema.Repo do
   use Agent
 
   alias Schema.Cache
+  alias Schema.Utils
 
   @typedoc """
   Defines a set of extensions.
@@ -173,7 +174,7 @@ defmodule Schema.Repo do
         classes,
         fn {_name, class} ->
           cat = Map.get(class, :category)
-          cat == category_id or to_uid(class[:extension], cat) == id
+          cat == category_id or Utils.to_uid(class[:extension], cat) == id
         end
       )
 
@@ -195,7 +196,7 @@ defmodule Schema.Repo do
 
             ext ->
               MapSet.member?(extensions, ext) and
-                (cat == category_id or to_uid(ext, cat) == id)
+                (cat == category_id or Utils.to_uid(ext, cat) == id)
           end
         end
       )
@@ -203,11 +204,4 @@ defmodule Schema.Repo do
     Map.put(category, :classes, list)
   end
 
-  defp to_uid(nil, name) do
-    String.to_existing_atom(name)
-  end
-
-  defp to_uid(extension, name) do
-    Path.join(extension, name) |> String.to_existing_atom()
-  end
 end

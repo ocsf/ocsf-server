@@ -388,7 +388,7 @@ defmodule Schema.Cache do
         Map.get(classes, String.to_atom(extends))
 
       extension ->
-        case Map.get(classes, Utils.make_key(extension, extends)) do
+        case Map.get(classes, Utils.to_uid(extension, extends)) do
           nil -> Map.get(classes, String.to_atom(extends))
           other -> other
         end

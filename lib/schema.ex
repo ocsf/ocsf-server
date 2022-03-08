@@ -63,11 +63,11 @@ defmodule Schema do
   """
   @spec category(atom | String.t()) :: nil | Cache.category_t()
   def category(id) when is_atom(id), do: get_category(id)
-  def category(id) when is_binary(id), do: get_category(to_uid(id))
+  def category(id) when is_binary(id), do: get_category(Utils.to_uid(id))
 
   @spec category(Repo.extensions(), String.t(), String.t()) :: nil | Cache.category_t()
   def category(extensions, extension, id),
-    do: get_category(extensions, Utils.make_key(extension, id))
+    do: get_category(extensions, Utils.to_uid(extension, id))
 
   @doc """
     Returns the attribute dictionary.
@@ -94,12 +94,12 @@ defmodule Schema do
     Returns a single event class.
   """
   @spec class(atom | String.t()) :: nil | Cache.class_t()
-  def class(id) when is_binary(id), do: Repo.class(to_uid(id))
+  def class(id) when is_binary(id), do: Repo.class(Utils.to_uid(id))
   def class(id) when is_atom(id), do: Repo.class(id)
 
   @spec class(nil | String.t(), String.t()) :: nil | map()
   def class(extension, id) when is_binary(id),
-    do: Repo.class(Utils.make_key(extension, id))
+    do: Repo.class(Utils.to_uid(extension, id))
 
   @doc """
   Finds a class by the class uid value.
@@ -120,12 +120,12 @@ defmodule Schema do
     Returns a single objects.
   """
   @spec object(atom | String.t()) :: nil | Cache.object_t()
-  def object(id) when is_binary(id), do: Repo.object(to_uid(id))
+  def object(id) when is_binary(id), do: Repo.object(Utils.to_uid(id))
   def object(id) when is_atom(id), do: Repo.object(id)
 
   @spec object(nil | String.t(), String.t()) :: nil | map()
   def object(extension, id) when is_binary(id),
-    do: Repo.object(Utils.make_key(extension, id))
+    do: Repo.object(Utils.to_uid(extension, id))
 
   @doc """
   Returns a randomly generated sample event.
@@ -182,10 +182,6 @@ defmodule Schema do
     base
     |> Map.put(:children, categories)
     |> Map.put(:value, length(categories))
-  end
-
-  defp to_uid(name) do
-    String.downcase(name) |> String.to_existing_atom()
   end
 
   defp get_category(id) do

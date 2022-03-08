@@ -257,7 +257,7 @@ defmodule Schema.JsonReader do
         if map[:type] == "category" do
           Enum.map(map[:attributes], fn {name, value} ->
             updated = add_extension(value, ext_type, ext_uid)
-            {Utils.make_key(ext_type, name), updated}
+            {Utils.to_uid(ext_type, name), updated}
           end)
         else
           Enum.map(map[:attributes], fn {name, value} ->
@@ -314,7 +314,7 @@ defmodule Schema.JsonReader do
           |> resolve_includes(home)
           |> add_extension(ext[:type], ext[:uid])
 
-        name = Utils.make_key(ext[:type], data[:type])
+        name = Utils.to_uid(ext[:type], data[:type])
         Map.put(acc, name, data)
       else
         acc
