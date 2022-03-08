@@ -240,7 +240,7 @@ defmodule SchemaWeb.SchemaController do
   def objects(conn, params) do
     objects =
       Enum.map(objects(params), fn {_name, map} ->
-        Map.delete(map, :_links)
+        Map.delete(map, :_links) |> Schema.delete_attributes()
       end)
 
     send_json_resp(conn, objects)
@@ -464,7 +464,7 @@ defmodule SchemaWeb.SchemaController do
     end
   end
 
-  def add_objects(data, %{"objects" => "1"}) do
+  defp add_objects(data, %{"objects" => "1"}) do
     objects = update_objects(Map.new(), data[:attributes])
 
     if map_size(objects) > 0 do
@@ -475,7 +475,7 @@ defmodule SchemaWeb.SchemaController do
     |> remove_links()
   end
 
-  def add_objects(data, _params) do
+  defp add_objects(data, _params) do
     remove_links(data)
   end
 
