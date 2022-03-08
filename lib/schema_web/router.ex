@@ -84,6 +84,14 @@ defmodule SchemaWeb.Router do
     post "/validate", SchemaController, :validate
   end
 
+  scope "/export", SchemaWeb do
+    pipe_through :api
+
+    get "/objects", SchemaController, :export_objects
+    get "/classes", SchemaController, :export_classes
+    get "/schema", SchemaController, :export_schema
+  end
+
   scope "/sample", SchemaWeb do
     pipe_through :api
 

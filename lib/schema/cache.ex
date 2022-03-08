@@ -124,6 +124,14 @@ defmodule Schema.Cache do
   @spec objects(__MODULE__.t()) :: map()
   def objects(%__MODULE__{objects: objects}), do: objects
 
+  @spec export_objects(__MODULE__.t()) :: map()
+  def export_objects(%__MODULE__{dictionary: dictionary, objects: objects}) do
+    Enum.map(objects, fn {name, object} ->
+      {name, enrich(object, dictionary[:attributes])}
+    end)
+    |> Map.new()
+  end
+
   @spec object(__MODULE__.t(), any) :: nil | object_t()
   def object(%__MODULE__{dictionary: dictionary, objects: objects}, id) do
     case Map.get(objects, id) do

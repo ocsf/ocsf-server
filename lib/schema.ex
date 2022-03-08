@@ -117,6 +117,15 @@ defmodule Schema do
   def objects(extensions), do: Repo.objects(extensions)
 
   @doc """
+    Exports all objects.
+  """
+  @spec export_objects() :: map()
+  def export_objects(), do: Repo.export_objects() |> reduce_objects()
+
+  @spec export_objects(Repo.extensions()) :: map()
+  def export_objects(extensions), do: Repo.export_objects(extensions) |> reduce_objects()
+
+  @doc """
     Returns a single objects.
   """
   @spec object(atom | String.t()) :: nil | Cache.object_t()
@@ -192,10 +201,35 @@ defmodule Schema do
     Repo.category(extensions, id) |> reduce_category()
   end
 
+  defp reduce_category(nil) do
+    nil
+  end
+
   defp reduce_category(data) do
     Map.update(data, :classes, [], fn classes ->
       Enum.map(classes, fn {name, class} ->
         {name, reduce_class(class)}
+      end)
+      |> Map.new()
+    end)
+  end
+
+  defp reduce_objects(objects) do
+    Enum.map(objects, fn {name, object} ->
+      updated = reduce_object(object) |> reduce_attributes(&reduce_object/1)
+      {name, updated}
+    end)
+    |> Map.new()
+  end
+
+  defp reduce_object(object) do
+    delete_links(object) |> Map.delete(:description)
+  end
+
+  defp reduce_attributes(data, reducer) do
+    Map.update(data, :attributes, [], fn attributes ->
+      Enum.map(attributes, fn {name, attribute} ->
+        {name, reducer.(attribute)}
       end)
       |> Map.new()
     end)
@@ -214,5 +248,10 @@ defmodule Schema do
   @spec delete_see_also(map) :: map
   def delete_see_also(data) do
     Map.delete(data, :see_also)
+  end
+
+  @spec delete_links(map) :: map
+  def delete_links(data) do
+    Map.delete(data, :_links)
   end
 end

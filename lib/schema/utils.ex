@@ -75,7 +75,7 @@ defmodule Schema.Utils do
 
     Enum.map(objects, fn {name, object} ->
       links = object_links(attributes, Atom.to_string(name))
-      {name, Map.put(object, :_links, links)}
+      {name, Map.put(object, @links, links)}
     end)
     |> Map.new()
   end

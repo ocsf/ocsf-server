@@ -139,6 +139,22 @@ defmodule Schema.Repo do
     end)
   end
 
+  @spec export_objects() :: map()
+  def export_objects() do
+    Agent.get(__MODULE__, fn schema -> Cache.export_objects(schema) end)
+  end
+
+  @spec export_objects(extensions() | nil) :: map()
+  def export_objects(nil) do
+    Agent.get(__MODULE__, fn schema -> Cache.export_objects(schema) end)
+  end
+
+  def export_objects(extensions) do
+    Agent.get(__MODULE__, fn schema ->
+      Cache.export_objects(schema) |> filter(extensions)
+    end)
+  end
+
   @spec object(atom) :: nil | Cache.class_t()
   def object(nil), do: nil
 

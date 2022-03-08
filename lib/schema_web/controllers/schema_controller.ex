@@ -55,6 +55,22 @@ defmodule SchemaWeb.SchemaController do
   end
 
   # {
+  # @api {get} /export/schema Request the schema hierarchy
+  # @apiName Schema
+  # @apiGroup Schema
+  # @apiVersion 1.0.0
+  # @apiPermission none
+  # }
+  @spec export_schema(Plug.Conn.t(), any) :: Plug.Conn.t()
+  def export_schema(conn, params) do
+    data =
+      parse_extensions(params["extensions"])
+      |> Schema.schema_map()
+
+    send_json_resp(conn, data)
+  end
+
+  # {
   # @api {get} /api/categories/:name Request Category classes
   # @apiName Category
   # @apiGroup Schema
@@ -195,6 +211,22 @@ defmodule SchemaWeb.SchemaController do
     send_json_resp(conn, classes)
   end
 
+  # {
+  # @api {get} /export/classes Request all Classes
+  # @apiName Class
+  # @apiGroup Schema
+  # @apiVersion 1.0.0
+  # @apiPermission none
+  # }
+  def export_classes(conn, params) do
+    classes =
+      Enum.map(classes(params), fn {_name, class} ->
+        Schema.reduce_class(class)
+      end)
+
+    send_json_resp(conn, classes)
+  end
+
   @spec classes(map) :: map
   def classes(params) do
     parse_extensions(params["extensions"]) |> Schema.classes()
@@ -243,6 +275,18 @@ defmodule SchemaWeb.SchemaController do
         Map.delete(map, :_links) |> Schema.delete_attributes()
       end)
 
+    send_json_resp(conn, objects)
+  end
+
+  # {
+  # @api {get} /export/objects Exports all Objects
+  # @apiName Objects
+  # @apiGroup Schema
+  # @apiVersion 1.0.0
+  # @apiPermission none
+  # }
+  def export_objects(conn, params) do
+    objects = parse_extensions(params["extensions"]) |> Schema.export_objects()
     send_json_resp(conn, objects)
   end
 
@@ -445,7 +489,7 @@ defmodule SchemaWeb.SchemaController do
 
   defp remove_links(data) do
     data
-    |> Map.delete(:_links)
+    |> Schema.delete_links()
     |> remove_links(:attributes)
   end
 
@@ -457,7 +501,7 @@ defmodule SchemaWeb.SchemaController do
       list ->
         updated =
           Enum.map(list, fn {k, v} ->
-            %{k => Map.delete(v, :_links)}
+            %{k => Schema.delete_links(v)}
           end)
 
         Map.put(data, key, updated)
