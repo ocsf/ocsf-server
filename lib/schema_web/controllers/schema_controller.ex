@@ -169,7 +169,8 @@ defmodule SchemaWeb.SchemaController do
           send_json_resp(conn, 404, %{error: "Not Found: #{id}"})
 
         data ->
-          send_json_resp(conn, add_objects(data, params))
+          class = Schema.delete_see_also(data) |> add_objects(params)
+          send_json_resp(conn, class)
       end
     rescue
       e ->

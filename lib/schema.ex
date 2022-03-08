@@ -201,15 +201,22 @@ defmodule Schema do
       Enum.map(classes, fn {name, class} ->
         {name, reduce_class(class)}
       end)
+      |> Map.new()
     end)
   end
 
   @spec reduce_class(map) :: map
   def reduce_class(data) do
-    delete_attributes(data) |> Map.delete(:see_also)
+    delete_attributes(data) |> delete_see_also()
   end
 
-  defp delete_attributes(data) do
+  @spec delete_attributes(map) :: map
+  def delete_attributes(data) do
     Map.delete(data, :attributes)
+  end
+
+  @spec delete_see_also(map) :: map
+  def delete_see_also(data) do
+    Map.delete(data, :see_also)
   end
 end
