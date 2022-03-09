@@ -90,6 +90,15 @@ defmodule Schema do
   @spec classes(Repo.extensions()) :: map()
   def classes(extensions), do: Repo.classes(extensions)
 
+    @doc """
+    Exports all classes.
+  """
+  @spec export_classes() :: map()
+  def export_classes(), do: Repo.export_classes() |> reduce_objects()
+
+  @spec export_classes(Repo.extensions()) :: map()
+  def export_classes(extensions), do: Repo.export_classes(extensions) |> reduce_objects()
+
   @doc """
     Returns a single event class.
   """
@@ -216,7 +225,9 @@ defmodule Schema do
 
   defp reduce_objects(objects) do
     Enum.map(objects, fn {name, object} ->
-      updated = reduce_object(object) |> reduce_attributes(&reduce_object/1)
+      updated = reduce_object(object)
+      |> reduce_attributes(&reduce_object/1)
+      |> delete_see_also()
       {name, updated}
     end)
     |> Map.new()

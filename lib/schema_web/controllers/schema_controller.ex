@@ -219,10 +219,7 @@ defmodule SchemaWeb.SchemaController do
   # @apiPermission none
   # }
   def export_classes(conn, params) do
-    classes =
-      Enum.map(classes(params), fn {_name, class} ->
-        Schema.reduce_class(class)
-      end)
+    classes = parse_extensions(params["extensions"]) |> Schema.export_classes()
 
     send_json_resp(conn, classes)
   end

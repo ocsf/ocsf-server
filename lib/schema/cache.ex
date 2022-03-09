@@ -98,6 +98,15 @@ defmodule Schema.Cache do
   @spec classes(__MODULE__.t()) :: list
   def classes(%__MODULE__{classes: classes}), do: classes
 
+  @spec export_classes(__MODULE__.t()) ::map()
+  def export_classes(%__MODULE__{classes: classes, dictionary: dictionary}) do
+    Enum.map(classes, fn {name, class} ->
+      {name, enrich(class, dictionary[:attributes])}
+    end)
+    |> Map.new()
+  end
+
+
   @spec class(__MODULE__.t(), atom()) :: nil | class_t()
   def class(%__MODULE__{dictionary: dictionary, base_event: base_event}, :base_event) do
     enrich(base_event, dictionary[:attributes])
