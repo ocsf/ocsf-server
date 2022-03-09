@@ -63,9 +63,11 @@ defmodule SchemaWeb.SchemaController do
   # }
   @spec export_schema(Plug.Conn.t(), any) :: Plug.Conn.t()
   def export_schema(conn, params) do
-    data =
-      parse_extensions(params["extensions"])
-      |> Schema.schema_map()
+    extensions = parse_extensions(params["extensions"])
+    classes = Schema.export_classes(extensions)
+    objects = Schema.export_objects(extensions)
+
+    data = %{:classes => classes, :objects => objects}
 
     send_json_resp(conn, data)
   end
