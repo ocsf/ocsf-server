@@ -90,7 +90,7 @@ defmodule Schema do
   @spec classes(Repo.extensions()) :: map()
   def classes(extensions), do: Repo.classes(extensions)
 
-    @doc """
+  @doc """
     Exports all classes.
   """
   @spec export_classes() :: map()
@@ -202,6 +202,22 @@ defmodule Schema do
     |> Map.put(:value, length(categories))
   end
 
+  @spec export_schema(MapSet.t(binary)) :: %{classes: map, objects: map}
+  def export_schema(extensions) do
+    %{
+      :classes => Schema.export_classes(extensions),
+      :objects => Schema.export_objects(extensions)
+    }
+  end
+
+  @spec export_schema() :: %{classes: map, objects: map}
+  def export_schema() do
+    %{
+      :classes => Schema.export_classes(),
+      :objects => Schema.export_objects()
+    }
+  end
+
   defp get_category(id) do
     Repo.category(id) |> reduce_category()
   end
@@ -225,9 +241,11 @@ defmodule Schema do
 
   defp reduce_objects(objects) do
     Enum.map(objects, fn {name, object} ->
-      updated = reduce_object(object)
-      |> reduce_attributes(&reduce_object/1)
-      |> delete_see_also()
+      updated =
+        reduce_object(object)
+        |> reduce_attributes(&reduce_object/1)
+        |> delete_see_also()
+
       {name, updated}
     end)
     |> Map.new()

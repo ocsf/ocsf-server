@@ -55,7 +55,7 @@ defmodule SchemaWeb.SchemaController do
   end
 
   # {
-  # @api {get} /export/schema Request the schema hierarchy
+  # @api {get} /export/schema Export all classes and objects
   # @apiName Schema
   # @apiGroup Schema
   # @apiVersion 1.0.0
@@ -63,11 +63,7 @@ defmodule SchemaWeb.SchemaController do
   # }
   @spec export_schema(Plug.Conn.t(), any) :: Plug.Conn.t()
   def export_schema(conn, params) do
-    extensions = parse_extensions(params["extensions"])
-    classes = Schema.export_classes(extensions)
-    objects = Schema.export_objects(extensions)
-
-    data = %{:classes => classes, :objects => objects}
+    data = parse_extensions(params["extensions"]) |> Schema.export_schema()
 
     send_json_resp(conn, data)
   end
@@ -214,7 +210,7 @@ defmodule SchemaWeb.SchemaController do
   end
 
   # {
-  # @api {get} /export/classes Request all Classes
+  # @api {get} /export/classes Export all classes
   # @apiName Class
   # @apiGroup Schema
   # @apiVersion 1.0.0
@@ -278,7 +274,7 @@ defmodule SchemaWeb.SchemaController do
   end
 
   # {
-  # @api {get} /export/objects Exports all Objects
+  # @api {get} /export/objects Export all objects
   # @apiName Objects
   # @apiGroup Schema
   # @apiVersion 1.0.0
