@@ -414,7 +414,7 @@ defmodule Schema.Generator do
 
   def version() do
     n = random(3) + 1
-    Enum.map(1..n, fn _ -> random(5) end) |> Enum.join(".")
+    Enum.map_join(1..n, ".", fn _ -> random(5) end)
   end
 
   def file_name(0) do
@@ -468,23 +468,21 @@ defmodule Schema.Generator do
   end
 
   def ipv4() do
-    Enum.map(1..4, fn _n -> random(256) end) |> Enum.join(".")
+    Enum.map_join(1..4, ".", fn _n -> random(256) end)
   end
 
   # 00:25:96:FF:FE:12:34:56
   def mac() do
-    Enum.map(1..8, fn _n -> random(256) |> Integer.to_string(16) end)
-    |> Enum.join(":")
+    Enum.map_join(1..8, ":", fn _n -> random(256) |> Integer.to_string(16) end)
   end
 
   # 2001:0000:3238:DFE1:0063:0000:0000:FEFB
   def ipv6() do
-    Enum.map(1..8, fn _n ->
+    Enum.map_join(1..8, ":", fn _n ->
       random(65_536)
       |> Integer.to_string(16)
       |> String.pad_leading(4, "0")
     end)
-    |> Enum.join(":")
   end
 
   def email() do
