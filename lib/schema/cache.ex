@@ -98,14 +98,13 @@ defmodule Schema.Cache do
   @spec classes(__MODULE__.t()) :: list
   def classes(%__MODULE__{classes: classes}), do: classes
 
-  @spec export_classes(__MODULE__.t()) ::map()
+  @spec export_classes(__MODULE__.t()) :: map()
   def export_classes(%__MODULE__{classes: classes, dictionary: dictionary}) do
     Enum.map(classes, fn {name, class} ->
       {name, enrich(class, dictionary[:attributes])}
     end)
     |> Map.new()
   end
-
 
   @spec class(__MODULE__.t(), atom()) :: nil | class_t()
   def class(%__MODULE__{dictionary: dictionary, base_event: base_event}, :base_event) do
@@ -261,44 +260,47 @@ defmodule Schema.Cache do
       data,
       :attributes,
       fn attributes ->
-        id = attributes[:disposition_id] || %{}
         uid = attributes[:event_id] || %{}
-        class_id = (data[:uid] || 0) * @multiplier
-        caption = data[:name] || "UNKNOWN"
-
-        enum =
-          case id[:enum] do
-            nil ->
-              Logger.warn("class '#{name}' has no disposition_id values")
-              %{}
-
-            values ->
-              for {key, val} = value <- values, into: %{} do
-                case key do
-                  :"-1" ->
-                    value
-
-                  _ ->
-                    {
-                      make_enum_id(class_id, key),
-                      Map.put(val, :name, make_enum_name(caption, val[:name]))
-                    }
-                end
-              end
-          end
-          |> Map.put(
-            integer_to_id(0, -1),
-            Map.new(name: make_enum_name(caption, "Other"))
-          )
-          |> Map.put(
-            integer_to_id(class_id, 0),
-            Map.new(name: make_enum_name(caption, "Unknown"))
-          )
+        enum = make_event_id(data, name, attributes)
 
         Map.put(attributes, :event_id, Map.put(uid, :enum, enum))
       end
     )
     |> put_in([:attributes, :event_id, :_source], name)
+  end
+
+  defp make_event_id(data, name, attributes) do
+    id = attributes[:disposition_id] || %{}
+    class_id = (data[:uid] || 0) * @multiplier
+    caption = data[:name] || "UNKNOWN"
+
+    case id[:enum] do
+      nil ->
+        Logger.warn("class '#{name}' has no disposition_id values")
+        %{}
+
+      values ->
+        for {key, val} = value <- values, into: %{} do
+          case key do
+            :"-1" ->
+              value
+
+            _ ->
+              {
+                make_enum_id(class_id, key),
+                Map.put(val, :name, make_enum_name(caption, val[:name]))
+              }
+          end
+        end
+    end
+    |> Map.put(
+      integer_to_id(0, -1),
+      Map.new(name: make_enum_name(caption, "Other"))
+    )
+    |> Map.put(
+      integer_to_id(class_id, 0),
+      Map.new(name: make_enum_name(caption, "Unknown"))
+    )
   end
 
   defp make_enum_name(caption, name) do

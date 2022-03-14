@@ -520,21 +520,25 @@ defmodule SchemaWeb.SchemaController do
 
   defp update_objects(objects, attributes) do
     Enum.reduce(attributes, objects, fn {_name, field}, acc ->
-      case field[:type] do
-        "object_t" ->
-          type = field[:object_type] |> String.to_atom()
-
-          if Map.has_key?(acc, type) do
-            acc
-          else
-            object = Schema.object(type)
-            Map.put(acc, type, remove_links(object)) |> update_objects(object[:attributes])
-          end
-
-        _other ->
-          acc
-      end
+      update_object(field, acc)
     end)
+  end
+
+  defp update_object(field, acc) do
+    case field[:type] do
+      "object_t" ->
+        type = field[:object_type] |> String.to_atom()
+
+        if Map.has_key?(acc, type) do
+          acc
+        else
+          object = Schema.object(type)
+          Map.put(acc, type, remove_links(object)) |> update_objects(object[:attributes])
+        end
+
+      _other ->
+        acc
+    end
   end
 
   defp verbose(option) when is_binary(option) do
@@ -549,5 +553,4 @@ defmodule SchemaWeb.SchemaController do
   defp parse_extensions(nil), do: MapSet.new()
   defp parse_extensions(""), do: MapSet.new()
   defp parse_extensions(ext), do: String.split(ext, ",") |> MapSet.new()
-
 end

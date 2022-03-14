@@ -199,14 +199,7 @@ defmodule Schema.Inspector do
 
         {map, _count} =
           Enum.reduce(value, {Map.new(), 0}, fn data, {map, count} ->
-            result = validate_type(object, data)
-
-            map =
-              if map_size(result) > 0 do
-                Map.put(map, "#{count}", result)
-              else
-                map
-              end
+            map = validate_type(object, data) |> add_count(map, count)
 
             {map, count + 1}
           end)
@@ -219,6 +212,14 @@ defmodule Schema.Inspector do
         else
           acc
         end
+    end
+  end
+
+  defp add_count(result, map, count) do
+    if map_size(result) > 0 do
+      Map.put(map, "#{count}", result)
+    else
+      map
     end
   end
 
