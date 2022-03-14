@@ -121,6 +121,37 @@ defmodule SchemaWeb.SchemaController do
   end
 
   # {
+  # @api {get} /export/category/:name Export Category classes
+  # @apiName Category
+  # @apiGroup Schema
+  # @apiVersion 1.0.0
+  # @apiPermission none
+  # @apiParam {String} name Category name
+  # }
+  @doc """
+  Exports the classes in a given category.
+  """
+  @spec export_category(Plug.Conn.t(), map) :: Plug.Conn.t()
+  def export_category(conn, %{"id" => id} = params) do
+    try do
+      extension = params["extension"]
+      category = parse_extensions(params["extensions"]) |> Schema.export_category(extension, id)
+
+      case category do
+        nil ->
+          send_json_resp(conn, 404, %{error: "Not Found: #{id}"})
+
+        data ->
+          send_json_resp(conn, data)
+      end
+    rescue
+      e ->
+        Logger.error("Unable to load the classes for category: #{id}. Error: #{inspect(e)}")
+        send_json_resp(conn, 500, %{error: "Error: #{e[:message]}"})
+    end
+  end
+
+  # {
   # @api {get} /api/dictionary Request Dictionary
   # @apiName Dictionary
   # @apiGroup Schema

@@ -50,22 +50,10 @@ defmodule Schema.Repo do
 
   @spec category(atom) :: nil | Cache.category_t()
   def category(id) do
-    Agent.get(__MODULE__, fn schema ->
-      case Cache.category(schema, id) do
-        nil ->
-          nil
-
-        category ->
-          add_classes({id, category}, Cache.classes(schema))
-      end
-    end)
+    category(nil, id)
   end
 
   @spec category(extensions() | nil, atom) :: nil | Cache.category_t()
-  def category(nil, id) do
-    category(id)
-  end
-
   def category(extensions, id) do
     Agent.get(__MODULE__, fn schema ->
       case Cache.category(schema, id) do
@@ -74,6 +62,24 @@ defmodule Schema.Repo do
 
         category ->
           add_classes(extensions, {id, category}, Cache.classes(schema))
+      end
+    end)
+  end
+
+  @spec export_category(atom) :: nil | Cache.category_t()
+  def export_category(id) do
+    export_category(nil, id)
+  end
+
+  @spec export_category(extensions() | nil, atom) :: nil | Cache.category_t()
+  def export_category(extensions, id) do
+    Agent.get(__MODULE__, fn schema ->
+      case Cache.category(schema, id) do
+        nil ->
+          nil
+
+        category ->
+          add_classes(extensions, {id, category}, Cache.export_classes(schema))
       end
     end)
   end
@@ -198,7 +204,7 @@ defmodule Schema.Repo do
     |> Map.new()
   end
 
-  defp add_classes({id, category}, classes) do
+  defp add_classes(nil, {id, category}, classes) do
     category_id = Atom.to_string(id)
 
     list =
@@ -235,5 +241,4 @@ defmodule Schema.Repo do
 
     Map.put(category, :classes, list)
   end
-
 end

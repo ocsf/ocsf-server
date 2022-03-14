@@ -89,6 +89,7 @@ defmodule SchemaWeb.Router do
 
     get "/objects", SchemaController, :export_objects
     get "/classes", SchemaController, :export_classes
+    get "/category/:id", SchemaController, :export_category
     get "/schema", SchemaController, :export_schema
   end
 
