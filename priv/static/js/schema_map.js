@@ -9,8 +9,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 export default function define(runtime, observer) {
-  let width = 900;
-  let height = 525;
+  let width = getWidth() * 0.75;
+  let height = getHeight() * 0.65;
 
   const main = runtime.module();
   const params = extensions_params();
@@ -21,7 +21,7 @@ export default function define(runtime, observer) {
   main.variable("viewof tile").define("viewof tile", ["d3", "html"], function (d3, html) {
     const options = [];
 
-    const form = html`<form style="display: flex; align-items: center; min-height: 33px;"><select name=i>${options.map(o => Object.assign(html`<option>`, { textContent: o.name, selected: o.selected }))}`;
+    const form = html`<form style="display: flex; align-items: center; min-height: 50px;"><select name=i>${options.map(o => Object.assign(html`<option>`, { textContent: o.name, selected: o.selected }))}`;
     form.i.onchange = () => form.dispatchEvent(new CustomEvent("input"));
     form.oninput = () => form.value = d3.treemapBinary;
     form.oninput();
@@ -33,16 +33,12 @@ export default function define(runtime, observer) {
 
   main.variable(observer("chart")).define("chart", ["treemap", "data", "d3", "color"],
     function (treemap, data, d3,  color) {
-      if (data.children.length > 3) {
-        width = 850;
-        height = 1200;              
-      }
       const root = treemap(data);
 
       const svg = d3.create("svg")
         .attr("viewBox", [-8, 30, width, height])
-        .style("font", "10px open-sans")
-        .attr("class", "schema");;
+        .style("font", "12px open-sans")
+        .attr("class", "schema");
 
       const leaf = svg.selectAll("g")
         .data(root.leaves())
@@ -53,7 +49,7 @@ export default function define(runtime, observer) {
       leaf
         .append("rect")
         .attr("fill", d => { while (d.depth > 1) d = d.parent; return color(d.data.name); })
-        .attr("fill-opacity", 0.8)
+        .attr("fill-opacity", 0.75)
         .attr("width", d => d.x1 - d.x0)
         .attr("height", d => d.y1 - d.y0);
 
@@ -66,7 +62,7 @@ export default function define(runtime, observer) {
         .data(d => d.data.name.split(/(?=[A-Z][a-z])|\s+/g).concat(d.data.uid))
         .join("tspan")
         .attr("x", 3)
-        .attr("y", (d, i) => `${1 + i * 0.9}em`)
+        .attr("y", (d, i) => `${1 + i * 0.95}em`)
         .text(d => d);
 
       // Add title for the categories
@@ -78,7 +74,7 @@ export default function define(runtime, observer) {
         .attr("xlink:href", function (d) { return "/categories/" + d.data.type + params; })
         .append("text")
         .attr("x", function (d) { return d.x0 + 5 })
-        .attr("y", function (d) { return d.y0 + 20 })
+        .attr("y", function (d) { return d.y0 + 18 })
         .text(function (d) { return "[" + d.data.uid + "] " + d.data.name })
         .style("font", "13px open-sans")
         .attr("fill", function (d) { return color(d.data.name) });
@@ -116,4 +112,24 @@ function make_path(extension, type) {
   }
 
   return extension + "/" + type;
+}
+
+function getWidth() {
+  return Math.max(
+    document.body.scrollWidth,
+    document.documentElement.scrollWidth,
+    document.body.offsetWidth,
+    document.documentElement.offsetWidth,
+    document.documentElement.clientWidth
+  );
+}
+
+function getHeight() {
+  return Math.max(
+    document.body.scrollHeight,
+    document.documentElement.scrollHeight,
+    document.body.offsetHeight,
+    document.documentElement.offsetHeight,
+    document.documentElement.clientHeight
+  );
 }

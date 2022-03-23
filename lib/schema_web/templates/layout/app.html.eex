@@ -123,7 +123,7 @@ limitations under the License.
 </div>
 
 <div class="footer">
-  Splunk Event Schema v<%= Schema.version() %> &copy; 2005-2021 Splunk Inc. All rights reserved. This content includes
+  Splunk Event Schema v<%= Schema.version() %> &copy; 2005-2022 Splunk Inc. All rights reserved. This content includes
   the ICD Schema developed by Symantec, a division of Broadcom.
 </div>
 
