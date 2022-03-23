@@ -63,7 +63,7 @@ defmodule SchemaWeb.PageController do
   end
 
   def categories(conn, params) do
-    data = SchemaController.categories(params) |> sort_attributes(:id)
+    data = SchemaController.categories(params) |> sort_attributes(:uid)
 
     render(conn, "index.html", data: data)
   end
@@ -144,15 +144,15 @@ defmodule SchemaWeb.PageController do
     sort_attributes(map, :name)
   end
 
-  def sort_attributes(map, key) do
+  defp sort_attributes(map, key) do
     Map.update!(map, :attributes, &sort_by(&1, key))
   end
 
-  def sort_by_name(map) do
+  defp sort_by_name(map) do
     sort_by(map, :name)
   end
 
-  def sort_by(map, key) do
+  defp sort_by(map, key) do
     Enum.sort(map, fn {_, v1}, {_, v2} -> v1[key] <= v2[key] end)
   end
 end
