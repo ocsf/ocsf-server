@@ -93,6 +93,19 @@ defmodule Schema do
   def dictionary(extensions), do: Repo.dictionary(extensions)
 
   @doc """
+    Returns the data types defined in dictionary.
+  """
+  @spec data_types :: any
+  def data_types() do
+    Map.get(Repo.dictionary(), :types)
+  end
+
+  @spec export_data_types :: any
+  def export_data_types() do
+    Map.get(data_types(), :attributes)
+  end
+
+  @doc """
     Returns all event classes.
   """
   @spec classes() :: map()
@@ -213,19 +226,21 @@ defmodule Schema do
     |> Map.put(:value, length(categories))
   end
 
-  @spec export_schema(MapSet.t(binary)) :: %{classes: map, objects: map}
+  @spec export_schema(MapSet.t(binary)) :: %{classes: map, objects: map, types: map}
   def export_schema(extensions) do
     %{
       :classes => Schema.export_classes(extensions),
-      :objects => Schema.export_objects(extensions)
+      :objects => Schema.export_objects(extensions),
+      :types => Schema.export_data_types()
     }
   end
 
-  @spec export_schema() :: %{classes: map, objects: map}
+  @spec export_schema() :: %{classes: map, objects: map, types: map}
   def export_schema() do
     %{
       :classes => Schema.export_classes(),
-      :objects => Schema.export_objects()
+      :objects => Schema.export_objects(),
+      :types => Schema.export_data_types()
     }
   end
 

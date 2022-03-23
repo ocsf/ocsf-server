@@ -38,7 +38,7 @@ defmodule SchemaWeb.PageController do
   """
   @spec data_types(Plug.Conn.t(), any) :: Plug.Conn.t()
   def data_types(conn, _params) do
-    data = Schema.dictionary()[:types] |> sort_attributes()
+    data = Schema.data_types() |> sort_attributes()
 
     render(conn, "data_types.html", data: data)
   end

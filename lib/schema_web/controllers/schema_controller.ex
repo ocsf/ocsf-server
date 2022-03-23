@@ -35,7 +35,7 @@ defmodule SchemaWeb.SchemaController do
   """
   @spec data_types(Plug.Conn.t(), any) :: Plug.Conn.t()
   def data_types(conn, _params) do
-    send_json_resp(conn, get_in(Schema.dictionary(), [:types, :attributes]))
+    send_json_resp(conn, Schema.export_data_types())
   end
 
   # {
