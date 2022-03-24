@@ -27,6 +27,8 @@ defmodule Schema.Inspector do
     "ipv4_t",
     "ipv6_t",
     "netmask_t",
+    "process_name_t",
+    "username_t",
     "json_t"
   ]
 
@@ -100,23 +102,19 @@ defmodule Schema.Inspector do
   end
 
   defp validate_data(acc, name, attribute, value) when is_map(value) do
-    type = attribute[:type]
-
-    case type do
+    case attribute[:type] do
       "object_t" -> validate_object(acc, name, attribute, value)
       "json_t" -> acc
-      _ -> Map.put(acc, name, invalid_data_type(attribute, value, type))
+      type -> Map.put(acc, name, invalid_data_type(attribute, value, type))
     end
   end
 
   defp validate_data(acc, name, attribute, value) when is_list(value) do
-    type = attribute[:type]
-
-    case type do
+    case attribute[:type] do
       "json_t" ->
         acc
 
-      _ ->
+      type ->
         if attribute[:is_array] == true do
           validate_array(acc, name, attribute, value)
         else
