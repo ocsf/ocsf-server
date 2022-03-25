@@ -26,7 +26,7 @@ limitations under the License.
     <%= @data[:name] %> <span class="text-secondary">Event Class <small><%= @data[:extension] || "" %></small></span>
   </h2>
 
-  <h4 class="extensions"><a href="<%= path %>"><%= @data[:category_name] %> Category</a></h4>
+  <h4><a href="<%= path %>"><%= @data[:category_name] %> Category</a></h4>
 
   <% see_also = @data[:see_also] %>
   <%= if see_also != nil and see_also != [] do %>
