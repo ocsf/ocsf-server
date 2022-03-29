@@ -405,22 +405,25 @@ defmodule Schema.JsonReader do
     Utils.deep_merge(included, attribute)
   end
 
+  @spec extensions(any, binary | maybe_improper_list) :: any
   def extensions(home, path) when is_binary(path) do
     find_extensions(home, path, [])
   end
 
   def extensions(home, list) when is_list(list) do
     Enum.reduce(list, [], fn path, acc ->
-      find_extensions(home, path, acc)
+      find_extensions(home, String.trim(path), acc)
     end)
     |> Enum.uniq_by(fn {path, _} -> path end)
   end
 
   defp find_extensions(home, path, list) do
     path =
-      Path.join(home, path)
-      |> Path.absname()
-      |> Path.expand()
+      if File.dir?(path) do
+        path
+      else
+        Path.join(home, path) |> Path.absname()
+      end
 
     if File.dir?(path) do
       find_extensions(path, list)
