@@ -98,7 +98,7 @@ defmodule Schema.Generator do
             -1
           end
 
-        Map.put(data, :event_id, uid)
+        Map.put(data, :event_uid, uid)
     end
   end
 
