@@ -15,6 +15,7 @@ defmodule Schema.Cache do
 
   alias Schema.Utils
   alias Schema.JsonReader
+  alias Schema.Types
 
   require Logger
 
@@ -38,9 +39,6 @@ defmodule Schema.Cache do
   @type object_t() :: map()
   @type category_t() :: map()
   @type dictionary_t() :: map()
-
-  @multiplier 100
-  @class_multiplier 1000
 
   @doc """
   Load the schema files and initialize the cache.
@@ -230,7 +228,7 @@ defmodule Schema.Cache do
   end
 
   defp update_category_id(name, category, extension) do
-    {name, Map.update!(category, :uid, fn uid -> extension * @multiplier + uid end)}
+    {name, Map.update!(category, :uid, fn uid -> Types.category_uid(extension, uid) end)}
   end
 
   defp update_class_id(class, categories) do
@@ -242,18 +240,15 @@ defmodule Schema.Cache do
     case class[:extension_id] do
       nil ->
         Map.update(class, :uid, 0, fn uid ->
-          category[:uid] * @class_multiplier + uid
+          Types.class_uid(category[:uid], uid)
         end)
 
       ext ->
         Map.update(class, :uid, 0, fn uid ->
-          category_id(category[:uid], ext) * @class_multiplier + uid
+          Types.class_uid(Types.category_uid_ex(ext, category[:uid]), uid)
         end)
     end
   end
-
-  defp category_id(id, ext) when id < @multiplier, do: ext * @multiplier + id
-  defp category_id(id, _ext), do: id
 
   defp add_event_id(data, name) do
     Map.update!(
@@ -271,7 +266,7 @@ defmodule Schema.Cache do
 
   defp make_event_id(data, name, attributes) do
     id = attributes[:disposition_id] || %{}
-    class_id = (data[:uid] || 0) * @multiplier
+    class_id = Types.event_uid(data[:uid] || 0, 0)
     caption = data[:name] || "UNKNOWN"
 
     case id[:enum] do
@@ -288,23 +283,19 @@ defmodule Schema.Cache do
             _ ->
               {
                 make_enum_id(class_id, key),
-                Map.put(val, :name, make_enum_name(caption, val[:name]))
+                Map.put(val, :name, Types.event_name(caption, val[:name]))
               }
           end
         end
     end
     |> Map.put(
       integer_to_id(0, -1),
-      Map.new(name: make_enum_name(caption, "Other"))
+      Map.new(name: Types.event_name(caption, "Other"))
     )
     |> Map.put(
       integer_to_id(class_id, 0),
-      Map.new(name: make_enum_name(caption, "Unknown"))
+      Map.new(name: Types.event_name(caption, "Unknown"))
     )
-  end
-
-  defp make_enum_name(caption, name) do
-    caption <> ": " <> name
   end
 
   defp make_enum_id(class_id, key) do

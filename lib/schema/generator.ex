@@ -17,6 +17,7 @@ defmodule Schema.Generator do
   use Bitwise
 
   alias __MODULE__
+  alias Schema.Types
 
   require Logger
 
@@ -93,7 +94,7 @@ defmodule Schema.Generator do
       disposition_id ->
         uid =
           if disposition_id >= 0 do
-            data.class_id * 1000 + disposition_id
+            Types.event_uid(data.class_id, disposition_id)
           else
             -1
           end
