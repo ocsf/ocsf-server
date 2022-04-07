@@ -94,7 +94,7 @@ defmodule Schema.Generator do
       disposition_id ->
         uid =
           if disposition_id >= 0 do
-            Types.event_uid(data.class_id, disposition_id)
+            Types.event_uid(data[:class_uid], disposition_id)
           else
             -1
           end

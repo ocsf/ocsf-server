@@ -15,7 +15,7 @@ defmodule Schema.Inspector do
 
   require Logger
 
-  @class_id "class_id"
+  @class_id "class_uid"
 
   @string_types [
     "string_t",

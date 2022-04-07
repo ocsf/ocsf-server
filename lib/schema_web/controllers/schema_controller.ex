@@ -338,7 +338,7 @@ defmodule SchemaWeb.SchemaController do
   #
   # @apiParamExample {json} Request-Example:
   #     {
-  #       "class_id": 100,
+  #       "class_uid": 100,
   #       "disposition_id": 1,
   #       "severity_id": 1,
   #       "message": "This is an important message"
@@ -346,7 +346,7 @@ defmodule SchemaWeb.SchemaController do
   #
   # @apiSuccessExample {json} Success-Response:
   #     {
-  #       "class_id": "Entity Audit",
+  #       "class_uid": "Entity Audit",
   #       "message": "This is an important message",
   #       "disposition_id": "Created",
   #       "severity_id": "Informational"

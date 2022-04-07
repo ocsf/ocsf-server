@@ -202,7 +202,7 @@ defmodule Schema.Cache do
     |> Map.new()
   end
 
-  # Add category_id, class_id, and event_uid
+  # Add category_uid, class_uid, and event_uid
   defp enrich_class({name, class}, categories) do
     data =
       class
@@ -318,8 +318,8 @@ defmodule Schema.Cache do
     }
 
     data
-    |> put_in([:attributes, :class_id, :enum], %{class_id => enum})
-    |> put_in([:attributes, :class_id, :_source], name)
+    |> put_in([:attributes, :class_uid, :enum], %{class_id => enum})
+    |> put_in([:attributes, :class_uid, :_source], name)
   end
 
   defp add_category_id(class, name, categories) do
@@ -336,14 +336,14 @@ defmodule Schema.Cache do
         else
           update_in(
             class,
-            [:attributes, :category_id, :enum],
+            [:attributes, :category_uid, :enum],
             fn _enum ->
               id = Integer.to_string(category[:uid]) |> String.to_atom()
               %{id => category}
             end
           )
         end
-        |> put_in([:attributes, :category_id, :_source], name)
+        |> put_in([:attributes, :category_uid, :_source], name)
     end
   end
 

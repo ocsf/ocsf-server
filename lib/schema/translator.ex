@@ -17,9 +17,9 @@ defmodule Schema.Translator do
   def translate(data, options) when is_map(data) do
     Logger.debug("translate event: #{inspect(data)}, options: #{inspect(options)}")
 
-    case data[:class_id] do
+    case data[:class_uid] do
       nil ->
-        translate_class(data["class_id"], data, options)
+        translate_class(data["class_uid"], data, options)
 
       class_id ->
         translate_class(class_id, data, options)
