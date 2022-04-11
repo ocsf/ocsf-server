@@ -61,27 +61,27 @@ defmodule SchemaWeb.PageView do
   end
 
   def format_constraints(:string_t, field) do
-    format_string_constrains(field)
+    format_string_constraints(field)
   end
 
   def format_constraints(:integer_t, field) do
-    format_integer_constrains(field)
+    format_integer_constraints(field)
   end
 
   def format_constraints(:long_t, field) do
-    format_integer_constrains(field)
+    format_integer_constraints(field)
   end
 
   def format_constraints("string_t", field) do
-    format_string_constrains(field)
+    format_string_constraints(field)
   end
 
   def format_constraints("integer_t", field) do
-    format_integer_constrains(field)
+    format_integer_constraints(field)
   end
 
   def format_constraints("long_t", field) do
-    format_integer_constrains(field)
+    format_integer_constraints(field)
   end
 
   def format_constraints(:boolean_t, field) do
@@ -100,7 +100,7 @@ defmodule SchemaWeb.PageView do
     format_constraints(Map.get(field, :type), field)
   end
 
-  defp format_integer_constrains(field) do
+  defp format_integer_constraints(field) do
     case Map.get(field, :range) do
       nil ->
         format_values(Map.get(field, :values))
@@ -110,7 +110,7 @@ defmodule SchemaWeb.PageView do
     end
   end
 
-  defp format_string_constrains(field) do
+  defp format_string_constraints(field) do
     max_len = format_max_len(field)
 
     case Map.get(field, :regex) do
@@ -228,13 +228,9 @@ defmodule SchemaWeb.PageView do
   end
 
   def constraints(rules) do
-    text =
-      Enum.reduce(rules, [], fn {name, list}, acc ->
-        IO.puts("#{inspect(acc)}")
-        constraints(name, list, acc)
-      end)
-
-    text
+    Enum.reduce(rules, [], fn {name, list}, acc ->
+      constraints(name, list, acc)
+    end)
   end
 
   def constraints(_name, nil, acc) do
@@ -258,6 +254,16 @@ defmodule SchemaWeb.PageView do
   end
 
   def constraints(name, list, acc) do
+    [Atom.to_string(name), ": <strong>", Enum.join(list, ", "), "</strong><br/>" | acc]
+  end
+
+  def associations(rules) do
+    Enum.reduce(rules, [], fn {name, list}, acc ->
+      associations(name, list, acc)
+    end)
+  end
+
+  def associations(name, list, acc) do
     [Atom.to_string(name), ": <strong>", Enum.join(list, ", "), "</strong><br/>" | acc]
   end
 
