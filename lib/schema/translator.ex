@@ -21,19 +21,19 @@ defmodule Schema.Translator do
       nil ->
         translate_class(data["class_uid"], data, options)
 
-      class_id ->
-        translate_class(class_id, data, options)
+      class_uid ->
+        translate_class(class_uid, data, options)
     end
   end
 
   # this is not an event
   def translate(data, _options), do: data
 
-  # missing class_id, thus cannot translate the event
+  # missing class_uid, thus cannot translate the event
   defp translate_class(nil, data, _options), do: data
 
-  defp translate_class(class_id, data, options) do
-    translate_event(Schema.find_class(class_id), data, options)
+  defp translate_class(class_uid, data, options) do
+    translate_event(Schema.find_class(class_uid), data, options)
   end
 
   # unknown event class, thus cannot translate the event

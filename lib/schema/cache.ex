@@ -206,10 +206,10 @@ defmodule Schema.Cache do
   defp enrich_class({name, class}, categories) do
     data =
       class
-      |> update_class_id(categories)
-      |> add_event_id(name)
-      |> add_class_id(name)
-      |> add_category_id(name, categories)
+      |> update_class_uid(categories)
+      |> add_event_uid(name)
+      |> add_class_uid(name)
+      |> add_category_uid(name, categories)
 
     {name, data}
   end
@@ -217,21 +217,21 @@ defmodule Schema.Cache do
   defp update_categories(categories) do
     Map.update!(categories, :attributes, fn attributes ->
       Enum.map(attributes, fn {name, cat} ->
-        update_category_id(name, cat, cat[:extension_id])
+        update_category_uid(name, cat, cat[:extension_id])
       end)
       |> Map.new()
     end)
   end
 
-  defp update_category_id(name, category, nil) do
+  defp update_category_uid(name, category, nil) do
     {name, category}
   end
 
-  defp update_category_id(name, category, extension) do
+  defp update_category_uid(name, category, extension) do
     {name, Map.update!(category, :uid, fn uid -> Types.category_uid(extension, uid) end)}
   end
 
-  defp update_class_id(class, categories) do
+  defp update_class_uid(class, categories) do
     {key, category} = Utils.find_entity(categories, class, class[:category])
 
     class = Map.put(class, :category, Atom.to_string(key))
@@ -250,13 +250,13 @@ defmodule Schema.Cache do
     end
   end
 
-  defp add_event_id(data, name) do
+  defp add_event_uid(data, name) do
     Map.update!(
       data,
       :attributes,
       fn attributes ->
         uid = attributes[:event_uid] || %{}
-        enum = make_event_id(data, name, attributes)
+        enum = make_event_uid(data, name, attributes)
 
         Map.put(attributes, :event_uid, Map.put(uid, :enum, enum))
       end
@@ -264,9 +264,9 @@ defmodule Schema.Cache do
     |> put_in([:attributes, :event_uid, :_source], name)
   end
 
-  defp make_event_id(data, name, attributes) do
+  defp make_event_uid(data, name, attributes) do
     id = attributes[:disposition_id] || %{}
-    class_id = Types.event_uid(data[:uid] || 0, 0)
+    class_uid = Types.event_uid(data[:uid] || 0, 0)
     caption = data[:name] || "UNKNOWN"
 
     case id[:enum] do
@@ -282,7 +282,7 @@ defmodule Schema.Cache do
 
             _ ->
               {
-                make_enum_id(class_id, key),
+                make_enum_id(class_uid, key),
                 Map.put(val, :name, Types.event_name(caption, val[:name]))
               }
           end
@@ -293,21 +293,21 @@ defmodule Schema.Cache do
       Map.new(name: Types.event_name(caption, "Other"))
     )
     |> Map.put(
-      integer_to_id(class_id, 0),
+      integer_to_id(class_uid, 0),
       Map.new(name: Types.event_name(caption, "Unknown"))
     )
   end
 
-  defp make_enum_id(class_id, key) do
-    integer_to_id(class_id, String.to_integer(Atom.to_string(key)))
+  defp make_enum_id(class_uid, key) do
+    integer_to_id(class_uid, String.to_integer(Atom.to_string(key)))
   end
 
-  defp integer_to_id(class_id, id) do
-    Integer.to_string(class_id + id) |> String.to_atom()
+  defp integer_to_id(class_uid, id) do
+    Integer.to_string(class_uid + id) |> String.to_atom()
   end
 
-  defp add_class_id(data, name) do
-    class_id =
+  defp add_class_uid(data, name) do
+    class_uid =
       data[:uid]
       |> Integer.to_string()
       |> String.to_atom()
@@ -318,11 +318,11 @@ defmodule Schema.Cache do
     }
 
     data
-    |> put_in([:attributes, :class_uid, :enum], %{class_id => enum})
+    |> put_in([:attributes, :class_uid, :enum], %{class_uid => enum})
     |> put_in([:attributes, :class_uid, :_source], name)
   end
 
-  defp add_category_id(class, name, categories) do
+  defp add_category_uid(class, name, categories) do
     case class[:category] do
       nil ->
         Logger.warn("class '#{class[:type]}' has no category")

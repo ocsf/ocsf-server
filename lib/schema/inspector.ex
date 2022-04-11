@@ -15,7 +15,7 @@ defmodule Schema.Inspector do
 
   require Logger
 
-  @class_id "class_uid"
+  @class_uid "class_uid"
 
   @string_types [
     "string_t",
@@ -37,19 +37,19 @@ defmodule Schema.Inspector do
   @boolean_types ["boolean_t", "json_t"]
 
   @doc """
-  Validates the given event using `class_id` value and the schema.
+  Validates the given event using `class_uid` value and the schema.
   """
-  def validate(data) when is_map(data), do: data[@class_id] |> validate(data)
+  def validate(data) when is_map(data), do: data[@class_uid] |> validate(data)
 
   def validate(_data), do: %{:error => "Not a JSON object"}
 
-  defp validate(nil, _data), do: %{:error => "Missing class_id"}
+  defp validate(nil, _data), do: %{:error => "Missing class_uid"}
 
-  defp validate(class_id, data), do: validate_type(Schema.find_class(class_id), data)
+  defp validate(class_uid, data), do: validate_type(Schema.find_class(class_uid), data)
 
   defp validate_type(nil, data) do
-    class_id = data[@class_id]
-    %{:error => "Unknown class_id: #{class_id}", :value => class_id}
+    class_uid = data[@class_uid]
+    %{:error => "Unknown class_uid: #{class_uid}", :value => class_uid}
   end
 
   defp validate_type(type, data) do

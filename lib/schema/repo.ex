@@ -205,14 +205,14 @@ defmodule Schema.Repo do
   end
 
   defp add_classes(nil, {id, category}, classes) do
-    category_id = Atom.to_string(id)
+    category_uid = Atom.to_string(id)
 
     list =
       Enum.filter(
         classes,
         fn {_name, class} ->
           cat = Map.get(class, :category)
-          cat == category_id or Utils.to_uid(class[:extension], cat) == id
+          cat == category_uid or Utils.to_uid(class[:extension], cat) == id
         end
       )
 
@@ -220,7 +220,7 @@ defmodule Schema.Repo do
   end
 
   defp add_classes(extensions, {id, category}, classes) do
-    category_id = Atom.to_string(id)
+    category_uid = Atom.to_string(id)
 
     list =
       Enum.filter(
@@ -230,11 +230,11 @@ defmodule Schema.Repo do
 
           case class[:extension] do
             nil ->
-              cat == category_id
+              cat == category_uid
 
             ext ->
               MapSet.member?(extensions, ext) and
-                (cat == category_id or Utils.to_uid(ext, cat) == id)
+                (cat == category_uid or Utils.to_uid(ext, cat) == id)
           end
         end
       )
