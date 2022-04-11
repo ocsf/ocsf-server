@@ -18,16 +18,16 @@ defmodule Schema.Inspector do
   @class_uid "class_uid"
 
   @string_types [
-    "string_t",
-    "ip_t",
-    "path_t",
-    "hostname_t",
     "email_t",
+    "file_name_t",
+    "hash_t",
+    "hostname_t",
+    "ip_t",
     "mac_t",
-    "ipv4_t",
-    "ipv6_t",
-    "netmask_t",
+    "path_t",
     "process_name_t",
+    "string_t",
+    "subnet_t",
     "username_t",
     "json_t"
   ]
