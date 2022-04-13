@@ -10,7 +10,7 @@
 # limitations under the License.
 defmodule Schema.Inspector do
   @moduledoc """
-  SES Event data inspector.
+  OCSF Event data inspector.
   """
 
   require Logger

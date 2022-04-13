@@ -16,7 +16,7 @@ limitations under the License.
 
 </script>
 
-<h2><%= @data[:name] %><span class="text-secondary"> Object <small><%= @data[:extension] || "" %></small></span></h2>
+<h4><%= @data[:name] %><span class="text-secondary"> Object <small><%= @data[:extension] || "" %></small></span></h4>
 
 <div class="text-secondary">
   <%= raw @data[:description] %>

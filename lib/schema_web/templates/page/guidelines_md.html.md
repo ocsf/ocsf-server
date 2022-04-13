@@ -1,5 +1,5 @@
 ## Guidelines and Conventions
-The Splunk Event Schema (SES) guidelines and conventions.
+The Open Cybersecurity Schema Framework (OCSF) guidelines and conventions.
 
 ### Attribute Levels
 The event schema defines *Core*, *Optional*, and *Reserved* attributes.
@@ -41,7 +41,7 @@ Reserved attributes are set by the logging system and must not be used in the ev
   Some exceptions can be made for well-accepted abbreviation. Example: `ip`, or names such as `os`, `geo`.
 
 ### Extending the Schema
-The Splunk Event Schema can be extended by adding new attributes, objects, and event classes.
+The Open Cybersecurity Schema Framework can be extended by adding new attributes, objects, and event classes.
 
 To extend the schema create a new directory in the `schema/extensions` directory. The directory structure is the same as the top level schema directory and it may contain the following files and subdirectories:
 

@@ -9,6 +9,10 @@ body {
   line-height: 1.5;
 }
 
+h2 {
+  color: #36454f;
+}
+
 .title-uppercase {
   text-transform: uppercase;
 }
@@ -129,6 +133,10 @@ tr.thead-color {
   color: lightgoldenrodyellow;
 }
 
+.bg-extensions {
+  background-color: #f4f4f4;
+}
+
 .links {
   padding-top: 20px;
   padding-bottom: 40px;
@@ -176,3 +184,5 @@ span.hidden {
   -moz-border-radius: 5px;
   border-radius: 5px;
 }
+
+

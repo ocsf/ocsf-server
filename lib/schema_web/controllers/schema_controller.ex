@@ -40,6 +40,21 @@ defmodule SchemaWeb.SchemaController do
   end
 
   # {
+  # @api {get} /api/extensions Request extensions types
+  # @apiName Extensions
+  # @apiGroup Schema
+  # @apiVersion 1.0.0
+  # @apiPermission none
+  # }
+  @doc """
+  Returns the schema extensions.
+  """
+  @spec extensions(Plug.Conn.t(), any) :: Plug.Conn.t()
+  def extensions(conn, _params) do
+    send_json_resp(conn, Schema.extensions())
+  end
+
+  # {
   # @api {get} /api/schema Request the schema hierarchy
   # @apiName Schema
   # @apiGroup Schema

@@ -14,7 +14,7 @@ As `root`, create a new file `/lib/systemd/system/schema_server.service` with th
 
 ```bash
 [Unit]
-Description=Splunk Event Schema Server
+Description=Open Cybersecurity Schema Framework Server
 After=syslog.target network.target
 
 [Service]

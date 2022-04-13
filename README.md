@@ -1,5 +1,5 @@
-# Splunk Event Schema Server
-This is the Splunk Event Schema (SES) server repo.
+# Open Cybersecurity Schema Framework Server
+This is the Open Cybersecurity Schema Framework (OCSF) server repo.
 
 ## Local Usage
 This section describes how to build the Event Schema server.

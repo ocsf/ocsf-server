@@ -31,12 +31,12 @@ export default function define(runtime, observer) {
 
   main.variable("tile").define("tile", ["Generators", "viewof tile"], (G, _) => G.input(_));
 
-  main.variable(observer("chart")).define("chart", ["treemap", "data", "d3", "color"],
-    function (treemap, data, d3,  color) {
+  main.variable(observer("chart")).define("chart", ["treemap", "data", "d3"],
+    function (treemap, data, d3) {
       const root = treemap(data);
 
       const svg = d3.create("svg")
-        .attr("viewBox", [-8, 30, width, height])
+        .attr("viewBox", [-6, 30, width, height])
         .style("font", "12px open-sans")
         .attr("class", "schema");
 
@@ -48,8 +48,8 @@ export default function define(runtime, observer) {
       // Add boxes for the classes
       leaf
         .append("rect")
-        .attr("fill", d => { while (d.depth > 1) d = d.parent; return color(d.data.name); })
-        .attr("fill-opacity", 0.75)
+        .style("stroke", "#b0b0b0")
+        .attr("fill", "#f8f8f8")
         .attr("width", d => d.x1 - d.x0)
         .attr("height", d => d.y1 - d.y0);
 
@@ -58,12 +58,19 @@ export default function define(runtime, observer) {
         .append("a")
         .attr("xlink:href", function (d) { return "/classes/" + make_path(d.data.extension, d.data.type) + params; })
         .append("text")
+        .on('mouseover', function (d, i) {
+            d3.select(this)
+              .attr('opacity', .75);})
+        .on('mouseout', function (d, i) {
+            d3.select(this)
+              .attr('opacity', 1)})
         .selectAll("tspan")
         .data(d => d.data.name.split(/(?=[A-Z][a-z])|\s+/g).concat(d.data.uid))
         .join("tspan")
         .attr("x", 3)
         .attr("y", (d, i) => `${1 + i * 0.95}em`)
-        .text(d => d);
+        .text(d => d)
+        .style("fill", "#545aa7");
 
       // Add title for the categories
       svg
@@ -76,8 +83,14 @@ export default function define(runtime, observer) {
         .attr("x", function (d) { return d.x0 + 5 })
         .attr("y", function (d) { return d.y0 + 18 })
         .text(function (d) { return "[" + d.data.uid + "] " + d.data.name })
-        .style("font", "13px open-sans")
-        .attr("fill", function (d) { return color(d.data.name) });
+        .style("fill", "#545af0")    
+        .style("font", "16px open-sans")
+        .on('mouseover', function (d, i) {
+            d3.select(this)
+              .attr('opacity', .75);})
+        .on('mouseout', function (d, i) {
+            d3.select(this)
+              .attr('opacity', 1)});
 
       return svg.node();
     }
@@ -93,14 +106,12 @@ export default function define(runtime, observer) {
         .tile(tile)
         .size([width, height])
         .paddingTop(28)
-        .paddingRight(7)
-        .paddingInner(1) // Padding between each rectangle
-        .round(true)
+        .paddingRight(6)
+        .paddingInner(3) // Padding between each rectangle
         (d3.hierarchy(data).sum(d => d.value)))
   });
 
   main.variable("format").define("format", ["d3"], function (d3) { return (d3.format(",d")) });
-  main.variable("color").define("color", ["d3"], function (d3) { return (d3.scaleOrdinal(d3.schemeCategory10)) });
   main.variable("d3").define("d3", ["require"], function (require) { return (require("d3@6")) });
 
   return main;
