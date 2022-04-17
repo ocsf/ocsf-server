@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# go to the schema server project directory
-cd server
-
 # fetch and compile the dependencies
 MIX_ENV=prod mix do deps.get, deps.compile, compile
 

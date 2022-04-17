@@ -1,12 +1,12 @@
 #!/bin/bash
 
-echo Stop the Schema Web server
-sudo systemctl stop splunk_event_schema.service
+echo Stop the OCSF WEB Server
+sudo systemctl stop ocsf_server.service
 
-echo Update the Schema Web server
-sudo rm -fr /opt/schema/splunk_event_schema/*
-cp -r server/dist/* /opt/schema/splunk_event_schema
-cp -r schema        /opt/schema/splunk_event_schema
+echo Update the OCSF WEB Server
+sudo rm -fr /opt/ocsf/*
+cp -r server/dist/* /opt/ocsf
+cp -r schema        /opt/ocsf/schema
 
-echo Start the Schema Web server
-sudo systemctl start splunk_event_schema.service
+echo Start the OCSF WEB Server
+sudo systemctl start ocsf_schema.service

@@ -4,23 +4,27 @@ This is the Open Cybersecurity Schema Framework (OCSF) server repository.
 ## Local Usage
 This section describes how to build the Event Schema server.
 
-### Obtaining the source code
+### Obtaining the OCSF Files
+Clone the Github OCFS Schema repository:
 
-Clone the Github repository:
+```bash
+git clone https://github.com/ocsf/ocsf-schema.git
+```
+
+### Obtaining the source code
+Clone the Github OCFS WEB Server repository:
 
 ```bash
 git clone https://github.com/ocsf/ocsf-server.git
 ```
 
 ### Required build tools
-
 The event schema server is written in [Elixir](https://elixir-lang.org) using the [Phoenix](https://phoenixframework.org/) web framework.
 
 The Elixir site maintains a great installation page, see https://elixir-lang.org/install.html for help.
 
 
 ### Building the schema server
-
 Elixir uses the [`mix`](https://hexdocs.pm/mix/Mix.html) build tool, which is included in the Elixir installation package..
 
 #### Install the build tools
@@ -30,7 +34,6 @@ mix local.hex --force && mix local.rebar --force
 ```
 
 #### Get the dependencies
-
 Change to the schema directory, fetch and compile the dependencies:
 
 ```bash
@@ -45,7 +48,6 @@ mix compile
 ```
 
 ### Running the schema server
-
 You can use the Elixir's interactive shell, [IEx](https://hexdocs.pm/iex/IEx.html), to start the schema server:
 
 ```bash
@@ -55,7 +57,6 @@ iex -S mix phx.server
 The command above start the schema server with the default values (no extensions). See below for details.
 
 ### Runtime configuration
-
 The schema server uses a number of environment variables.
 
 ```bash
@@ -64,15 +65,14 @@ RELEASE_NODE=schema PORT=8000 SCHEMA_DIR=../schema SCHEMA_EXTENSION=extensions i
 
 ##### Where
 
-| Variable Name    | Description                                               |
-| ---------------- | --------------------------------------------------------- |
-| RELEASE_NODE     | the Erlang node name                                      |
-| PORT             | the server port number, default: `8000`                   |
-| SCHEMA_DIR       | the directory containing the schema, default: `../schema` |
-| SCHEMA_EXTENSION | the directory containing the schema extensions            |
+| Variable Name    | Description                                                  |
+| ---------------- | ------------------------------------------------------------ |
+| RELEASE_NODE     | the Erlang node name                                         |
+| PORT             | the server port number, default: `8000`                      |
+| SCHEMA_DIR       | the directory containing the schema, default: `../schema`    |
+| SCHEMA_EXTENSION | the directory containing the schema extensions, relative to the SCHEMA_DIR |
 
 Now you can visit [`localhost:8000`](http://localhost:8000) from your browser.
-
 
 
 ## Releasing the schema server
