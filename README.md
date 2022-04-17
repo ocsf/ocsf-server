@@ -1,5 +1,5 @@
 # Open Cybersecurity Schema Framework Server
-This is the Open Cybersecurity Schema Framework (OCSF) server repo.
+This is the Open Cybersecurity Schema Framework (OCSF) server repository.
 
 ## Local Usage
 This section describes how to build the Event Schema server.
@@ -9,7 +9,7 @@ This section describes how to build the Event Schema server.
 Clone the Github repository:
 
 ```bash
-git clone https://github.com/splunk/splunk_event_schema.git
+git clone https://github.com/ocsf/ocsf-server.git
 ```
 
 ### Required build tools
