@@ -37,7 +37,7 @@ mix local.hex --force && mix local.rebar --force
 Change to the schema directory, fetch and compile the dependencies:
 
 ```bash
-cd server
+cd ocsf-server
 mix do deps.get, deps.compile
 ```
 
@@ -51,19 +51,11 @@ mix compile
 You can use the Elixir's interactive shell, [IEx](https://hexdocs.pm/iex/IEx.html), to start the schema server:
 
 ```bash
-iex -S mix phx.server
+PORT=8000 SCHEMA_DIR=../ocsf-schema SCHEMA_EXTENSION=extensions iex -S mix phx.server
 ```
-
-The command above start the schema server with the default values (no extensions). See below for details.
 
 ### Runtime configuration
 The schema server uses a number of environment variables.
-
-```bash
-RELEASE_NODE=schema PORT=8000 SCHEMA_DIR=../schema SCHEMA_EXTENSION=extensions iex -S mix phx.server
-```
-
-##### Where
 
 | Variable Name    | Description                                                  |
 | ---------------- | ------------------------------------------------------------ |
@@ -105,7 +97,8 @@ You can use one of the following options to start the Schema server (see the abo
 For example to start the schema server, with all extensions, from the `dist` folder use:
 
 ```bash
-SCHEMA_DIR=../../schema SCHEMA_EXTENSION=extensions bin/schema_server start
+cd dist
+SCHEMA_DIR=../../ocsf-schema SCHEMA_EXTENSION=extensions bin/schema_server start
 ```
 
 For a complete listing of commands use:
@@ -118,7 +111,7 @@ bin/schema_server
 
 A release is built on a **host**, a machine which contains Erlang, Elixir, and any other dependencies needed to compile the schema server. A release is then deployed to a **target**, potentially the same machine as the host, but usually a separate target host.
 
-To deploy the schema server, copy the release archive file (`schema_server-<version>.tar.gz`) from the release folder to the target. Extract the release files to disk from the archive. Note, the following must be the same between the **host** and the **target**:
+To deploy the schema server, copy the release archive file (`dist/schema_server-<version>.tar.gz`) from the release folder to the target. Extract the release files to disk from the archive. Note, the following must be the same between the **host** and the **target**:
 
 - Target architecture (for example, x86_64 or ARM)
 - Target vendor + operating system (for example, Windows, Linux, or Darwin/macOS)
