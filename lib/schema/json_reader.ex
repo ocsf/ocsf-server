@@ -9,7 +9,7 @@ defmodule Schema.JsonReader do
   require Logger
 
   # The default location of the schema files
-  @data_dir "../schema"
+  @data_dir "schema"
   @events_dir "events"
   @objects_dir "objects"
 

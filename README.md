@@ -44,7 +44,7 @@ mix compile
 You can use the Elixir's interactive shell, [IEx](https://hexdocs.pm/iex/IEx.html), to start the schema server:
 
 ```bash
-PORT=8000 SCHEMA_DIR=schema SCHEMA_EXTENSION=extensions iex -S mix phx.server
+SCHEMA_DIR=modules/schema SCHEMA_EXTENSION=extensions iex -S mix phx.server
 ```
 
 ### Runtime configuration
@@ -54,7 +54,7 @@ The schema server uses a number of environment variables.
 | ---------------- | ------------------------------------------------------------ |
 | RELEASE_NODE     | the Erlang node name                                         |
 | PORT             | the server port number, default: `8000`                      |
-| SCHEMA_DIR       | the directory containing the schema, default: `../schema`    |
+| SCHEMA_DIR       | the directory containing the schema, default: `schema`       |
 | SCHEMA_EXTENSION | the directory containing the schema extensions, relative to the SCHEMA_DIR |
 
 Now you can visit [`localhost:8000`](http://localhost:8000) from your browser.
