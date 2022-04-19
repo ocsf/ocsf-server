@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # fetch and compile the dependencies
-MIX_ENV=prod mix do deps.get, deps.compile, compile
+MIX_ENV=prod mix do deps.get, deps.compile
 
 # compile the schema server
 MIX_ENV=prod mix compile
