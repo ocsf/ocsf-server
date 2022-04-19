@@ -4,18 +4,11 @@ This is the Open Cybersecurity Schema Framework (OCSF) server repository.
 ## Local Usage
 This section describes how to build the Event Schema server.
 
-### Obtaining the OCSF Files
-Clone the Github OCFS Schema repository:
-
-```bash
-git clone https://github.com/ocsf/ocsf-schema.git
-```
-
 ### Obtaining the source code
-Clone the Github OCFS WEB Server repository:
+Clone the GitHub OCFS WEB Server repository. Use `--recurse-submodules` to the `git clone` command, which will automatically initialize and update the schema submodule in the repository:
 
 ```bash
-git clone https://github.com/ocsf/ocsf-server.git
+git clone --recurse-submodules https://github.com/ocsf/ocsf-server.git
 ```
 
 ### Required build tools
@@ -51,7 +44,7 @@ mix compile
 You can use the Elixir's interactive shell, [IEx](https://hexdocs.pm/iex/IEx.html), to start the schema server:
 
 ```bash
-PORT=8000 SCHEMA_DIR=../ocsf-schema SCHEMA_EXTENSION=extensions iex -S mix phx.server
+PORT=8000 SCHEMA_DIR=schema SCHEMA_EXTENSION=extensions iex -S mix phx.server
 ```
 
 ### Runtime configuration
