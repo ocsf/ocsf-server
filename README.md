@@ -91,7 +91,7 @@ For example to start the schema server, with all extensions, from the `dist` fol
 
 ```bash
 cd dist
-SCHEMA_DIR=../../ocsf-schema SCHEMA_EXTENSION=extensions bin/schema_server start
+SCHEMA_DIR=schema SCHEMA_EXTENSION=extensions bin/schema_server start
 ```
 
 For a complete listing of commands use:

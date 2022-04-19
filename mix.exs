@@ -18,7 +18,7 @@ defmodule Schema.MixProject do
       releases: [
         schema_server: [
           steps: [:assemble, :tar, &write_version/1],
-          overlays: ["schema"],                   
+          overlays: ["modules"],                   
           include_executables_for: [:unix]
         ]
       ],
