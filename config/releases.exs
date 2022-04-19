@@ -12,7 +12,7 @@ import Config
 config :schema_server, SchemaWeb.Endpoint,
   http: [port: System.get_env("PORT") || 8000],
   url: [
-    host: "localhost",
+    host: System.get_env("HOST") || "localhost",
     port: System.get_env("URL_PORT") || 8000,
     path: System.get_env("SCHEMA_PATH") || "/"
   ]

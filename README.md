@@ -109,3 +109,13 @@ To deploy the schema server, copy the release archive file (`dist/schema_server-
 - Target architecture (for example, x86_64 or ARM)
 - Target vendor + operating system (for example, Windows, Linux, or Darwin/macOS)
 - Target ABI (for example, musl or gnu)
+
+
+
+### Build and run schema server docker image
+
+```bash
+docker build -t docker_ocsf:0.9.0 .
+docker run -it -p 8080:8080 docker_ocsf:0.9.0
+```
+
