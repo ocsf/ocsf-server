@@ -45,11 +45,26 @@ limitations under the License.
     <span class="navbar-toggler-icon"></span>
   </button>
 
+  <nav class="navbar navbar-expand-md navbar-light bg-extensions fixed-left">
+    <a class="navbar-brand" href>Extensions</a>
+    <div class="collapse navbar-collapse" id="checkbox-extensions">
+      <ul class="navbar-nav">
+        <%= for {_key, map} <- @extensions do %>
+        <% type = map[:type] %>
+        <li class="nav-item">
+          <div class="checkbox">  
+            <a style="display: inline-block;" class="nav-link">
+              <input type="checkbox" id="<%= type %>" > <%= map[:name] %>
+            </a>
+          </div>
+        </li>      
+      <% end %>
+      </ul>
+    </div>
+  </nav>
+
   <div class="collapse navbar-collapse w-100 flex-md-column" id="navbarCollapse">
     <ul class="extensions navbar-nav ml-auto mb-2 mb-md-0">
-      <li id="home_id" class="nav-item">
-        <a class="nav-link py-1" href='<%= Routes.static_path(@conn, "/") %>'>Extensions</a>
-      </li>
       <li id="categories_id" class="nav-item">
         <a class="nav-link py-1" href='<%= Routes.static_path(@conn, "/categories") %>'>Categories</a>
       </li>
@@ -141,22 +156,36 @@ limitations under the License.
 <script type="text/javascript" src='<%= Routes.static_path(@conn, "/js/sorttable.js") %>'></script>
 
 <script>
-  // var schema_extensions;
-
   $(document).ready(function () {
     
-    //  async function load() {
-      //let url = '/api/extensions';
-      //schema_extensions = await (await fetch(url)).json();
-      //}
-      //load();
+    let extensions = get_selected_extensions();
+    let $checkboxes = $("#checkbox-extensions :checkbox");
 
-    init_select();
-
+    $.each(extensions, function(key, value) {
+      $("#" + key).prop('checked', value);
+    });
+    
+    // update the links with the selected extensions
     const params = extensions_params();
     $(".extensions a").each(function() {
       this.href = this.href + params;
     });
+
+    $checkboxes.on("change", function() {
+      $checkboxes.each(function(){
+        extensions[this.id] = this.checked;
+      });
+      set_selected_extensions(extensions);
+
+      const params = selected_extensions(extensions);
+      $(".extensions a").each(function() {
+        this.href = this.href + params;
+        window.location.search = params;
+      });
+    });
+
+    // init the dropdown filters
+    init_select();
 
     $("a.nav-item.nav-link.active").removeClass("active");
     switch (window.location.pathname) {
@@ -189,6 +218,7 @@ limitations under the License.
         break;
     }
   });
+    
 </script>
 </body>
 </html>

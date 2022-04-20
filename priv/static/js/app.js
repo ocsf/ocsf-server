@@ -9,21 +9,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-function get_selected_extensions() {
-  const data = window.localStorage.getItem("selected-extensions");
-
-  return data == null ? [] : new Map(JSON.parse(data));
+function extensions_params() {
+  return selected_extensions(get_selected_extensions());
 }
 
 function selected_extensions(selected) {
-  if (selected.size > 0) {
+  if (selected) {
     const params = [];
 
-  selected.forEach(function (value, name) {
-    if (value) {
-      params.push(name);
-    }
-  });
+    Object.entries(selected).forEach(function ([name, value]) {
+      if (value) {
+        params.push(name);
+      }
+    });
 
     return '?extensions=' + params.toString()
   }
@@ -31,8 +29,12 @@ function selected_extensions(selected) {
   return '';
 }
 
-function extensions_params() {
-  return selected_extensions(get_selected_extensions());
+function get_selected_extensions() {
+  return JSON.parse(localStorage.getItem('schema_extensions')) || {};
+}
+
+function set_selected_extensions(extensions) {
+  localStorage.setItem("schema_extensions", JSON.stringify(extensions));
 }
 
 const defaultSelectedValues = ["base-event", "reserved", "classification", "context", "occurrence", "origination", "primary"];
