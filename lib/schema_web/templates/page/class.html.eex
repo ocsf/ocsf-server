@@ -18,6 +18,7 @@ limitations under the License.
   show_select_attributes();
 
   show("#sample-data");
+  show("#json-schema");
 </script>
 
 <%= if category != nil do %>
@@ -101,8 +102,13 @@ limitations under the License.
 <% end %>
 
 <script>
-  $('#btn-example').on('click', function(event) {
+  $('#btn-sample-data').on('click', function(event) {
     const url = '/sample' + window.location.pathname;
+    window.open(url,'_blank');
+  });
+
+  $('#btn-json-schema').on('click', function(event) {
+    const url = '/api' + window.location.pathname;
     window.open(url,'_blank');
   });
 

@@ -118,8 +118,13 @@ limitations under the License.
         </li>
 
         <li class="nav-item mr-2">
+          <div id="json-schema" class="d-none">
+            <button type="button" id="btn-json-schema" class="btn btn-outline-secondary">Schema</button>
+          </div>
+        </li>
+        <li class="nav-item mr-2">
           <div id="sample-data" class="d-none">
-            <button type="button" id="btn-example" class="btn btn-outline-secondary">Sample Data</button>
+            <button type="button" id="btn-sample-data" class="btn btn-outline-secondary">Sample</button>
           </div>
         </li>
 
