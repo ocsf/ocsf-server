@@ -130,9 +130,10 @@ defmodule SchemaWeb.SchemaController do
 
   @spec category_classes(map) :: map | nil
   def category_classes(%{"id" => id} = params) do
+    extension = params["extension"]
     extensions = parse_extensions(params[@extensions])
 
-    Schema.category(extensions, id)
+    Schema.category(extensions, extension, id)
   end
 
   # {
@@ -149,7 +150,8 @@ defmodule SchemaWeb.SchemaController do
   @spec export_category(Plug.Conn.t(), map) :: Plug.Conn.t()
   def export_category(conn, %{"id" => id} = params) do
     try do
-      category = parse_extensions(params[@extensions]) |> Schema.export_category(id)
+      extension = params["extension"]
+      category = parse_extensions(params[@extensions]) |> Schema.export_category(extension, id)
 
       case category do
         nil ->

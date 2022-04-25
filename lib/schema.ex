@@ -73,6 +73,10 @@ defmodule Schema do
   @spec category(Repo.extensions(), String.t()) :: nil | Cache.category_t()
   def category(extensions, id), do: get_category(extensions, Utils.to_uid(id))
 
+  @spec category(Repo.extensions(), String.t(), String.t()) :: nil | Cache.category_t()
+  def category(extensions, extension, id),
+    do: get_category(extensions, Utils.to_uid(extension, id))
+
   @doc """
     Exports a single category and its classes.export_category
   """
@@ -81,6 +85,10 @@ defmodule Schema do
 
   @spec export_category(Repo.extensions(), String.t()) :: nil | Cache.category_t()
   def export_category(extensions, id), do: export_category_classes(extensions, Utils.to_uid(id))
+
+  @spec export_category(Repo.extensions(), String.t(), String.t()) :: nil | Cache.category_t()
+  def export_category(extensions, extension, id),
+    do: export_category_classes(extensions, Utils.to_uid(extension, id))
 
   @doc """
     Returns the attribute dictionary.
