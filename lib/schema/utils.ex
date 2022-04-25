@@ -16,9 +16,13 @@ defmodule Schema.Utils do
 
   @links :_links
 
-  @spec to_uid(binary) :: atom
-  def to_uid(name) do
+  @spec to_uid(binary() | atom()) :: atom
+  def to_uid(name) when is_binary(name) do
     String.downcase(name) |> String.to_atom()
+  end
+
+  def to_uid(name) when is_atom(name) do
+    name
   end
 
   @spec to_uid(binary() | nil, binary() | atom()) :: atom()

@@ -55,30 +55,32 @@ defmodule Schema do
   @doc """
     Returns the event categories defined in the given extension set.
   """
-  @spec categories(Repo.extensions()) :: map()
-  def categories(extensions), do: Repo.categories(extensions)
+  def categories(extensions) do
+    Map.update(Repo.categories(extensions), :attributes, Map.new(), fn attributes ->
+      Enum.map(attributes, fn {name, _category} ->
+        {name, category(extensions, name)}
+      end)
+      |> Map.new()
+    end)
+  end
 
   @doc """
     Returns a single category with its classes.
   """
   @spec category(atom | String.t()) :: nil | Cache.category_t()
-  def category(id) when is_atom(id), do: get_category(id)
-  def category(id) when is_binary(id), do: get_category(Utils.to_uid(id))
+  def category(id), do: get_category(Utils.to_uid(id))
 
-  @spec category(Repo.extensions(), String.t(), String.t()) :: nil | Cache.category_t()
-  def category(extensions, extension, id),
-    do: get_category(extensions, Utils.to_uid(extension, id))
+  @spec category(Repo.extensions(), String.t()) :: nil | Cache.category_t()
+  def category(extensions, id), do: get_category(extensions, Utils.to_uid(id))
 
   @doc """
     Exports a single category and its classes.export_category
   """
   @spec export_category(atom | String.t()) :: nil | Cache.category_t()
-  def export_category(id) when is_atom(id), do: export_category_classes(id)
-  def export_category(id) when is_binary(id), do: export_category_classes(Utils.to_uid(id))
+  def export_category(id), do: export_category_classes(Utils.to_uid(id))
 
-  @spec export_category(Repo.extensions(), String.t(), String.t()) :: nil | Cache.category_t()
-  def export_category(extensions, extension, id),
-    do: export_category_classes(extensions, Utils.to_uid(extension, id))
+  @spec export_category(Repo.extensions(), String.t()) :: nil | Cache.category_t()
+  def export_category(extensions, id), do: export_category_classes(extensions, Utils.to_uid(id))
 
   @doc """
     Returns the attribute dictionary.
@@ -126,9 +128,8 @@ defmodule Schema do
   @doc """
     Returns a single event class.
   """
-  @spec class(atom | String.t()) :: nil | Cache.class_t()
-  def class(id) when is_binary(id), do: Repo.class(Utils.to_uid(id))
-  def class(id) when is_atom(id), do: Repo.class(id)
+  @spec class(atom() | String.t()) :: nil | Cache.class_t()
+  def class(id), do: Repo.class(Utils.to_uid(id))
 
   @spec class(nil | String.t(), String.t()) :: nil | map()
   def class(extension, id) when is_binary(id),
@@ -162,8 +163,7 @@ defmodule Schema do
     Returns a single objects.
   """
   @spec object(atom | String.t()) :: nil | Cache.object_t()
-  def object(id) when is_binary(id), do: Repo.object(Utils.to_uid(id))
-  def object(id) when is_atom(id), do: Repo.object(id)
+  def object(id), do: Repo.object(Utils.to_uid(id))
 
   @spec object(nil | String.t(), String.t()) :: nil | map()
   def object(extension, id) when is_binary(id),
@@ -308,12 +308,17 @@ defmodule Schema do
 
   @spec reduce_class(map) :: map
   def reduce_class(data) do
-    delete_attributes(data) |> delete_see_also()
+    delete_attributes(data) |> delete_see_also() |> delete_associations()
   end
 
   @spec delete_attributes(map) :: map
   def delete_attributes(data) do
     Map.delete(data, :attributes)
+  end
+
+  @spec delete_associations(map) :: map
+  def delete_associations(data) do
+    Map.delete(data, :associations)
   end
 
   @spec delete_see_also(map) :: map
