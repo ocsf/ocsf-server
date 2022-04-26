@@ -17,24 +17,40 @@ limitations under the License.
   <%= raw @data[:description] %>
 </div>
 <div class="mt-4">
-  <table class="table table-striped table-bordered sortable">
-    <thead>
+  <table class="table table-bordered">
+    <thead class="extensions">
       <tr class="thead-color">
-        <th style="width: 20%">Name</th>
-        <th class="text-center" style="width: 5%">ID</th>
-        <th>Description</th>
+        <%= for {key, map} <- @data[:attributes] do %>
+          <% name = Atom.to_string(key) %>
+          <% path = Routes.static_path(@conn, "/categories/" <> name) %>
+          <th>
+            <a href="<%= path %>"><%= raw format_name(name, map) %></a>
+          </th>
+        <% end %>
       </tr>
     </thead>
-    <tbody class="extensions searchable">
-      <%= for {key, map} <- @data[:attributes] do %>
-        <% name = Atom.to_string(key) %>
-        <% path = Routes.static_path(@conn, "/categories/" <> name) %>
-        <tr>
-          <td class="name"> <a href="<%= path %>"><%= raw format_name(name, map) %></a></td>
-          <td class="text-center"><a href="<%= path %>"><%= map[:uid] %></a></td>
-          <td><%= raw map[:description] %></td>
-        </tr>
+    <tbody class="extensions">
+      <tr>
+        <%= for {_key, category} <- @data[:attributes] do %>
+        <td>
+        <table class="table table-striped table-borderless">
+          <tbody class="searchable">
+            <td>
+            <%= for {id, class} <- category[:classes] do %>
+              <% name = Atom.to_string(id) %>
+              <% path = Routes.static_path(@conn, "/classes/" <> name) %>
+              <tr>
+                <td>
+                  <a href="<%= path %>"><%= raw format_name(name, class) %></a>
+                </td>
+              </tr>
+            <% end %>
+            </td>
+          </tbody>
+        </table>
+      </td>
       <% end %>
-    </tbody>
+    </tr>
+  </tbody>
   </table>
 </div>
