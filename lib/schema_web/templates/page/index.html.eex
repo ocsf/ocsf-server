@@ -40,7 +40,7 @@ limitations under the License.
               <% name = Atom.to_string(id) %>
               <% path = Routes.static_path(@conn, "/classes/" <> name) %>
               <tr>
-                <td>
+                <td class="align-middle" style="height: 36px; overflow:auto;">
                   <a href="<%= path %>"><%= raw format_name(name, class) %></a>
                 </td>
               </tr>

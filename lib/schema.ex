@@ -218,13 +218,14 @@ defmodule Schema do
               extension == nil or MapSet.member?(extensions, extension)
             end)
             |> Stream.map(fn {_name, class} ->
-              reduce_class(class) |> Map.put(:value, 16)
+              len = map_size(class[:attributes])
+              reduce_class(class) |> Map.put(:value, len)
             end)
             |> Enum.sort(fn map1, map2 -> map1[:name] <= map2[:name] end)
 
           Map.put(cat, :type, name)
           |> Map.put(:children, children)
-          |> Map.put(:value, 16)
+          |> Map.put(:value, length(children))
         end
       )
       |> Enum.sort(fn map1, map2 -> map1[:name] <= map2[:name] end)
