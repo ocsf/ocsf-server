@@ -94,7 +94,10 @@ defmodule Schema.JsonReader do
 
     Logger.info(fn -> "#{inspect(__MODULE__)} schema    : #{home}" end)
     Logger.info(fn -> "#{inspect(__MODULE__)} version   : #{version.version}" end)
-    Logger.info(fn -> "#{inspect(__MODULE__)} extensions: #{inspect(extensions)}" end)
+
+    Logger.info(fn ->
+      "#{inspect(__MODULE__)} extensions: #{Jason.encode!(extensions, pretty: true)}"
+    end)
 
     {:ok, {home, extensions}}
   end
@@ -166,7 +169,7 @@ defmodule Schema.JsonReader do
     categories = Path.join(home, @categories_file) |> read_json_file()
 
     Enum.reduce(extensions, categories, fn ext, acc ->
-      merge_extension(acc, ext, Path.join(ext[:path], @categories_file))
+      merge_extension_file(acc, ext, @categories_file)
     end)
   end
 
@@ -178,35 +181,35 @@ defmodule Schema.JsonReader do
     dictionary = Path.join(home, @dictionary_file) |> read_json_file()
 
     Enum.reduce(extensions, dictionary, fn ext, acc ->
-      merge_extension(acc, ext, Path.join(ext[:path], @dictionary_file))
+      merge_extension_file(acc, ext, @dictionary_file)
     end)
   end
 
   defp read_objects(home, []) do
-    read_schema_files(Map.new(), home, Path.join(home, @objects_dir))
+    read_schema_dir(Map.new(), home, Path.join(home, @objects_dir))
   end
 
   defp read_objects(home, extensions) do
-    objects = read_schema_files(Map.new(), home, Path.join(home, @objects_dir))
+    objects = read_schema_dir(Map.new(), home, Path.join(home, @objects_dir))
 
     Enum.reduce(extensions, objects, fn ext, acc ->
-      merge_extension_files(acc, ext, home, Path.join(ext[:path], @objects_dir))
+      read_extension_dir(acc, home, ext, @objects_dir)
     end)
   end
 
   defp read_classes(home, []) do
-    read_schema_files(Map.new(), home, Path.join(home, @events_dir))
+    read_schema_dir(Map.new(), home, Path.join(home, @events_dir))
   end
 
   defp read_classes(home, extensions) do
-    events = read_schema_files(Map.new(), home, Path.join(home, @events_dir))
+    events = read_schema_dir(Map.new(), home, Path.join(home, @events_dir))
 
     Enum.reduce(extensions, events, fn ext, acc ->
-      merge_extension_files(acc, ext, home, Path.join(ext[:path], @events_dir))
+      read_extension_dir(acc, home, ext, @events_dir)
     end)
   end
 
-  defp read_schema_files(acc, home, path) do
+  defp read_schema_dir(acc, home, path) do
     if File.dir?(path) do
       Logger.info(fn -> "#{inspect(__MODULE__)} read files: #{path}" end)
 
@@ -214,11 +217,10 @@ defmodule Schema.JsonReader do
         {:ok, files} ->
           files
           |> Stream.map(fn file -> Path.join(path, file) end)
-          |> Enum.reduce(acc, fn file, map -> read_schema_files(map, home, file) end)
+          |> Enum.reduce(acc, fn file, map -> read_schema_dir(map, home, file) end)
 
         error ->
-          Logger.warn("unable to access #{path} directory. Error: #{inspect(error)}")
-          raise error
+          error("unable to access #{path} directory. Error: #{inspect(error)}")
       end
     else
       if Path.extname(path) == @schema_file do
@@ -231,20 +233,34 @@ defmodule Schema.JsonReader do
   end
 
   defp read_json_file(file) do
-    data = File.read!(file)
+    case File.read(file) do
+      {:ok, data} ->
+        case Jason.decode(data, keys: :atoms) do
+          {:ok, json} ->
+            json
 
-    case Jason.decode(data, keys: :atoms) do
-      {:ok, json} ->
-        json
+          {:error, error} ->
+            message = Jason.DecodeError.message(error)
+            error("invalid JSON file: #{file}. Error: #{message}")
+        end
 
-      {:error, error} ->
-        message = Jason.DecodeError.message(error)
-        Logger.error("invalid JSON file: #{file}. Error: #{message}")
-        raise message
+      {:error, :enoent} ->
+        error("file #{file} does not exist")
+
+      {:error, :eacces} ->
+        error("missing permission for reading #{file} file")
+
+      {:error, :eisdir} ->
+        error("file #{file} is a directory")
+
+      {:error, reason} ->
+        error("unable to read #{file} file. Reason: #{reason}")
     end
   end
 
-  defp merge_extension(acc, ext, path) do
+  defp merge_extension_file(acc, ext, file) do
+    path = Path.join(ext[:path], file)
+
     if File.regular?(path) do
       Logger.debug(fn -> "#{inspect(__MODULE__)} read file: [#{ext[:type]}] #{path}" end)
 
@@ -254,7 +270,7 @@ defmodule Schema.JsonReader do
       ext_uid = ext[:uid]
 
       # dictionary
-      ext_attributes =
+      attributes =
         if map[:type] == "category" do
           Enum.map(map[:attributes], fn {name, value} ->
             updated = add_extension(value, ext_type, ext_uid)
@@ -271,9 +287,11 @@ defmodule Schema.JsonReader do
       Map.put(
         acc,
         :attributes,
-        Map.merge(acc[:attributes], ext_attributes, fn key, v1, v2 ->
+        Map.merge(acc[:attributes], attributes, fn key, v1, v2 ->
           Logger.warn(
-            "dictionary: '#{ext[:type]}' extension attempts to overwrite '#{key}': #{inspect(v1)},\n\twith #{inspect(v2)}")
+            "dictionary: '#{ext[:type]}' extension attempts to overwrite '#{key}': #{inspect(v1)},\n\twith #{inspect(v2)}"
+          )
+
           v1
         end)
       )
@@ -282,15 +300,17 @@ defmodule Schema.JsonReader do
     end
   end
 
-  defp merge_extension_files(acc, ext, home, path) do
+  defp read_extension_dir(acc, home, ext, dir) do
+    path = Path.join(ext[:path], dir)
+
     if File.dir?(path) do
-      read_extension_files(acc, ext, home, path)
+      read_extension_files(acc, home, ext, path)
     else
       acc
     end
   end
 
-  defp read_extension_files(acc, ext, home, path) do
+  defp read_extension_files(acc, home, ext, path) do
     if File.dir?(path) do
       Logger.info(fn -> "#{inspect(__MODULE__)} [#{ext[:type]}] read files: #{path}" end)
 
@@ -298,20 +318,19 @@ defmodule Schema.JsonReader do
         {:ok, files} ->
           files
           |> Stream.map(fn file -> Path.join(path, file) end)
-          |> Enum.reduce(acc, fn file, map ->
-            read_extension_files(map, ext, home, file)
-          end)
+          |> Enum.reduce(acc, fn file, map -> read_extension_files(map, home, ext, file) end)
 
         error ->
           Logger.warn("unable to access #{path} directory. Error: #{inspect(error)}")
-          raise error
+          System.stop(0)
       end
     else
       if Path.extname(path) == @schema_file do
         Logger.debug(fn -> "#{inspect(__MODULE__)} [#{ext[:type]}] read file: #{path}" end)
+
         data =
           read_json_file(path)
-          |> resolve_includes(home)
+          |> resolve_extension_includes(home, ext)
           |> add_extension(ext[:type], ext[:uid])
 
         name = Utils.to_uid(ext[:type], data[:type])
@@ -329,82 +348,77 @@ defmodule Schema.JsonReader do
   end
 
   defp resolve_includes(data, home) do
-    resolve_includes(data, Map.get(data, :attributes), home)
+    read_included_files(data, Map.get(data, :attributes), fn file ->
+      resolve_file(home, file)
+    end)
   end
 
-  defp resolve_includes(data, nil, _home), do: data
+  defp resolve_extension_includes(data, home, ext) do
+    read_included_files(data, Map.get(data, :attributes), fn file ->
+      resolve_file(home, ext, file)
+    end)
+  end
 
-  defp resolve_includes(data, attributes, home) do
+  defp read_included_files(data, nil, _resolver), do: data
+
+  defp read_included_files(data, attributes, resolver) do
     case Map.get(attributes, @include) do
       nil ->
         data
 
       file when is_binary(file) ->
-        include_traits(home, file, data)
+        include_traits(resolver, file, data)
 
       files when is_list(files) ->
-        Enum.reduce(files, data, fn file, acc -> include_traits(home, file, acc) end)
+        Enum.reduce(files, data, fn file, acc -> include_traits(resolver, file, acc) end)
     end
-    |> include_enums(home)
+    |> include_enums(resolver)
   end
 
-  defp include_traits(home, file, data) do
-    included =
-      case get(file) do
-        [] ->
-          Path.join(home, file)
-          |> read_json_file()
-          |> resolve_includes(home)
-          |> put(data)
-
-        [{_, cached}] ->
-          cached
-      end
-
+  defp include_traits(resolver, file, data) do
+    included = read_included_file(resolver, file)
     attributes = Utils.deep_merge(included[:attributes], Map.delete(data[:attributes], @include))
-
     Map.put(data, :attributes, attributes)
   end
 
-  defp include_enums(class, home) do
-    Map.update(class, :attributes, [], fn attributes -> merge_enums(home, attributes) end)
+  defp include_enums(class, resolver) do
+    Map.update(class, :attributes, [], fn attributes -> merge_enums(resolver, attributes) end)
   end
 
-  defp merge_enums(home, attributes) do
+  defp merge_enums(resolver, attributes) do
     Enum.map(
       attributes,
       fn {name, attribute} ->
-        {name, merge_enum_file(home, attribute)}
+        {name, merge_enum_file(resolver, attribute)}
       end
     )
     |> Map.new()
   end
 
-  defp merge_enum_file(home, attribute) do
+  defp merge_enum_file(resolver, attribute) do
     case Map.get(attribute, @include) do
       nil ->
         attribute
 
       file ->
-        merge_enum_file(home, file, Map.delete(attribute, @include))
+        read_included_file(resolver, file) |> Utils.deep_merge(Map.delete(attribute, @include))
     end
   end
 
-  defp merge_enum_file(home, file, attribute) do
-    included =
-      case get(file) do
-        [] ->
-          Path.join(home, file)
-          |> read_json_file()
-          |> put(file)
+  defp read_included_file(resolver, file) do
+    path = resolver.(file)
+    Logger.debug(fn -> "#{inspect(__MODULE__)} include file #{path}" end)
 
-        [{_, cached}] ->
-          cached
-      end
+    case cache_get(path) do
+      [] ->
+        read_json_file(path) |> cache_put(path)
 
-    Utils.deep_merge(included, attribute)
+      [{_, cached}] ->
+        cached
+    end
   end
 
+  # Extensions
   @spec extensions(any, binary | maybe_improper_list) :: any
   def extensions(home, path) when is_binary(path) do
     find_extensions(home, path, [])
@@ -444,8 +458,7 @@ defmodule Schema.JsonReader do
               |> Enum.reduce(list, fn file, acc -> find_extensions(file, acc) end)
 
             error ->
-              Logger.warn("unable to access #{path} directory. Error: #{inspect(error)}")
-              raise error
+              error("unable to access #{path} directory. Error: #{inspect(error)}")
           end
 
         data ->
@@ -466,6 +479,37 @@ defmodule Schema.JsonReader do
     end
   end
 
+  defp error(message) do
+    Logger.error(message)
+    System.stop(1)
+  end
+
+  defp resolve_file(home, file) do
+    path = Path.join(home, file)
+
+    if File.regular?(path) do
+      path
+    else
+      error("file #{path} not found in #{home}")
+    end
+  end
+
+  defp resolve_file(home, ext, file) do
+    path = Path.join(ext[:path], file)
+
+    if File.regular?(path) do
+      path
+    else
+      path = Path.join(home, file)
+
+      if File.regular?(path) do
+        path
+      else
+        error("file #{path} not found in [#{ext[:path]}, #{home}]")
+      end
+    end
+  end
+
   # ETS cache for the included json files
   defp init_cache() do
     name = __MODULE__
@@ -475,16 +519,16 @@ defmodule Schema.JsonReader do
         :ets.new(name, [:set, :protected, :named_table])
 
       _ ->
-        raise "ETS table with name #{name} already exists."
+        error("ETS table with name #{name} already exists.")
     end
   end
 
-  defp put(data, path) do
+  defp cache_put(data, path) do
     :ets.insert(__MODULE__, {path, data})
     data
   end
 
-  defp get(path) do
+  defp cache_get(path) do
     :ets.lookup(__MODULE__, path)
   end
 

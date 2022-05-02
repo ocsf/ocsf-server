@@ -30,7 +30,7 @@ config :schema_server, SchemaWeb.Endpoint,
 
 # Do not include metadata nor timestamps in development logs
 config :logger, :console,
-  level: :debug,
+  level: :info,
   format: "[$level] $message\n"
 
 # Set a higher stacktrace during development. Avoid configuring such
