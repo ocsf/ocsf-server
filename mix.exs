@@ -18,12 +18,12 @@ defmodule Schema.MixProject do
       releases: [
         schema_server: [
           steps: [:assemble, :tar, &write_version/1],
-          overlays: ["modules"],                   
+          overlays: ["modules"],
           include_executables_for: [:unix]
         ]
       ],
       app: :schema_server,
-      version: "1.8.3-#{build}",
+      version: "1.9.0-#{build}",
       elixir: "~> 1.11",
       elixirc_paths: elixirc_paths(Mix.env()),
       compilers: [:phoenix, :gettext] ++ Mix.compilers(),
