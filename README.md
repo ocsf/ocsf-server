@@ -1,15 +1,23 @@
 # Open Cybersecurity Schema Framework Server
 This is the Open Cybersecurity Schema Framework (OCSF) server repository.
 
-## Local Usage
-This section describes how to build the Event Schema server.
-
-### Obtaining the source code
+## Obtaining the source code
 Clone the GitHub OCFS WEB Server repository. Use `--recurse-submodules` to the `git clone` command, which will automatically initialize and update the schema submodule in the repository:
 
 ```bash
 git clone --recurse-submodules https://github.com/ocsf/ocsf-server.git
 ```
+
+## Build and run schema server docker image
+
+```bash
+cd ocsf-server
+docker build -t docker_ocsf:0.9.0 .
+docker run -it -p 8080:8080 docker_ocsf:0.9.0
+```
+
+## Local Usage
+This section describes how to build the Event Schema server.
 
 ### Required build tools
 The event schema server is written in [Elixir](https://elixir-lang.org) using the [Phoenix](https://phoenixframework.org/) web framework.
@@ -109,13 +117,4 @@ To deploy the schema server, copy the release archive file (`dist/schema_server-
 - Target architecture (for example, x86_64 or ARM)
 - Target vendor + operating system (for example, Windows, Linux, or Darwin/macOS)
 - Target ABI (for example, musl or gnu)
-
-
-
-### Build and run schema server docker image
-
-```bash
-docker build -t docker_ocsf:0.9.0 .
-docker run -it -p 8080:8080 docker_ocsf:0.9.0
-```
 
