@@ -376,7 +376,7 @@ defmodule Schema.JsonReader do
   end
 
   defp include_traits(resolver, file, data) do
-    included = read_included_file(resolver, file)
+    included = get_included_file(resolver, file)
     attributes = Utils.deep_merge(included[:attributes], Map.delete(data[:attributes], @include))
     Map.put(data, :attributes, attributes)
   end
@@ -401,20 +401,35 @@ defmodule Schema.JsonReader do
         attribute
 
       file ->
-        read_included_file(resolver, file) |> Utils.deep_merge(Map.delete(attribute, @include))
+        get_included_file(resolver, file) |> Utils.deep_merge(Map.delete(attribute, @include))
     end
   end
 
-  defp read_included_file(resolver, file) do
+  defp get_included_file(resolver, file) do
     path = resolver.(file)
     Logger.debug(fn -> "#{inspect(__MODULE__)} include file #{path}" end)
 
     case cache_get(path) do
       [] ->
-        read_json_file(path) |> cache_put(path)
+        read_json_file(path) |> update_profile_attributes() |> cache_put(path)
 
       [{_, cached}] ->
         cached
+    end
+  end
+
+  defp update_profile_attributes(data) do
+    case Map.get(data, :annotations) do
+      nil ->
+        data
+
+      annotations ->
+        Map.update(data, :attributes, [], fn attributes ->
+          Enum.map(attributes, fn {name, attribute} ->
+            {name, Utils.deep_merge(annotations, attribute)}
+          end)
+          |> Map.new()
+        end)
     end
   end
 
