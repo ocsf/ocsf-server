@@ -237,16 +237,20 @@ defmodule Schema.Cache do
     class = Map.put(class, :category, Atom.to_string(key))
     class = Map.put(class, :category_name, category[:name])
 
-    case class[:extension_id] do
-      nil ->
-        Map.update(class, :uid, 0, fn uid ->
-          Types.class_uid(category[:uid], uid)
-        end)
+    try do
+      case class[:extension_id] do
+        nil ->
+          Map.update(class, :uid, 0, fn uid ->
+            Types.class_uid(category[:uid], uid)
+          end)
 
-      ext ->
-        Map.update(class, :uid, 0, fn uid ->
-          Types.class_uid(Types.category_uid_ex(ext, category[:uid]), uid)
-        end)
+        ext ->
+          Map.update(class, :uid, 0, fn uid ->
+            Types.class_uid(Types.category_uid_ex(ext, category[:uid]), uid)
+          end)
+      end
+    rescue
+      ArithmeticError -> error("invalid class #{class[:name]}: #{inspect(Map.delete(class, :attributes))}")
     end
   end
 
@@ -460,5 +464,10 @@ defmodule Schema.Cache do
 
   defp set_objects(%__MODULE__{} = schema, objects) do
     struct(schema, objects: objects)
+  end
+
+  defp error(message) do
+    Logger.error(message)
+    System.stop(1)
   end
 end
