@@ -425,12 +425,16 @@ defmodule Schema.JsonReader do
 
       annotations ->
         Map.update(data, :attributes, [], fn attributes ->
-          Enum.map(attributes, fn {name, attribute} ->
-            {name, Utils.deep_merge(annotations, attribute)}
-          end)
-          |> Map.new()
+          add_annotated_attributes(attributes, annotations)
         end)
     end
+  end
+
+  defp add_annotated_attributes(attributes, annotations) do
+    Enum.map(attributes, fn {name, attribute} ->
+      {name, Utils.deep_merge(annotations, attribute)}
+    end)
+    |> Map.new()
   end
 
   # Extensions
