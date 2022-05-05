@@ -268,8 +268,10 @@ defmodule SchemaWeb.PageView do
   end
 
   def links(_, _, nil), do: ""
+  def links(_, _, []), do: ""
 
   def links(conn, name, links) do
+    Logger.info("links: for #{name}. #{inspect(links)}")
     groups =
       Enum.group_by(
         links,
