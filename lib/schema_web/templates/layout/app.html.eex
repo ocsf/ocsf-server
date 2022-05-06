@@ -39,7 +39,7 @@ limitations under the License.
 
 <body class="bg-light">
 
-<nav class="navbar navbar-expand-md navbar-light bg-light">
+<nav class="navbar navbar-expand-md navbar-light">
   <h2>Open Cybersecurity Schema Framework</h2>
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse">
     <span class="navbar-toggler-icon"></span>
@@ -89,50 +89,17 @@ limitations under the License.
       <li id="guidelines_id" class="nav-item">
         <a class="nav-link py-1" href='<%= Routes.static_path(@conn, "/guidelines") %>'>Guidelines</a>
       </li>
-    </ul>
 
-    <div class="form-inline ml-auto">
-      <label class="control-label mr-2" for="attributes-select">Attribute filter:</label>
-      <ul class="navbar-nav mb-2 mb-md-0">
-        <li class="nav-item mr-2">
-          <select multiple
-                  id="attributes-select"
-                  class="selectpicker d-none"
-                  data-style="btn-outline-secondary"
-                  data-selected-text-format="count > 3"
-                  data-actions-box="true"
-                  data-width="auto">
-            <option selected disabled id="base-event-select" class="base-event" value="base-event" title="Base Event">Base
-              Event Attributes
-            </option>
-            <optgroup disabled id="groups-select" label="Groups">
-              <option selected value="classification">Classification</option>
-              <option selected value="context">Context</option>
-              <option selected value="occurrence">Occurrence</option>
-              <option selected value="primary">Primary</option>
-            </optgroup>
-            <optgroup id="requirements-select" label="Requirements">
-              <option selected class="reserved" value="reserved" title="Reserved">Reserved Attributes</option>
-              <option class="optional" value="optional" title="Optional">Optional Attributes</option>
-            </optgroup>
-          </select>
-        </li>
-
-        <li class="nav-item mr-2">
-          <div id="json-schema" class="d-none">
-            <button type="button" id="btn-json-schema" class="btn btn-outline-secondary">Schema</button>
-          </div>
-        </li>
-        <li class="nav-item mr-2">
-          <div id="sample-data" class="d-none">
-            <button type="button" id="btn-sample-data" class="btn btn-outline-secondary">Sample</button>
-          </div>
-        </li>
-
-        <li class="nav-item">
-          <input type="text" id="tableSearch" onkeyup="searchInTable()" class="form-control border-dark" placeholder="Search" autofocus>
-        </li>
-      </div>
+      <li class="nav-item">
+        <div id="json-schema" class="d-none">
+          <button type="button" id="btn-json-schema" class="btn btn-link btn-sm">Schema</button>
+        </div>
+      </li>
+      <li class="nav-item">
+        <div id="sample-data" class="d-none">
+          <button type="button" id="btn-sample-data" class="btn btn-link btn-sm">Sample</button>
+        </div>
+      </li>
     </ul>
   </div>
 </nav>

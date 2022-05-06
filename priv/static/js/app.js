@@ -53,10 +53,6 @@ function enable_option(name) {
   $(name).removeAttr('disabled');
 }
 
-function show_select_attributes(list) {
-  show(selectAttributes);
-}
-
 function init_select() {
   let selected;
   if (window.localStorage.getItem(storageKey) == null) {
