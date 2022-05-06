@@ -9,8 +9,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 export default function define(runtime, observer) {
-  let width = getWidth() * 0.75;
-  let height = getHeight() * 0.65;
+  let width = getWidth() * 0.9;
+  let height = getHeight() * 0.92;
 
   const main = runtime.module();
   const params = extensions_params();
@@ -50,8 +50,16 @@ export default function define(runtime, observer) {
         .append("rect")
         .style("stroke", "#b0b0b0")
         .attr("fill", "#f8f8f8")
-        .attr("width", d => d.x1 - d.x0)
-        .attr("height", d => d.y1 - d.y0);
+        .attr("width", function (d) {
+          let n = d.x1 - d.x0;
+          console.info(d.data.name +" width: " + n);
+          return n;
+        })
+        .attr("height", function (d) {
+          let n = d.y1 - d.y0;
+          console.info(d.data.name +" height: " + n);
+          return n;
+        });
 
       // Add title for the classes
       leaf
@@ -105,7 +113,7 @@ export default function define(runtime, observer) {
       data => d3.treemap()
         .tile(tile)
         .size([width, height])
-        .paddingTop(28)
+        .paddingTop(30)
         .paddingRight(6)
         .paddingInner(3) // Padding between each rectangle
         (d3.hierarchy(data).sum(d => d.value)))

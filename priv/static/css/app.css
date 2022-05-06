@@ -200,7 +200,7 @@ tr.thead-color {
 }
 
 .main-page {
-  padding-bottom: 62px;
+  padding-bottom: 2px;
 }
 
 .name a {
@@ -241,5 +241,3 @@ span.hidden {
   -moz-border-radius: 5px;
   border-radius: 5px;
 }
-
-

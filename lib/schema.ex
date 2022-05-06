@@ -218,21 +218,20 @@ defmodule Schema do
               extension == nil or MapSet.member?(extensions, extension)
             end)
             |> Stream.map(fn {_name, class} ->
-              len = map_size(class[:attributes])
-              reduce_class(class) |> Map.put(:value, len)
+              reduce_class(class) |> Map.put(:value, 1)
             end)
             |> Enum.sort(fn map1, map2 -> map1[:name] <= map2[:name] end)
 
           Map.put(cat, :type, name)
           |> Map.put(:children, children)
-          |> Map.put(:value, length(children))
+          |> Map.put(:value, 1)
         end
       )
       |> Enum.sort(fn map1, map2 -> map1[:name] <= map2[:name] end)
 
     base
     |> Map.put(:children, categories)
-    |> Map.put(:value, length(categories))
+    |> Map.put(:value, 1)
   end
 
   @spec export_schema(MapSet.t(binary)) :: %{classes: map, objects: map, types: map}
