@@ -92,11 +92,13 @@ limitations under the License.
     </ul>
 
     <div class="form-inline ml-auto">
+      <label class="control-label mr-2" for="attributes-select">Attribute filter:</label>
       <ul class="navbar-nav mb-2 mb-md-0">
         <li class="nav-item mr-2">
           <select multiple
                   id="attributes-select"
                   class="selectpicker d-none"
+                  data-style="btn-outline-secondary"
                   data-selected-text-format="count > 3"
                   data-actions-box="true"
                   data-width="auto">
