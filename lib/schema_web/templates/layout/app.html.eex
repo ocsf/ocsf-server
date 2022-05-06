@@ -45,8 +45,8 @@ limitations under the License.
     <span class="navbar-toggler-icon"></span>
   </button>
 
-  <nav class="navbar navbar-expand-md navbar-light bg-extensions fixed-left">
-    <a class="navbar-brand" href>Extensions</a>
+  <nav class="navbar navbar-expand-md navbar-light fixed-left">
+    <a class="navbar-brand" href>OCSF Extensions</a>
     <div class="collapse navbar-collapse" id="checkbox-extensions">
       <ul class="navbar-nav">
         <%= for {_key, map} <- @extensions do %>
@@ -111,8 +111,7 @@ limitations under the License.
 </div>
 
 <div class="footer">
-  Open Cybersecurity Schema Framework v<%= Schema.version() %> &copy; 2005-2022 Splunk Inc. All rights reserved. This content includes
-  the ICD Schema developed by Symantec, a division of Broadcom.
+  Open Cybersecurity Schema Framework v<%= Schema.version() %> &copy; 2005-2022 Splunk Inc. All rights reserved. This content includes the ICD Schema developed by Symantec, a division of Broadcom.
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
