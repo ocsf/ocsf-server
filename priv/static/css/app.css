@@ -8,9 +8,8 @@ body {
   line-height: 1.5;
 }
 
-
 body {
-  padding-top: 90px
+  padding-top: 50px
 }
 
 @media (min-width:768px) {
@@ -21,7 +20,7 @@ body {
 
 @media (min-width:768px) {
   body {
-    margin-left: 200px
+    margin-left: 162px
   }
 }
 
@@ -29,14 +28,13 @@ body {
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
   z-index: 1030
 }
 
 @media (min-width:768px) {
   .navbar.fixed-left {
     bottom: 0;
-    width: 200px;
+    width: 162px;
     border-right: .1em solid;
 
     flex-flow: column nowrap;
@@ -69,9 +67,9 @@ body {
   }
 
   .navbar.fixed-left .navbar-nav .nav-item .dropdown-toggle:after {
-    border-top: .3em solid transparent;
+    border-top: .3em transparent;
     border-left: .3em solid;
-    border-bottom: .3em solid transparent;
+    border-bottom: .3em transparent;
     border-right: none;
     vertical-align: baseline
   }
@@ -235,7 +233,7 @@ span.hidden {
   max-width: 500px;
   color: #2d2e2ee1;
   text-align: center;
-  background: #f4f4f4;
+  background: lightyellow;
   border: 1px solid #161616;
   -webkit-border-radius: 5px;
   -moz-border-radius: 5px;

@@ -46,7 +46,7 @@ limitations under the License.
   </button>
 
   <nav class="navbar navbar-expand-md navbar-light fixed-left">
-    <a class="navbar-brand" href>OCSF Extensions</a>
+    <a class="navbar-brand" href>Extensions</a>
     <div class="collapse navbar-collapse" id="checkbox-extensions">
       <ul class="navbar-nav">
         <%= for {_key, map} <- @extensions do %>
