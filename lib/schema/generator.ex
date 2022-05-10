@@ -87,14 +87,14 @@ defmodule Schema.Generator do
 
     data = generate(class)
 
-    case data[:disposition_id] do
+    case data[:activity_id] do
       nil ->
         data
 
-      disposition_id ->
+      activity_id ->
         uid =
-          if disposition_id >= 0 do
-            Types.event_uid(data[:class_uid], disposition_id)
+          if activity_id >= 0 do
+            Types.event_uid(data[:class_uid], activity_id)
           else
             -1
           end

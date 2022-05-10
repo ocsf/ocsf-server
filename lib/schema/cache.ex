@@ -250,7 +250,8 @@ defmodule Schema.Cache do
           end)
       end
     rescue
-      ArithmeticError -> error("invalid class #{class[:name]}: #{inspect(Map.delete(class, :attributes))}")
+      ArithmeticError ->
+        error("invalid class #{class[:name]}: #{inspect(Map.delete(class, :attributes))}")
     end
   end
 
@@ -269,13 +270,13 @@ defmodule Schema.Cache do
   end
 
   defp make_event_uid(data, name, attributes) do
-    id = attributes[:disposition_id] || %{}
+    id = attributes[:activity_id] || %{}
     class_uid = Types.event_uid(data[:uid] || 0, 0)
     caption = data[:name] || "UNKNOWN"
 
     case id[:enum] do
       nil ->
-        Logger.warn("class '#{name}' has no disposition_id values")
+        Logger.warn("class '#{name}' has no activity_id values")
         %{}
 
       values ->

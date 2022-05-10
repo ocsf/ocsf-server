@@ -4,13 +4,17 @@ defmodule SchemaWeb.PageView do
   require Logger
 
   def format_name(name, field) do
-    extension = field[:extension]
     name = field[:name] || name
 
-    if extension == nil do
-      name
-    else
-      name <> " <sup>#{extension}</sup>"
+    name =
+      case field[:extension] do
+        nil -> name
+        extension -> name <> " <sup>#{extension}</sup>"
+      end
+
+    case field[:uid] do
+      nil -> name
+      uid -> name <> "[#{uid}]"
     end
   end
 
