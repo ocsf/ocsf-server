@@ -7,16 +7,16 @@ defmodule SchemaWeb.PageView do
     name = field[:name] || name
 
     name =
-      case field[:extension] do
-        nil -> name
-        extension -> name <> " <sup>#{extension}</sup>"
-      end
-
     case field[:uid] do
       nil -> name
-      uid -> name <> "[#{uid}]"
+      uid -> name <> "<span class='uid'> [#{uid}]</span>"
     end
-  end
+
+    case field[:extension] do
+      nil -> name
+      extension -> name <> " <sup>#{extension}</sup>"
+    end
+end
 
   def format_range([min, max]) do
     format_number(min) <> "-" <> format_number(max)

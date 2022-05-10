@@ -66,28 +66,28 @@ limitations under the License.
   <div class="collapse navbar-collapse w-100 flex-md-column" id="navbarCollapse">
     <ul class="extensions navbar-nav ml-auto mb-2 mb-md-0">
       <li id="categories_id" class="nav-item">
-        <a class="nav-link py-1" href='<%= Routes.static_path(@conn, "/categories") %>'>Categories</a>
+        <a class="nav-link" href='<%= Routes.static_path(@conn, "/categories") %>'>Categories</a>
       </li>
       <li id="dictionary_id" class="nav-item">
-        <a class="nav-link py-1" href='<%= Routes.static_path(@conn, "/dictionary") %>'>Dictionary</a>
+        <a class="nav-link" href='<%= Routes.static_path(@conn, "/dictionary") %>'>Dictionary</a>
       </li>
       <li id="base_event_id" class="nav-item">
-        <a class="nav-link py-1" href='<%= Routes.static_path(@conn, "/base_event") %>'>Base Event</a>
+        <a class="nav-link" href='<%= Routes.static_path(@conn, "/base_event") %>'>Base Event</a>
       </li>
       <li id="objects_id"  class="nav-item">
-        <a class="nav-link py-1" href='<%= Routes.static_path(@conn, "/objects") %>'>Objects</a>
+        <a class="nav-link" href='<%= Routes.static_path(@conn, "/objects") %>'>Objects</a>
       </li>
       <li id="classes_id" class="nav-item">
-        <a class="nav-link py-1" href='<%= Routes.static_path(@conn, "/classes") %>'>Event Classes</a>
+        <a class="nav-link" href='<%= Routes.static_path(@conn, "/classes") %>'>Event Classes</a>
       </li>
       <li id="schema_map_id" class="nav-item">
-        <a class="nav-link py-1" href='<%= Routes.static_path(@conn, "/schema") %>'>Schema Map</a>
+        <a class="nav-link" href='<%= Routes.static_path(@conn, "/schema") %>'>Schema Map</a>
       </li>
       <li id="data_types_id" class="nav-item">
-        <a class="nav-link py-1" href='<%= Routes.static_path(@conn, "/data_types") %>'>Data Types</a>
+        <a class="nav-link" href='<%= Routes.static_path(@conn, "/data_types") %>'>Data Types</a>
       </li>
       <li id="guidelines_id" class="nav-item">
-        <a class="nav-link py-1" href='<%= Routes.static_path(@conn, "/guidelines") %>'>Guidelines</a>
+        <a class="nav-link" href='<%= Routes.static_path(@conn, "/guidelines") %>'>Guidelines</a>
       </li>
 
       <li class="nav-item">

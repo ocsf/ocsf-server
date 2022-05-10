@@ -1,7 +1,5 @@
 /* This file is the main application css. */
 
-@import url(https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap);
-
 body {
   font-size: .8rem;
   font-weight: 400;
@@ -105,10 +103,14 @@ blockquote small {
   font-weight: 500;
 }
 
-/*sup {
-  color: lightyellow;
+sup {
+  font-weight: 400;
 }
-*/
+
+.uid {
+  font-weight: 300;
+}
+
 .optional {
   color: #403D39;
   font-weight: 300;
@@ -125,11 +127,11 @@ strong {
 /*     General overwrite     */
 
 a {
-  color: #366BB2;
+  color: #42638eca;
 }
 
 a:hover, a:focus {
-  color: #3091B2;
+  color: #1c73e3;
   text-decoration: none;
 }
 
@@ -189,7 +191,7 @@ tr.thead-color {
 
 .name {
   background-color: #224F8B;
-  color: lightgoldenrodyellow;
+  color: lightgrey;
 }
 
 .links {
@@ -197,16 +199,21 @@ tr.thead-color {
   padding-bottom: 40px;
 }
 
+.btn-link {
+  padding-top: 0.42rem;
+  font-size: 0.8rem;
+}
+
 .main-page {
   padding-bottom: 2px;
 }
 
 .name a {
-  color: white !important;
+  color: lightgrey !important;
 }
 
 .name a:hover, a:focus {
-  color: #cce6ff !important;
+  color: white !important;
   text-decoration: none;
 }
 
