@@ -107,6 +107,11 @@ sup {
   font-weight: 400;
 }
 
+.observable {
+  background-color: #224F8B;
+  color: white;
+}
+
 .uid {
   font-weight: 300;
 }

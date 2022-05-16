@@ -49,4 +49,15 @@ defmodule Schema.Types do
   def event_name(class, name) do
     class <> ": " <> name
   end
+
+  @doc """
+  Generates observables object.
+  """
+  @spec observables(map()) :: list()
+  def observables(types) do
+    Enum.filter(types, fn {name, type} ->
+      IO.puts("#{name}: #{inspect(type)}")
+      true
+    end)
+  end
 end

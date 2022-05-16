@@ -28,6 +28,7 @@ defmodule Schema.Inspector do
     "process_name_t",
     "string_t",
     "subnet_t",
+    "resource_uid_t",
     "username_t",
     "json_t"
   ]
