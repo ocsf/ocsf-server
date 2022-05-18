@@ -62,8 +62,8 @@ limitations under the License.
       </ul>
     </div>
 
+    <%= if map_size(@profiles) > 0 do %>
     <div class="container-fluid profiles-divider"></div>
-
     <a class="navbar-brand" href>Profiles
       <hr class="divider"/>
     </a>
@@ -79,6 +79,7 @@ limitations under the License.
       <% end %>
       </ul>
     </div>
+    <% end %>
   </nav>
 
   <div class="collapse navbar-collapse w-100 flex-md-column" id="navbarCollapse">
