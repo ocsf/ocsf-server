@@ -270,13 +270,13 @@ defmodule Schema.Cache do
   end
 
   defp make_event_uid(data, name, attributes) do
-    id = attributes[:activity_id] || %{}
+    id = attributes[:activity_id] || attributes[:disposition_id] || %{}
     class_uid = Types.event_uid(data[:uid] || 0, 0)
     caption = data[:name] || "UNKNOWN"
 
     case id[:enum] do
       nil ->
-        Logger.warn("class '#{name}' has no activity_id values")
+        Logger.warn("class '#{name}' has no activity_id nor disposition_id")
         %{}
 
       values ->
