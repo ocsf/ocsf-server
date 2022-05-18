@@ -46,17 +46,35 @@ limitations under the License.
   </button>
 
   <nav class="navbar navbar-expand-md navbar-light fixed-left">
-    <a class="navbar-brand" href>Extensions</a>
+    <a class="navbar-brand" href>Extensions
+      <hr class="divider"/>
+    </a>
     <div class="collapse navbar-collapse" id="checkbox-extensions">
       <ul class="navbar-nav">
         <%= for {_key, map} <- @extensions do %>
         <% type = map[:type] %>
         <li class="nav-item">
-          <div class="checkbox">
-            <a style="display: inline-block;" class="nav-link">
-              <input type="checkbox" id="<%= type %>" > <%= map[:name] %>
-            </a>
-          </div>
+          <a style="display: inline-block;" class="nav-link">
+            <input type="checkbox" id="<%= type %>" > <%= map[:name] %>
+          </a>
+        </li>
+      <% end %>
+      </ul>
+    </div>
+
+    <div class="container-fluid profiles-divider"></div>
+
+    <a class="navbar-brand" href>Profiles
+      <hr class="divider"/>
+    </a>
+    <div class="collapse navbar-collapse" id="checkbox-profiles">
+      <ul class="navbar-nav">
+        <%= for {_key, map} <- @profiles do %>
+        <% type = map[:type] %>
+        <li class="nav-item">
+          <a style="display: inline-block;" class="nav-link">
+            <input type="checkbox" id="<%= type %>" > <%= map[:name] %>
+          </a>
         </li>
       <% end %>
       </ul>
@@ -128,32 +146,53 @@ limitations under the License.
 <script type="text/javascript" src='<%= Routes.static_path(@conn, "/js/sorttable.js") %>'></script>
 
 <script>
-  $(document).ready(function () {
-
-    let extensions = get_selected_extensions();
-    let $checkboxes = $("#checkbox-extensions :checkbox");
-
-    $.each(extensions, function(key, value) {
-      $("#" + key).prop('checked', value);
-    });
-
-    // update the links with the selected extensions
-    const params = extensions_params();
-    $(".extensions a").each(function() {
-      this.href = this.href + params;
-    });
-
-    $checkboxes.on("change", function() {
-      $checkboxes.each(function(){
-        extensions[this.id] = this.checked;
+  document.onreadystatechange = function(e)
+  {
+    if (document.readyState === 'complete')
+    {
+      let selected_extensions = get_selected_extensions();
+      $.each(selected_extensions, function(key, value) {
+        $("#" + key).prop('checked', value);
       });
-      set_selected_extensions(extensions);
 
-      const params = selected_extensions(extensions);
+      // update the links with the selected extensions
+      const params = select_extensions(selected_extensions);
       $(".extensions a").each(function() {
         this.href = this.href + params;
-        window.location.search = params;
       });
+
+      let selected_profiles = get_selected_profiles();
+      $.each(selected_profiles, function(index, element) {
+        $("#" + element).prop('checked', true);
+      });
+    }
+  };
+
+  $(document).ready(function () {
+    let selected_extensions = get_selected_extensions();
+    let extensions = $("#checkbox-extensions :checkbox");
+    extensions.on("change", function() {
+      extensions.each(function(){
+        selected_extensions[this.id] = this.checked;
+      });
+      set_selected_extensions(selected_extensions);
+
+      const params = select_extensions(selected_extensions);
+      window.location.search = params;
+      $(".extensions a").each(function() {
+        this.href = this.href + params;
+      });
+    });
+
+    let profiles = $("#checkbox-profiles :checkbox");
+    profiles.on("change", function() {
+      selected_profiles = [];
+      profiles.each(function(){
+        if (this.checked)
+          selected_profiles.push(this.id)
+      });
+      set_selected_profiles(selected_profiles);
+      window.location.reload(false);
     });
 
     // init the dropdown filters

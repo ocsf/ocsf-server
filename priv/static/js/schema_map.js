@@ -13,7 +13,7 @@ export default function define(runtime, observer) {
   let height = getHeight() * 0.92;
 
   const main = runtime.module();
-  const params = extensions_params();
+  const params = select_extensions(get_selected_extensions())
   const fileAttachments = new Map([["schema.json", new URL("/api/schema" + params, import.meta.url)]]);
 
   main.builtin("FileAttachment", runtime.fileAttachments(name => fileAttachments.get(name)));

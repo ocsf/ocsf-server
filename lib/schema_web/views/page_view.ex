@@ -3,14 +3,15 @@ defmodule SchemaWeb.PageView do
 
   require Logger
 
+  @spec format_name(any, nil | maybe_improper_list | map) :: any
   def format_name(name, field) do
     name = field[:name] || name
 
-    name =
-    case field[:uid] do
-      nil -> name
-      uid -> name <> "<span class='uid'> [#{uid}]</span>"
-    end
+    # name =
+    # case field[:uid] do
+    #   nil -> name
+    #   uid -> name <> "<span class='uid'> [#{uid}]</span>"
+    # end
 
     case field[:extension] do
       nil -> name
@@ -18,6 +19,25 @@ defmodule SchemaWeb.PageView do
     end
 end
 
+@spec format_attribute_name(any, nil | maybe_improper_list | map) :: any
+def format_attribute_name(name, field) do
+  name = field[:name] || name
+
+  case field[:extension] do
+    nil -> name
+    extension -> name <> " <sup>#{extension}</sup>"
+  end
+end
+
+@spec format_profile_name(any, any) :: any
+def format_profile_name(name, profile) do
+  case profile do
+    "" -> name
+    profile -> name <> " <sup>#{profile}</sup>"
+  end
+end
+
+  @spec format_range([nil | number | Decimal.t(), ...]) :: nonempty_binary
   def format_range([min, max]) do
     format_number(min) <> "-" <> format_number(max)
   end
@@ -27,9 +47,10 @@ end
     Map.get(field, :requirement) || "optional"
   end
 
+  @spec field_classes(map) :: nonempty_binary
   def field_classes(field) do
     base =
-      if field[:_source] == :base_event do
+      if field[:_source] == :base_event or field[:_source] == :event do
         "base-event "
       else
         "event "
@@ -48,10 +69,19 @@ end
 
     group = field[:group]
 
-    if group != nil do
-      classes <> group <> " d-none"
+    classes =
+      if group != nil do
+      classes <> group
     else
       classes <> "no-group"
+    end
+
+    profile = field[:profile_name]
+
+    if profile != nil do
+      classes <> " " <> profile
+    else
+      classes <> " no-profile"
     end
   end
 

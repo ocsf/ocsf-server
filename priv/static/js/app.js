@@ -9,11 +9,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-function extensions_params() {
-  return selected_extensions(get_selected_extensions());
-}
-
-function selected_extensions(selected) {
+function select_extensions(selected) {
   if (selected) {
     const params = [];
 
@@ -37,8 +33,15 @@ function set_selected_extensions(extensions) {
   localStorage.setItem("schema_extensions", JSON.stringify(extensions));
 }
 
+function get_selected_profiles() {
+  return JSON.parse(localStorage.getItem('schema_profiles')) || {};
+}
+
+function set_selected_profiles(profiles) {
+  localStorage.setItem("schema_profiles", JSON.stringify(profiles));
+}
+
 const defaultSelectedValues = ["base-event", "reserved", "classification", "context", "occurrence", "primary"];
-const selectAttributes = "#attributes-select";
 const storageKey = "selected-attributes"
 
 function hide(name) {
@@ -66,7 +69,7 @@ function init_select() {
       selected = [];
   }
 
-  init_select_picker($(selectAttributes), selected);
+  init_select_picker($("#attributes-select"), selected);
 
   display_attributes(array_to_set(selected));
 }
@@ -74,6 +77,7 @@ function init_select() {
 function init_select_picker(selection, selected) {
   selection.selectpicker();
   selection.selectpicker('val', selected);
+
   selection.on('changed.bs.select', function (e, clickedIndex, isSelected, oldValues) {
     const values = [];
 
@@ -94,18 +98,20 @@ function display_attributes(options) {
   if (table != null) {
     // add classes that are always shown
     options.add("event");
-    options.add("conclusion");
     options.add("required");
-    options.add("recommended");
     options.add("no-group");
+    options.add("no-profile");
+
+    get_selected_profiles().forEach(function (elem) {
+      options.add(elem);
+    });
 
     const rows = table.rows;
     const length = rows.length;
 
     for (let i = 1; i < length; i++) {
-      const classList = rows[i].classList;
+      const classList = rows[i].classList;      
       const delta = intersection(array_to_set(classList), options);
-
       display_row(delta, classList);
     }
   }
@@ -126,7 +132,7 @@ function intersection(setA, setB) {
 }
 
 function display_row(set, classList) {
-  if (set.size == 3)
+  if (set.size == 4)
     classList.remove('d-none');
   else
     classList.add('d-none');

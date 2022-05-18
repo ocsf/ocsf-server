@@ -29,10 +29,36 @@ defmodule Schema do
   def version(), do: Repo.version()
 
   @doc """
-    Returns the event extensions.
+    Returns the schema extensions.
   """
   @spec extensions :: map()
   def extensions(), do: Cache.extensions()
+
+  @doc """
+    Returns the schema profiles.
+  """
+  @spec profiles :: map()
+  def profiles(),
+    do: %{
+      "host" => %{
+        name: "Host",
+        type: "host",
+        uid: 1,
+        version: "0.0.1"
+      },
+      "user" => %{
+        name: "User",
+        type: "user",
+        uid: 2,
+        version: "0.0.0"
+      },
+      "malware" => %{
+        name: "Malware",
+        type: "malware",
+        uid: 3,
+        version: "0.0.1"
+      }
+    }
 
   @doc """
     Reloads the event schema without the extensions.
@@ -60,6 +86,7 @@ defmodule Schema do
       Enum.map(attributes, fn {name, _category} ->
         {name, category(extensions, name)}
       end)
+      |> Enum.filter(fn {_name, category} -> map_size(category[:classes]) > 0 end)
       |> Map.new()
     end)
   end
@@ -212,8 +239,7 @@ defmodule Schema do
           {classes, cat} = Repo.category(name) |> Map.pop(:classes)
 
           children =
-            classes
-            |> Stream.filter(fn {_name, class} ->
+            Stream.filter(classes, fn {_name, class} ->
               extension = class[:extension]
               extension == nil or MapSet.member?(extensions, extension)
             end)
@@ -222,11 +248,16 @@ defmodule Schema do
             end)
             |> Enum.sort(fn map1, map2 -> map1[:name] <= map2[:name] end)
 
+          if length(children) == 0 do
+            IO.puts("empty category: #{name}")
+          end
+
           Map.put(cat, :type, name)
           |> Map.put(:children, children)
           |> Map.put(:value, 1)
         end
       )
+      |> Enum.filter(fn category -> length(category[:children]) > 0 end)
       |> Enum.sort(fn map1, map2 -> map1[:name] <= map2[:name] end)
 
     base

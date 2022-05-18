@@ -34,7 +34,6 @@ body {
     bottom: 0;
     width: 162px;
     border-right: .1em solid;
-
     flex-flow: column nowrap;
     align-items: flex-start
   }
@@ -77,6 +76,19 @@ body {
   }
 }
 
+.profiles-divider {
+  margin-top: 1rem;
+  /* border-top: 1px solid rgb(58, 58, 58); */
+  color: transparent;
+}
+
+.divider {
+  margin-top: 0rem;
+  margin-bottom: 0rem;
+  border: 0;
+  border-top: 10px solid rgba(0, 0, 0, 0.1);
+}
+
 .title-uppercase {
   text-transform: uppercase;
 }
@@ -104,7 +116,7 @@ blockquote small {
 }
 
 sup {
-  font-weight: 400;
+  font-weight: 500;
 }
 
 .observable {
@@ -153,9 +165,10 @@ li {
   position: fixed;
   bottom: 0;
   width: 100%;
-  font-weight: 60;
+  font-weight: 75;
   text-align: center;
   background-color: lightgray;
+  background-image: linear-gradient(white, darkgray);
 }
 
 .active {
