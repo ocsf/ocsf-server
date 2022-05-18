@@ -40,24 +40,24 @@ defmodule Schema do
   @spec profiles :: map()
   def profiles(),
     do: %{
-      "host" => %{
-        name: "Host",
-        type: "host",
-        uid: 1,
-        version: "0.0.1"
-      },
-      "user" => %{
-        name: "User",
-        type: "user",
-        uid: 2,
-        version: "0.0.0"
-      },
-      "malware" => %{
-        name: "Malware",
-        type: "malware",
-        uid: 3,
-        version: "0.0.1"
-      }
+      # "host" => %{
+      #   name: "Host",
+      #   type: "host",
+      #   uid: 1,
+      #   version: "0.0.1"
+      # },
+      # "user" => %{
+      #   name: "User",
+      #   type: "user",
+      #   uid: 2,
+      #   version: "0.0.0"
+      # },
+      # "malware" => %{
+      #   name: "Malware",
+      #   type: "malware",
+      #   uid: 3,
+      #   version: "0.0.1"
+      # }
     }
 
   @doc """
@@ -246,7 +246,7 @@ defmodule Schema do
             |> Stream.map(fn {_name, class} ->
               reduce_class(class) |> Map.put(:value, 1)
             end)
-            |> Enum.sort(fn map1, map2 -> map1[:name] <= map2[:name] end)
+            |> Enum.sort(fn map1, map2 -> map1[:uid] <= map2[:uid] end)
 
           if length(children) == 0 do
             IO.puts("empty category: #{name}")
@@ -258,7 +258,7 @@ defmodule Schema do
         end
       )
       |> Enum.filter(fn category -> length(category[:children]) > 0 end)
-      |> Enum.sort(fn map1, map2 -> map1[:name] <= map2[:name] end)
+      |> Enum.sort(fn map1, map2 -> map1[:uid] <= map2[:uid] end)
 
     base
     |> Map.put(:children, categories)
