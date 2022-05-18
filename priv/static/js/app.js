@@ -41,6 +41,28 @@ function set_selected_profiles(profiles) {
   localStorage.setItem("schema_profiles", JSON.stringify(profiles));
 }
 
+function init_selected_profiles(profiles) {
+  if (profiles.length == 0) {
+    $(".oscf-class").each(function(i, e) {
+      e.classList.remove('d-none');
+    });
+  } else {
+    $(".oscf-class").each(function(i, e) {
+      let n = 0;
+
+      $.each(profiles, function(index, element) {
+        if (element in e.dataset)
+          n = n + 1;
+      });
+
+      if (profiles.length == n)
+        e.classList.remove('d-none');
+      else
+        e.classList.add('d-none');
+    });
+  }
+}
+
 const defaultSelectedValues = ["base-event", "reserved", "classification", "context", "occurrence", "primary"];
 const storageKey = "selected-attributes"
 

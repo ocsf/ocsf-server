@@ -110,4 +110,7 @@
     window.open(url,'_blank');
   });
 
+  $("#checkbox-profiles :checkbox").on("change", function() {
+    window.location.reload(false);
+  });
 </script>

@@ -57,9 +57,9 @@ limitations under the License.
             <%= for {id, class} <- category[:classes] do %>
               <% name = Atom.to_string(id) %>
               <% path = Routes.static_path(@conn, "/classes/" <> name) %>
-              <tr>
-                <td class="align-middle" style="height: 36px; overflow:auto;">
-                  <a href="<%= path %>"><%= raw format_name(name, class) %></a>
+              <tr class="oscf-class" <%= raw format_profiles(class[:profiles])%>>
+                <td class='align-middle" style="height: 36px; overflow:auto;'>
+                  <a href='<%= path %>'><%= raw format_name(name, class) %></a>
                 </td>
               </tr>
             <% end %>
@@ -72,3 +72,17 @@ limitations under the License.
   </tbody>
   </table>
 </div>
+
+<script>
+  let profiles = $("#checkbox-profiles :checkbox");
+
+  profiles.on("change", function() {
+    selected_profiles = [];
+    profiles.each(function(){
+      if (this.checked)
+        selected_profiles.push(this.id)
+    });
+    set_selected_profiles(selected_profiles);
+    init_selected_profiles(selected_profiles);
+  });
+</script>

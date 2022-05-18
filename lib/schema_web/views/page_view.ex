@@ -3,6 +3,17 @@ defmodule SchemaWeb.PageView do
 
   require Logger
 
+  def format_profiles(nil) do
+    ""
+  end
+
+  def format_profiles(profiles) do
+    Enum.map(profiles, fn profile ->
+      "data-" <> profile
+    end)
+    |> Enum.join(" ")
+  end
+
   @spec format_name(any, nil | maybe_improper_list | map) :: any
   def format_name(name, field) do
     name = field[:name] || name
