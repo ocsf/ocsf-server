@@ -8,10 +8,9 @@ defmodule SchemaWeb.PageView do
   end
 
   def format_profiles(profiles) do
-    Enum.map(profiles, fn profile ->
+    Enum.map_join(profiles, " ", fn profile ->
       "data-" <> profile
     end)
-    |> Enum.join(" ")
   end
 
   @spec format_name(any, nil | maybe_improper_list | map) :: any

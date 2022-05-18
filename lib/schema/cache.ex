@@ -270,28 +270,16 @@ defmodule Schema.Cache do
   end
 
   defp make_event_uid(data, name, attributes) do
-    id = attributes[:activity_id] || attributes[:disposition_id] || %{}
-    class_uid = Types.event_uid(data[:uid] || 0, 0)
+    class_uid = get_class_uid(data)
     caption = data[:name] || "UNKNOWN"
 
-    case id[:enum] do
+    case event_id(attributes)[:enum] do
       nil ->
         Logger.warn("class '#{name}' has no activity_id nor disposition_id")
         %{}
 
       values ->
-        for {key, val} = value <- values, into: %{} do
-          case key do
-            :"-1" ->
-              value
-
-            _ ->
-              {
-                make_enum_id(class_uid, key),
-                Map.put(val, :name, Types.event_name(caption, val[:name]))
-              }
-          end
-        end
+        enum_values(class_uid, caption, values)
     end
     |> Map.put(
       integer_to_id(0, -1),
@@ -301,6 +289,29 @@ defmodule Schema.Cache do
       integer_to_id(class_uid, 0),
       Map.new(name: Types.event_name(caption, "Unknown"))
     )
+  end
+
+  defp event_id(attributes) do
+    attributes[:activity_id] || attributes[:disposition_id] || %{}
+  end
+
+  defp get_class_uid(class) do
+    Types.event_uid(class[:uid] || 0, 0)
+  end
+
+  defp enum_values(class_uid, caption, values) do
+    for {key, val} = value <- values, into: %{} do
+      case key do
+        :"-1" ->
+          value
+
+        _ ->
+          {
+            make_enum_id(class_uid, key),
+            Map.put(val, :name, Types.event_name(caption, val[:name]))
+          }
+      end
+    end
   end
 
   defp make_enum_id(class_uid, key) do
