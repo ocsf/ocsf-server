@@ -40,24 +40,24 @@ defmodule Schema do
   @spec profiles :: map()
   def profiles(),
     do: %{
-      # "host" => %{
-      #   name: "Host",
-      #   type: "host",
-      #   uid: 1,
-      #   version: "0.0.1"
-      # },
-      # "user" => %{
-      #   name: "User",
-      #   type: "user",
-      #   uid: 2,
-      #   version: "0.0.0"
-      # },
-      # "malware" => %{
-      #   name: "Malware",
-      #   type: "malware",
-      #   uid: 3,
-      #   version: "0.0.1"
-      # }
+      "host" => %{
+        name: "Host",
+        type: "host",
+        uid: 1,
+        version: "0.0.1"
+      },
+      "user" => %{
+        name: "User",
+        type: "user",
+        uid: 2,
+        version: "0.0.0"
+      },
+      "malware" => %{
+        name: "Malware",
+        type: "malware",
+        uid: 3,
+        version: "0.0.1"
+      }
     }
 
   @doc """

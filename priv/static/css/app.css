@@ -167,8 +167,9 @@ li {
   width: 100%;
   font-weight: 75;
   text-align: center;
+  color: rgb(0, 0, 72);
   background-color: lightgray;
-  background-image: linear-gradient(white, darkgray);
+  background-image: linear-gradient(snow, gray);
 }
 
 .active {

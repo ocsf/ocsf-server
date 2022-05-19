@@ -17,12 +17,18 @@ function set_selected_profiles(profiles) {
   localStorage.setItem("schema_profiles", JSON.stringify(profiles));
 }
 
-function init_selected_profiles(profiles) {
+function init_selected_profiles() {
+  let profiles = get_selected_profiles();
+  
   if (profiles.length == 0) {
     $(".oscf-class").each(function(i, e) {
       e.classList.remove('d-none');
     });
   } else {
+    $.each(profiles, function(index, element) {
+      $("#" + element).prop('checked', true);
+    });  
+    
     $(".oscf-class").each(function(i, e) {
       let n = 0;
 

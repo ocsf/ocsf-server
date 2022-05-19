@@ -150,7 +150,7 @@ limitations under the License.
 <script>
   document.onreadystatechange = function(e)
   {
-    if (document.readyState === 'complete')
+    if (document.readyState === 'interactive')
     {
       let selected_extensions = get_selected_extensions();
       $.each(selected_extensions, function(key, value) {
@@ -163,11 +163,8 @@ limitations under the License.
         this.href = this.href + params;
       });
 
-      let selected_profiles = get_selected_profiles();
-      init_selected_profiles(selected_profiles);
-      $.each(selected_profiles, function(index, element) {
-        $("#" + element).prop('checked', true);
-      });
+      // set the profile checkboxes
+      init_selected_profiles();
     }
   };
 
