@@ -100,17 +100,6 @@
 </div>
 <% end %>
 <script>
-  $('#btn-sample-data').on('click', function(event) {
-    const url = '/sample' + window.location.pathname;
-    window.open(url,'_blank');
-  });
-
-  $('#btn-json-schema').on('click', function(event) {
-    const url = '/api' + window.location.pathname;
-    window.open(url,'_blank');
-  });
-
-  $("#checkbox-profiles :checkbox").on("change", function() {
-    window.location.reload(false);
-  });
+  init_schema_buttons();
+  init_class_profiles(false);
 </script>

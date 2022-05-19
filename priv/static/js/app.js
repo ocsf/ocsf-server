@@ -33,36 +33,6 @@ function set_selected_extensions(extensions) {
   localStorage.setItem("schema_extensions", JSON.stringify(extensions));
 }
 
-function get_selected_profiles() {
-  return JSON.parse(localStorage.getItem('schema_profiles')) || {};
-}
-
-function set_selected_profiles(profiles) {
-  localStorage.setItem("schema_profiles", JSON.stringify(profiles));
-}
-
-function init_selected_profiles(profiles) {
-  if (profiles.length == 0) {
-    $(".oscf-class").each(function(i, e) {
-      e.classList.remove('d-none');
-    });
-  } else {
-    $(".oscf-class").each(function(i, e) {
-      let n = 0;
-
-      $.each(profiles, function(index, element) {
-        if (element in e.dataset)
-          n = n + 1;
-      });
-
-      if (profiles.length == n)
-        e.classList.remove('d-none');
-      else
-        e.classList.add('d-none');
-    });
-  }
-}
-
 const defaultSelectedValues = ["base-event", "reserved", "classification", "context", "occurrence", "primary"];
 const storageKey = "selected-attributes"
 
@@ -191,4 +161,16 @@ function searchInTable() {
         row.style.display = "";
     }
   }
+}
+
+function init_schema_buttons() {
+  $('#btn-sample-data').on('click', function(event) {
+    const url = '/sample' + window.location.pathname;
+    window.open(url,'_blank');
+  });
+
+  $('#btn-json-schema').on('click', function(event) {
+    const url = '/api' + window.location.pathname;
+    window.open(url,'_blank');
+  });
 }

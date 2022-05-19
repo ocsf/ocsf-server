@@ -143,30 +143,11 @@ limitations under the License.
 <% end %>
 
 <script>
-  $('#btn-sample-data').on('click', function(event) {
-    const url = '/sample' + window.location.pathname;
-    window.open(url,'_blank');
-  });
-
-  $('#btn-json-schema').on('click', function(event) {
-    const url = '/api' + window.location.pathname;
-    window.open(url,'_blank');
-  });
-
   $(function () {
     $('[data-toggle="tooltip"]').tooltip()
   });
 
-  let profiles = $("#checkbox-profiles :checkbox");
-  profiles.on("change", function() {
-    selected_profiles = [];
-    profiles.each(function(){
-      if (this.checked)
-        selected_profiles.push(this.id)
-    });
-    set_selected_profiles(selected_profiles);
-    window.location.reload(false);
-  });
-
+  init_schema_buttons();
+  init_class_profiles(true);
 
 </script>

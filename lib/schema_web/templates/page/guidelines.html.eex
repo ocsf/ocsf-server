@@ -17,3 +17,6 @@ limitations under the License.
 <div class="container-fluid">
   <%= raw(render("guidelines_md.html")) %>
 </div>
+<script>
+  init_class_profiles(false);
+</script>

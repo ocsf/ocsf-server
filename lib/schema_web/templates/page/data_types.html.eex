@@ -48,3 +48,6 @@ Note <strong>type<sup>O</sup></strong> denotes an observable type.
     </tbody>
   </table>
 </div>
+<script>
+  init_class_profiles(false);
+</script>

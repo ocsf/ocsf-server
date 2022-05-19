@@ -43,19 +43,23 @@ limitations under the License.
       <%= for {id, class} <- @data[:classes] do %>
       <% name = Atom.to_string(id) %>
       <% path = Routes.static_path(@conn, "/classes/" <> name) %>
-      <tr class="extensions">
+      <tr class="extensions oscf-class" <%= raw format_profiles(class[:profiles])%>>
         <td class="name">
           <a href="<%= path %>"><%= raw format_name(name, class) %></a>
         </td>
-          <% uid = class[:uid] %>
-          <%= if uid != nil and uid > 0 do %>
-            <td><a href="<%= path %>"><%= uid %></a></td>
-          <% else %>
-            <td></td>
-          <% end %>
+        <% uid = class[:uid] %>
+        <%= if uid != nil and uid > 0 do %>
+          <td><a href="<%= path %>"><%= uid %></a></td>
+        <% else %>
+          <td></td>
+        <% end %>
         <td><%= raw class[:description] %></td>
       </tr>
     <% end %>
     </tbody>
   </table>
 </div>
+
+<script>
+  init_class_profiles(true);
+</script>

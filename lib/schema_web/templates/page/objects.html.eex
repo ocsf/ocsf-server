@@ -52,3 +52,6 @@ limitations under the License.
     </tbody>
   </table>
 </div>
+<script>
+  init_class_profiles(false);
+</script>
