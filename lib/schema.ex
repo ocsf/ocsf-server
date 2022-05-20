@@ -38,24 +38,7 @@ defmodule Schema do
     Returns the schema profiles.
   """
   @spec profiles :: map()
-  def profiles(),
-    do: %{
-      "host" => %{
-        name: "Host",
-        type: "host",
-        version: "0.0.1"
-      },
-      "user" => %{
-        name: "User",
-        type: "user",
-        version: "0.0.0"
-      },
-      "malware" => %{
-        name: "Malware",
-        type: "malware",
-        version: "0.0.1"
-      }
-    }
+  def profiles(), do: Repo.profiles()
 
   @doc """
     Reloads the event schema without the extensions.
