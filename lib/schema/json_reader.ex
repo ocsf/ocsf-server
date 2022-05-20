@@ -57,6 +57,11 @@ defmodule Schema.JsonReader do
     GenServer.call(__MODULE__, :read_classes)
   end
 
+  @spec read_profiles() :: map()
+  def read_profiles() do
+    GenServer.call(__MODULE__, :read_profiles)
+  end
+
   @spec reset() :: :ok
   def reset() do
     GenServer.cast(__MODULE__, {:reset, []})
@@ -71,6 +76,7 @@ defmodule Schema.JsonReader do
     GenServer.cast(__MODULE__, {:reset, list})
   end
 
+  @spec extensions :: any
   def extensions() do
     GenServer.call(__MODULE__, :extensions)
   end
@@ -125,6 +131,11 @@ defmodule Schema.JsonReader do
   @impl true
   def handle_call(:read_classes, _from, {home, ext} = state) do
     {:reply, read_classes(home, ext), state}
+  end
+
+  @impl true
+  def handle_call(:read_profiles, _from, {home, ext} = state) do
+    {:reply, read_profiles(home, ext), state}
   end
 
   @impl true
@@ -419,8 +430,16 @@ defmodule Schema.JsonReader do
   end
 
   defp update_profile_attributes(data) do
-    profile = data[:type]
-    case Map.get(data, :annotations) do
+    profile =
+      case data[:type] do
+        nil ->
+          nil
+
+        type ->
+          update_profile(data[:name], type)
+      end
+
+    case data[:annotations] do
       nil ->
         data
 
@@ -429,6 +448,38 @@ defmodule Schema.JsonReader do
           add_annotated_attributes(attributes, profile, annotations)
         end)
     end
+  end
+
+  defp update_profile(name, type) do
+    profiles =
+      case cache_get(:profiles) do
+        [{_, cached}] -> cached
+        [] -> %{}
+      end
+
+    case profiles[type] do
+      nil ->
+        Logger.info("Schema.JsonReader profiles: add profile #{type}")
+
+        Map.put(profiles, type, %{name: name, type: type})
+        |> cache_put(:profiles)
+
+      _profile ->
+        Logger.warn("Schema.JsonReader profiles: profile #{type} already exists")
+    end
+
+    type
+  end
+
+  defp read_profiles(_home, []) do
+    case cache_get(:profiles) do
+      [{_, cached}] -> cached
+      [] -> %{}
+    end
+  end
+
+  defp read_profiles(home, _extensions) do
+    read_profiles(home, [])
   end
 
   defp add_annotated_attributes(attributes, nil, annotations) do

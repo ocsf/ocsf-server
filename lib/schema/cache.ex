@@ -19,13 +19,14 @@ defmodule Schema.Cache do
 
   require Logger
 
-  @enforce_keys [:version, :dictionary, :categories, :base_event, :classes, :objects]
-  defstruct ~w[version dictionary base_event categories classes objects]a
+  @enforce_keys [:version, :profiles, :dictionary, :categories, :base_event, :classes, :objects]
+  defstruct ~w[version profiles dictionary base_event categories classes objects]a
 
   @spec new(map()) :: __MODULE__.t()
   def new(version) do
     %__MODULE__{
       version: version,
+      profiles: Map.new(),
       dictionary: Map.new(),
       categories: Map.new(),
       base_event: Map.new(),
@@ -53,6 +54,8 @@ defmodule Schema.Cache do
     {base_event, classes} = read_classes(categories[:attributes])
     objects = read_objects()
 
+    profiles = JsonReader.read_profiles()
+
     # clean up the cached files
     JsonReader.cleanup()
 
@@ -60,6 +63,7 @@ defmodule Schema.Cache do
     objects = Utils.update_objects(dictionary, objects)
 
     new(version)
+    |> set_profiles(profiles)
     |> set_categories(categories)
     |> set_dictionary(dictionary)
     |> set_base_event(base_event)
@@ -81,6 +85,9 @@ defmodule Schema.Cache do
 
   @spec version(__MODULE__.t()) :: String.t()
   def version(%__MODULE__{version: version}), do: version[:version]
+
+  @spec profiles(__MODULE__.t()) :: map()
+  def profiles(%__MODULE__{profiles: profiles}), do: profiles
 
   @spec dictionary(__MODULE__.t()) :: dictionary_t()
   def dictionary(%__MODULE__{dictionary: dictionary}), do: dictionary
@@ -456,6 +463,10 @@ defmodule Schema.Cache do
     else
       nil
     end
+  end
+
+  defp set_profiles(%__MODULE__{} = schema, profiles) do
+    struct(schema, profiles: profiles)
   end
 
   defp set_dictionary(%__MODULE__{} = schema, dictionary) do

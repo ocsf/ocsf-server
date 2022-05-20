@@ -31,6 +31,11 @@ defmodule Schema.Repo do
   @spec version :: String.t()
   def version(), do: Agent.get(__MODULE__, fn schema -> Cache.version(schema) end)
 
+  @spec profiles :: map()
+  def profiles() do
+    Agent.get(__MODULE__, fn schema -> Cache.profiles(schema) end)
+  end
+
   @spec categories :: map()
   def categories() do
     Agent.get(__MODULE__, fn schema -> Cache.categories(schema) end)
