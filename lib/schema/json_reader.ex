@@ -422,21 +422,21 @@ defmodule Schema.JsonReader do
 
     case cache_get(path) do
       [] ->
-        read_json_file(path) |> update_profile_attributes() |> cache_put(path)
+        read_json_file(path) |> update_profile_attributes(file) |> cache_put(path)
 
       [{_, cached}] ->
         cached
     end
   end
 
-  defp update_profile_attributes(data) do
+  defp update_profile_attributes(data, file) do
     profile =
-      case data[:type] do
-        nil ->
-          nil
+      case data[:meta] do
+        "profile" ->
+          update_profile(data[:name], data[:type], file)
 
-        type ->
-          update_profile(data[:name], type)
+        _ ->
+          nil
       end
 
     case data[:annotations] do
@@ -450,7 +450,7 @@ defmodule Schema.JsonReader do
     end
   end
 
-  defp update_profile(name, type) do
+  defp update_profile(name, type, file) do
     profiles =
       case cache_get(:profiles) do
         [{_, cached}] -> cached
@@ -459,13 +459,13 @@ defmodule Schema.JsonReader do
 
     case profiles[type] do
       nil ->
-        Logger.info("Schema.JsonReader profiles: add profile #{type}")
+        Logger.info("Schema.JsonReader profiles: #{file} defines a new profile: #{type}")
 
         Map.put(profiles, type, %{name: name, type: type})
         |> cache_put(:profiles)
 
       _profile ->
-        Logger.warn("Schema.JsonReader profiles: profile #{type} already exists")
+        Logger.warn("Schema.JsonReader profiles: #{file} overwrites an existing profile: #{type}")
     end
 
     type
