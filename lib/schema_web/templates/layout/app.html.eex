@@ -100,9 +100,6 @@ limitations under the License.
       <li id="classes_id" class="nav-item">
         <a class="nav-link" href='<%= Routes.static_path(@conn, "/classes") %>'>Event Classes</a>
       </li>
-      <li id="schema_map_id" class="nav-item">
-        <a class="nav-link" href='<%= Routes.static_path(@conn, "/schema") %>'>Schema Map</a>
-      </li>
       <li id="data_types_id" class="nav-item">
         <a class="nav-link" href='<%= Routes.static_path(@conn, "/data_types") %>'>Data Types</a>
       </li>
@@ -206,9 +203,6 @@ limitations under the License.
         break;
       case '/classes':
         $('#classes_id').addClass("active");
-        break;
-      case '/schema':
-        $('#schema_map_id').addClass("active");
         break;
       case '/data_types':
         $('#data_types_id').addClass("active");
