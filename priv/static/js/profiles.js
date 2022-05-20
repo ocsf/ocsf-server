@@ -10,7 +10,7 @@
 // limitations under the License.
 
 function get_selected_profiles() {
-  return JSON.parse(localStorage.getItem('schema_profiles')) || {};
+  return JSON.parse(localStorage.getItem('schema_profiles')) || [];
 }
 
 function set_selected_profiles(profiles) {

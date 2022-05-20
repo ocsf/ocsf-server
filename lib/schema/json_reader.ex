@@ -419,20 +419,28 @@ defmodule Schema.JsonReader do
   end
 
   defp update_profile_attributes(data) do
+    profile = data[:type]
     case Map.get(data, :annotations) do
       nil ->
         data
 
       annotations ->
         Map.update(data, :attributes, [], fn attributes ->
-          add_annotated_attributes(attributes, annotations)
+          add_annotated_attributes(attributes, profile, annotations)
         end)
     end
   end
 
-  defp add_annotated_attributes(attributes, annotations) do
+  defp add_annotated_attributes(attributes, nil, annotations) do
     Enum.map(attributes, fn {name, attribute} ->
       {name, Utils.deep_merge(annotations, attribute)}
+    end)
+    |> Map.new()
+  end
+
+  defp add_annotated_attributes(attributes, profile, annotations) do
+    Enum.map(attributes, fn {name, attribute} ->
+      {name, Utils.deep_merge(annotations, Map.put(attribute, :profile, profile))}
     end)
     |> Map.new()
   end

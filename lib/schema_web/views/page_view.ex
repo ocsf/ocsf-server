@@ -86,7 +86,7 @@ end
       classes <> "no-group"
     end
 
-    profile = field[:profile_name]
+    profile = field[:profile]
 
     if profile != nil do
       classes <> " " <> profile
