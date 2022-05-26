@@ -66,7 +66,7 @@ defmodule Schema do
       Enum.map(attributes, fn {name, _category} ->
         {name, category(extensions, name)}
       end)
-      |> Enum.filter(fn {_name, category} -> map_size(category[:classes]) > 0 end)
+      #|> Enum.filter(fn {_name, category} -> map_size(category[:classes]) > 0 end)
       |> Map.new()
     end)
   end
