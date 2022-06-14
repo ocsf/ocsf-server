@@ -66,7 +66,7 @@ defmodule Schema do
       Enum.map(attributes, fn {name, _category} ->
         {name, category(extensions, name)}
       end)
-      #|> Enum.filter(fn {_name, category} -> map_size(category[:classes]) > 0 end)
+      # |> Enum.filter(fn {_name, category} -> map_size(category[:classes]) > 0 end)
       |> Map.new()
     end)
   end
@@ -112,10 +112,8 @@ defmodule Schema do
   @doc """
     Returns the data types defined in dictionary.
   """
-  @spec data_types :: any
-  def data_types() do
-    Map.get(Repo.dictionary(), :types)
-  end
+  @spec data_types :: map()
+  def data_types(), do: Repo.data_types()
 
   @spec export_data_types :: any
   def export_data_types() do

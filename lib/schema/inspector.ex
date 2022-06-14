@@ -19,18 +19,19 @@ defmodule Schema.Inspector do
 
   @string_types [
     "email_t",
+    "file_hash_t",
     "file_name_t",
-    "hash_t",
     "hostname_t",
     "ip_t",
+    "json_t",
     "mac_t",
     "path_t",
     "process_name_t",
+    "resource_uid_t",
     "string_t",
     "subnet_t",
-    "resource_uid_t",
-    "username_t",
-    "json_t"
+    "url_t",
+    "username_t"
   ]
 
   @integer_types ["port_t", "timestamp_t", "long_t", "json_t"]

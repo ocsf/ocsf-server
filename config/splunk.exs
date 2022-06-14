@@ -19,6 +19,7 @@ config :schema_server, SchemaWeb.Endpoint,
     keyfile: "/etc/ssl/private/splunk-selfsigned.key",
     certfile: "/etc/ssl/certs/splunk-selfsigned.crt"
   ]
+
 #
 # The `cipher_suite` is set to `:strong` to support only the
 # latest and more secure SSL ciphers. This means old browsers

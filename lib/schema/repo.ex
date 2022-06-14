@@ -89,6 +89,11 @@ defmodule Schema.Repo do
     end)
   end
 
+  @spec data_types() :: map()
+  def data_types() do
+    Agent.get(__MODULE__, fn schema -> Cache.data_types(schema) end)
+  end
+
   @spec dictionary() :: Cache.dictionary_t()
   def dictionary() do
     Agent.get(__MODULE__, fn schema -> Cache.dictionary(schema) end)

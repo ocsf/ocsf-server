@@ -27,25 +27,25 @@ defmodule SchemaWeb.PageView do
       nil -> name
       extension -> name <> " <sup>#{extension}</sup>"
     end
-end
-
-@spec format_attribute_name(any, nil | maybe_improper_list | map) :: any
-def format_attribute_name(name, field) do
-  name = field[:name] || name
-
-  case field[:extension] do
-    nil -> name
-    extension -> name <> " <sup>#{extension}</sup>"
   end
-end
 
-@spec format_profile_name(any, any) :: any
-def format_profile_name(name, profile) do
-  case profile do
-    "" -> name
-    profile -> name <> " <sup>#{profile}</sup>"
+  @spec format_attribute_name(any, nil | maybe_improper_list | map) :: any
+  def format_attribute_name(name, field) do
+    name = field[:name] || name
+
+    case field[:extension] do
+      nil -> name
+      extension -> name <> " <sup>#{extension}</sup>"
+    end
   end
-end
+
+  @spec format_profile_name(any, any) :: any
+  def format_profile_name(name, profile) do
+    case profile do
+      "" -> name
+      profile -> name <> " <sup>#{profile}</sup>"
+    end
+  end
 
   @spec format_range([nil | number | Decimal.t(), ...]) :: nonempty_binary
   def format_range([min, max]) do
@@ -81,10 +81,10 @@ end
 
     classes =
       if group != nil do
-      classes <> group
-    else
-      classes <> "no-group"
-    end
+        classes <> group
+      else
+        classes <> "no-group"
+      end
 
     profile = field[:profile]
 

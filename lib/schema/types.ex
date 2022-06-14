@@ -50,14 +50,24 @@ defmodule Schema.Types do
     class <> ": " <> name
   end
 
+  @spec observable_types(map()) :: map()
+  def observable_types(types) do
+    Enum.into(types, %{}, fn {_name, type} ->
+      k = Integer.to_string(type[:observable]) |> String.to_atom()
+      v = %{name: type[:name], description: type[:description]}
+      {k, v}
+    end)
+  end
+
   @doc """
   Generates observables object.
   """
   @spec observables(map()) :: list()
   def observables(types) do
-    Enum.filter(types, fn {name, type} ->
-      IO.puts("#{name}: #{inspect(type)}")
-      true
+    Map.get(types, :attributes)
+    |> Enum.filter(fn {_name, type} ->
+      Map.has_key?(type, :observable)
     end)
   end
+
 end

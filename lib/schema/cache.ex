@@ -60,7 +60,16 @@ defmodule Schema.Cache do
     JsonReader.cleanup()
 
     dictionary = Utils.update_dictionary(dictionary, base_event, classes, objects)
-    objects = Utils.update_objects(dictionary, objects)
+
+    types =
+      dictionary[:types]
+      |> Schema.Types.observables()
+
+    objects =
+      Utils.update_objects(dictionary, objects)
+      |> Map.update!(:observable_entity, fn entity ->
+        update_observable_entity(entity, types)
+      end)
 
     new(version)
     |> set_profiles(profiles)
@@ -88,6 +97,9 @@ defmodule Schema.Cache do
 
   @spec profiles(__MODULE__.t()) :: map()
   def profiles(%__MODULE__{profiles: profiles}), do: profiles
+
+  @spec data_types(__MODULE__.t()) :: map()
+  def data_types(%__MODULE__{dictionary: dictionary}), do: dictionary[:types]
 
   @spec dictionary(__MODULE__.t()) :: dictionary_t()
   def dictionary(%__MODULE__{dictionary: dictionary}), do: dictionary
@@ -487,6 +499,12 @@ defmodule Schema.Cache do
 
   defp set_objects(%__MODULE__{} = schema, objects) do
     struct(schema, objects: objects)
+  end
+
+  def update_observable_entity(entity, types) do
+    update_in(entity, [:attributes, :type_id, :enum], fn data ->
+      Map.merge(data, Types.observable_types(types))
+    end)
   end
 
   defp error(message) do

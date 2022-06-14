@@ -33,7 +33,11 @@ defmodule SchemaWeb.PageController do
   def data_types(conn, _params) do
     data = Schema.data_types() |> sort_attributes()
 
-    render(conn, "data_types.html", extensions: Schema.extensions(), profiles: Schema.profiles(), data: data)
+    render(conn, "data_types.html",
+      extensions: Schema.extensions(),
+      profiles: Schema.profiles(),
+      data: data
+    )
   end
 
   @doc """
@@ -48,7 +52,12 @@ defmodule SchemaWeb.PageController do
 
         data ->
           classes = sort_by_name(data[:classes])
-          render(conn, "category.html", extensions: Schema.extensions(), profiles: Schema.profiles(), data: Map.put(data, :classes, classes))
+
+          render(conn, "category.html",
+            extensions: Schema.extensions(),
+            profiles: Schema.profiles(),
+            data: Map.put(data, :classes, classes)
+          )
       end
     rescue
       e -> send_resp(conn, 400, "Bad Request: #{inspect(e)}")
@@ -58,7 +67,11 @@ defmodule SchemaWeb.PageController do
   def categories(conn, params) do
     data = SchemaController.categories(params) |> sort_attributes(:uid)
 
-    render(conn, "index.html", extensions: Schema.extensions(), profiles: Schema.profiles(), data: data)
+    render(conn, "index.html",
+      extensions: Schema.extensions(),
+      profiles: Schema.profiles(),
+      data: data
+    )
   end
 
   @doc """
@@ -68,7 +81,11 @@ defmodule SchemaWeb.PageController do
   def dictionary(conn, params) do
     data = SchemaController.dictionary(params) |> sort_attributes()
 
-    render(conn, "dictionary.html", extensions: Schema.extensions(), profiles: Schema.profiles(), data: data)
+    render(conn, "dictionary.html",
+      extensions: Schema.extensions(),
+      profiles: Schema.profiles(),
+      data: data
+    )
   end
 
   @doc """
@@ -77,7 +94,12 @@ defmodule SchemaWeb.PageController do
   @spec base_event(Plug.Conn.t(), any) :: Plug.Conn.t()
   def base_event(conn, _params) do
     data = Schema.class(:base_event)
-    render(conn, "class.html", extensions: Schema.extensions(), profiles: Schema.profiles(), data: sort_attributes(data))
+
+    render(conn, "class.html",
+      extensions: Schema.extensions(),
+      profiles: Schema.profiles(),
+      data: sort_attributes(data)
+    )
   end
 
   @doc """
@@ -94,7 +116,12 @@ defmodule SchemaWeb.PageController do
 
         data ->
           sorted = sort_attributes(data)
-          render(conn, "class.html", extensions: Schema.extensions(), profiles: Schema.profiles(), data: sorted)
+
+          render(conn, "class.html",
+            extensions: Schema.extensions(),
+            profiles: Schema.profiles(),
+            data: sorted
+          )
       end
     rescue
       e -> send_resp(conn, 400, "Bad Request: #{inspect(e)}")
@@ -104,7 +131,11 @@ defmodule SchemaWeb.PageController do
   def classes(conn, params) do
     data = SchemaController.classes(params) |> sort_by_name()
 
-    render(conn, "classes.html", extensions: Schema.extensions(), profiles: Schema.profiles(), data: data)
+    render(conn, "classes.html",
+      extensions: Schema.extensions(),
+      profiles: Schema.profiles(),
+      data: data
+    )
   end
 
   @doc """
@@ -120,7 +151,11 @@ defmodule SchemaWeb.PageController do
           send_resp(conn, 404, "Not Found: #{id}")
 
         data ->
-          render(conn, "object.html", extensions: Schema.extensions(), profiles: Schema.profiles(), data: sort_attributes(data))
+          render(conn, "object.html",
+            extensions: Schema.extensions(),
+            profiles: Schema.profiles(),
+            data: sort_attributes(data)
+          )
       end
     rescue
       e -> send_resp(conn, 400, "Bad Request: #{inspect(e)}")
@@ -130,7 +165,11 @@ defmodule SchemaWeb.PageController do
   def objects(conn, params) do
     data = SchemaController.objects(params) |> sort_by_name()
 
-    render(conn, "objects.html", extensions: Schema.extensions(), profiles: Schema.profiles(), data: data)
+    render(conn, "objects.html",
+      extensions: Schema.extensions(),
+      profiles: Schema.profiles(),
+      data: data
+    )
   end
 
   defp sort_attributes(map) do

@@ -61,7 +61,7 @@ defmodule Schema.MixProject do
       {:number, "~> 1.0"},
       {:elixir_uuid, "~> 1.6", hex: :uuid_utils},
       {:phoenix_markdown, "~> 1.0"},
-      {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
+      {:credo, "~> 1.5", only: [:dev, :test], runtime: false}
     ]
   end
 
