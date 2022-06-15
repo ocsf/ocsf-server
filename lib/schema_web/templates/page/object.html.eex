@@ -20,7 +20,15 @@
 <div class="row">
   <div class="col-md">
     <h4>
-      <%= @data[:name] %><span class="text-secondary"> Object <small><%= @data[:extension] || "" %></small></span>
+      <%= @data[:name] %>
+        
+      <% observable = @data[:observable] %>
+      <%= if is_nil(observable) do %>
+      <span class="text-secondary"> Object <small><%= @data[:extension] || "" %></small></span>
+      <% else %>
+      <span class="text-secondary"> Observable Object <small><%= @data[:extension] || "" %></small></span>
+      <% end %>
+        
     </h4>
     <div class="text-secondary">
       <%= raw @data[:description] %>

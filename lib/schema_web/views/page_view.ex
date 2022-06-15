@@ -33,6 +33,11 @@ defmodule SchemaWeb.PageView do
   def format_attribute_name(name, field) do
     name = field[:name] || name
 
+    name = case field[:observable] do
+      nil -> name
+      _   -> name <> " <sup>O</sup>"
+    end
+    
     case field[:extension] do
       nil -> name
       extension -> name <> " <sup>#{extension}</sup>"
