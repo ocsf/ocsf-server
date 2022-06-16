@@ -87,7 +87,7 @@ defmodule Schema.Generator do
 
     data = generate(class)
 
-    case data[:activity_id] do
+    case data[:activity_id] || data[:disposition_id] do
       nil ->
         data
 
@@ -100,6 +100,7 @@ defmodule Schema.Generator do
           end
 
         Map.put(data, :event_uid, uid)
+        |> add_event_name(uid, class)
     end
   end
 
@@ -115,6 +116,17 @@ defmodule Schema.Generator do
     end
   end
 
+  defp add_event_name(data, uid, class) do
+    case get_in(class, [:attributes, :event_uid, :enum]) do
+      nil ->
+        data
+      enum ->
+        key = Integer.to_string(uid) |> String.to_atom()
+        name = get_in(enum, [key, :name]) || "Unknown"
+        Map.put(data, :event_name, name)
+    end
+  end
+  
   defp generate_class(class) do
     Enum.reduce(class[:attributes], Map.new(), fn {name, field} = attribute, map ->
       if field[:is_array] == true do
@@ -344,7 +356,7 @@ defmodule Schema.Generator do
   end
 
   defp generate_data(:event_time, _type, _field),
-    do: time() |> DateTime.from_unix!(:microsecond) |> DateTime.to_iso8601()
+    do: DateTime.utc_now() |> DateTime.to_iso8601()
 
   defp generate_data(:version, _type, _field), do: Schema.version()
   defp generate_data(:lang, _type, _field), do: "en"
@@ -397,7 +409,7 @@ defmodule Schema.Generator do
     end
   end
 
-  defp generate_data(_name, "timestamp_t", _field), do: time()
+  defp generate_data(_name, "timestamp_t", _field), do: DateTime.utc_now() |> DateTime.to_unix(:microsecond)
   defp generate_data(_name, "hostname_t", _field), do: domain()
   defp generate_data(_name, "ip_t", _field), do: ipv4()
   defp generate_data(_name, "subnet_t", _field), do: ipv4()
@@ -528,10 +540,6 @@ defmodule Schema.Generator do
 
   def domain() do
     [word(), extension()] |> Enum.join(".")
-  end
-
-  def time() do
-    :os.system_time(:millisecond)
   end
 
   def uuid() do

@@ -67,7 +67,7 @@ defmodule Schema.Cache do
 
     objects =
       Utils.update_objects(dictionary, objects)
-      |> Map.update!(:observable_entity, fn entity ->
+      |> Map.update(:observable_entity, %{}, fn entity ->
         update_observable_entity(entity, types)
       end)
 
