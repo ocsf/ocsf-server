@@ -176,20 +176,15 @@ defmodule Schema.Generator do
         Map.put(map, name, random(100))
 
       enum ->
-        generate_enum_data(name, enum, map)
+        generate_enum_data(name, sibling(name, field), enum, map)
     end
   end
 
   defp generate_field(name, field, map) do
-    Map.put(map, name, generate_data(name, field[:type], field))
+    Map.put_new(map, name, generate_data(name, field[:type], field))
   end
 
-  defp generate_enum_data(key, enum, map) do
-    name =
-      Atom.to_string(key)
-      |> String.trim("_id")
-      |> String.to_atom()
-
+  defp generate_enum_data(key, name, enum, map) do
     id = random_enum(enum)
 
     if id == -1 do
@@ -198,6 +193,17 @@ defmodule Schema.Generator do
       Map.put(map, name, enum_name(id, enum))
     end
     |> Map.put(key, id)
+  end
+
+  defp sibling(key, field) do
+    case field[:sibling] do
+      nil ->
+        Atom.to_string(key) |> String.trim("_id")
+
+      name ->
+        name
+    end
+    |> String.to_atom()
   end
 
   defp enum_name(id, enum) do
@@ -586,7 +592,15 @@ defmodule Schema.Generator do
 
   def fingerprint(type) do
     algorithm_id = get_in(type, [:attributes, :algorithm_id])
-    fingerprint = generate_enum_data(:algorithm_id, algorithm_id[:enum], Map.new())
+
+    fingerprint =
+      generate_enum_data(
+        :algorithm_id,
+        sibling(:algorithm_id, algorithm_id),
+        algorithm_id[:enum],
+        Map.new()
+      )
+
     algorithm = fingerprint[:algorithm_id]
 
     value =
