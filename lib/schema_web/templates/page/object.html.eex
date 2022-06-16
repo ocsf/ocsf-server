@@ -88,16 +88,16 @@
   </table>
 </div>
 <% links = @data[:_links] %>
-<%= if links != nil do %>
-<div class="links">
-  <h5>Referenced By</h5>
-  <div>
-    <%= raw links(@conn, @data[:name], links) %>
+<%= if Enum.empty?(links) do %>
+  <div></div>
+  <% else %>
+  <div class="links">
+    <h5>Referenced By</h5>
+    <div>
+      <%= raw links(@conn, @data[:name], links) %>
+    </div>
   </div>
-</div>
-<% else %>
-<div></div>
-<% end %>
+  <% end %>
 <% constraints = @data[:constraints] %>
 <%= if constraints != nil do %>
 <div class="constraints">
