@@ -83,7 +83,7 @@ defmodule Schema.Generator do
   def event(nil), do: nil
 
   def event(class) do
-    Logger.info("generate class: #{inspect(class[:name])}")
+    Logger.debug("generate class: #{inspect(class[:name])}")
 
     data = generate(class)
 
@@ -104,11 +104,14 @@ defmodule Schema.Generator do
   end
 
   def generate(class) do
+    Logger.debug("generate: #{class[:name]} #{class[:type]}")
+
     case class[:type] do
-      "fingerprint" -> fingerprint()
+      "fingerprint" -> fingerprint(class)
       "location" -> location()
       "attack" -> attack()
-      _ -> generate_class(class)
+      "file" -> generate_class(class) |> update_file_path()
+      _type -> generate_class(class)
     end
   end
 
@@ -158,7 +161,7 @@ defmodule Schema.Generator do
     end
   end
 
-  #  Generate 20% of the optional fields
+  #  Generate 50% of the optional fields
   defp generate_field(_requirement, name, field, map) do
     if random(100) > 50 do
       generate_field(name, field, map)
@@ -192,9 +195,18 @@ defmodule Schema.Generator do
     if id == -1 do
       Map.put(map, name, word())
     else
-      Map.delete(map, name)
+      Map.put(map, name, enum_name(id, enum))
     end
     |> Map.put(key, id)
+  end
+
+  defp enum_name(id, enum) do
+    key = Integer.to_string(id) |> String.to_atom()
+
+    case enum[key] do
+      nil -> word()
+      val -> val[:name]
+    end
   end
 
   defp generate_array("required", name, attribute, map) do
@@ -225,8 +237,11 @@ defmodule Schema.Generator do
     Enum.map(1..random(5), fn _ -> file_name(4) end)
   end
 
-  defp generate_array({:fingerprints, _field}) do
-    Enum.map(1..random(5), fn _ -> fingerprint() end)
+  defp generate_array({:fingerprints, type}) do
+    IO.puts("#{inspect(type)}")
+
+    1..random(5)
+    |> Enum.map(fn _ -> fingerprint(find_object(type)) end)
     |> Enum.uniq_by(fn map -> Map.get(map, :algorithm_id) end)
   end
 
@@ -267,34 +282,46 @@ defmodule Schema.Generator do
   end
 
   defp generate_object({:file_result, field}) do
-    generate_object({:file, field})
+    generate_file_object(field)
   end
 
   defp generate_object({:file, field}) do
-    file =
-      field.object_type
-      |> String.to_atom()
-      |> Schema.object()
-      |> generate()
-
-    filename = file_name(0)
-
-    case Map.get(file, :path) do
-      nil ->
-        Map.put(file, :name, filename)
-
-      path ->
-        Map.put(file, :name, filename)
-        |> Map.put(:path, Path.join(path, filename))
-    end
-    |> Map.delete(:normalized_path)
+    generate_file_object(field)
   end
 
   defp generate_object({_name, field}) do
+    find_object(field) |> generate()
+  end
+
+  defp find_object(field) do
+    Schema.object(field[:object_type])
+  end
+
+  defp generate_file_object(field) do
     field.object_type
     |> String.to_atom()
     |> Schema.object()
     |> generate()
+    |> update_file_path()
+  end
+
+  defp update_file_path(file) do
+    filename = file_name(0)
+
+    case Map.get(file, :path) do
+      nil ->
+        file
+        |> Map.put(:name, filename)
+        |> Map.delete(:parent_folder)
+
+      path ->
+        pathname = Path.join(path, filename)
+
+        file
+        |> Map.put(:name, filename)
+        |> Map.put(:path, pathname)
+        |> Map.put(:parent_folder, path)
+    end
   end
 
   defp generate_objects(n, {:attacks, _field}) do
@@ -310,28 +337,31 @@ defmodule Schema.Generator do
     Enum.map(1..n, fn _ -> generate(object) end)
   end
 
+  defp generate_data(:event_time, _type, _field),
+    do: time() |> DateTime.from_unix!(:microsecond) |> DateTime.to_iso8601()
+
   defp generate_data(:version, _type, _field), do: Schema.version()
   defp generate_data(:lang, _type, _field), do: "en"
   defp generate_data(:uuid, _type, _field), do: uuid()
   defp generate_data(:uid, _type, _field), do: uuid()
-  defp generate_data(:type, _type, _field), do: word()
-  defp generate_data(:name, _type, _field), do: String.capitalize(word())
   defp generate_data(:creator, _type, _field), do: full_name(2)
   defp generate_data(:accessor, _type, _field), do: full_name(2)
   defp generate_data(:modifier, _type, _field), do: full_name(2)
   defp generate_data(:full_name, _type, _field), do: full_name(2)
   defp generate_data(:shell, _type, _field), do: shell()
   defp generate_data(:timezone, _type, _field), do: timezone()
-
-  defp generate_data(:event_time, _type, _field),
-    do: time() |> DateTime.from_unix!(:microsecond) |> DateTime.to_iso8601()
-
+  defp generate_data(:home_dir, _type, _field), do: root_dir(random(3))
+  defp generate_data(:parent_folder, _type, _field), do: ""
   defp generate_data(:country, _type, _field), do: country()[:country_name]
   defp generate_data(:company_name, _type, _field), do: full_name(2)
   defp generate_data(:owner, _type, _field), do: full_name(2)
   defp generate_data(:ssid, _type, _field), do: word()
   defp generate_data(:labels, _type, _field), do: word()
   defp generate_data(:facility, _type, _field), do: facility()
+  defp generate_data(:md5, _type, _field), do: md5()
+  defp generate_data(:sha1, _type, _field), do: sha1()
+  defp generate_data(:sha2, _type, _field), do: sha256()
+  defp generate_data(:mime_type, _type, _field), do: path_name(2)
 
   defp generate_data(key, "string_t", _field) do
     name = Atom.to_string(key)
@@ -366,23 +396,16 @@ defmodule Schema.Generator do
   defp generate_data(_name, "ip_t", _field), do: ipv4()
   defp generate_data(_name, "subnet_t", _field), do: ipv4()
   defp generate_data(_name, "mac_t", _field), do: mac()
-  defp generate_data(_name, "ipv4_t", _field), do: ipv4()
-  defp generate_data(_name, "ipv6_t", _field), do: ipv6()
   defp generate_data(_name, "email_t", _field), do: email()
   defp generate_data(_name, "port_t", _field), do: random(65_536)
   defp generate_data(_name, "long_t", _field), do: random(65_536 * 65_536)
   defp generate_data(_name, "boolean_t", _field), do: random_boolean()
   defp generate_data(_name, "float_t", _field), do: random_float(100, 100)
+  defp generate_data(_name, "file_name_t", _field), do: file_name(0)
+  defp generate_data(_name, "path_t", _field), do: root_dir(5)
 
-  defp generate_data(name, "path_t", _field) do
-    case name do
-      :home_dir -> dir_file(random(3))
-      :parent_dir -> dir_file(random(5))
-      :path -> dir_file(5)
-      _ -> file_name(0)
-    end
-  end
-
+  defp generate_data(:type, _type, _field), do: word()
+  defp generate_data(:name, _type, _field), do: String.capitalize(word())
   defp generate_data(_name, _, _), do: word()
 
   def name() do
@@ -418,17 +441,24 @@ defmodule Schema.Generator do
     Enum.map_join(1..n, ".", fn _ -> random(5) end)
   end
 
+  def path_name(len) do
+    words(len) |> Path.join()
+  end
+
+  def root_dir(len) do
+    "/" <> path_name(len)
+  end
+
   def file_name(0) do
     word() <> file_ext()
   end
 
   def file_name(len) do
-    name = "/" <> (words(len + 1) |> Path.join())
-    name <> file_ext()
+    root_dir(len + 1) <> file_ext()
   end
 
-  def dir_file(len) do
-    "/" <> (words(len) |> Path.join())
+  def win_file(len) do
+    "\\" <> (words(len) |> Enum.join("\\"))
   end
 
   def file_ext() do
@@ -554,12 +584,10 @@ defmodule Schema.Generator do
 
   def random_float(n, r), do: Float.ceil(r - :rand.uniform_real() * n, 4)
 
-  def fingerprint() do
-    algorithm = random(7) - 1
-
-    fingerprint =
-      Map.new()
-      |> Map.put(:algorithm_id, algorithm)
+  def fingerprint(type) do
+    algorithm_id = get_in(type, [:attributes, :algorithm_id])
+    fingerprint = generate_enum_data(:algorithm_id, algorithm_id[:enum], Map.new())
+    algorithm = fingerprint[:algorithm_id]
 
     value =
       case algorithm do
@@ -582,7 +610,7 @@ defmodule Schema.Generator do
     fingerprint = Map.put(fingerprint, :value, value)
 
     if algorithm == -1 do
-      Map.put(fingerprint, :algorithm, "blake2")
+      Map.put(fingerprint, :algorithm, "magic")
     else
       fingerprint
     end
