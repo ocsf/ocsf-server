@@ -256,8 +256,6 @@ defmodule Schema.Generator do
   end
 
   defp generate_array({:fingerprints, type}) do
-    IO.puts("#{inspect(type)}")
-
     1..random(5)
     |> Enum.map(fn _ -> fingerprint(find_object(type)) end)
     |> Enum.uniq_by(fn map -> Map.get(map, :algorithm_id) end)

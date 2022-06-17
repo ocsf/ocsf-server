@@ -67,9 +67,7 @@ defmodule Schema.Cache do
 
     objects =
       Utils.update_objects(dictionary, objects)
-      |> Map.update(:observable_entity, %{}, fn entity ->
-        update_observable_entity(entity, types)
-      end)
+      |> update_observables(types)
 
     new(version)
     |> set_profiles(profiles)
@@ -499,6 +497,16 @@ defmodule Schema.Cache do
 
   defp set_objects(%__MODULE__{} = schema, objects) do
     struct(schema, objects: objects)
+  end
+
+  defp update_observables(objects, types) do
+    if Map.has_key?(objects, :observable_entity) do
+      Map.update(objects, :observable_entity, %{}, fn entity ->
+        update_observable_entity(entity, types)
+      end)
+    else
+      objects
+    end
   end
 
   def update_observable_entity(entity, types) do
