@@ -73,8 +73,8 @@ defmodule Schema.Utils do
     |> update_data_types(objects)
   end
 
-  @spec update_objects(map, map) :: map
-  def update_objects(dictionary, objects) do
+  @spec update_objects(map(), map()) :: map()
+  def update_objects(objects, dictionary) do
     attributes = dictionary[:attributes]
 
     Enum.map(objects, fn {name, object} ->

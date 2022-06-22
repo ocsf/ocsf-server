@@ -180,7 +180,7 @@ defmodule Schema.JsonReader do
     categories = Path.join(home, @categories_file) |> read_json_file()
 
     Enum.reduce(extensions, categories, fn ext, acc ->
-      merge_extension_file(acc, ext, @categories_file)
+      merge_category_file(acc, ext, @categories_file)
     end)
   end
 
@@ -192,7 +192,7 @@ defmodule Schema.JsonReader do
     dictionary = Path.join(home, @dictionary_file) |> read_json_file()
 
     Enum.reduce(extensions, dictionary, fn ext, acc ->
-      merge_extension_file(acc, ext, @dictionary_file)
+      merge_dictionary_file(acc, ext, @dictionary_file)
     end)
   end
 
@@ -269,7 +269,33 @@ defmodule Schema.JsonReader do
     end
   end
 
-  defp merge_extension_file(acc, ext, file) do
+  defp merge_category_file(acc, ext, file) do
+    path = Path.join(ext[:path], file)
+
+    if File.regular?(path) do
+      Logger.debug(fn -> "#{inspect(__MODULE__)} read file: [#{ext[:type]}] #{path}" end)
+
+      Map.update!(acc, :attributes, fn attributes ->
+        map = read_json_file(path)
+        ext_type = ext[:type]
+        ext_uid = ext[:uid]
+
+        Map.merge(
+          attributes,
+          Enum.into(map[:attributes], %{}, fn {name, value} ->
+            {
+              Utils.to_uid(ext_type, name),
+              add_extension(value, ext_type, ext_uid)
+            }
+          end)
+        )
+      end)
+    else
+      acc
+    end
+  end
+
+  defp merge_dictionary_file(acc, ext, file) do
     path = Path.join(ext[:path], file)
 
     if File.regular?(path) do
@@ -281,17 +307,10 @@ defmodule Schema.JsonReader do
       ext_uid = ext[:uid]
 
       attributes =
-        if map[:type] == "category" do
-          Enum.map(map[:attributes], fn {name, value} ->
-            updated = add_extension(value, ext_type, ext_uid)
-            {Utils.to_uid(ext_type, name), updated}
-          end)
-        else
-          Enum.map(map[:attributes], fn {name, value} ->
-            updated = add_extension(value, ext_type, ext_uid)
-            {name, updated}
-          end)
-        end
+        Enum.map(map[:attributes], fn {name, value} ->
+          updated = add_extension(value, ext_type, ext_uid)
+          {name, updated}
+        end)
         |> Map.new()
 
       Map.put(

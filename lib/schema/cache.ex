@@ -61,13 +61,10 @@ defmodule Schema.Cache do
 
     dictionary = Utils.update_dictionary(dictionary, base_event, classes, objects)
 
-    types =
-      dictionary[:types]
-      |> Schema.Types.observables()
-
     objects =
-      Utils.update_objects(dictionary, objects)
-      |> update_observables(types)
+      objects
+      |> Utils.update_objects(dictionary)
+      |> update_observables(dictionary)
 
     new(version)
     |> set_profiles(profiles)
@@ -499,19 +496,38 @@ defmodule Schema.Cache do
     struct(schema, objects: objects)
   end
 
-  defp update_observables(objects, types) do
-    if Map.has_key?(objects, :observable_entity) do
-      Map.update(objects, :observable_entity, %{}, fn entity ->
-        update_observable_entity(entity, types)
+  defp update_observables(objects, dictionary) do
+    if Map.has_key?(objects, :observable) do
+      observable_types = get_in(dictionary, [:types, :attributes]) |> observables()
+      observable_objects = observables(objects)
+
+      Map.update!(objects, :observable, fn observable ->
+        observable
+        |> update_observable_types(observable_types)
+        |> update_observable_types(observable_objects)
       end)
     else
       objects
     end
   end
 
-  def update_observable_entity(entity, types) do
-    update_in(entity, [:attributes, :type_id, :enum], fn data ->
-      Map.merge(data, Types.observable_types(types))
+  defp update_observable_types(observable, types) do
+    update_in(observable, [:attributes, :type_id, :enum], fn enum ->
+      Map.merge(enum, generate_observable_types(types))
+    end)
+  end
+
+  defp generate_observable_types(types) do
+    Enum.into(types, %{}, fn {_name, type} ->
+      k = Integer.to_string(type[:observable]) |> String.to_atom()
+      v = %{name: type[:name], description: type[:description]}
+      {k, v}
+    end)
+  end
+
+  defp observables(e) do
+    Enum.filter(e, fn {_, value} ->
+      Map.has_key?(value, :observable) and Map.get(value, :observable) > 0
     end)
   end
 
