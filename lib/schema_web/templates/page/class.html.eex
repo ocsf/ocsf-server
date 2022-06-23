@@ -30,25 +30,25 @@ limitations under the License.
         <a href="<%= path %>"><%= @data[:category_name] %> Category</a>
       </h5>
 
-      <% see_also = @data[:see_also] %>
-      <%= if see_also != nil and see_also != [] do %>
       <div class="text-secondary">
         <%= raw @data[:description] %>
       </div>
-      <div class="container-fluid mt-2">
-        <div class="row">
-          <div class="font-weight-bold">See Also:</div>
-          <% [first|rest] = see_also %>
-          <% {key, name} = first %>
-          <% class_path = Routes.static_path(@conn, "/classes/" <> key) %>
-          <a class="ml-2" href="<%= class_path %>"><%= name %></a>
-          <%= for {key, name} <- rest do %>
+      <% see_also = @data[:see_also] %>
+      <%= if see_also != nil and see_also != [] do %>
+        <div class="container-fluid mt-2">
+          <div class="row">
+            <div class="font-weight-bold">See Also:</div>
+            <% [first|rest] = see_also %>
+            <% {key, name} = first %>
             <% class_path = Routes.static_path(@conn, "/classes/" <> key) %>
-            <a href="<%= class_path %>">, <%= name %></a>
-          <% end %>
+            <a class="ml-2" href="<%= class_path %>"><%= name %></a>
+            <%= for {key, name} <- rest do %>
+              <% class_path = Routes.static_path(@conn, "/classes/" <> key) %>
+              <a href="<%= class_path %>">, <%= name %></a>
+            <% end %>
+          </div>
         </div>
-      </div>
-    <% end %>
+      <% end %>
     <% else %>
       <h4><%= @data[:name] %></h4>
       <div class="text-secondary">
