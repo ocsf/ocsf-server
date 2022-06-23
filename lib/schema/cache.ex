@@ -169,15 +169,26 @@ defmodule Schema.Cache do
 
   defp update_attributes(list, dictionary) do
     Enum.map(list, fn {name, attribute} ->
-      case dictionary[name] do
+      case find_attribute(dictionary, name, attribute[:_source]) do
         nil ->
-          Logger.warn("undefined attribute: #{name}")
+          Logger.warn("undefined attribute: #{name}: #{inspect(attribute)}")
           {name, attribute}
 
         base ->
           {name, Utils.deep_merge(base, attribute)}
       end
     end)
+  end
+
+  defp find_attribute(dictionary, name, source) do
+    case Atom.to_string(source) |> String.split("/") do
+      [_] ->
+        dictionary[name]
+
+      [ext, _] ->
+        ext_name = String.to_atom("#{ext}/#{name}")
+        dictionary[ext_name] || dictionary[name]
+    end
   end
 
   @spec read_classes(map) :: {map, map}
@@ -200,8 +211,7 @@ defmodule Schema.Cache do
     classes =
       JsonReader.read_classes()
       |> update_see_also()
-      |> Enum.map(fn class -> attribute_source(class) end)
-      |> Map.new()
+      |> Enum.into(%{}, fn class -> attribute_source(class) end)
 
     {Map.get(classes, :base_event), classes}
   end
@@ -213,7 +223,7 @@ defmodule Schema.Cache do
       # removes abstract objects
       !String.starts_with?(Atom.to_string(key), "_")
     end)
-    |> Map.new()
+    |> Enum.into(%{}, fn class -> attribute_source(class) end)
   end
 
   # Add category_uid, class_uid, and event_uid
@@ -384,13 +394,13 @@ defmodule Schema.Cache do
         :attributes,
         [],
         fn attributes ->
-          Enum.map(
+          Enum.into(
             attributes,
+            %{},
             fn {key, attribute} ->
               {key, Map.put(attribute, :_source, name)}
             end
           )
-          |> Map.new()
         end
       )
 

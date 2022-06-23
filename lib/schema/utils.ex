@@ -223,8 +223,8 @@ defmodule Schema.Utils do
           Logger.error("dictionary: missing attribute: #{k} for #{name}")
           acc
 
-        {_key, item} ->
-          Map.put(acc, k, update_links.(item, link))
+        {key, item} ->
+          Map.put(acc, key, update_links.(item, link))
       end
     end)
   end

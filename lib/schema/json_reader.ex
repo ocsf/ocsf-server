@@ -273,10 +273,11 @@ defmodule Schema.JsonReader do
     path = Path.join(ext[:path], file)
 
     if File.regular?(path) do
-      Logger.debug(fn -> "#{inspect(__MODULE__)} read file: [#{ext[:type]}] #{path}" end)
+      Logger.debug(fn -> "merge_category_file: #{inspect(__MODULE__)} read file: [#{ext[:type]}] #{path}" end)
 
       Map.update!(acc, :attributes, fn attributes ->
         map = read_json_file(path)
+        
         ext_type = ext[:type]
         ext_uid = ext[:uid]
 
@@ -299,31 +300,23 @@ defmodule Schema.JsonReader do
     path = Path.join(ext[:path], file)
 
     if File.regular?(path) do
-      Logger.debug(fn -> "#{inspect(__MODULE__)} read file: [#{ext[:type]}] #{path}" end)
+      Logger.debug(fn -> "merge_dictionary_file: #{inspect(__MODULE__)} read file: [#{ext[:type]}] #{path}" end)
 
-      map = read_json_file(path)
+      Map.update!(acc, :attributes, fn attributes ->
+        ext_map = read_json_file(path)
+        ext_type = ext[:type]
+        ext_uid = ext[:uid]
 
-      ext_type = ext[:type]
-      ext_uid = ext[:uid]
-
-      attributes =
-        Enum.map(map[:attributes], fn {name, value} ->
-          updated = add_extension(value, ext_type, ext_uid)
-          {name, updated}
-        end)
-        |> Map.new()
-
-      Map.put(
-        acc,
-        :attributes,
-        Map.merge(acc[:attributes], attributes, fn key, v1, v2 ->
-          Logger.warn(
-            "dictionary: '#{ext[:type]}' extension attempts to overwrite '#{key}': #{inspect(v1)} with #{inspect(v2)}"
-          )
-
-          v1
-        end)
-      )
+        Map.merge(
+          attributes,
+          Enum.into(ext_map[:attributes], %{}, fn {name, value} ->
+            {
+              Utils.to_uid(ext_type, name),
+              add_extension(value, ext_type, ext_uid)
+            }
+          end)
+        )
+      end)
     else
       acc
     end

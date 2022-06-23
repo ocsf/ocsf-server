@@ -756,11 +756,7 @@ defmodule Schema.Generator do
       nil ->
         uid
 
-      c_uid ->
-        IO.puts(
-          "#{Integer.to_string(c_uid)} -> #{Integer.to_string(uid)} #{Map.get(data, "name")}"
-        )
-
+      _uid ->
         Map.put(data, "uid", uid) |> write_json(file)
         uid + 1
     end
