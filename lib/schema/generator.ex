@@ -188,7 +188,17 @@ defmodule Schema.Generator do
         Map.put(map, name, random(100))
 
       enum ->
-        generate_enum_data(name, sibling(name, field), enum, map)
+        generate_enum_data(name, Schema.Enums.sibling(name, field), enum, map)
+    end
+  end
+
+  defp generate_field(name, %{type: "string_t"} = field, map) do
+    case field[:enum] do
+      nil ->
+        Map.put_new(map, name, generate_data(name, field[:type], field))
+
+      enum ->
+        Map.put(map, name, random_enum_value(enum))
     end
   end
 
@@ -197,29 +207,18 @@ defmodule Schema.Generator do
   end
 
   defp generate_enum_data(key, name, enum, map) do
-    id = random_enum(enum)
+    id = random_enum_int_value(enum)
 
     if id == -1 do
       Map.put(map, name, word())
     else
-      Map.put(map, name, enum_name(id, enum))
+      Map.put(map, name, enum_name(Integer.to_string(id), enum))
     end
     |> Map.put(key, id)
   end
 
-  defp sibling(key, field) do
-    case field[:sibling] do
-      nil ->
-        Atom.to_string(key) |> String.trim("_id")
-
-      name ->
-        name
-    end
-    |> String.to_atom()
-  end
-
-  defp enum_name(id, enum) do
-    key = Integer.to_string(id) |> String.to_atom()
+  defp enum_name(name, enum) do
+    key = String.to_atom(name)
 
     case enum[key] do
       nil -> word()
@@ -403,7 +402,7 @@ defmodule Schema.Generator do
         random(100)
 
       enum ->
-        random_enum(enum)
+        random_enum_int_value(enum)
     end
   end
 
@@ -602,7 +601,7 @@ defmodule Schema.Generator do
     fingerprint =
       generate_enum_data(
         :algorithm_id,
-        sibling(:algorithm_id, algorithm_id),
+        Schema.Enums.sibling(:algorithm_id, algorithm_id),
         algorithm_id[:enum],
         Map.new()
       )
@@ -636,9 +635,13 @@ defmodule Schema.Generator do
     end
   end
 
-  defp random_enum(enum) do
+  defp random_enum_int_value(enum) do
+    random_enum_value(enum) |> String.to_integer()
+  end
+
+  defp random_enum_value(enum) do
     {name, _} = Enum.random(enum)
-    name |> Atom.to_string() |> String.to_integer()
+    Atom.to_string(name)
   end
 
   defp random_word(len, words) do

@@ -1,7 +1,7 @@
 defmodule Schema.CheckEnums do
   def classes() do
     Enum.each(Schema.classes(), fn {name, _class} ->
-      each(Schema.classes(name)) |> print(name)
+      each(Schema.class(name)) |> print(name)
     end)
   end
 
@@ -22,9 +22,7 @@ defmodule Schema.CheckEnums do
   end
 
   defp each(map) do
-    Map.get(map, :attributes)
-    |> Map.new()
-    |> check()
+    Map.get(map, :attributes) |> Map.new() |> check()
   end
 
   defp check(attributes) do
@@ -44,7 +42,7 @@ defmodule Schema.CheckEnums do
   defp check_enum(attributes, name, enum, acc) do
     name = Atom.to_string(name)
 
-    key = get_base_name(name) |> String.to_atom()
+    key = Schema.Enums.base_name(name) |> String.to_atom()
 
     if Map.has_key?(attributes, key) do
       acc
@@ -57,11 +55,4 @@ defmodule Schema.CheckEnums do
     end
   end
 
-  defp get_base_name(name) do
-    if String.ends_with?(name, "_id") do
-      Path.basename(name, "_id")
-    else
-      Path.basename(name, "_ids")
-    end
-  end
 end

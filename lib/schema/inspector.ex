@@ -68,7 +68,7 @@ defmodule Schema.Inspector do
           IO.puts("defined in profile: #{profile}")
       end
 
-      validate_data(acc, name, attribute, data[Atom.to_string(name)])
+      validate_data(acc, name, attribute, data[Atom.to_string(name)], MapSet.new(profiles))
     end)
     |> undefined_attributes(attributes, data)
   end
@@ -85,7 +85,7 @@ defmodule Schema.Inspector do
     end)
   end
 
-  defp validate_data(acc, name, attribute, value) when is_binary(value) do
+  defp validate_data(acc, name, attribute, value, _profiles) when is_binary(value) do
     case attribute[:type] do
       "string_t" ->
         case validate_enum_value(attribute[:enum], value) do
@@ -98,7 +98,7 @@ defmodule Schema.Inspector do
     end
   end
 
-  defp validate_data(acc, name, attribute, value) when is_integer(value) do
+  defp validate_data(acc, name, attribute, value, _profiles) when is_integer(value) do
     case attribute[:type] do
       "integer_t" ->
         case validate_enum(attribute[:enum], attribute, value) do
@@ -111,15 +111,15 @@ defmodule Schema.Inspector do
     end
   end
 
-  defp validate_data(acc, name, attribute, value) when is_float(value) do
+  defp validate_data(acc, name, attribute, value, _profiles) when is_float(value) do
     validate_data_type(acc, name, attribute, value, @float_types)
   end
 
-  defp validate_data(acc, name, attribute, value) when is_boolean(value) do
+  defp validate_data(acc, name, attribute, value, _profiles) when is_boolean(value) do
     validate_data_type(acc, name, attribute, value, @boolean_types)
   end
 
-  defp validate_data(acc, name, attribute, value) when is_map(value) do
+  defp validate_data(acc, name, attribute, value, _profiles) when is_map(value) do
     case attribute[:type] do
       "object_t" -> validate_object(acc, name, attribute, value)
       "json_t" -> acc
@@ -127,14 +127,14 @@ defmodule Schema.Inspector do
     end
   end
 
-  defp validate_data(acc, name, attribute, value) when is_list(value) do
+  defp validate_data(acc, name, attribute, value, profiles) when is_list(value) do
     case attribute[:type] do
       "json_t" ->
         acc
 
       type ->
         if attribute[:is_array] == true do
-          validate_array(acc, name, attribute, value)
+          validate_array(acc, name, attribute, value, profiles)
         else
           Map.put(acc, name, invalid_data_type(attribute, value, type))
         end
@@ -142,7 +142,7 @@ defmodule Schema.Inspector do
   end
 
   # checks for missing required attributes
-  defp validate_data(acc, name, attribute, nil) do
+  defp validate_data(acc, name, attribute, nil, _profiles) do
     case attribute[:requirement] do
       "required" ->
         Map.put(acc, name, %{
@@ -154,33 +154,33 @@ defmodule Schema.Inspector do
     end
   end
 
-  defp validate_data(acc, name, _attribute, value) do
+  defp validate_data(acc, name, _attribute, value, _profiles) do
     Map.put(acc, name, %{
       :error => "Unhanded attribute",
       :value => value
     })
   end
 
-  defp validate_array(acc, _name, _attribute, []) do
+  defp validate_array(acc, _name, _attribute, [], _profiles) do
     acc
   end
 
-  defp validate_array(acc, name, attribute, value) do
+  defp validate_array(acc, name, attribute, value, profiles) do
     Logger.debug("validate array: #{name}")
 
     case attribute[:type] do
       "json_t" -> acc
       "object_t" -> validate_object_array(acc, name, attribute, value)
-      _simple_type -> validate_simple_array(acc, name, attribute, value)
+      _simple_type -> validate_simple_array(acc, name, attribute, value, profiles)
     end
   end
 
-  defp validate_simple_array(acc, name, attribute, value) do
+  defp validate_simple_array(acc, name, attribute, value, profiles) do
     Logger.debug("validate array: #{name}")
 
     {map, _count} =
       Enum.reduce(value, {Map.new(), 0}, fn data, {map, count} ->
-        {validate_data(map, "#{count}", attribute, data), count + 1}
+        {validate_data(map, Integer.to_string(count), attribute, data, profiles), count + 1}
       end)
 
     if map_size(map) > 0 do
@@ -282,11 +282,13 @@ defmodule Schema.Inspector do
 
   # Validate an integer enum value
   defp validate_enum(nil, _attribute, _value), do: :ok
+
   defp validate_enum(enum, _attribute, value) do
     validate_enum_value(enum, Integer.to_string(value))
   end
 
   defp validate_enum_value(nil, _value), do: :ok
+
   defp validate_enum_value(enum, value) do
     if Map.has_key?(enum, String.to_atom(value)) do
       :ok
