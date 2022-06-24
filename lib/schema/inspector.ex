@@ -41,10 +41,9 @@ defmodule Schema.Inspector do
   @doc """
   Validates the given event using `class_uid` value and the schema.
   """
+  @spec validate(map()) :: map()
   def validate(data) when is_map(data), do: data[@class_uid] |> validate(data)
-
   def validate(_data), do: %{:error => "Not a JSON object"}
-
   defp validate(nil, _data), do: %{:error => "Missing class_uid"}
 
   defp validate(class_uid, data), do: validate_type(Schema.find_class(class_uid), data)
@@ -55,10 +54,20 @@ defmodule Schema.Inspector do
   end
 
   defp validate_type(type, data) do
-    Logger.info("validate: #{type[:name]}")
+    profiles = data["profiles"] || []
+
+    Logger.info("validate: #{type[:name]}, using profiles: #{inspect(profiles)}")
     attributes = type[:attributes]
 
     Enum.reduce(attributes, %{}, fn {name, attribute}, acc ->
+      case attribute[:profile] do
+        nil ->
+          :ok
+
+        profile ->
+          IO.puts("defined in profile: #{profile}")
+      end
+
       validate_data(acc, name, attribute, data[Atom.to_string(name)])
     end)
     |> undefined_attributes(attributes, data)
@@ -77,13 +86,20 @@ defmodule Schema.Inspector do
   end
 
   defp validate_data(acc, name, attribute, value) when is_binary(value) do
-    validate_data_type(acc, name, attribute, value, @string_types)
+    case attribute[:type] do
+      "string_t" ->
+        case validate_enum_value(attribute[:enum], value) do
+          :ok -> acc
+          error -> Map.put(acc, name, error)
+        end
+
+      _ ->
+        validate_data_type(acc, name, attribute, value, @string_types)
+    end
   end
 
   defp validate_data(acc, name, attribute, value) when is_integer(value) do
-    type = attribute[:type]
-
-    case type do
+    case attribute[:type] do
       "integer_t" ->
         case validate_enum(attribute[:enum], attribute, value) do
           :ok -> acc
@@ -131,7 +147,6 @@ defmodule Schema.Inspector do
       "required" ->
         Map.put(acc, name, %{
           :error => "Missing required attribute"
-          # :schema => cleanup(attribute)
         })
 
       _ ->
@@ -143,7 +158,6 @@ defmodule Schema.Inspector do
     Map.put(acc, name, %{
       :error => "Unhanded attribute",
       :value => value
-      # :schema => cleanup(attribute)
     })
   end
 
@@ -182,7 +196,6 @@ defmodule Schema.Inspector do
       Map.put(acc, name, %{
         :error => error,
         :values => values
-        # :schema => cleanup(attribute)
       })
     else
       acc
@@ -260,7 +273,6 @@ defmodule Schema.Inspector do
     %{
       :error => "Invalid data: expected #{type} type",
       :value => value
-      # :schema => cleanup(attribute)
     }
   end
 
@@ -268,19 +280,20 @@ defmodule Schema.Inspector do
     Enum.find(types, fn t -> t == type end)
   end
 
-  # Validate a single enum value
+  # Validate an integer enum value
   defp validate_enum(nil, _attribute, _value), do: :ok
-
   defp validate_enum(enum, _attribute, value) do
-    key = Integer.to_string(value) |> String.to_atom()
+    validate_enum_value(enum, Integer.to_string(value))
+  end
 
-    if Map.has_key?(enum, key) do
+  defp validate_enum_value(nil, _value), do: :ok
+  defp validate_enum_value(enum, value) do
+    if Map.has_key?(enum, String.to_atom(value)) do
       :ok
     else
       %{
-        :error => "Invalid enum value: #{value}",
+        :error => "Invalid enum value",
         :value => value
-        # :schema => cleanup(attribute)
       }
     end
   end
