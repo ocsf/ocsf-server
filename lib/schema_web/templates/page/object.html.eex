@@ -24,9 +24,13 @@
         
       <% observable = @data[:observable] %>
       <%= if is_nil(observable) do %>
-      <span class="text-secondary"> Object <small><%= @data[:extension] || "" %></small></span>
+      <span class="text-secondary"><sup><%= @data[:extension] || "" %></sup>
+        Object 
+      </span>
       <% else %>
-      <span class="text-secondary"> Observable Object <small><%= @data[:extension] || "" %></small></span>
+      <span class="text-secondary"><sup><%= @data[:extension] || "" %></sup>
+        Observable Object 
+      </span>
       <% end %>
         
     </h4>

@@ -22,7 +22,8 @@ limitations under the License.
       <% path = Routes.static_path(@conn, "/categories/" <> category) %>
       <h4>
         <%= @data[:name] %>
-        <span class="text-secondary">[<%= @data[:uid] %>] Event Class <small><%= @data[:extension] || "" %></small>
+        <span class="text-secondary">[<%= @data[:uid] %>]<sup><%= @data[:extension] || "" %></sup>
+          Event Class
         </span>
       </h4>
 

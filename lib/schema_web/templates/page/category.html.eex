@@ -13,7 +13,12 @@ limitations under the License.
 
 <div class="row">
   <div class="col-md">
-    <h4><%= @data[:name] %> Category</h4>
+    <h4><%= @data[:name] %>
+      <span class="text-secondary">
+        [<%= @data[:uid] %>]<sup><%= @data[:extension] || "" %></sup>
+        Category
+      </span>
+    </h4>
     <div class="text-dark"><%= raw @data[:description] %></div>
   </div>
   <div class="col-md-1"></div>
