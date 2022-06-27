@@ -54,7 +54,11 @@ defmodule Schema.Inspector do
   end
 
   defp validate_type(type, data) do
-    profiles = data["profiles"] || []
+    profiles =
+      case data["profiles"] do
+        nil -> nil
+        profiles -> MapSet.new(profiles)
+      end
 
     Logger.info("validate: #{type[:name]}, using profiles: #{inspect(profiles)}")
     attributes = type[:attributes]
@@ -65,22 +69,39 @@ defmodule Schema.Inspector do
           :ok
 
         profile ->
-          IO.puts("defined in profile: #{profile}")
+          Logger.info("'#{name}' defined in '#{profile}' profile")
       end
 
-      validate_data(acc, name, attribute, data[Atom.to_string(name)], MapSet.new(profiles))
+      validate_data(acc, name, attribute, data[Atom.to_string(name)], profiles)
     end)
-    |> undefined_attributes(attributes, data)
+    |> undefined_attributes(attributes, data, profiles)
   end
 
-  defp undefined_attributes(acc, attributes, data) do
+  defp undefined_attributes(acc, attributes, data, profiles) do
     Enum.reduce(data, acc, fn {key, value}, map ->
       case attributes[String.to_atom(key)] do
         nil ->
           Map.put(map, key, %{:error => "Undefined attribute name", :value => value})
 
-        _attribute ->
-          map
+        attribute ->
+          if is_nil(profiles) do
+            map
+          else
+            case attribute[:profile] do
+              nil ->
+                map
+
+              profile ->
+                if MapSet.member?(profiles, profile) do
+                  map
+                else
+                  Map.put(map, key, %{
+                    :error => "The attribute is not defined in the profiles",
+                    :value => value
+                  })
+                end
+            end
+          end
       end
     end)
   end
@@ -142,12 +163,30 @@ defmodule Schema.Inspector do
   end
 
   # checks for missing required attributes
-  defp validate_data(acc, name, attribute, nil, _profiles) do
+  defp validate_data(acc, name, attribute, nil, profiles) do
     case attribute[:requirement] do
       "required" ->
-        Map.put(acc, name, %{
-          :error => "Missing required attribute"
-        })
+        if is_nil(profiles) do
+          Map.put(acc, name, %{
+            :error => "Missing required attribute"
+          })
+        else
+          case attribute[:profile] do
+            nil ->
+              Map.put(acc, name, %{
+                :error => "Missing required attribute"
+              })
+
+            profile ->
+              if MapSet.member?(profiles, profile) do
+                Map.put(acc, name, %{
+                  :error => "Missing required attribute"
+                })
+              else
+                acc
+              end
+          end
+        end
 
       _ ->
         acc
