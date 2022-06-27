@@ -17,11 +17,11 @@ defmodule SchemaWeb.PageView do
   def format_name(name, field) do
     name = field[:name] || name
 
-    # name =
-    # case field[:uid] do
-    #   nil -> name
-    #   uid -> name <> "<span class='uid'> [#{uid}]</span>"
-    # end
+    name =
+    case field[:uid] do
+      nil -> name
+      uid -> name <> "<span class='uid'> [#{uid}]</span>"
+    end
 
     case field[:extension] do
       nil -> name
