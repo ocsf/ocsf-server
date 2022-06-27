@@ -120,13 +120,14 @@ defmodule Schema.Generator do
     case get_in(class, [:attributes, :event_uid, :enum]) do
       nil ->
         data
+
       enum ->
         key = Integer.to_string(uid) |> String.to_atom()
         name = get_in(enum, [key, :name]) || "Unknown"
         Map.put(data, :event_name, name)
     end
   end
-  
+
   defp generate_class(class) do
     Enum.reduce(class[:attributes], Map.new(), fn {name, field} = attribute, map ->
       if field[:is_array] == true do
@@ -406,7 +407,9 @@ defmodule Schema.Generator do
     end
   end
 
-  defp generate_data(_name, "timestamp_t", _field), do: DateTime.utc_now() |> DateTime.to_unix(:microsecond)
+  defp generate_data(_name, "timestamp_t", _field),
+    do: DateTime.utc_now() |> DateTime.to_unix(:microsecond)
+
   defp generate_data(_name, "hostname_t", _field), do: domain()
   defp generate_data(_name, "ip_t", _field), do: ipv4()
   defp generate_data(_name, "subnet_t", _field), do: ipv4()

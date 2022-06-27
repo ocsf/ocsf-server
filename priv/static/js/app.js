@@ -165,7 +165,7 @@ function searchInTable() {
 
 function init_schema_buttons() {
   $('#btn-sample-data').on('click', function(event) {
-    const url = '/sample' + window.location.pathname;
+    const url = '/sample' + window.location.pathname + "?profiles=" + get_selected_profiles().toString();
     window.open(url,'_blank');
   });
 

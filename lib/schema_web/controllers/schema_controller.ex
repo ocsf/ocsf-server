@@ -64,7 +64,7 @@ defmodule SchemaWeb.SchemaController do
   @spec schema(Plug.Conn.t(), any) :: Plug.Conn.t()
   def schema(conn, params) do
     data =
-      parse_extensions(params[@extensions])
+      parse_options(params[@extensions])
       |> Schema.schema_map()
 
     send_json_resp(conn, data)
@@ -79,7 +79,7 @@ defmodule SchemaWeb.SchemaController do
   # }
   @spec export_schema(Plug.Conn.t(), any) :: Plug.Conn.t()
   def export_schema(conn, params) do
-    data = parse_extensions(params[@extensions]) |> Schema.export_schema()
+    data = parse_options(params[@extensions]) |> Schema.export_schema()
 
     send_json_resp(conn, data)
   end
@@ -125,13 +125,13 @@ defmodule SchemaWeb.SchemaController do
 
   @spec categories(map) :: map
   def categories(params) do
-    parse_extensions(params[@extensions]) |> Schema.categories()
+    parse_options(params[@extensions]) |> Schema.categories()
   end
 
   @spec category_classes(map) :: map | nil
   def category_classes(%{"id" => id} = params) do
     extension = params["extension"]
-    extensions = parse_extensions(params[@extensions])
+    extensions = parse_options(params[@extensions])
 
     Schema.category(extensions, extension, id)
   end
@@ -151,7 +151,7 @@ defmodule SchemaWeb.SchemaController do
   def export_category(conn, %{"id" => id} = params) do
     try do
       extension = params["extension"]
-      category = parse_extensions(params[@extensions]) |> Schema.export_category(extension, id)
+      category = parse_options(params[@extensions]) |> Schema.export_category(extension, id)
 
       case category do
         nil ->
@@ -189,7 +189,7 @@ defmodule SchemaWeb.SchemaController do
   """
   @spec dictionary(map) :: map
   def dictionary(params) do
-    parse_extensions(params[@extensions]) |> Schema.dictionary()
+    parse_options(params[@extensions]) |> Schema.dictionary()
   end
 
   # {
@@ -264,14 +264,14 @@ defmodule SchemaWeb.SchemaController do
   # @apiPermission none
   # }
   def export_classes(conn, params) do
-    classes = parse_extensions(params[@extensions]) |> Schema.export_classes()
+    classes = parse_options(params[@extensions]) |> Schema.export_classes()
 
     send_json_resp(conn, classes)
   end
 
   @spec classes(map) :: map
   def classes(params) do
-    parse_extensions(params[@extensions]) |> Schema.classes()
+    parse_options(params[@extensions]) |> Schema.classes()
   end
 
   # {
@@ -328,13 +328,13 @@ defmodule SchemaWeb.SchemaController do
   # @apiPermission none
   # }
   def export_objects(conn, params) do
-    objects = parse_extensions(params[@extensions]) |> Schema.export_objects()
+    objects = parse_options(params[@extensions]) |> Schema.export_objects()
     send_json_resp(conn, objects)
   end
 
   @spec objects(map) :: map
   def objects(params) do
-    parse_extensions(params[@extensions]) |> Schema.objects()
+    parse_options(params[@extensions]) |> Schema.objects()
   end
 
   # ---------------------------------
@@ -457,6 +457,7 @@ defmodule SchemaWeb.SchemaController do
   @spec sample_class(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def sample_class(conn, %{"id" => id} = options) do
     extension = options["extension"]
+    profiles = parse_profiles(options["profiles"])
 
     try do
       case Schema.class(extension, id) do
@@ -467,10 +468,10 @@ defmodule SchemaWeb.SchemaController do
           event =
             case Map.get(options, @verbose) do
               nil ->
-                Schema.event(class)
+                Schema.generate_event(class, profiles)
 
               verbose ->
-                Schema.event(class)
+                Schema.generate_event(class, profiles)
                 |> Schema.Translator.translate(
                   spaces: options[@spaces],
                   verbose: verbose(verbose)
@@ -597,7 +598,11 @@ defmodule SchemaWeb.SchemaController do
 
   defp verbose(_), do: 0
 
-  defp parse_extensions(nil), do: MapSet.new()
-  defp parse_extensions(""), do: MapSet.new()
-  defp parse_extensions(ext), do: String.split(ext, ",") |> MapSet.new()
+  defp parse_options(nil), do: MapSet.new()
+  defp parse_options(""), do: MapSet.new()
+  defp parse_options(options), do: String.split(options, ",") |> MapSet.new()
+  
+  defp parse_profiles(nil), do: nil
+  defp parse_profiles(""), do: []
+  defp parse_profiles(profiles), do: String.split(profiles, ",")
 end

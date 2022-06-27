@@ -195,7 +195,39 @@ defmodule Schema do
   end
 
   @doc """
-  Returns a randomly generated sample data.
+  Returns a randomly generated sample event.
+  """
+  @spec generate_event(Cache.class_t(), list() | nil) :: map()
+  def generate_event(class, nil) when is_map(class) do
+    Schema.Generator.event(class)
+    |> Map.delete(:profiles)
+  end
+
+  def generate_event(class, []) do
+    Map.update!(class, :attributes, fn attributes ->
+      Enum.filter(attributes, fn {_k, v} -> Map.has_key?(v, :profile) == false end)
+    end)
+    |> Schema.Generator.event()
+    |> Map.put(:profiles, [])
+  end
+
+  def generate_event(class, profiles) do
+    Map.update!(class, :attributes, fn attributes ->
+      profile_set = MapSet.new(profiles)
+
+      Enum.filter(attributes, fn {_k, v} ->
+        case v[:profile] do
+          nil -> true
+          profile -> MapSet.member?(profile_set, profile)
+        end
+      end)
+    end)
+    |> Schema.Generator.event()
+    |> Map.put(:profiles, profiles)
+  end
+
+  @doc """
+  Returns randomly generated sample data.
   """
   @spec generate(map()) :: any()
   def generate(type) when is_map(type) do
