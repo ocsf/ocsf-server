@@ -253,4 +253,28 @@ defmodule Schema.Utils do
   defp deep_resolve(_key, _left, right) do
     right
   end
+
+  @doc """
+    Filter attributes based on the given profiles.
+  """
+  @spec apply_profiles(Enum.t(), nil | list()) :: Enum.t()
+  def apply_profiles(attributes, nil) do
+    attributes
+  end
+
+  def apply_profiles(attributes, []) do
+    Enum.filter(attributes, fn {_k, v} -> Map.has_key?(v, :profile) == false end)
+  end
+
+  def apply_profiles(attributes, profiles) do
+    profile_set = MapSet.new(profiles)
+
+    Enum.filter(attributes, fn {_k, v} ->
+      case v[:profile] do
+        nil -> true
+        profile -> MapSet.member?(profile_set, profile)
+      end
+    end)
+  end
+
 end

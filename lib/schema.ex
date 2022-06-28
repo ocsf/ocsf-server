@@ -205,7 +205,7 @@ defmodule Schema do
 
   def generate_event(class, []) do
     Map.update!(class, :attributes, fn attributes ->
-      Enum.filter(attributes, fn {_k, v} -> Map.has_key?(v, :profile) == false end)
+      Utils.apply_profiles(attributes, [])
     end)
     |> Schema.Generator.event()
     |> Map.put(:profiles, [])
@@ -213,14 +213,7 @@ defmodule Schema do
 
   def generate_event(class, profiles) do
     Map.update!(class, :attributes, fn attributes ->
-      profile_set = MapSet.new(profiles)
-
-      Enum.filter(attributes, fn {_k, v} ->
-        case v[:profile] do
-          nil -> true
-          profile -> MapSet.member?(profile_set, profile)
-        end
-      end)
+      Utils.apply_profiles(attributes, profiles)
     end)
     |> Schema.Generator.event()
     |> Map.put(:profiles, profiles)

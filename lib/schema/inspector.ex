@@ -15,6 +15,8 @@ defmodule Schema.Inspector do
 
   require Logger
 
+  alias Schema.Utils
+
   @class_uid "class_uid"
 
   @string_types [
@@ -54,21 +56,10 @@ defmodule Schema.Inspector do
   end
 
   defp validate_type(type, data) do
-    profiles = data["profiles"] || []
-
-    Logger.info("validate: #{type[:name]}, using profiles: #{inspect(profiles)}")
-    attributes = type[:attributes]
+    attributes = type[:attributes] |> Utils.apply_profiles(data["profiles"])
 
     Enum.reduce(attributes, %{}, fn {name, attribute}, acc ->
-      case attribute[:profile] do
-        nil ->
-          :ok
-
-        profile ->
-          IO.puts("defined in profile: #{profile}")
-      end
-
-      validate_data(acc, name, attribute, data[Atom.to_string(name)], MapSet.new(profiles))
+      validate_data(acc, name, attribute, data[Atom.to_string(name)], nil)
     end)
     |> undefined_attributes(attributes, data)
   end
