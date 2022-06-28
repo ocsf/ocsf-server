@@ -113,5 +113,5 @@
 <% end %>
 <script>
   init_schema_buttons();
-  init_class_profiles(false);
+  init_class_profiles(true);
 </script>
