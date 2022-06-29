@@ -44,19 +44,25 @@ defmodule Schema.Inspector do
   Validates the given event using `class_uid` value and the schema.
   """
   @spec validate(map()) :: map()
-  def validate(data) when is_map(data), do: data[@class_uid] |> validate(data)
+  def validate(data) when is_map(data), do: data[@class_uid] |> validate_class(data)
   def validate(_data), do: %{:error => "Not a JSON object"}
-  defp validate(nil, _data), do: %{:error => "Missing class_uid"}
 
-  defp validate(class_uid, data), do: validate_type(Schema.find_class(class_uid), data)
+  defp validate_class(nil, _data), do: %{:error => "Missing class_uid"}
 
-  defp validate_type(nil, data) do
+  defp validate_class(class_uid, data),
+    do: validate_type(Schema.find_class(class_uid), data, get_in(data, ["metadata", "profiles"]))
+
+  defp validate_object(type, data) do
+    validate_type(type, data, data["profiles"])
+  end
+
+  defp validate_type(nil, data, _profiles) do
     class_uid = data[@class_uid]
     %{:error => "Unknown class_uid: #{class_uid}", :value => class_uid}
   end
 
-  defp validate_type(type, data) do
-    attributes = type[:attributes] |> Utils.apply_profiles(data["profiles"])
+  defp validate_type(type, data, profiles) do
+    attributes = type[:attributes] |> Utils.apply_profiles(profiles)
 
     Enum.reduce(attributes, %{}, fn {name, attribute}, acc ->
       validate_data(acc, name, attribute, data[Atom.to_string(name)], nil)
@@ -203,7 +209,7 @@ defmodule Schema.Inspector do
 
         {map, _count} =
           Enum.reduce(value, {Map.new(), 0}, fn data, {map, count} ->
-            map = validate_type(object, data) |> add_count(map, count)
+            map = validate_object(object, data) |> add_count(map, count)
 
             {map, count + 1}
           end)
@@ -234,7 +240,7 @@ defmodule Schema.Inspector do
 
       object_type ->
         Schema.object(object_type)
-        |> validate_type(value)
+        |> validate_object(value)
         |> valid?(acc, name)
     end
   end
