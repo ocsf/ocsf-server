@@ -69,8 +69,8 @@
   <table id="data-table" class="table table-bordered sortable">
     <thead>
       <tr class="thead-color">
+        <th style="width: 12%">User Friendly Name</th>
         <th style="width: 12%">Name</th>
-        <th style="width: 12%">Attribute</th>
         <th style="width: 8%">Requirement</th>
         <th style="width: 8%">Type</th>
         <th style="width: 30%">Description</th>
