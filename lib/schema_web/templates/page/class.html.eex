@@ -98,7 +98,7 @@ limitations under the License.
   <table id="data-table" class="table table-bordered sortable">
     <thead >
     <tr class="thead-color">
-      <th style="width: 10%">User Friendly Name</th>
+      <th style="width: 10%">Caption</th>
       <th style="width: 10%">Name</th>
       <th style="width: 10%">Group</th>
       <th style="width: 10%">Requirement</th>
