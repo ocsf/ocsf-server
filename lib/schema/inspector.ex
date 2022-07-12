@@ -50,11 +50,9 @@ defmodule Schema.Inspector do
   defp validate_class(nil, _data), do: %{:error => "Missing class_uid"}
 
   defp validate_class(class_uid, data),
-    do: validate_type(Schema.find_class(class_uid), data, get_in(data, ["metadata", "profiles"]))
+    do: validate_type(Schema.find_class(class_uid), data, data["profiles"])
 
-  defp validate_object(type, data) do
-    validate_type(type, data, data["profiles"])
-  end
+  defp validate_object(type, data), do: validate_type(type, data, data["profiles"])
 
   defp validate_type(nil, data, _profiles) do
     class_uid = data[@class_uid]
@@ -173,8 +171,6 @@ defmodule Schema.Inspector do
   end
 
   defp validate_simple_array(acc, name, attribute, value, profiles) do
-    Logger.debug("validate array: #{name}")
-
     {map, _count} =
       Enum.reduce(value, {Map.new(), 0}, fn data, {map, count} ->
         {validate_data(map, Integer.to_string(count), attribute, data, profiles), count + 1}
