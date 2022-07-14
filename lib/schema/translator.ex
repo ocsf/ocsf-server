@@ -51,7 +51,7 @@ defmodule Schema.Translator do
           Map.put(acc, key, value)
 
         attribute ->
-          {name, text} = translate_attribute(attribute[:type], key, attribute, value, options)
+          {name, text} = translate_attribute(attribute[:name], key, attribute, value, options)
           Map.put(acc, name, text)
       end
     end)
@@ -94,7 +94,7 @@ defmodule Schema.Translator do
     translated =
       case enum[item] do
         nil -> value
-        map -> map[:name]
+        map -> map[:caption]
       end
 
     translate_enum(name, attribute, value, translated, options)
@@ -110,7 +110,7 @@ defmodule Schema.Translator do
 
         case enum[item] do
           nil -> n
-          map -> map[:name]
+          map -> map[:caption]
         end
       end)
 
@@ -124,12 +124,12 @@ defmodule Schema.Translator do
   defp translate_attribute(name, attribute, value, options) do
     case Keyword.get(options, :verbose) do
       2 ->
-        {to_text(attribute[:name], options), value}
+        {to_text(attribute[:caption], options), value}
 
       3 ->
         {name,
          %{
-           "_name" => to_text(attribute[:name], options),
+           "_name" => to_text(attribute[:caption], options),
            "_type" => attribute[:object_type] || attribute[:type],
            "_value" => value
          }}
@@ -147,12 +147,12 @@ defmodule Schema.Translator do
         {name, translated}
 
       2 ->
-        {to_text(attribute[:name], options), translated}
+        {to_text(attribute[:caption], options), translated}
 
       3 ->
         {name,
          %{
-           "_name" => to_text(attribute[:name], options),
+           "_name" => to_text(attribute[:caption], options),
            "_type" => attribute[:object_type] || attribute[:type],
            "_value" => value,
            "_enum" => translated

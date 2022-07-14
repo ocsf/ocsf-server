@@ -7,18 +7,19 @@ body {
 }
 
 body {
-  padding-top: 50px
+  padding-top: 50px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' height='200px' width='200px'><text transform='translate(20, 200) rotate(-45)' fill='rgb(240, 240, 240)' font-size='100'>draft</text></svg>");
 }
 
 @media (min-width:768px) {
   body {
-    padding-top: 0
+    padding-top: 0;
   }
 }
 
 @media (min-width:768px) {
   body {
-    margin-left: 162px
+    margin-left: 162px;
   }
 }
 
@@ -26,7 +27,7 @@ body {
   position: fixed;
   top: 0;
   left: 0;
-  z-index: 1030
+  z-index: 1030;
 }
 
 @media (min-width:768px) {

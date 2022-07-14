@@ -134,7 +134,7 @@ defmodule Schema.Utils do
 
       {key, object} ->
         value
-        |> Map.put(:object_name, object[:name])
+        |> Map.put(:object_name, object[:caption])
         |> Map.put(:object_type, Atom.to_string(key))
     end
   end
@@ -156,14 +156,14 @@ defmodule Schema.Utils do
         value
 
       type ->
-        Map.put(value, :type_name, type[:name])
+        Map.put(value, :type_name, type[:caption])
     end
   end
 
   # Adds attribute's used-by links to the dictionary.
   defp add_common_links(dict, class) do
     Map.update!(dict, :attributes, fn attributes ->
-      link = {:common, class[:type], class[:name]}
+      link = {:common, class[:name], class[:caption]}
 
       update_attributes(
         class,
@@ -177,12 +177,12 @@ defmodule Schema.Utils do
   defp add_class_links(dict, {name, class}) do
     Map.update!(dict, :attributes, fn attributes ->
       type =
-        case class[:type] do
+        case class[:name] do
           nil -> "base_event"
           _ -> Atom.to_string(name)
         end
 
-      link = {:class, type, class[:name] || "*No name*"}
+      link = {:class, type, class[:caption] || "*No name*"}
 
       update_attributes(
         class,
@@ -202,7 +202,7 @@ defmodule Schema.Utils do
 
   defp add_object_links(dict, {name, obj}) do
     Map.update!(dict, :attributes, fn dictionary ->
-      link = {:object, Atom.to_string(name), obj[:name] || "*No name*"}
+      link = {:object, Atom.to_string(name), obj[:caption] || "*No name*"}
       update_attributes(obj, dictionary, link, &update_object_links/2)
     end)
   end
@@ -214,7 +214,7 @@ defmodule Schema.Utils do
   end
 
   defp update_attributes(item, dictionary, link, update_links) do
-    name = item[:name]
+    name = item[:caption]
     attributes = item[:attributes]
 
     Enum.reduce(attributes, dictionary, fn {k, _v}, acc ->
@@ -280,5 +280,4 @@ defmodule Schema.Utils do
   def apply_profiles(attributes, _profiles) do
     Enum.filter(attributes, fn {_k, v} -> Map.has_key?(v, :profile) == false end)
   end
-
 end

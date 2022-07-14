@@ -53,10 +53,10 @@ limitations under the License.
     <div class="collapse navbar-collapse" id="checkbox-extensions">
       <ul class="navbar-nav">
         <%= for {_key, map} <- @extensions do %>
-        <% type = map[:type] %>
+        <% name = map[:name] %>
         <li class="nav-item">
           <a style="display: inline-block;" class="nav-link">
-            <input type="checkbox" id="<%= type %>" > <%= map[:name] %>
+            <input type="checkbox" id="<%= name %>" > <%= map[:caption] %>
           </a>
         </li>
       <% end %>
@@ -71,10 +71,10 @@ limitations under the License.
     <div class="collapse navbar-collapse" id="checkbox-profiles">
       <ul class="navbar-nav">
         <%= for {_key, map} <- @profiles do %>
-        <% type = map[:type] %>
+        <% name = map[:name] %>
         <li class="nav-item">
           <a style="display: inline-block;" class="nav-link">
-            <input type="checkbox" id="<%= type %>" > <%= map[:name] %>
+            <input type="checkbox" id="<%= name %>" > <%= map[:caption] %>
           </a>
         </li>
       <% end %>

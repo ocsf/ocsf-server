@@ -20,7 +20,7 @@
 <div class="row">
   <div class="col-md">
     <h4>
-      <%= @data[:name] %>
+      <%= @data[:caption] %>
         
       <% observable = @data[:observable] %>
       <%= if is_nil(observable) do %>
@@ -98,7 +98,7 @@
   <div class="links">
     <h5>Referenced By</h5>
     <div>
-      <%= raw links(@conn, @data[:name], links) %>
+      <%= raw links(@conn, @data[:caption], links) %>
     </div>
   </div>
   <% end %>

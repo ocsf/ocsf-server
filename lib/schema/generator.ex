@@ -105,9 +105,9 @@ defmodule Schema.Generator do
   end
 
   def generate(class) do
-    Logger.debug("generate: #{class[:name]} #{class[:type]}")
+    Logger.debug("generate: #{class[:caption]} #{class[:name]}")
 
-    case class[:type] do
+    case class[:name] do
       "fingerprint" -> fingerprint(class)
       "location" -> location()
       "attack" -> attack()
@@ -123,7 +123,7 @@ defmodule Schema.Generator do
 
       enum ->
         key = Integer.to_string(uid) |> String.to_atom()
-        name = get_in(enum, [key, :name]) || "Unknown"
+        name = get_in(enum, [key, :caption]) || "Unknown"
         Map.put(data, :event_name, name)
     end
   end
@@ -223,7 +223,7 @@ defmodule Schema.Generator do
 
     case enum[key] do
       nil -> word()
-      val -> val[:name]
+      val -> val[:caption]
     end
   end
 

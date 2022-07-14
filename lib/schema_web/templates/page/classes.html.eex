@@ -44,7 +44,7 @@ limitations under the License.
         <% path = Routes.static_path(@conn, "/classes/" <> name) %>
         <tr class="oscf-class" <%= raw format_profiles(map[:profiles])%>>
           <td class="name"><a href="<%= path %>"><%= raw format_name(name, map) %></a></td>
-          <td><a href="<%= path %>"><%= map[:type] %></a></td>
+          <td><a href="<%= path %>"><%= map[:name] %></a></td>
           <% uid = map[:uid] %>
           <%= if uid != nil and uid > 0 do %>
             <td><a href="<%= path %>"><%= uid %></a></td>

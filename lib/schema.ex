@@ -251,7 +251,7 @@ defmodule Schema do
             end)
             |> Enum.sort(fn map1, map2 -> map1[:uid] <= map2[:uid] end)
 
-          Map.put(cat, :type, name)
+          Map.put(cat, :name, name)
           |> Map.put(:children, children)
           |> Map.put(:value, 1)
         end

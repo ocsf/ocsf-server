@@ -48,6 +48,14 @@ defmodule Schema.Cache do
   def init() do
     version = JsonReader.read_version()
 
+    case version[:version] do
+      "0.9.0" ->
+        exit("Error: invalid version 0.9.0, please use version 0.10.0 or newer")
+
+      _ ->
+        :ok
+    end
+
     categories = JsonReader.read_categories() |> update_categories()
     dictionary = JsonReader.read_dictionary()
 
@@ -259,7 +267,7 @@ defmodule Schema.Cache do
     {key, category} = Utils.find_entity(categories, class, class[:category])
 
     class = Map.put(class, :category, Atom.to_string(key))
-    class = Map.put(class, :category_name, category[:name])
+    class = Map.put(class, :category_name, category[:caption])
 
     try do
       case class[:extension_id] do
@@ -295,7 +303,7 @@ defmodule Schema.Cache do
 
   defp make_event_uid(data, name, attributes) do
     class_uid = get_class_uid(data)
-    caption = data[:name] || "UNKNOWN"
+    caption = data[:caption] || "UNKNOWN"
 
     case event_id(attributes)[:enum] do
       nil ->
@@ -307,11 +315,11 @@ defmodule Schema.Cache do
     end
     |> Map.put(
       integer_to_id(0, -1),
-      Map.new(name: Types.event_name(caption, "Other"))
+      Map.new(caption: Types.event_name(caption, "Other"))
     )
     |> Map.put(
       integer_to_id(class_uid, 0),
-      Map.new(name: Types.event_name(caption, "Unknown"))
+      Map.new(caption: Types.event_name(caption, "Unknown"))
     )
   end
 
@@ -332,7 +340,7 @@ defmodule Schema.Cache do
         _ ->
           {
             make_enum_id(class_uid, key),
-            Map.put(val, :name, Types.event_name(caption, val[:name]))
+            Map.put(val, :caption, Types.event_name(caption, val[:caption]))
           }
       end
     end
@@ -353,7 +361,7 @@ defmodule Schema.Cache do
       |> String.to_atom()
 
     enum = %{
-      :name => data[:name],
+      :caption => data[:caption],
       :description => data[:description]
     }
 
@@ -365,13 +373,13 @@ defmodule Schema.Cache do
   defp add_category_uid(class, name, categories) do
     case class[:category] do
       nil ->
-        Logger.warn("class '#{class[:type]}' has no category")
+        Logger.warn("class '#{class[:name]}' has no category")
 
       cat_name ->
         {_key, category} = Utils.find_entity(categories, class, cat_name)
 
         if category == nil do
-          Logger.warn("class '#{class[:type]}' has an invalid category: #{cat_name}")
+          Logger.warn("class '#{class[:name]}' has an invalid category: #{cat_name}")
           class
         else
           update_in(
@@ -472,7 +480,7 @@ defmodule Schema.Cache do
               nil
 
             {_key, class} ->
-              {Utils.make_path(class[:extension], name), class[:name]}
+              {Utils.make_path(class[:extension], name), class[:caption]}
           end
         end
       )
@@ -530,7 +538,7 @@ defmodule Schema.Cache do
   defp generate_observable_types(types) do
     Enum.into(types, %{}, fn {_name, type} ->
       k = Integer.to_string(type[:observable]) |> String.to_atom()
-      v = %{name: type[:name], description: type[:description]}
+      v = %{caption: type[:caption], description: type[:description]}
       {k, v}
     end)
   end

@@ -21,7 +21,7 @@ limitations under the License.
     <%= if category != nil do %>
       <% path = Routes.static_path(@conn, "/categories/" <> category) %>
       <h4>
-        <%= @data[:name] %>
+        <%= @data[:caption] %>
         <span class="text-secondary">[<%= @data[:uid] %>]<sup><%= @data[:extension] || "" %></sup>
           Event Class
         </span>
@@ -51,7 +51,7 @@ limitations under the License.
         </div>
       <% end %>
     <% else %>
-      <h4><%= @data[:name] %></h4>
+      <h4><%= @data[:caption] %></h4>
       <div class="text-secondary">
         <%= raw @data[:description] %>
       </div>

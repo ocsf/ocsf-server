@@ -173,7 +173,7 @@ defmodule SchemaWeb.PageController do
   end
 
   defp sort_attributes(map) do
-    sort_attributes(map, :name)
+    sort_attributes(map, :caption)
   end
 
   defp sort_attributes(map, key) do
@@ -181,7 +181,7 @@ defmodule SchemaWeb.PageController do
   end
 
   defp sort_by_name(map) do
-    sort_by(map, :name)
+    sort_by(map, :caption)
   end
 
   defp sort_by(map, key) do

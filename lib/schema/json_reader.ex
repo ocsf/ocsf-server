@@ -94,6 +94,7 @@ defmodule Schema.JsonReader do
 
   def init(ext_dir) do
     init_cache()
+
     home = data_dir()
     version = read_version(home)
     extensions = extensions(home, ext_dir)
@@ -140,7 +141,7 @@ defmodule Schema.JsonReader do
 
   @impl true
   def handle_call(:extensions, _from, {_home, ext} = state) do
-    extensions = Enum.map(ext, fn ext -> {ext[:type], ext} end) |> Map.new()
+    extensions = Enum.map(ext, fn ext -> {ext[:name], ext} end) |> Map.new()
     {:reply, extensions, state}
   end
 
@@ -168,7 +169,7 @@ defmodule Schema.JsonReader do
       read_json_file(file)
     else
       Logger.warn("#{inspect(__MODULE__)} version file #{file} not found")
-      %{"version" => "0.0.0"}
+      %{:version => "0.0.0"}
     end
   end
 
@@ -236,7 +237,7 @@ defmodule Schema.JsonReader do
     else
       if Path.extname(path) == @schema_file do
         data = read_json_file(path) |> resolve_includes(home)
-        Map.put(acc, String.to_atom(data[:type]), data)
+        Map.put(acc, String.to_atom(data[:name]), data)
       else
         acc
       end
@@ -273,12 +274,14 @@ defmodule Schema.JsonReader do
     path = Path.join(ext[:path], file)
 
     if File.regular?(path) do
-      Logger.debug(fn -> "merge_category_file: #{inspect(__MODULE__)} read file: [#{ext[:type]}] #{path}" end)
+      Logger.debug(fn ->
+        "merge_category_file: #{inspect(__MODULE__)} read file: [#{ext[:name]}] #{path}"
+      end)
 
       Map.update!(acc, :attributes, fn attributes ->
         map = read_json_file(path)
-        
-        ext_type = ext[:type]
+
+        ext_type = ext[:name]
         ext_uid = ext[:uid]
 
         Map.merge(
@@ -300,11 +303,13 @@ defmodule Schema.JsonReader do
     path = Path.join(ext[:path], file)
 
     if File.regular?(path) do
-      Logger.debug(fn -> "merge_dictionary_file: #{inspect(__MODULE__)} read file: [#{ext[:type]}] #{path}" end)
+      Logger.debug(fn ->
+        "merge_dictionary_file: #{inspect(__MODULE__)} read file: [#{ext[:name]}] #{path}"
+      end)
 
       Map.update!(acc, :attributes, fn attributes ->
         ext_map = read_json_file(path)
-        ext_type = ext[:type]
+        ext_type = ext[:name]
         ext_uid = ext[:uid]
 
         Map.merge(
@@ -334,7 +339,7 @@ defmodule Schema.JsonReader do
 
   defp read_extension_files(acc, home, ext, path) do
     if File.dir?(path) do
-      Logger.info(fn -> "#{inspect(__MODULE__)} [#{ext[:type]}] read files: #{path}" end)
+      Logger.info(fn -> "#{inspect(__MODULE__)} [#{ext[:name]}] read files: #{path}" end)
 
       case File.ls(path) do
         {:ok, files} ->
@@ -348,14 +353,14 @@ defmodule Schema.JsonReader do
       end
     else
       if Path.extname(path) == @schema_file do
-        Logger.debug(fn -> "#{inspect(__MODULE__)} [#{ext[:type]}] read file: #{path}" end)
+        Logger.debug(fn -> "#{inspect(__MODULE__)} [#{ext[:name]}] read file: #{path}" end)
 
         data =
           read_json_file(path)
           |> resolve_extension_includes(home, ext)
-          |> add_extension(ext[:type], ext[:uid])
+          |> add_extension(ext[:name], ext[:uid])
 
-        name = Utils.to_uid(ext[:type], data[:type])
+        name = Utils.to_uid(ext[:name], data[:name])
         Map.put(acc, name, data)
       else
         acc
@@ -444,7 +449,7 @@ defmodule Schema.JsonReader do
     profile =
       case data[:meta] do
         "profile" ->
-          update_profile(data[:name], data[:type], file)
+          update_profile(data[:caption], data[:name], file)
 
         _ ->
           nil
@@ -472,7 +477,7 @@ defmodule Schema.JsonReader do
       nil ->
         Logger.info("Schema.JsonReader profiles: #{file} defines a new profile: #{type}")
 
-        Map.put(profiles, type, %{name: name, type: type})
+        Map.put(profiles, type, %{caption: name, name: type})
         |> cache_put(:profiles)
 
       _profile ->

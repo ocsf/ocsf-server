@@ -10,7 +10,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 %>
-<h4><%= @data[:name] %></h4>
+<h4><%= @data[:caption] %></h4>
 <div class="text-secondary">
   <%= raw @data[:description] %>
 Note <strong>type<sup>O</sup></strong> denotes an observable type.
@@ -22,8 +22,8 @@ Note <strong>type<sup>O</sup></strong> denotes an observable type.
   <table class="table table-striped table-bordered sortable">
     <thead>
       <tr class="thead-color">
+        <th style="width: 15%">Caption</th>
         <th style="width: 15%">Name</th>
-        <th style="width: 15%">Attribute</th>
         <th style="width: 10%">Base Type</th>
         <th style="width: 20%">Constraints</th>
         <th style="width: 40%">Description</th>
@@ -35,9 +35,9 @@ Note <strong>type<sup>O</sup></strong> denotes an observable type.
         <% observable = field[:observable] %>
         <tr>
         <%= if is_nil(observable) do %>
-          <td class="name"><%= field[:name] %></td>
+          <td class="name"><%= field[:caption] %></td>
         <% else %>
-          <td class="observable"><%= field[:name] %><sup>O</sup></td>
+          <td class="observable"><%= field[:caption] %><sup>O</sup></td>
         <% end %>
           <td><%= name %></td>
           <td><%= raw format_type(@conn, field) %></td>

@@ -15,13 +15,13 @@ defmodule SchemaWeb.PageView do
 
   @spec format_name(any, nil | maybe_improper_list | map) :: any
   def format_name(name, field) do
-    name = field[:name] || name
+    name = field[:caption] || name
 
     name =
-    case field[:uid] do
-      nil -> name
-      uid -> name <> "<span class='uid'> [#{uid}]</span>"
-    end
+      case field[:uid] do
+        nil -> name
+        uid -> name <> "<span class='uid'> [#{uid}]</span>"
+      end
 
     case field[:extension] do
       nil -> name
@@ -31,13 +31,14 @@ defmodule SchemaWeb.PageView do
 
   @spec format_attribute_name(any, nil | maybe_improper_list | map) :: any
   def format_attribute_name(name, field) do
-    name = field[:name] || name
+    name = field[:caption] || name
 
-    name = case field[:observable] do
-      nil -> name
-      _   -> name <> " <sup>O</sup>"
-    end
-    
+    name =
+      case field[:observable] do
+        nil -> name
+        _ -> name <> " <sup>O</sup>"
+      end
+
     case field[:extension] do
       nil -> name
       extension -> name <> " <sup>#{extension}</sup>"
@@ -264,7 +265,7 @@ defmodule SchemaWeb.PageView do
                 "<tr class='bg-transparent'><td style='width: 50px' class='text-right'><code>",
                 Atom.to_string(id),
                 "</code></td><td class='text-nowrap'>",
-                Map.get(item, :name),
+                Map.get(item, :caption),
                 "</td><td>",
                 desc,
                 "</td><tr>" | acc
