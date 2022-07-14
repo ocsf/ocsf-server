@@ -16,18 +16,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout
+    - name: Checkout OCSF Server
       uses: actions/checkout@v3
       with:
-        ref: main
-        path: server
-        
-    - name: Checkout schema repo
-      uses: actions/checkout@v3
-      with:
-        repository: ocsf/ocsf-schema
-        ref: main
-        path: schema
+        submodules: "recursive"
+        token: ${{ secrets.ACCESS_TOKEN }}
     
     - name: Set up Elixir
       uses: erlef/setup-beam@988e02bfe678367a02564f65ca2e37726dc0268f
