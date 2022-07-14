@@ -16,9 +16,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout
+      uses: actions/checkout@v3
+        
+    - name: Checkout schema repo
+      uses: actions/checkout@v3
       with:
-        submodules: 'true'
+        repository: ocsf/ocsf-schema
+        path: schema
+    
     - name: Set up Elixir
       uses: erlef/setup-beam@988e02bfe678367a02564f65ca2e37726dc0268f
       with:
@@ -33,4 +39,4 @@ jobs:
     - name: Install dependencies
       run: mix deps.get
     - name: Run tests
-      run: SCHEMA_DIR=modules/schema mix test
+      run: SCHEMA_DIR=schema mix test
