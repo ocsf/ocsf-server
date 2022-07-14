@@ -18,11 +18,15 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
+      with:
+        ref: main
+        path: server
         
     - name: Checkout schema repo
       uses: actions/checkout@v3
       with:
         repository: ocsf/ocsf-schema
+        ref: main
         path: schema
     
     - name: Set up Elixir
@@ -39,4 +43,4 @@ jobs:
     - name: Install dependencies
       run: mix deps.get
     - name: Run tests
-      run: SCHEMA_DIR=schema mix test
+      run: SCHEMA_DIR=../schema mix test
