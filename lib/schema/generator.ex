@@ -314,7 +314,7 @@ defmodule Schema.Generator do
   end
 
   defp generate_file_object(field) do
-    field.object_type
+    field[:object_type]
     |> String.to_atom()
     |> Schema.object()
     |> generate()
@@ -346,7 +346,7 @@ defmodule Schema.Generator do
 
   defp generate_objects(n, {_name, field}) do
     object =
-      field.object_type
+      field[:object_type]
       |> String.to_atom()
       |> Schema.object()
 
