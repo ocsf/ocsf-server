@@ -28,7 +28,7 @@ defmodule Schema.CheckEnums do
   defp check(attributes) do
     Enum.reduce(attributes, [], fn {name, attribute}, acc ->
       if is_enum?(attribute) do
-        check_enum(attributes, name, Map.get(attribute, :enum), acc)
+        check_enum(attributes, name, attribute, acc)
       else
         acc
       end
@@ -36,23 +36,28 @@ defmodule Schema.CheckEnums do
   end
 
   defp is_enum?(attribute) do
-    Map.has_key?(attribute, :enum) and Map.get(attribute, :requirement) != "reserved"
+    # and Map.get(attribute, :requirement) != "reserved"
+    Map.has_key?(attribute, :enum)
   end
 
-  defp check_enum(attributes, name, enum, acc) do
-    name = Atom.to_string(name)
+  defp check_enum(attributes, name, attribute, acc) do
+    enum = Map.get(attribute, :enum)
+    key = Schema.Enums.sibling(name, attribute) 
 
-    key = Schema.Enums.base_name(name) |> String.to_atom()
+    case Map.get(attributes, key) do
+      nil ->
+        name = Atom.to_string(name)
+        if Map.has_key?(enum, :"-1") do
+          ["#{name}*" | acc]
+        else
+          [name | acc]
+        end
 
-    if Map.has_key?(attributes, key) do
-      acc
-    else
-      if Map.has_key?(enum, :"-1") do
-        ["#{name}*" | acc]
-      else
-        [name | acc]
-      end
+      sibling ->
+        if attribute[:requirement] != sibling[:requirement] do
+          IO.puts("requirement for #{name} differ from #{key}")
+        end
+        acc
     end
   end
-
 end
