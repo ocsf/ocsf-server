@@ -94,13 +94,13 @@ defmodule Schema.Generator do
       activity_id ->
         uid =
           if activity_id >= 0 do
-            Types.event_uid(data[:class_uid], activity_id)
+            Types.type_uid(data[:class_uid], activity_id)
           else
             -1
           end
 
-        Map.put(data, :event_uid, uid)
-        |> add_event_name(uid, class)
+        Map.put(data, :type_uid, uid)
+        |> add_type_name(uid, class)
     end
   end
 
@@ -116,15 +116,15 @@ defmodule Schema.Generator do
     end
   end
 
-  defp add_event_name(data, uid, class) do
-    case get_in(class, [:attributes, :event_uid, :enum]) do
+  defp add_type_name(data, uid, class) do
+    case get_in(class, [:attributes, :type_uid, :enum]) do
       nil ->
         data
 
       enum ->
         key = Integer.to_string(uid) |> String.to_atom()
         name = get_in(enum, [key, :caption]) || "Unknown"
-        Map.put(data, :event_name, name)
+        Map.put(data, :type_name, name)
     end
   end
 

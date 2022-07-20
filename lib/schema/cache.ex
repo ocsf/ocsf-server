@@ -234,12 +234,12 @@ defmodule Schema.Cache do
     |> Enum.into(%{}, fn class -> attribute_source(class) end)
   end
 
-  # Add category_uid, class_uid, and event_uid
+  # Add category_uid, class_uid, and type_uid
   defp enrich_class({name, class}, categories) do
     data =
       class
       |> update_class_uid(categories)
-      |> add_event_uid(name)
+      |> add_type_uid(name)
       |> add_class_uid(name)
       |> add_category_uid(name, categories)
 
@@ -287,21 +287,21 @@ defmodule Schema.Cache do
     end
   end
 
-  defp add_event_uid(data, name) do
+  defp add_type_uid(data, name) do
     Map.update!(
       data,
       :attributes,
       fn attributes ->
-        uid = attributes[:event_uid] || %{}
-        enum = make_event_uid(data, name, attributes)
+        uid = attributes[:type_uid] || %{}
+        enum = make_type_uid(data, name, attributes)
 
-        Map.put(attributes, :event_uid, Map.put(uid, :enum, enum))
+        Map.put(attributes, :type_uid, Map.put(uid, :enum, enum))
       end
     )
-    |> put_in([:attributes, :event_uid, :_source], name)
+    |> put_in([:attributes, :type_uid, :_source], name)
   end
 
-  defp make_event_uid(data, name, attributes) do
+  defp make_type_uid(data, name, attributes) do
     class_uid = get_class_uid(data)
     caption = data[:caption] || "UNKNOWN"
 
@@ -315,11 +315,11 @@ defmodule Schema.Cache do
     end
     |> Map.put(
       integer_to_id(0, -1),
-      Map.new(caption: Types.event_name(caption, "Other"))
+      Map.new(caption: Types.type_name(caption, "Other"))
     )
     |> Map.put(
       integer_to_id(class_uid, 0),
-      Map.new(caption: Types.event_name(caption, "Unknown"))
+      Map.new(caption: Types.type_name(caption, "Unknown"))
     )
   end
 
@@ -328,7 +328,7 @@ defmodule Schema.Cache do
   end
 
   defp get_class_uid(class) do
-    Types.event_uid(class[:uid] || 0, 0)
+    Types.type_uid(class[:uid] || 0, 0)
   end
 
   defp enum_values(class_uid, caption, values) do
@@ -340,7 +340,7 @@ defmodule Schema.Cache do
         _ ->
           {
             make_enum_id(class_uid, key),
-            Map.put(val, :caption, Types.event_name(caption, val[:caption]))
+            Map.put(val, :caption, Types.type_name(caption, val[:caption]))
           }
       end
     end

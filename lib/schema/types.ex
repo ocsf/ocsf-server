@@ -37,16 +37,16 @@ defmodule Schema.Types do
   def class_uid(category_uid, class_id), do: category_uid * 1000 + class_id
 
   @doc """
-  Makes an event uid for the given class and activity identifiers.
+  Makes a type uid for the given class and activity identifiers.
   """
-  @spec event_uid(number, number) :: number
-  def event_uid(class_uid, activity_id), do: class_uid * 100 + activity_id
+  @spec type_uid(number, number) :: number
+  def type_uid(class_uid, activity_id), do: class_uid * 100 + activity_id
 
   @doc """
-  Makes event_name from class name and event uid enum name.
+  Makes type name from class name and type uid enum name.
   """
-  @spec event_name(binary, binary) :: binary
-  def event_name(class, name) do
+  @spec type_name(binary, binary) :: binary
+  def type_name(class, name) do
     class <> ": " <> name
   end
 
