@@ -12,7 +12,7 @@ services:
         - "${SCHEMA_PATH:-./modules/schema}:/app/schema:z"
 
   ocsf-elixir:
-    image: "elixir:${ELIXER_VERSION:-1.13}"
+    image: "elixir:${ELIXIR_VERSION:-otp-25-alpine}"
     working_dir: /ocsf-server
     entrypoint: /docker-entrypoint-dev.sh
     command: echo # dummy command

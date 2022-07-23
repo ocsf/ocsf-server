@@ -1,7 +1,8 @@
-#!/bin/bash
+#!/bin/sh
 
 cd /ocsf-server
-if [[ ! -d ./_build ]]; then
+if [ ! -d ./_build ]; then
+    echo "_build folder not found, removing .mix and deps/ and running a build."
     rm -Rf .mix/
     rm -Rf deps/
     mix local.hex --force

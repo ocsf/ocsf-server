@@ -65,7 +65,7 @@ An `.env.sample` is provided, and the following options are available:
 ```
 SCHEMA_PATH=./modules/schema    # Set the local schema path, eg. ../ocsf-schema, defaults to ./modules/schema
 OCSF_SERVER_PORT=8080           # Set the port for Docker to listen on for forwarding traffic to the Schema Server, defaults to 8080
-ELIXER_VERSION=1.13             # Set the Elixir container version for development, defaults to 1.13
+ELIXIR_VERSION=otp-25-alpine    # Set the Elixir container version for development, defaults to otp-25-alpine
 ```
 
 ## Local Usage
