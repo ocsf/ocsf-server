@@ -73,5 +73,5 @@ limitations under the License.
 </div>
 
 <script>
-  init_class_profiles(true);
+  init_class_profiles();
 </script>

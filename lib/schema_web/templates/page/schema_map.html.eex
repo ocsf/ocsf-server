@@ -19,5 +19,5 @@ limitations under the License.
   const main = runtime.module(define, Inspector.into(document.body));
 </script>
 <script>
-  init_class_profiles(false);
+  init_class_profiles();
 </script>

@@ -148,6 +148,6 @@ limitations under the License.
   });
 
   init_schema_buttons();
-  init_class_profiles(true);
+  init_class_profiles();
 
 </script>

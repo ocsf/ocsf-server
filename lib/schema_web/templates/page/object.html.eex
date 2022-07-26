@@ -20,18 +20,18 @@
   <div class="col-md">
     <h4>
       <%= @data[:caption] %>
-        
+
       <% observable = @data[:observable] %>
       <%= if is_nil(observable) do %>
       <span class="text-secondary"><sup><%= @data[:extension] || "" %></sup>
-        Object 
+        Object
       </span>
       <% else %>
       <span class="text-secondary"><sup><%= @data[:extension] || "" %></sup>
-        Observable Object 
+        Observable Object
       </span>
       <% end %>
-        
+
     </h4>
     <div class="text-secondary">
       <%= raw @data[:description] %>
@@ -112,5 +112,5 @@
 <% end %>
 <script>
   init_schema_buttons();
-  init_class_profiles(true);
+  init_class_profiles();
 </script>
