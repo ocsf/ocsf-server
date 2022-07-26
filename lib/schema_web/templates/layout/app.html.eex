@@ -197,7 +197,7 @@ limitations under the License.
 </div>
 
 <div class="footer">
-  Open Cybersecurity Schema Framework v<%= Schema.version() %> &copy; 2005-2022 Splunk Inc. All rights reserved. This content includes the ICD Schema developed by Symantec, a division of Broadcom.
+  Open Cybersecurity Schema Framework v<%= Schema.version() %>. This content includes the ICD Schema developed by Symantec, a division of Broadcom.
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
