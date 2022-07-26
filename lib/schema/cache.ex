@@ -73,6 +73,11 @@ defmodule Schema.Cache do
       |> Utils.update_objects(dictionary)
       |> update_observables(dictionary)
 
+    # attributes = dictionary[:attributes]
+
+    sanity_check(objects, dictionary[:attributes])
+    sanity_check(classes, dictionary[:attributes])
+
     new(version)
     |> set_profiles(profiles)
     |> set_categories(categories)
@@ -545,6 +550,20 @@ defmodule Schema.Cache do
   defp observables(e) do
     Enum.filter(e, fn {_, value} ->
       Map.has_key?(value, :observable) and Map.get(value, :observable) > 0
+    end)
+  end
+
+  defp sanity_check(map, dictionary) do
+    Enum.each(map, fn {name, value} ->
+      Enum.each(value[:attributes], fn {key, attribute} ->
+        if is_nil(attribute[:description]) do
+          desc = get_in(dictionary, [key, :description]) || ""
+
+          if String.contains?(desc, "See specific usage") do
+            Logger.warn("Please update the description for #{name}.#{key}: #{desc}")
+          end
+        end
+      end)
     end)
   end
 
