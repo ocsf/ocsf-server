@@ -34,6 +34,7 @@
 # Mix artifacts
 /_build/
 /deps/
+/.mix/
 *.ez
 
 # Generated on crash by the VM

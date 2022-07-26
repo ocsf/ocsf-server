@@ -35,3 +35,9 @@ erl_crash.dump
 /config/*.secret.exs
 
 .version
+
+# Ignore /.env files used to define local environment variables
+/.env
+
+# Ignore /.mix/ folder
+/.mix/
