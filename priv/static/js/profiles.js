@@ -16,9 +16,10 @@ function set_selected_profiles(profiles) {
   localStorage.setItem("schema_profiles", JSON.stringify(profiles));
 }
 
-function init_selected_profiles() {
-  let profiles = get_selected_profiles();
-  
+function init_selected_profiles(profiles) {
+  if (profiles == null)
+    profiles = get_selected_profiles();
+
   if (profiles.length == 0) {
     $(".oscf-class").each(function(i, e) {
       e.classList.remove('d-none');
@@ -26,8 +27,8 @@ function init_selected_profiles() {
   } else {
     $.each(profiles, function(index, element) {
       $("#" + element).prop('checked', true);
-    });  
-    
+    });
+
     $(".oscf-class").each(function(i, e) {
       let n = 0;
 
@@ -44,7 +45,7 @@ function init_selected_profiles() {
   }
 }
 
-function init_class_profiles(reload) {
+function init_class_profiles() {
   let profiles = $("#checkbox-profiles :checkbox");
   profiles.on("change", function() {
     selected_profiles = [];
@@ -52,10 +53,8 @@ function init_class_profiles(reload) {
       if (this.checked)
         selected_profiles.push(this.id)
     });
-    
-    set_selected_profiles(selected_profiles);
 
-    if (reload)
-      window.location.reload(false);
+    set_selected_profiles(selected_profiles);
+    init_selected_profiles(selected_profiles)
   });
 }

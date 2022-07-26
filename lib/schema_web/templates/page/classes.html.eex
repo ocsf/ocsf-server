@@ -57,5 +57,5 @@ limitations under the License.
   </table>
 </div>
 <script>
-  init_class_profiles(true);
+  init_class_profiles();
 </script>

@@ -17,5 +17,5 @@ limitations under the License.
   <%= raw(render("guidelines_md.html")) %>
 </div>
 <script>
-  init_class_profiles(false);
+  init_class_profiles();
 </script>
