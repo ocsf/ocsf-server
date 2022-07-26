@@ -265,7 +265,7 @@ defmodule SchemaWeb.PageView do
                 "<tr class='bg-transparent'><td style='width: 50px' class='text-right'><code>",
                 Atom.to_string(id),
                 "</code></td><td class='text-nowrap'>",
-                Map.get(item, :caption),
+                Map.get(item, :caption, Atom.to_string(id)),
                 "</td><td>",
                 desc,
                 "</td><tr>" | acc
