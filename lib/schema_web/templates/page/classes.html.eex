@@ -41,7 +41,7 @@ limitations under the License.
       <%= for {key, map} <- @data do %>
         <% name = Atom.to_string(key) %>
         <% path = Routes.static_path(@conn, "/classes/" <> name) %>
-        <tr class="oscf-class" <%= raw format_profiles(map[:profiles])%>>
+        <tr class="ocsf-class" <%= raw format_profiles(map[:profiles])%>>
           <td class="name"><a href="<%= path %>"><%= raw format_name(name, map) %></a></td>
           <td><a href="<%= path %>"><%= name %></a></td>
           <% uid = map[:uid] %>

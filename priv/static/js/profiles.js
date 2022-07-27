@@ -21,7 +21,7 @@ function init_selected_profiles(profiles) {
     profiles = get_selected_profiles();
 
   if (profiles.length == 0) {
-    $(".oscf-class").each(function(i, e) {
+    $(".ocsf-class").each(function(i, e) {
       e.classList.remove('d-none');
     });
   } else {
@@ -29,7 +29,7 @@ function init_selected_profiles(profiles) {
       $("#" + element).prop('checked', true);
     });
 
-    $(".oscf-class").each(function(i, e) {
+    $(".ocsf-class").each(function(i, e) {
       let n = 0;
 
       $.each(profiles, function(index, element) {

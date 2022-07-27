@@ -47,7 +47,7 @@ limitations under the License.
       <%= for {id, class} <- @data[:classes] do %>
       <% name = Atom.to_string(id) %>
       <% path = Routes.static_path(@conn, "/classes/" <> name) %>
-      <tr class="extensions oscf-class" <%= raw format_profiles(class[:profiles])%>>
+      <tr class="extensions ocsf-class" <%= raw format_profiles(class[:profiles])%>>
         <td class="name">
           <a href="<%= path %>"><%= raw format_name(name, class) %></a>
         </td>
