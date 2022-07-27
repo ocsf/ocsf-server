@@ -457,7 +457,9 @@ defmodule Schema.JsonReader do
 
     case data[:annotations] do
       nil ->
-        data
+        Map.update(data, :attributes, [], fn attributes ->
+          add_profile(attributes, profile)
+        end)
 
       annotations ->
         Map.update(data, :attributes, [], fn attributes ->
@@ -496,6 +498,17 @@ defmodule Schema.JsonReader do
 
   defp read_profiles(home, _extensions) do
     read_profiles(home, [])
+  end
+
+  defp add_profile(attributes, nil) do
+    attributes
+  end
+
+  defp add_profile(attributes, profile) do
+    Enum.map(attributes, fn {name, attribute} ->
+      {name, Map.put(attribute, :profile, profile)}
+    end)
+    |> Map.new()
   end
 
   defp add_annotated_attributes(attributes, nil, annotations) do

@@ -55,6 +55,7 @@ function init_class_profiles() {
     });
 
     set_selected_profiles(selected_profiles);
-    init_selected_profiles(selected_profiles)
+    init_selected_profiles(selected_profiles);
+    refresh_selected_profiles();
   });
 }

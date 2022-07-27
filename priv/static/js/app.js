@@ -48,21 +48,26 @@ function enable_option(name) {
 }
 
 function init_select() {
+  let selected = refresh_selected_profiles();
+  init_select_picker($("#attributes-select"), selected);
+}
+
+function refresh_selected_profiles() {
+  const data = window.localStorage.getItem(storageKey);
   let selected;
-  if (window.localStorage.getItem(storageKey) == null) {
+
+  if (data == null) {
     selected = defaultSelectedValues;
     window.localStorage.setItem(storageKey, selected);
   } else {
-    const data = window.localStorage.getItem(storageKey);
     if (data.length > 0)
       selected = data.split(",");
     else
       selected = [];
   }
 
-  init_select_picker($("#attributes-select"), selected);
-
   display_attributes(array_to_set(selected));
+  return selected;
 }
 
 function init_select_picker(selection, selected) {
