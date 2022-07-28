@@ -123,9 +123,7 @@ defmodule Schema.Repo do
   end
 
   def classes(extensions) do
-    Agent.get(__MODULE__, fn schema ->
-      Cache.classes(schema) |> filter(extensions)
-    end)
+    Agent.get(__MODULE__, fn schema -> Cache.classes(schema) |> filter(extensions) end)
   end
 
   @spec export_classes() :: map()
@@ -193,6 +191,16 @@ defmodule Schema.Repo do
     Agent.get(__MODULE__, fn schema -> Cache.object(schema, id) end)
   end
 
+  @spec object(extensions() | nil, atom) :: nil | Cache.class_t()
+  def object(nil, id) do
+    Agent.get(__MODULE__, fn schema -> Cache.object(schema, id) end)
+  end
+
+  def object(extensions, id) do
+    Agent.get(__MODULE__, fn schema -> Cache.object(schema, id) end)
+    |> Map.update(:_links, [], fn links -> remove_extension_links(links, extensions) end)
+  end
+
   @spec reload() :: :ok
   def reload() do
     Cache.reset()
@@ -210,16 +218,20 @@ defmodule Schema.Repo do
       extension = f[:extension]
       extension == nil or MapSet.member?(extensions, extension)
     end)
-    |> Enum.into(%{}, fn {n, v} ->
+    |> filter_extension_links(extensions)
+  end
+
+  defp filter_extension_links(attributes, extensions) do
+    Enum.into(attributes, %{}, fn {n, v} ->
       links = remove_extension_links(v[:_links], extensions)
 
       {n, Map.put(v, :_links, links)}
     end)
   end
 
-  def remove_extension_links(nil, _extensions), do: []
+  defp remove_extension_links(nil, _extensions), do: []
 
-  def remove_extension_links(links, extensions) do
+  defp remove_extension_links(links, extensions) do
     Enum.filter(links, fn {_, key, _} ->
       [ext | rest] = String.split(key, "/")
       rest == [] or MapSet.member?(extensions, ext)

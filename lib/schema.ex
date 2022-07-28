@@ -180,7 +180,11 @@ defmodule Schema do
   @spec object(nil | String.t(), String.t()) :: nil | map()
   def object(extension, id) when is_binary(id) do
     Repo.object(Utils.to_uid(extension, id))
-#    links = remove_extension_links(o[:_links], extensions)
+  end
+
+  @spec object(Repo.extensions(), String.t(), String.t()) :: nil | map()
+  def object(extensions, extension, id) when is_binary(id) do
+    Repo.object(extensions, Utils.to_uid(extension, id))
   end
 
   @doc """

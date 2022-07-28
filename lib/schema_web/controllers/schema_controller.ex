@@ -286,10 +286,8 @@ defmodule SchemaWeb.SchemaController do
   """
   @spec objects(Plug.Conn.t(), map) :: Plug.Conn.t()
   def objects(conn, %{"id" => id} = params) do
-    extension = params["extension"]
-
     try do
-      case Schema.object(extension, id) do
+      case object(params) do
         nil ->
           send_json_resp(conn, 404, %{error: "Not Found: #{id}"})
 
@@ -334,6 +332,12 @@ defmodule SchemaWeb.SchemaController do
   @spec objects(map) :: map
   def objects(params) do
     parse_options(params[@extensions]) |> Schema.objects()
+  end
+
+  @spec object(map) :: map() | nil
+  def object(%{"id" => id} = params) do
+    extension = params["extension"]
+    parse_options(params[@extensions]) |>  Schema.object(extension, id)
   end
 
   # ---------------------------------

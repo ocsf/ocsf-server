@@ -118,7 +118,7 @@ defmodule Schema.Cache do
     Map.get(categories[:attributes], id)
   end
 
-  @spec classes(__MODULE__.t()) :: list
+  @spec classes(__MODULE__.t()) :: map()
   def classes(%__MODULE__{classes: classes}), do: classes
 
   @spec export_classes(__MODULE__.t()) :: map()

@@ -142,10 +142,8 @@ defmodule SchemaWeb.PageController do
   """
   @spec objects(Plug.Conn.t(), map) :: Plug.Conn.t()
   def objects(conn, %{"id" => id} = params) do
-    extension = params["extension"]
-
     try do
-      case Schema.object(extension, id) do
+      case SchemaController.object(params) do
         nil ->
           send_resp(conn, 404, "Not Found: #{id}")
 
