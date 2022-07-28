@@ -67,16 +67,15 @@ defmodule Schema.Cache do
     JsonReader.cleanup()
 
     dictionary = Utils.update_dictionary(dictionary, base_event, classes, objects)
+    attributes = dictionary[:attributes]
 
     objects =
       objects
-      |> Utils.update_objects(dictionary)
+      |> Utils.update_objects(attributes)
       |> update_observables(dictionary)
 
-    # attributes = dictionary[:attributes]
-
-    sanity_check(objects, dictionary[:attributes])
-    sanity_check(classes, dictionary[:attributes])
+    sanity_check(objects, attributes)
+    sanity_check(classes, attributes)
 
     new(version)
     |> set_profiles(profiles)

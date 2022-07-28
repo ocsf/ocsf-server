@@ -205,12 +205,25 @@ defmodule Schema.Repo do
     Agent.cast(__MODULE__, fn _ -> Cache.init() end)
   end
 
-  defp filter(data, extensions) do
-    Enum.filter(data, fn {_k, f} ->
+  defp filter(attributes, extensions) do
+    Map.filter(attributes, fn {_k, f} ->
       extension = f[:extension]
       extension == nil or MapSet.member?(extensions, extension)
     end)
-    |> Map.new()
+    |> Enum.into(%{}, fn {n, v} ->
+      links = remove_extension_links(v[:_links], extensions)
+
+      {n, Map.put(v, :_links, links)}
+    end)
+  end
+
+  def remove_extension_links(nil, _extensions), do: []
+
+  def remove_extension_links(links, extensions) do
+    Enum.filter(links, fn {_, key, _} ->
+      [ext | rest] = String.split(key, "/")
+      rest == [] or MapSet.member?(extensions, ext)
+    end)
   end
 
   defp add_classes(nil, {id, category}, classes) do

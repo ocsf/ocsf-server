@@ -178,8 +178,10 @@ defmodule Schema do
   def object(id), do: Repo.object(Utils.to_uid(id))
 
   @spec object(nil | String.t(), String.t()) :: nil | map()
-  def object(extension, id) when is_binary(id),
-    do: Repo.object(Utils.to_uid(extension, id))
+  def object(extension, id) when is_binary(id) do
+    Repo.object(Utils.to_uid(extension, id))
+#    links = remove_extension_links(o[:_links], extensions)
+  end
 
   @doc """
   Returns a randomly generated sample event.

@@ -74,10 +74,8 @@ defmodule Schema.Utils do
 
   @spec update_objects(map(), map()) :: map()
   def update_objects(objects, dictionary) do
-    attributes = dictionary[:attributes]
-
     Enum.map(objects, fn {name, object} ->
-      links = object_links(attributes, Atom.to_string(name))
+      links = object_links(dictionary, Atom.to_string(name))
       {name, Map.put(object, @links, links)}
     end)
     |> Map.new()
