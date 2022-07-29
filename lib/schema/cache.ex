@@ -56,7 +56,7 @@ defmodule Schema.Cache do
     end
 
     categories = JsonReader.read_categories() |> update_categories()
-    dictionary = JsonReader.read_dictionary()
+    dictionary = JsonReader.read_dictionary() |> update_dictionary()
 
     {base_event, classes} = read_classes(categories[:attributes])
     objects = read_objects()
@@ -562,6 +562,29 @@ defmodule Schema.Cache do
             Logger.warn("Please update the description for #{name}.#{key}: #{desc}")
           end
         end
+      end)
+    end)
+  end
+
+  defp update_dictionary(dictionary) do
+    types = get_in(dictionary, [:types, :attributes])
+
+    Map.update!(dictionary, :attributes, fn attributes ->
+      Enum.into(attributes, %{}, fn {name, attribute} ->
+        type = attribute[:type] || "object_t"
+
+        attribute =
+          case types[String.to_atom(type)] do
+            nil ->
+              attribute
+              |> Map.put(:type, "object_t")
+              |> Map.put(:object_type, type)
+
+            _type ->
+              attribute
+          end
+
+        {name, attribute}
       end)
     end)
   end
