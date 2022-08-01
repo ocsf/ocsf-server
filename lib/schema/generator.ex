@@ -352,7 +352,7 @@ defmodule Schema.Generator do
     Enum.map(1..n, fn _ -> generate(object) end)
   end
 
-  defp generate_data(:event_time, _type, _field),
+  defp generate_data(:ref_time, _type, _field),
     do: DateTime.utc_now() |> DateTime.to_iso8601()
 
   defp generate_data(:version, _type, _field), do: Schema.version()
@@ -364,13 +364,12 @@ defmodule Schema.Generator do
   defp generate_data(:modifier, _type, _field), do: full_name(2)
   defp generate_data(:full_name, _type, _field), do: full_name(2)
   defp generate_data(:shell, _type, _field), do: shell()
-  defp generate_data(:timezone, _type, _field), do: timezone()
+  defp generate_data(:timezone_offset, _type, _field), do: timezone()
   defp generate_data(:home_dir, _type, _field), do: root_dir(random(3))
   defp generate_data(:parent_folder, _type, _field), do: ""
   defp generate_data(:country, _type, _field), do: country()[:country_name]
   defp generate_data(:company_name, _type, _field), do: full_name(2)
   defp generate_data(:owner, _type, _field), do: full_name(2)
-  defp generate_data(:ssid, _type, _field), do: word()
   defp generate_data(:labels, _type, _field), do: word()
   defp generate_data(:facility, _type, _field), do: facility()
   defp generate_data(:md5, _type, _field), do: md5()
