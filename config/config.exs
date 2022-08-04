@@ -1,11 +1,22 @@
 import Config
 
-port = System.get_env("PORT") || 8000
+port = System.get_env("HTTP_PORT") || System.get_env("PORT") || 8000
+port_ssl = System.get_env("HTTPS_PORT") || 8443
+
+certfile = System.get_env("HTTPS_CERT_FILE") || "priv/cert/selfsigned.pem"
+keyfile  = System.get_env("HTTPS_KEY_FILE") || "priv/cert/selfsigned_key.pem"
+
 path = System.get_env("SCHEMA_PATH") || "/"
 
 # Configures the endpoint
 config :schema_server, SchemaWeb.Endpoint,
   http: [port: port],
+  https: [
+    port: port_ssl,
+    cipher_suite: :strong,
+    certfile: certfile,
+    keyfile: keyfile
+  ],
   url: [host: "localhost", path: path],
   secret_key_base: "HUvG8AlzaUpVx5PShWbGv6JpifzM/d46Rj3mxAIddA7DJ9qKg6df8sG6PsKXScAh",
   render_errors: [view: SchemaWeb.ErrorView, accepts: ~w(html json)],
