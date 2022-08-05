@@ -48,6 +48,7 @@ ENV LC_ALL en_US.UTF-8
 
 WORKDIR "/app"
 EXPOSE 8080
+EXPOSE 8443
 RUN chown nobody /app
 
 # set runner ENV

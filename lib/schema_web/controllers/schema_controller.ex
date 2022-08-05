@@ -24,6 +24,22 @@ defmodule SchemaWeb.SchemaController do
   # -------------------
 
   # {
+  # @api {get} /api/version Request the schema version
+  # @apiName Schema Version
+  # @apiGroup Schema
+  # @apiVersion 1.0.0
+  # @apiPermission none
+  # }
+  @doc """
+  Renders the schema version.
+  """
+  @spec version(Plug.Conn.t(), any) :: Plug.Conn.t()
+  def version(conn, _params) do
+    version = %{:version => Schema.version()}
+    send_json_resp(conn, version)
+  end
+
+  # {
   # @api {get} /api/data_types Request Data types
   # @apiName DataTypes
   # @apiGroup Schema

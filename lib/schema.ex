@@ -269,21 +269,23 @@ defmodule Schema do
     |> Map.put(:value, 1)
   end
 
-  @spec export_schema(MapSet.t(binary)) :: %{classes: map, objects: map, types: map}
+  @spec export_schema(MapSet.t(binary)) :: %{classes: map(), objects: map(), types: map(), version: binary()}
   def export_schema(extensions) do
     %{
       :classes => Schema.export_classes(extensions),
       :objects => Schema.export_objects(extensions),
-      :types => Schema.export_data_types()
+      :types => Schema.export_data_types(),
+      :version => Schema.version()
     }
   end
 
-  @spec export_schema() :: %{classes: map, objects: map, types: map}
+  @spec export_schema() :: %{classes: map(), objects: map(), types: map(), version: binary()}
   def export_schema() do
     %{
       :classes => Schema.export_classes(),
       :objects => Schema.export_objects(),
-      :types => Schema.export_data_types()
+      :types => Schema.export_data_types(),
+      :version => Schema.version()
     }
   end
 
