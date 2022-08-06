@@ -149,7 +149,7 @@ defmodule Schema.Generator do
 
   # don't generate unmapped and raw_data data
   defp generate({:unmapped, _field}, map), do: map
-  defp generate({:raw_data, _field}, map), do: map
+  defp generate({:_raw_data, _field}, map), do: map
 
   defp generate({name, field}, map) do
     generate_field(field[:requirement], name, field, map)
@@ -359,6 +359,7 @@ defmodule Schema.Generator do
   defp generate_data(:lang, _type, _field), do: "en"
   defp generate_data(:uuid, _type, _field), do: uuid()
   defp generate_data(:uid, _type, _field), do: uuid()
+  defp generate_data(:_uid, _type, _field), do: uuid()
   defp generate_data(:creator, _type, _field), do: full_name(2)
   defp generate_data(:accessor, _type, _field), do: full_name(2)
   defp generate_data(:modifier, _type, _field), do: full_name(2)
