@@ -79,7 +79,6 @@ limitations under the License.
                 <option selected value="primary">Primary</option>
               </optgroup>
               <optgroup id="requirements-select" label="Requirements">
-                <option selected class="reserved" value="reserved" title="Reserved">Reserved Attributes</option>
                 <option class="optional" value="optional" title="Optional">Optional Attributes</option>
               </optgroup>
             </select>

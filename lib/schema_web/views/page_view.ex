@@ -76,11 +76,7 @@ defmodule SchemaWeb.PageView do
       if required?(field) do
         base <> "required "
       else
-        if reserved?(field) do
-          base <> "reserved "
-        else
-          base <> "optional "
-        end
+        base <> "optional "
       end
 
     group = field[:group]
@@ -104,10 +100,6 @@ defmodule SchemaWeb.PageView do
   defp required?(field) do
     r = Map.get(field, :requirement)
     r == "required" or r == "recommended"
-  end
-
-  defp reserved?(field) do
-    Map.get(field, :requirement) == "reserved"
   end
 
   def format_constraints(:string_t, field) do
