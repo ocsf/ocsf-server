@@ -135,8 +135,8 @@ defmodule Schema.JsonReader do
   end
 
   @impl true
-  def handle_call(:read_profiles, _from, {home, ext} = state) do
-    {:reply, read_profiles(home, ext), state}
+  def handle_call(:read_profiles, _from, state) do
+    {:reply, get_profiles(), state}
   end
 
   @impl true
@@ -449,7 +449,7 @@ defmodule Schema.JsonReader do
     profile =
       case data[:meta] do
         "profile" ->
-          update_profile(data[:caption], data[:name], file)
+          update_profile(data, file)
 
         _ ->
           nil
@@ -468,36 +468,32 @@ defmodule Schema.JsonReader do
     end
   end
 
-  defp update_profile(name, type, file) do
-    profiles =
-      case cache_get(:profiles) do
-        [{_, cached}] -> cached
-        [] -> %{}
-      end
+  defp update_profile(profile, file) do
+    caption = profile[:caption]
+    name = profile[:name]
 
-    case profiles[type] do
+    profiles = get_profiles()
+
+    case profiles[name] do
       nil ->
-        Logger.info("Schema.JsonReader profiles: #{file} defines a new profile: #{type}")
+        Logger.info("Schema.JsonReader profiles: #{file} defines a new profile: #{name}")
 
-        Map.put(profiles, type, %{caption: name, name: type})
+        profiles
+        |> Map.put(String.to_atom(name), %{caption: caption, attributes: Map.get(profile, :attributes, %{})})
         |> cache_put(:profiles)
 
       _profile ->
-        Logger.warn("Schema.JsonReader profiles: #{file} overwrites an existing profile: #{type}")
+        Logger.warn("Schema.JsonReader profiles: #{file} overwrites an existing profile: #{name}")
     end
 
-    type
+    name
   end
 
-  defp read_profiles(_home, []) do
+  defp get_profiles() do
     case cache_get(:profiles) do
       [{_, cached}] -> cached
       [] -> %{}
     end
-  end
-
-  defp read_profiles(home, _extensions) do
-    read_profiles(home, [])
   end
 
   defp add_profile(attributes, nil) do

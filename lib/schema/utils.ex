@@ -13,8 +13,6 @@ defmodule Schema.Utils do
   """
   require Logger
 
-  @links :_links
-
   @spec to_uid(binary() | atom()) :: atom
   def to_uid(name) when is_binary(name) do
     String.downcase(name) |> String.to_atom()
@@ -76,14 +74,14 @@ defmodule Schema.Utils do
   def update_objects(objects, dictionary) do
     Enum.map(objects, fn {name, object} ->
       links = object_links(dictionary, Atom.to_string(name))
-      {name, Map.put(object, @links, links)}
+      {name, Map.put(object, :_links, links)}
     end)
     |> Map.new()
   end
 
   defp object_links(dictionary, name) do
     Enum.filter(dictionary, fn {_name, map} -> Map.get(map, :object_type) == name end)
-    |> Enum.map(fn {_, map} -> Map.get(map, @links) end)
+    |> Enum.map(fn {_, map} -> Map.get(map, :_links) end)
     |> List.flatten()
     |> Enum.filter(fn links -> links != nil end)
     |> Enum.uniq()
@@ -191,7 +189,7 @@ defmodule Schema.Utils do
   end
 
   defp update_dictionary_links(item, link) do
-    Map.update(item, @links, [link], fn links ->
+    Map.update(item, :_links, [link], fn links ->
       [{_, id, _} | _] = links
       if id > 0, do: [link | links], else: links
     end)
@@ -205,7 +203,7 @@ defmodule Schema.Utils do
   end
 
   defp update_object_links(item, link) do
-    Map.update(item, @links, [link], fn links ->
+    Map.update(item, :_links, [link], fn links ->
       [link | links]
     end)
   end

@@ -139,8 +139,7 @@ limitations under the License.
     </a>
     <div class="collapse navbar-collapse" id="checkbox-profiles">
       <ul class="navbar-nav">
-        <%= for {_key, map} <- @profiles do %>
-        <% name = map[:name] %>
+        <%= for {name, map} <- @profiles do %>
         <li class="nav-item">
           <a style="display: inline-block;" class="nav-link">
             <input type="checkbox" id="<%= name %>" > <%= map[:caption] %>

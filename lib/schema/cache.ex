@@ -74,6 +74,8 @@ defmodule Schema.Cache do
       |> Utils.update_objects(attributes)
       |> update_observables(dictionary)
 
+    classes = update_profiles(objects, classes)
+
     sanity_check(objects, attributes)
     sanity_check(classes, attributes)
 
@@ -564,6 +566,46 @@ defmodule Schema.Cache do
         end
       end)
     end)
+  end
+
+  defp update_profiles(objects, classes) do
+    Enum.reduce(objects, classes, fn {name, object}, acc ->
+      if Map.has_key?(object, :profiles) do
+        update_profiles(name, object, acc)
+      else
+        acc
+      end
+    end)
+  end
+
+  defp update_profiles(_name, object, classes) do
+    case object[:_links] do
+      nil ->
+        classes
+
+      links ->
+        Enum.reduce(links, classes, fn {type, key, _}, acc ->
+          case type do
+            :class ->
+              Map.update!(acc, String.to_atom(key), fn class ->
+                Map.update(class, :profiles, [], fn profiles ->
+                  merge_profiles(profiles, object[:profiles])
+                end)
+              end)
+
+            _ ->
+              acc
+          end
+        end)
+    end
+  end
+
+  defp merge_profiles(p1, nil) do
+    p1
+  end
+
+  defp merge_profiles(p1, p2) do
+    p1 ++ p2
   end
 
   defp update_dictionary(dictionary) do
