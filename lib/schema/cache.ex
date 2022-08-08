@@ -73,8 +73,9 @@ defmodule Schema.Cache do
       objects
       |> Utils.update_objects(attributes)
       |> update_observables(dictionary)
+      |> update_object_profiles()
 
-    classes = update_profiles(objects, classes)
+    classes = update_class_profiles(objects, classes)
 
     sanity_check(objects, attributes)
     sanity_check(classes, attributes)
@@ -568,17 +569,47 @@ defmodule Schema.Cache do
     end)
   end
 
-  defp update_profiles(objects, classes) do
-    Enum.reduce(objects, classes, fn {name, object}, acc ->
+  defp update_object_profiles(objects) do
+    Enum.reduce(objects, objects, fn {name, object}, acc ->
       if Map.has_key?(object, :profiles) do
-        update_profiles(name, object, acc)
+        update_object_profiles(name, object, acc)
       else
         acc
       end
     end)
   end
 
-  defp update_profiles(_name, object, classes) do
+  defp update_object_profiles(_name, object, objects) do
+    case object[:_links] do
+      nil ->
+        objects
+
+      links ->
+        Enum.reduce(links, objects, fn {type, key, _}, acc ->
+          case type do
+            :object ->
+              Map.update!(acc, String.to_atom(key), fn obj ->
+                Map.put(obj, :profiles, merge_profiles(obj[:profiles], object[:profiles]))
+              end)
+
+            _ ->
+              acc
+          end
+        end)
+    end
+  end
+
+  defp update_class_profiles(objects, classes) do
+    Enum.reduce(objects, classes, fn {name, object}, acc ->
+      if Map.has_key?(object, :profiles) do
+        update_class_profiles(name, object, acc)
+      else
+        acc
+      end
+    end)
+  end
+
+  defp update_class_profiles(_name, object, classes) do
     case object[:_links] do
       nil ->
         classes
@@ -588,9 +619,7 @@ defmodule Schema.Cache do
           case type do
             :class ->
               Map.update!(acc, String.to_atom(key), fn class ->
-                Map.update(class, :profiles, [], fn profiles ->
-                  merge_profiles(profiles, object[:profiles])
-                end)
+                Map.put(class, :profiles, merge_profiles(class[:profiles], object[:profiles]))
               end)
 
             _ ->
@@ -598,6 +627,10 @@ defmodule Schema.Cache do
           end
         end)
     end
+  end
+
+  defp merge_profiles(nil, p2) do
+    p2
   end
 
   defp merge_profiles(p1, nil) do
