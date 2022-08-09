@@ -77,6 +77,17 @@ body {
   }
 }
 
+.ocsf-logo {
+  min-width: 64px;
+  margin: 0.5rem;
+  display: block;
+}
+
+.ocsf-logo img {
+  width: auto;
+  display: block;
+}
+
 .profiles-divider {
   margin-top: 1rem;
   /* border-top: 1px solid rgb(58, 58, 58); */
