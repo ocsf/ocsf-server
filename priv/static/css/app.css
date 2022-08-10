@@ -11,18 +11,6 @@ body {
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' height='200px' width='200px'><text transform='translate(20, 200) rotate(-45)' fill='rgb(240, 240, 240)' font-size='100'>draft</text></svg>");
 }
 
-@media (min-width:768px) {
-  body {
-    padding-top: 0;
-  }
-}
-
-@media (min-width:768px) {
-  body {
-    margin-left: 162px;
-  }
-}
-
 .navbar.fixed-left {
   position: fixed;
   top: 0;
@@ -31,9 +19,16 @@ body {
 }
 
 @media (min-width:768px) {
+  body {
+    padding-top: 0;
+    margin-left: 200px;
+  }
+}
+
+@media (min-width:768px) {
   .navbar.fixed-left {
     bottom: 0;
-    width: 162px;
+    width: 200px;
     border-right: .1em solid;
     flex-flow: column nowrap;
     align-items: flex-start
@@ -77,13 +72,24 @@ body {
   }
 }
 
+.ocsf-icon img {
+  margin-right: 0.4rem;
+  height: 64px;
+  border-radius: 4px;
+  width: auto;
+  display: block;
+}
+
 .ocsf-logo {
-  min-width: 64px;
-  margin: 0.5rem;
+  margin-top: 0.6rem;
+  margin-bottom: 0.6rem;
   display: block;
 }
 
 .ocsf-logo img {
+  height: 72px;
+      
+  border-radius: 5px;
   width: auto;
   display: block;
 }
