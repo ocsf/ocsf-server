@@ -22,7 +22,7 @@ defmodule Schema.MixProject do
         ]
       ],
       app: :schema_server,
-      version: "2.4.1-0.16.0-#{build}",
+      version: "2.4.2-0.16.0-#{build}",
       elixir: "~> 1.13",
       elixirc_paths: elixirc_paths(Mix.env()),
       compilers: [:phoenix] ++ Mix.compilers(),
