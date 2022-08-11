@@ -75,12 +75,13 @@ body {
 .ocsf-icon img {
   margin-right: 0.4rem;
   height: 64px;
-  border-radius: 4px;
   width: auto;
   display: block;
 }
 
 .ocsf-logo {
+  background-color: #224F8B;
+  border-radius: 5px;
   margin-top: 0.6rem;
   margin-bottom: 0.6rem;
   display: block;
@@ -88,8 +89,6 @@ body {
 
 .ocsf-logo img {
   height: 72px;
-      
-  border-radius: 5px;
   width: auto;
   display: block;
 }
