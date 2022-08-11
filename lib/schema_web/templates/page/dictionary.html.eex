@@ -11,8 +11,8 @@ limitations under the License.
 %>
 
 <div class="row">
-  <div class="col-md">
-    <h4><%= @data[:caption] %></h4>
+  <div class="col-md move-up">
+    <h1><%= @data[:caption] %></h1>
     <div class="text-secondary">
       <%= raw @data[:description] %>
     </div>

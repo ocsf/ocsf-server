@@ -24,11 +24,23 @@ defmodule SchemaWeb.SchemaController do
   # -------------------
 
   # {
-  # @api {get} /api/version Request the schema version
-  # @apiName Schema Version
-  # @apiGroup Schema
-  # @apiVersion 1.0.0
-  # @apiPermission none
+  #   @api {get} /api/version Get Schema Version
+  #   @apiName GetVersion
+  #   @apiDescription This API returns the OCSF schema version.
+  #   @apiGroup Schema
+  #   @apiVersion 1.0.0
+  #   @apiPermission none
+  #
+  #   @apiExample {curl} Example usage:
+  #     curl https://schema.ocsf.io/api/version
+  #
+  #   @apiSuccess {String} version The OCSF schema version, using Semantic Versioning Specification (SemVer) format.
+  #  
+  #   @apiSuccessExample Success-Response:
+  #       HTTP/2 200 OK
+  #       {
+  #         "version": "0.16.0"
+  #       }
   # }
   @doc """
   Renders the schema version.
@@ -40,7 +52,7 @@ defmodule SchemaWeb.SchemaController do
   end
 
   # {
-  # @api {get} /api/data_types Request Data types
+  # @api {get} /api/data_types Request the OCSF schema data types
   # @apiName DataTypes
   # @apiGroup Schema
   # @apiVersion 1.0.0
@@ -70,30 +82,33 @@ defmodule SchemaWeb.SchemaController do
   end
 
   # {
-  # @api {get} /api/schema Request the schema hierarchy
-  # @apiName Schema
-  # @apiGroup Schema
-  # @apiVersion 1.0.0
-  # @apiPermission none
-  # }
-  @spec schema(Plug.Conn.t(), any) :: Plug.Conn.t()
-  def schema(conn, params) do
-    data =
-      parse_options(params[@extensions])
-      |> Schema.schema_map()
-
-    send_json_resp(conn, data)
-  end
-
-  # {
-  # @api {get} /export/schema Export all classes and objects
-  # @apiName Schema
-  # @apiGroup Schema
-  # @apiVersion 1.0.0
-  # @apiPermission none
+  #   @api {get} /export/schema Export Schema
+  #   @apiName ExportSchema
+  #   @apiDescription This API returns the schema defintions, including data types, objects, and classes.
+  #   @apiGroup Export
+  #   @apiVersion 1.0.0
+  #   @apiPermission none
+  #
+  #   @apiExample {curl} Example usage:
+  #     curl https://schema.ocsf.io/export/schema
+  #
+  #   @apiSuccess {Object} classes The OCSF schema classes.
+  #   @apiSuccess {Object} objects The OCSF schema obejcts.
+  #   @apiSuccess {Object} types The OCSF schema data types.
+  #   @apiSuccess {String} version The OCSF schema version.
+  #  
+  #   @apiSuccessExample Success-Response:
+  #       HTTP/2 200 OK
+  #       {
+  #         "classes": {...},
+  #         "objects": {...},
+  #         "types"  : {...},
+  #         "version": "0.16.0"
+  #       }
   # }
   @spec export_schema(Plug.Conn.t(), any) :: Plug.Conn.t()
   def export_schema(conn, params) do
+    profiles = parse_profiles(params["profiles"])
     data = parse_options(params[@extensions]) |> Schema.export_schema()
 
     send_json_resp(conn, data)
@@ -152,12 +167,37 @@ defmodule SchemaWeb.SchemaController do
   end
 
   # {
-  # @api {get} /export/category/:name Export Category classes
-  # @apiName Category
-  # @apiGroup Schema
-  # @apiVersion 1.0.0
-  # @apiPermission none
-  # @apiParam {String} name Category name
+  #   @api {get} /export/category/:name Export Category
+  #   @apiName ExportCategory
+  #   @apiDescription This API returns the classes defined in the given category.
+  #   @apiGroup Export
+  #   @apiVersion 1.0.0
+  #   @apiPermission none
+  #   @apiParam {String} name Category name
+  #
+  #   @apiExample {curl} Example usage:
+  #     curl https://schema.ocsf.io/export/category/system
+  #
+  #   @apiSuccess {String} caption The category caption.
+  #   @apiSuccess {String} description The category description.
+  #   @apiSuccess {Number} uid The category unique identifier.
+  #   @apiSuccess {Object} classes The category classes.
+  #   @apiError UserNotFound The category <code>name</code> was not found.
+  #
+  #   @apiSuccessExample Success-Response:
+  #       HTTP/2 200 OK
+  #       {
+  #         "caption": "System Activity"
+  #         "description": "System Activity events."
+  #         "uid": 1
+  #         "classes": {...}
+  #       }
+  #
+  #   @apiErrorExample {json} Error-Response:
+  #       HTTP/2 404 Not Found
+  #       {
+  #           "error": "The category 'test' was not found."
+  #       }
   # }
   @doc """
   Exports the classes in a given category.
@@ -165,12 +205,13 @@ defmodule SchemaWeb.SchemaController do
   @spec export_category(Plug.Conn.t(), map) :: Plug.Conn.t()
   def export_category(conn, %{"id" => id} = params) do
     try do
+      profiles = parse_profiles(params["profiles"])
       extension = params["extension"]
       category = parse_options(params[@extensions]) |> Schema.export_category(extension, id)
 
       case category do
         nil ->
-          send_json_resp(conn, 404, %{error: "Not Found: #{id}"})
+          send_json_resp(conn, 404, %{error: "The category '#{id}' was not found."})
 
         data ->
           send_json_resp(conn, data)
@@ -279,6 +320,7 @@ defmodule SchemaWeb.SchemaController do
   # @apiPermission none
   # }
   def export_classes(conn, params) do
+    profiles = parse_profiles(params["profiles"])
     classes = parse_options(params[@extensions]) |> Schema.export_classes()
 
     send_json_resp(conn, classes)
@@ -341,6 +383,7 @@ defmodule SchemaWeb.SchemaController do
   # @apiPermission none
   # }
   def export_objects(conn, params) do
+    profiles = parse_profiles(params["profiles"])
     objects = parse_options(params[@extensions]) |> Schema.export_objects()
     send_json_resp(conn, objects)
   end
@@ -372,7 +415,7 @@ defmodule SchemaWeb.SchemaController do
   #
   # @apiParamExample {json} Request-Example:
   #     {
-  #       "class_uid": 100,
+  #       "class_uid": 1002,
   #       "activity_id": 1,
   #       "severity_id": 1,
   #       "message": "This is an important message"
@@ -420,7 +463,7 @@ defmodule SchemaWeb.SchemaController do
   # @apiParam {JSON} event  The event or events to be translated. A single event is encoded as a JSON object and multiple events are encoded as JSON array of object.
   #
   # @apiSuccess {JSON} An empty JSON object
-  #      HTTP/1.1 200 OK
+  #      HTTP/2 200 OK
   #      {}
   # }
   @spec validate(Plug.Conn.t(), map) :: Plug.Conn.t()
@@ -513,7 +556,7 @@ defmodule SchemaWeb.SchemaController do
   # @apiVersion 1.0.0
   # @apiPermission none
   # @apiParam {String} name Object name
-  # @apiSuccess {JSON} The randomly generated sample data
+  # @apiSuccess {JSON} json The randomly generated sample data
   # }
   @doc """
   Returns an object sample data for the given name.

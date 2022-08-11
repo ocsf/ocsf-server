@@ -31,9 +31,6 @@ defmodule SchemaWeb.Router do
     get "/categories/:id", PageController, :categories
     get "/categories/:extension/:id", PageController, :categories
 
-    get "/schema", PageController, :schema
-    get "/schema/:extension", PageController, :schema
-
     get "/dictionary", PageController, :dictionary
     get "/dictionary/:extension", PageController, :dictionary
 

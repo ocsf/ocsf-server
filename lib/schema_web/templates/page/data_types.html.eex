@@ -9,14 +9,18 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 %>
-<h4><%= @data[:caption] %></h4>
-<div class="text-secondary">
-  <%= raw @data[:description] %>
-Note <strong>type<sup>O</sup></strong> denotes an observable type.
-<div>
+<div class="row">
+  <div class="col-md move-up">
+    <h1>
+      <%= @data[:caption] %>
+    </h1>
+    <div class="text-secondary">
+      <%= raw @data[:description] %>
+      Note <strong>type<sup>O</sup></strong> denotes an observable type.
+    </div>
+  </div>
 </div>
 
-</div>
 <div class="mt-4">
   <table class="table table-striped table-bordered sortable">
     <thead>

@@ -1,7 +1,7 @@
-## Guidelines and Conventions
+
 The Open Cybersecurity Schema Framework (OCSF) guidelines and conventions.
 
-### Attribute Levels
+## Attribute Levels
 The event schema defines *Core*, *Optional*, and *Reserved* attributes.
 
 *Core Attributes*
@@ -13,7 +13,7 @@ Optional attributes may apply to more narrow use cases, or may be more open to i
 *Reserved Attributes*
 Reserved attributes are set by the logging system and must not be used in the event data. The reserved attributes are marked as **Reserved**.
 
-### Guidelines for attribute names
+## Guidelines for attribute names
 - Attribute names must be a valid UTF-8 sequence.
 
 - Attribute names must be all lower case.
@@ -40,7 +40,7 @@ Reserved attributes are set by the logging system and must not be used in the ev
 
   Some exceptions can be made for well-accepted abbreviation. Example: `ip`, or names such as `os`, `geo`.
 
-### Extending the Schema
+## Extending the Schema
 The Open Cybersecurity Schema Framework can be extended by adding new attributes, objects, and event classes.
 
 To extend the schema create a new directory in the `schema/extensions` directory. The directory structure is the same as the top level schema directory and it may contain the following files and subdirectories:

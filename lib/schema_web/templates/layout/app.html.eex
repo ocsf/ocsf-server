@@ -110,15 +110,14 @@ limitations under the License.
 <body class="bg-light">
 
 <nav class="navbar navbar-expand-md navbar-light">
-  <h2>Open Cybersecurity Schema Framework</h2>
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse">
     <span class="navbar-toggler-icon"></span>
   </button>
 
-  <nav class="navbar navbar-expand-md navbar-light fixed-left">
-  <a href="https://github.com/ocsf/ocsf-schema" class="ocsf-logo">
-    <img src='<%= Routes.static_path(@conn, "/images/ocsf.png") %>' alt="OCSF Logo"/>
-  </a>
+  <nav class="navbar collapse navbar-collapse navbar-expand-md navbar-light fixed-left">
+    <a href="/" class="navbar-brand ocsf-logo">
+      <img src='<%= Routes.static_path(@conn, "/images/ocsf-logo.png") %>' alt="OCSF Logo"/>
+    </a>
     <a class="navbar-brand" href>Extensions
       <hr class="divider"/>
     </a>

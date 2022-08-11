@@ -84,19 +84,6 @@ defmodule Schema do
     do: get_category(extensions, Utils.to_uid(extension, id))
 
   @doc """
-    Exports a single category and its classes.export_category
-  """
-  @spec export_category(atom | String.t()) :: nil | Cache.category_t()
-  def export_category(id), do: export_category_classes(Utils.to_uid(id))
-
-  @spec export_category(Repo.extensions(), String.t()) :: nil | Cache.category_t()
-  def export_category(extensions, id), do: export_category_classes(extensions, Utils.to_uid(id))
-
-  @spec export_category(Repo.extensions(), String.t(), String.t()) :: nil | Cache.category_t()
-  def export_category(extensions, extension, id),
-    do: export_category_classes(extensions, Utils.to_uid(extension, id))
-
-  @doc """
     Returns the attribute dictionary.
   """
   @spec dictionary() :: Cache.dictionary_t()
@@ -114,11 +101,6 @@ defmodule Schema do
   @spec data_types :: map()
   def data_types(), do: Repo.data_types()
 
-  @spec export_data_types :: any
-  def export_data_types() do
-    Map.get(data_types(), :attributes)
-  end
-
   @doc """
     Returns all event classes.
   """
@@ -127,15 +109,6 @@ defmodule Schema do
 
   @spec classes(Repo.extensions()) :: map()
   def classes(extensions), do: Repo.classes(extensions)
-
-  @doc """
-    Exports all classes.
-  """
-  @spec export_classes() :: map()
-  def export_classes(), do: Repo.export_classes() |> reduce_objects()
-
-  @spec export_classes(Repo.extensions()) :: map()
-  def export_classes(extensions), do: Repo.export_classes(extensions) |> reduce_objects()
 
   @doc """
     Returns a single event class.
@@ -163,15 +136,6 @@ defmodule Schema do
   def objects(extensions), do: Repo.objects(extensions)
 
   @doc """
-    Exports all objects.
-  """
-  @spec export_objects() :: map()
-  def export_objects(), do: Repo.export_objects() |> reduce_objects()
-
-  @spec export_objects(Repo.extensions()) :: map()
-  def export_objects(extensions), do: Repo.export_objects(extensions) |> reduce_objects()
-
-  @doc """
     Returns a single objects.
   """
   @spec object(atom | String.t()) :: nil | Cache.object_t()
@@ -187,6 +151,88 @@ defmodule Schema do
     Repo.object(extensions, Utils.to_uid(extension, id))
   end
 
+
+  #------------------#
+  # Export Functions #
+  #------------------#
+  
+  @doc """
+    Exports the schema, including data types, objects, abd classes.
+  """
+  @spec export_schema() :: %{classes: map(), objects: map(), types: map(), version: binary()}
+  def export_schema() do
+    %{
+      :classes => Schema.export_classes(),
+      :objects => Schema.export_objects(),
+      :types => Schema.export_data_types(),
+      :version => Schema.version()
+    }
+  end
+
+  @spec export_schema(MapSet.t(binary)) :: %{classes: map(), objects: map(), types: map(), version: binary()}
+  def export_schema(extensions) do
+    %{
+      :classes => Schema.export_classes(extensions),
+      :objects => Schema.export_objects(extensions),
+      :types => Schema.export_data_types(),
+      :version => Schema.version()
+    }
+  end
+
+  @spec export_schema(MapSet.t(binary), list(binary) | nil) :: %{classes: map(), objects: map(), types: map(), version: binary()}
+  def export_schema(extensions, _profiles) do
+    %{
+      :classes => Schema.export_classes(extensions),
+      :objects => Schema.export_objects(extensions),
+      :types => Schema.export_data_types(),
+      :version => Schema.version()
+    }
+  end
+
+  @doc """
+    Exports a single category and its classes.
+  """
+  @spec export_category(atom | String.t()) :: nil | Cache.category_t()
+  def export_category(id), do: export_category_classes(Utils.to_uid(id))
+
+  @spec export_category(Repo.extensions(), String.t()) :: nil | Cache.category_t()
+  def export_category(extensions, id), do: export_category_classes(extensions, Utils.to_uid(id))
+
+  @spec export_category(Repo.extensions(), String.t(), String.t()) :: nil | Cache.category_t()
+  def export_category(extensions, extension, id),
+    do: export_category_classes(extensions, Utils.to_uid(extension, id))
+
+  @doc """
+    Exports the data types.
+  """
+  @spec export_data_types :: any
+  def export_data_types() do
+    Map.get(data_types(), :attributes)
+  end
+
+  @doc """
+    Exports the classes.
+  """
+  @spec export_classes() :: map()
+  def export_classes(), do: Repo.export_classes() |> reduce_objects()
+
+  @spec export_classes(Repo.extensions()) :: map()
+  def export_classes(extensions), do: Repo.export_classes(extensions) |> reduce_objects()
+
+  @doc """
+    Exports the objects.
+  """
+  @spec export_objects() :: map()
+  def export_objects(), do: Repo.export_objects() |> reduce_objects()
+
+  @spec export_objects(Repo.extensions()) :: map()
+  def export_objects(extensions), do: Repo.export_objects(extensions) |> reduce_objects()
+
+
+  #------------------#
+  # Sample Functions #
+  #------------------#
+  
   @doc """
   Returns a randomly generated sample event.
   """
@@ -230,63 +276,6 @@ defmodule Schema do
   @spec generate(map()) :: any()
   def generate(type) when is_map(type) do
     Schema.Generator.generate(type)
-  end
-
-  @spec schema_map(Repo.extensions()) :: %{
-          :children => list,
-          :value => non_neg_integer,
-          optional(any) => any
-        }
-  def schema_map(extensions) do
-    base = Repo.class(:base_event) |> delete_attributes()
-
-    categories =
-      Stream.map(
-        Map.get(Repo.categories(extensions), :attributes),
-        fn {name, _} ->
-          {classes, cat} = Repo.category(name) |> Map.pop(:classes)
-
-          children =
-            Stream.filter(classes, fn {_name, class} ->
-              extension = class[:extension]
-              extension == nil or MapSet.member?(extensions, extension)
-            end)
-            |> Stream.map(fn {_name, class} ->
-              reduce_class(class) |> Map.put(:value, 1)
-            end)
-            |> Enum.sort(fn map1, map2 -> map1[:uid] <= map2[:uid] end)
-
-          Map.put(cat, :name, name)
-          |> Map.put(:children, children)
-          |> Map.put(:value, 1)
-        end
-      )
-      |> Enum.filter(fn category -> length(category[:children]) > 0 end)
-      |> Enum.sort(fn map1, map2 -> map1[:uid] <= map2[:uid] end)
-
-    base
-    |> Map.put(:children, categories)
-    |> Map.put(:value, 1)
-  end
-
-  @spec export_schema(MapSet.t(binary)) :: %{classes: map(), objects: map(), types: map(), version: binary()}
-  def export_schema(extensions) do
-    %{
-      :classes => Schema.export_classes(extensions),
-      :objects => Schema.export_objects(extensions),
-      :types => Schema.export_data_types(),
-      :version => Schema.version()
-    }
-  end
-
-  @spec export_schema() :: %{classes: map(), objects: map(), types: map(), version: binary()}
-  def export_schema() do
-    %{
-      :classes => Schema.export_classes(),
-      :objects => Schema.export_objects(),
-      :types => Schema.export_data_types(),
-      :version => Schema.version()
-    }
   end
 
   defp get_category(id) do

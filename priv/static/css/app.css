@@ -72,21 +72,15 @@ body {
   }
 }
 
-.ocsf-icon img {
-  margin-right: 0.4rem;
-  height: 64px;
-  width: auto;
-  display: block;
-}
-
 .ocsf-logo {
+  background-color: #224F8B;
+  border-radius: 5px;
   margin-top: 0.6rem;
   margin-bottom: 0.6rem;
-  display: block;
 }
 
 .ocsf-logo img {
-  height: 100px;
+  height: 72px;
   width: auto;
   display: block;
 }
@@ -238,6 +232,10 @@ tr.thead-color {
   font-size: 0.8rem;
 }
 
+.move-up {
+  margin-top: -2rem;
+}
+  
 .main-page {
   padding-bottom: 62px;
 }

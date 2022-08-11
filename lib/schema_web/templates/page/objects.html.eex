@@ -10,8 +10,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 %>
 <div class="row">
-  <div class="col-md">
-    <h4>All Objects</h4>
+  <div class="col-md move-up">
+    <h1>Objects</h1>
+    <div class="text-secondary">
+      The OCSF objects.
+    </div>
   </div>
   <div class="col-md-1"></div>
   <div class="col-md-auto fixed-right">

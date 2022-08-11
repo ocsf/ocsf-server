@@ -17,8 +17,8 @@
 </script>
 
 <div class="row">
-  <div class="col-md">
-    <h4>
+  <div class="col-md move-up">
+    <h1>
       <%= @data[:caption] %>
 
       <% observable = @data[:observable] %>
@@ -31,8 +31,8 @@
         Observable Object
       </span>
       <% end %>
-
-    </h4>
+    </h1>
+    
     <div class="text-secondary">
       <%= raw @data[:description] %>
     </div>

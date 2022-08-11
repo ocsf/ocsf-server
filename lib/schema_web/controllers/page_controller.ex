@@ -20,11 +20,6 @@ defmodule SchemaWeb.PageController do
     render(conn, "guidelines.html", extensions: Schema.extensions(), profiles: Schema.profiles())
   end
 
-  @spec schema(Plug.Conn.t(), any) :: Plug.Conn.t()
-  def schema(conn, _params) do
-    render(conn, "schema_map.html", extensions: Schema.extensions(), profiles: Schema.profiles())
-  end
-
   @doc """
   Renders the data types.
   """

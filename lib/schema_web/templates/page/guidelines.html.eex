@@ -13,6 +13,12 @@ limitations under the License.
   hide("#tableSearch");
 </script>
 
+<div class="row">
+  <div class="col-md move-up">
+    <h1>Guidelines and Conventions</h1>
+  </div>
+</div>
+
 <div class="container-fluid">
   <%= raw(render("guidelines_md.html")) %>
 </div>
