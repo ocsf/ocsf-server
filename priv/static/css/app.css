@@ -80,15 +80,13 @@ body {
 }
 
 .ocsf-logo {
-  background-color: #224F8B;
-  border-radius: 5px;
   margin-top: 0.6rem;
   margin-bottom: 0.6rem;
   display: block;
 }
 
 .ocsf-logo img {
-  height: 72px;
+  height: 100px;
   width: auto;
   display: block;
 }
