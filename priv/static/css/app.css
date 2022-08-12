@@ -28,7 +28,6 @@ body {
     display: none;
     visibility: hidden;
   }
-
 }
 
 @media (min-width:768px) {
@@ -37,6 +36,7 @@ body {
   }
 
   .move-up {
+    z-index: -1;
     margin-top: -2rem;
   }
 
