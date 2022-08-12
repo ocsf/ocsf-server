@@ -7,25 +7,46 @@ body {
 }
 
 body {
-  padding-top: 50px;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' height='200px' width='200px'><text transform='translate(20, 200) rotate(-45)' fill='rgb(240, 240, 240)' font-size='100'>draft</text></svg>");
 }
 
-.navbar.fixed-left {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 1030;
+
+.navbar-toggler-icon {
+  margin-bottom: 0rem;
+}
+
+@media only screen and (max-width: 768px) {
+  body {
+    background-color: lightblue;
+  }
+
+  .navbar-text {
+    display: none;
+    visibility: hidden;
+  }
+  .github-ribbon {
+    display: none;
+    visibility: hidden;
+  }
+
 }
 
 @media (min-width:768px) {
   body {
-    padding-top: 0;
     margin-left: 200px;
   }
-}
 
-@media (min-width:768px) {
+  .move-up {
+    margin-top: -2rem;
+  }
+
+  .navbar.fixed-left {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1030;
+  }
+
   .navbar.fixed-left {
     bottom: 0;
     width: 200px;
@@ -52,9 +73,6 @@ body {
   .navbar.fixed-left .navbar-collapse .navbar-nav .nav-item .dropdown-menu {
     top: 0
   }
-}
-
-@media (min-width:768px) {
   .navbar.fixed-left {
     right: auto
   }
@@ -70,32 +88,59 @@ body {
   .navbar.fixed-left .navbar-nav .nav-item .dropdown-menu {
     left: 100%
   }
-}
 
-.ocsf-logo {
-  background-color: #224F8B;
-  border-radius: 5px;
-  margin-top: 0.6rem;
-  margin-bottom: 0.6rem;
-}
+  .ocsf-logo {
+    background-color: #224F8B;
+    border-radius: 5px;
+    margin-top: 0.6rem;
+    margin-bottom: 0.6rem;
+  }
 
-.ocsf-logo img {
-  height: 72px;
-  width: auto;
-  display: block;
-}
+  .ocsf-logo img {
+    height: 72px;
+    width: auto;
+    display: block;
+  }
 
-.profiles-divider {
-  margin-top: 1rem;
-  /* border-top: 1px solid rgb(58, 58, 58); */
-  color: transparent;
-}
+  .profiles-divider {
+    margin-top: 1rem;
+    /* border-top: 1px solid rgb(58, 58, 58); */
+    color: transparent;
+  }
 
-.divider {
-  margin-top: 0rem;
-  margin-bottom: 0rem;
-  border: 0;
-  border-top: 10px solid rgba(0, 0, 0, 0.1);
+  .divider {
+    margin-top: 0rem;
+    margin-bottom: 0rem;
+    border: 0;
+    border-top: 10px solid rgba(0, 0, 0, 0.1);
+  }
+
+  .github-ribbon {
+    position: absolute;
+    width: 150px;
+    height: 150px;
+    overflow: hidden;
+    z-index: 99999;
+    left: 0px;
+    bottom: 0px;
+  }
+  .github-ribbon a {
+    display: inline-block;
+    width: 200px;
+    overflow: hidden;
+    padding: 6px 0px;
+    text-align: center;
+    transform: rotate(45deg);
+    text-decoration: none;
+    color: rgb(255, 255, 255);
+    position: inherit;
+    font: 700 13px "Helvetica Neue", Helvetica, Arial, sans-serif;
+    box-shadow: rgba(0, 0, 0, 0.5) 0px 2px 3px 0px;
+    background-color: rgb(170, 0, 0);
+    left: -40px;
+    background-image: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.15));
+    bottom: 45px;
+  }
 }
 
 .title-uppercase {
@@ -232,10 +277,6 @@ tr.thead-color {
   font-size: 0.8rem;
 }
 
-.move-up {
-  margin-top: -2rem;
-}
-  
 .main-page {
   padding-bottom: 62px;
 }
@@ -279,29 +320,3 @@ span.hidden {
   border-radius: 5px;
 }
 
-.github-ribbon {
-  position: absolute;
-  width: 150px;
-  height: 150px;
-  overflow: hidden;
-  z-index: 99999;
-  left: 0px;
-  bottom: 0px;
-}
-.github-ribbon a {
-  display: inline-block;
-  width: 200px;
-  overflow: hidden;
-  padding: 6px 0px;
-  text-align: center;
-  transform: rotate(45deg);
-  text-decoration: none;
-  color: rgb(255, 255, 255);
-  position: inherit;
-  font: 700 13px "Helvetica Neue", Helvetica, Arial, sans-serif;
-  box-shadow: rgba(0, 0, 0, 0.5) 0px 2px 3px 0px;
-  background-color: rgb(170, 0, 0);
-  left: -40px;
-  background-image: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.15));
-  bottom: 45px;
-}
