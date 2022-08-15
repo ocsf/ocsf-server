@@ -53,6 +53,7 @@ defmodule SchemaWeb.Router do
     pipe_through :api
 
     get "/extensions", SchemaController, :extensions
+    get "/profiles", SchemaController, :profiles
 
     get "/categories", SchemaController, :categories
     get "/categories/:id", SchemaController, :categories

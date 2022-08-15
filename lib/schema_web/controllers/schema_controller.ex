@@ -24,7 +24,7 @@ defmodule SchemaWeb.SchemaController do
   # -------------------
 
   # {
-  #   @api {get} /api/version Get Schema Version
+  #   @api {get} /api/version Get Version
   #   @apiName GetVersion
   #   @apiDescription This API returns the OCSF schema version.
   #   @apiGroup Schema
@@ -52,11 +52,12 @@ defmodule SchemaWeb.SchemaController do
   end
 
   # {
-  # @api {get} /api/data_types Request the OCSF schema data types
-  # @apiName DataTypes
-  # @apiGroup Schema
-  # @apiVersion 1.0.0
-  # @apiPermission none
+  #   @api {get} /api/data_types Get Data Types
+  #   @apiName DataTypes
+  #   @apiDescription This API returns the OCSF schema data types.
+  #   @apiGroup Schema
+  #   @apiVersion 1.0.0
+  #   @apiPermission none
   # }
   @doc """
   Renders the data types.
@@ -67,11 +68,12 @@ defmodule SchemaWeb.SchemaController do
   end
 
   # {
-  # @api {get} /api/extensions Request extensions types
-  # @apiName Extensions
-  # @apiGroup Schema
-  # @apiVersion 1.0.0
-  # @apiPermission none
+  #   @api {get} /api/extensions Get Extensions
+  #   @apiName Extensions
+  #   @apiDescription This API returns the OCSF schema extensions.
+  #   @apiGroup Schema
+  #   @apiVersion 1.0.0
+  #   @apiPermission none
   # }
   @doc """
   Returns the schema extensions.
@@ -79,6 +81,22 @@ defmodule SchemaWeb.SchemaController do
   @spec extensions(Plug.Conn.t(), any) :: Plug.Conn.t()
   def extensions(conn, _params) do
     send_json_resp(conn, Schema.extensions())
+  end
+
+  # {
+  #   @api {get} /api/profiles Ger Profiles
+  #   @apiName Profiles
+  #   @apiDescription This API returns the OCSF schema profiles.
+  #   @apiGroup Schema
+  #   @apiVersion 1.0.0
+  #   @apiPermission none
+  # }
+  @doc """
+  Returns the schema profiles.
+  """
+  @spec profiles(Plug.Conn.t(), any) :: Plug.Conn.t()
+  def profiles(conn, _params) do
+    send_json_resp(conn, Schema.profiles())
   end
 
   # {
