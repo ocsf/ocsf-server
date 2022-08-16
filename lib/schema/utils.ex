@@ -271,7 +271,7 @@ defmodule Schema.Utils do
   end
 
   def apply_profiles(attributes, profiles, _size) do
-    Map.filter(attributes, fn {_k, v} ->
+    Enum.filter(attributes, fn {_k, v} ->
       case v[:profile] do
         nil -> true
         profile -> MapSet.member?(profiles, profile)
@@ -280,6 +280,6 @@ defmodule Schema.Utils do
   end
 
   def remove_profiles(attributes) do
-    Map.filter(attributes, fn {_k, v} -> Map.has_key?(v, :profile) == false end)
+    Enum.filter(attributes, fn {_k, v} -> Map.has_key?(v, :profile) == false end)
   end
 end
