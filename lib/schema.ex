@@ -110,6 +110,13 @@ defmodule Schema do
   @spec classes(Repo.extensions()) :: map()
   def classes(extensions), do: Repo.classes(extensions)
 
+  @spec classes(Repo.extensions(), Repo.profiles_t()) :: map()
+  def classes(extensions, profiles) do
+    extensions
+    |> Repo.classes()
+    |> apply_profiles(profiles, MapSet.size(profiles))
+  end
+
   @doc """
     Returns a single event class.
   """
@@ -135,6 +142,13 @@ defmodule Schema do
   @spec objects(Repo.extensions()) :: map()
   def objects(extensions), do: Repo.objects(extensions)
 
+  @spec objects(Repo.extensions(), Repo.profiles_t()) :: map()
+  def objects(extensions, profiles) do
+    extensions
+    |> Repo.objects()
+    |> apply_profiles(profiles, MapSet.size(profiles))
+  end
+
   @doc """
     Returns a single objects.
   """
@@ -151,11 +165,10 @@ defmodule Schema do
     Repo.object(extensions, Utils.to_uid(extension, id))
   end
 
-
-  #------------------#
+  # ------------------#
   # Export Functions #
-  #------------------#
-  
+  # ------------------#
+
   @doc """
     Exports the schema, including data types, objects, abd classes.
   """
@@ -169,7 +182,12 @@ defmodule Schema do
     }
   end
 
-  @spec export_schema(MapSet.t(binary)) :: %{classes: map(), objects: map(), types: map(), version: binary()}
+  @spec export_schema(Repo.extensions()) :: %{
+          classes: map(),
+          objects: map(),
+          types: map(),
+          version: binary()
+        }
   def export_schema(extensions) do
     %{
       :classes => Schema.export_classes(extensions),
@@ -179,11 +197,20 @@ defmodule Schema do
     }
   end
 
-  @spec export_schema(MapSet.t(binary), list(binary) | nil) :: %{classes: map(), objects: map(), types: map(), version: binary()}
-  def export_schema(extensions, _profiles) do
+  @spec export_schema(Repo.extensions(), Repo.profiles_t() | nil) :: %{
+          classes: map(),
+          objects: map(),
+          types: map(),
+          version: binary()
+        }
+  def export_schema(extensions, nil) do
+    export_schema(extensions)
+  end
+
+  def export_schema(extensions, profiles) do
     %{
-      :classes => Schema.export_classes(extensions),
-      :objects => Schema.export_objects(extensions),
+      :classes => Schema.export_classes(extensions, profiles),
+      :objects => Schema.export_objects(extensions, profiles),
       :types => Schema.export_data_types(),
       :version => Schema.version()
     }
@@ -219,6 +246,15 @@ defmodule Schema do
   @spec export_classes(Repo.extensions()) :: map()
   def export_classes(extensions), do: Repo.export_classes(extensions) |> reduce_objects()
 
+  @spec export_classes(Repo.extensions(), Repo.profiles_t() | nil) :: map()
+  def export_classes(extensions, nil), do: export_classes(extensions)
+
+  def export_classes(extensions, profiles) do
+    Repo.export_classes(extensions)
+    |> apply_profiles(profiles, MapSet.size(profiles))
+    |> reduce_objects()
+  end
+
   @doc """
     Exports the objects.
   """
@@ -228,11 +264,19 @@ defmodule Schema do
   @spec export_objects(Repo.extensions()) :: map()
   def export_objects(extensions), do: Repo.export_objects(extensions) |> reduce_objects()
 
+  @spec export_objects(Repo.extensions(), Repo.profiles_t() | nil) :: map()
+  def export_objects(extensions, nil), do: export_objects(extensions)
 
-  #------------------#
+  def export_objects(extensions, profiles) do
+    Repo.export_objects(extensions)
+    |> apply_profiles(profiles, MapSet.size(profiles))
+    |> reduce_objects()
+  end
+
+  # ------------------#
   # Sample Functions #
-  #------------------#
-  
+  # ------------------#
+
   @doc """
   Returns a randomly generated sample event.
   """
@@ -248,26 +292,29 @@ defmodule Schema do
   @doc """
   Returns a randomly generated sample event.
   """
-  @spec generate_event(Cache.class_t(), list() | nil) :: map()
-  def generate_event(class, nil) when is_map(class) do
-    Schema.Generator.event(class)
-    |> Map.delete(:profiles)
+  @spec generate_event(Cache.class_t(), Repo.profiles_t() | nil) :: map()
+  def generate_event(class, nil) do
+    Schema.Generator.event(class) |> Map.delete(:profiles)
   end
 
-  def generate_event(class, []) do
+  def generate_event(class, profiles) do
+    generate_event(class, profiles, MapSet.size(profiles))
+  end
+
+  def generate_event(class, _profiles, 0) do
     Map.update!(class, :attributes, fn attributes ->
-      Utils.apply_profiles(attributes, [])
+      Utils.remove_profiles(attributes)
     end)
     |> Schema.Generator.event()
     |> Map.put(:profiles, [])
   end
 
-  def generate_event(class, profiles) do
+  def generate_event(class, profiles, size) do
     Map.update!(class, :attributes, fn attributes ->
-      Utils.apply_profiles(attributes, profiles)
+      Utils.apply_profiles(attributes, profiles, size)
     end)
     |> Schema.Generator.event()
-    |> Map.put(:profiles, profiles)
+    |> Map.put(:profiles, MapSet.to_list(profiles))
   end
 
   @doc """
@@ -364,4 +411,35 @@ defmodule Schema do
   def delete_links(data) do
     Map.delete(data, :_links)
   end
+
+  def apply_profiles(types, _profiles, 0) do
+    Enum.into(types, %{}, fn {name, type} ->
+      remove_profiles(name, type)
+    end)
+  end
+
+  def apply_profiles(types, profiles, size) do
+    Enum.into(types, %{}, fn {name, type} ->
+      apply_profiles(name, type, profiles, size)
+    end)
+  end
+
+  defp apply_profiles(name, type, profiles, size) do
+    {
+      name,
+      Map.update!(type, :attributes, fn attributes ->
+        Utils.apply_profiles(attributes, profiles, size)
+      end)
+    }
+  end
+
+  defp remove_profiles(name, type) do
+    {
+      name,
+      Map.update!(type, :attributes, fn attributes ->
+        Utils.remove_profiles(attributes)
+      end)
+    }
+  end
+
 end

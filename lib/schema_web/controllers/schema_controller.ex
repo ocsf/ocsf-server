@@ -127,8 +127,7 @@ defmodule SchemaWeb.SchemaController do
   @spec export_schema(Plug.Conn.t(), any) :: Plug.Conn.t()
   def export_schema(conn, params) do
     profiles = parse_profiles(params["profiles"])
-    data = parse_options(params[@extensions]) |> Schema.export_schema()
-
+    data = parse_options(params[@extensions]) |> Schema.export_schema(profiles)
     send_json_resp(conn, data)
   end
 
@@ -223,16 +222,26 @@ defmodule SchemaWeb.SchemaController do
   @spec export_category(Plug.Conn.t(), map) :: Plug.Conn.t()
   def export_category(conn, %{"id" => id} = params) do
     try do
-      profiles = parse_profiles(params["profiles"])
       extension = params["extension"]
-      category = parse_options(params[@extensions]) |> Schema.export_category(extension, id)
+      extensions = parse_options(params[@extensions])
 
-      case category do
+      case Schema.export_category(extensions, extension, id) do
         nil ->
           send_json_resp(conn, 404, %{error: "The category '#{id}' was not found."})
 
-        data ->
-          send_json_resp(conn, data)
+        category ->
+          case parse_profiles(params["profiles"]) do
+            nil ->
+              send_json_resp(conn, category)
+
+            profiles ->
+              category =
+                Map.update!(category, :classes, fn classes ->
+                  Schema.apply_profiles(classes, profiles, MapSet.size(profiles))
+                end)
+
+              send_json_resp(conn, category)
+          end
       end
     rescue
       e ->
@@ -339,14 +348,21 @@ defmodule SchemaWeb.SchemaController do
   # }
   def export_classes(conn, params) do
     profiles = parse_profiles(params["profiles"])
-    classes = parse_options(params[@extensions]) |> Schema.export_classes()
-
+    classes = parse_options(params[@extensions]) |> Schema.export_classes(profiles)
     send_json_resp(conn, classes)
   end
 
   @spec classes(map) :: map
   def classes(params) do
-    parse_options(params[@extensions]) |> Schema.classes()
+    extensions = parse_options(params[@extensions])
+
+    case parse_profiles(params["profiles"]) do
+      nil ->
+        Schema.classes(extensions)
+
+      profiles ->
+        Schema.classes(extensions, profiles)
+    end
   end
 
   # {
@@ -402,7 +418,7 @@ defmodule SchemaWeb.SchemaController do
   # }
   def export_objects(conn, params) do
     profiles = parse_profiles(params["profiles"])
-    objects = parse_options(params[@extensions]) |> Schema.export_objects()
+    objects = parse_options(params[@extensions]) |> Schema.export_objects(profiles)
     send_json_resp(conn, objects)
   end
 
@@ -414,7 +430,7 @@ defmodule SchemaWeb.SchemaController do
   @spec object(map) :: map() | nil
   def object(%{"id" => id} = params) do
     extension = params["extension"]
-    parse_options(params[@extensions]) |>  Schema.object(extension, id)
+    parse_options(params[@extensions]) |> Schema.object(extension, id)
   end
 
   # ---------------------------------
@@ -681,8 +697,8 @@ defmodule SchemaWeb.SchemaController do
   defp parse_options(nil), do: MapSet.new()
   defp parse_options(""), do: MapSet.new()
   defp parse_options(options), do: String.split(options, ",") |> MapSet.new()
-  
+
   defp parse_profiles(nil), do: nil
-  defp parse_profiles(""), do: []
-  defp parse_profiles(profiles), do: String.split(profiles, ",")
+  defp parse_profiles(""), do: MapSet.new()
+  defp parse_profiles(profiles), do: String.split(profiles, ",") |> MapSet.new()
 end

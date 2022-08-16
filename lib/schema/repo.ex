@@ -21,6 +21,8 @@ defmodule Schema.Repo do
   """
   @type extensions() :: MapSet.t(binary())
 
+  @type profiles_t() :: MapSet.t(binary())
+
   @spec start :: {:error, any} | {:ok, pid}
   def start(), do: Agent.start(fn -> Cache.init() end, name: __MODULE__)
 

@@ -252,27 +252,34 @@ defmodule Schema.Utils do
   @doc """
     Filter attributes based on the given profiles.
   """
-  @spec apply_profiles(Enum.t(), nil | list()) :: Enum.t()
+  @spec apply_profiles(Enum.t(), nil | MapSet.t(binary())) :: Enum.t()
   def apply_profiles(attributes, nil) do
     attributes
   end
 
-  def apply_profiles(attributes, []) do
-    Enum.filter(attributes, fn {_k, v} -> Map.has_key?(v, :profile) == false end)
+  def apply_profiles(attributes, profiles) when is_list(profiles) do
+    profiles = MapSet.new(profiles)
+    apply_profiles(attributes, profiles, MapSet.size(profiles))
   end
 
-  def apply_profiles(attributes, profiles) when is_list(profiles) do
-    profile_set = MapSet.new(profiles)
+  def apply_profiles(attributes, profiles) do
+    apply_profiles(attributes, profiles, MapSet.size(profiles))
+  end
 
-    Enum.filter(attributes, fn {_k, v} ->
+  def apply_profiles(attributes, _profiles, 0) do
+    remove_profiles(attributes)
+  end
+
+  def apply_profiles(attributes, profiles, _size) do
+    Map.filter(attributes, fn {_k, v} ->
       case v[:profile] do
         nil -> true
-        profile -> MapSet.member?(profile_set, profile)
+        profile -> MapSet.member?(profiles, profile)
       end
     end)
   end
 
-  def apply_profiles(attributes, _profiles) do
-    Enum.filter(attributes, fn {_k, v} -> Map.has_key?(v, :profile) == false end)
+  def remove_profiles(attributes) do
+    Map.filter(attributes, fn {_k, v} -> Map.has_key?(v, :profile) == false end)
   end
 end
