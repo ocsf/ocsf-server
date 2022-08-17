@@ -8,6 +8,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+function reset_home_page() {
+  set_selected_extensions({});
+  set_selected_profiles([]);
+}
+
 function select_extensions(selected) {
   if (selected) {
     const params = [];

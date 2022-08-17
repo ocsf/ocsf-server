@@ -59,7 +59,10 @@ defmodule SchemaWeb.PageController do
   end
 
   def categories(conn, params) do
-    data = SchemaController.categories(params) |> sort_attributes(:uid)
+    data =
+      Map.put_new(params, "extensions", "")
+      |> SchemaController.categories()
+      |> sort_attributes(:uid)
 
     render(conn, "index.html",
       extensions: Schema.extensions(),

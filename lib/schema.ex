@@ -124,8 +124,23 @@ defmodule Schema do
   def class(id), do: Repo.class(Utils.to_uid(id))
 
   @spec class(nil | String.t(), String.t()) :: nil | map()
-  def class(extension, id) when is_binary(id),
+  def class(extension, id),
     do: Repo.class(Utils.to_uid(extension, id))
+
+  @spec class(String.t() | nil, String.t(), Repo.profiles_t() | nil) :: nil | map()
+  def class(extension, id, nil), do: class(extension, id)
+
+  def class(extension, id, profiles) do
+    case class(extension, id) do
+      nil ->
+        nil
+
+      class ->
+        Map.update!(class, :attributes, fn attributes ->
+          Utils.apply_profiles(attributes, profiles)
+        end)
+    end
+  end
 
   @doc """
   Finds a class by the class uid value.
@@ -163,6 +178,21 @@ defmodule Schema do
   @spec object(Repo.extensions(), String.t(), String.t()) :: nil | map()
   def object(extensions, extension, id) when is_binary(id) do
     Repo.object(extensions, Utils.to_uid(extension, id))
+  end
+
+  @spec object(Repo.extensions() | nil, String.t() | nil, String.t(), Repo.profiles_t() | nil) :: nil | map()
+  def object(extensions, extension, id, nil), do: object(extensions, extension, id)
+
+  def object(extensions, extension, id, profiles) do
+    case object(extensions, extension, id) do
+      nil ->
+        nil
+
+      object ->
+        Map.update!(object, :attributes, fn attributes ->
+          Utils.apply_profiles(attributes, profiles)
+        end)
+    end
   end
 
   # ------------------#
@@ -441,5 +471,4 @@ defmodule Schema do
       end)
     }
   end
-
 end
