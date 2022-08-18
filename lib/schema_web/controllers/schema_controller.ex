@@ -131,7 +131,7 @@ defmodule SchemaWeb.SchemaController do
   end
 
   # {
-  # @api {get} /api/categories/:name Request Category classes
+  # @api {get} /api/categories/:name Get Category Classes
   # @apiName Category
   # @apiGroup Schema
   # @apiVersion 1.0.0
@@ -159,7 +159,7 @@ defmodule SchemaWeb.SchemaController do
   end
 
   # {
-  # @api {get} /api/categories Request Categories
+  # @api {get} /api/categories Get Categories
   # @apiName Categories
   # @apiGroup Schema
   # @apiVersion 1.0.0
@@ -250,7 +250,7 @@ defmodule SchemaWeb.SchemaController do
   end
 
   # {
-  # @api {get} /api/dictionary Request Dictionary
+  # @api {get} /api/dictionary Get Dictionary
   # @apiName Dictionary
   # @apiGroup Schema
   # @apiVersion 1.0.0
@@ -275,7 +275,7 @@ defmodule SchemaWeb.SchemaController do
   end
 
   # {
-  # @api {get} /api/base_event Request Base Event
+  # @api {get} /api/base_event Get Base Event
   # @apiName Base Event
   # @apiGroup Schema
   # @apiVersion 1.0.0
@@ -292,7 +292,7 @@ defmodule SchemaWeb.SchemaController do
   end
 
   # {
-  # @api {get} /api/classes/:type Request Class
+  # @api {get} /api/classes/:type Get Class
   # @apiName Class
   # @apiGroup Schema
   # @apiVersion 1.0.0
@@ -300,7 +300,7 @@ defmodule SchemaWeb.SchemaController do
   # @apiParam {String} type Event class type name, for example: `mem_usage`
   # }
   @doc """
-  Renders event classes.
+  Renders  an event class.
   """
   @spec classes(Plug.Conn.t(), any) :: Plug.Conn.t()
   def classes(conn, %{"id" => id} = params) do
@@ -323,7 +323,7 @@ defmodule SchemaWeb.SchemaController do
   end
 
   # {
-  # @api {get} /api/classes Request all Classes
+  # @api {get} /api/classes Get Classes
   # @apiName Class
   # @apiGroup Schema
   # @apiVersion 1.0.0
@@ -339,9 +339,9 @@ defmodule SchemaWeb.SchemaController do
   end
 
   # {
-  # @api {get} /export/classes Export all classes
+  # @api {get} /export/classes Export Classes
   # @apiName Class
-  # @apiGroup Schema
+  # @apiGroup Export
   # @apiVersion 1.0.0
   # @apiPermission none
   # }
@@ -365,7 +365,7 @@ defmodule SchemaWeb.SchemaController do
   end
 
   # {
-  # @api {get} /api/objects/:type Request Object
+  # @api {get} /api/objects/:type Get Object
   # @apiName Object
   # @apiGroup Schema
   # @apiVersion 1.0.0
@@ -393,7 +393,7 @@ defmodule SchemaWeb.SchemaController do
   end
 
   # {
-  # @api {get} /api/objects Request all Objects
+  # @api {get} /api/objects Get Objects
   # @apiName Objects
   # @apiGroup Schema
   # @apiVersion 1.0.0
@@ -409,9 +409,9 @@ defmodule SchemaWeb.SchemaController do
   end
 
   # {
-  # @api {get} /export/objects Export all objects
+  # @api {get} /export/objects Export Objects
   # @apiName Objects
-  # @apiGroup Schema
+  # @apiGroup Export
   # @apiVersion 1.0.0
   # @apiPermission none
   # }
@@ -440,9 +440,9 @@ defmodule SchemaWeb.SchemaController do
   # ---------------------------------
 
   # {
-  # @api {post} /api/translate?_mode=:mode Translate Event Data
+  # @api {post} /api/translate?_mode=:mode Translate Event
   # @apiName Translate
-  # @apiGroup Data
+  # @apiGroup Tools
   # @apiVersion 1.0.0
   # @apiPermission none
   # @apiParam {Number=1,2,3} _mode  Controls how the attribute names and enumerated values are translated
@@ -491,16 +491,22 @@ defmodule SchemaWeb.SchemaController do
   end
 
   # {
-  # @api {post} /api/validate Validate Event Data
+  # @api {post} /api/validate Validate Event
   # @apiName Validate
-  # @apiGroup Data
+  # @apiGroup Tools
   # @apiVersion 1.0.0
-  # @apiPermission none
-  # @apiParam {JSON} event  The event or events to be translated. A single event is encoded as a JSON object and multiple events are encoded as JSON array of object.
   #
-  # @apiSuccess {JSON} An empty JSON object
-  #      HTTP/2 200 OK
-  #      {}
+  # @apiDescription The event or events to be translated.
+  # A single event is encoded as a JSON object and multiple events are encoded as JSON array of object.
+  #
+  # @apiParam {Object} event The event or events to be translated.
+  # A single event is encoded as a JSON object and multiple events are encoded as JSON array of object.
+  #
+  # @apiParamExample {json} Request-Example:
+  #    {
+  #      "id": 4711
+  #    }
+  #
   # }
   @spec validate(Plug.Conn.t(), map) :: Plug.Conn.t()
   def validate(conn, data) do
@@ -524,14 +530,6 @@ defmodule SchemaWeb.SchemaController do
   # Request sample data API's
   # --------------------------
 
-  # {
-  # @api {get} /sample/base_event Request Base Event data
-  # @apiName Base Event Sample
-  # @apiGroup Sample
-  # @apiVersion 1.0.0
-  # @apiPermission none
-  # @apiSuccess {JSON} The randomly generated sample data
-  # }
   @doc """
   Returns a base event sample.
   """
@@ -541,13 +539,16 @@ defmodule SchemaWeb.SchemaController do
   end
 
   # {
-  # @api {get} /sample/classes/:name Request Event data
-  # @apiName Event Sample
-  # @apiGroup Sample
-  # @apiVersion 1.0.0
-  # @apiPermission none
-  # @apiParam {String} name Event class name
-  # @apiSuccess {JSON} The randomly generated sample data
+  #   @api {get} /sample/classes/:name Classs
+  #   @apiName Class Sample
+  #   @apiDescription This API returns sample data for the given event class name.
+  #   @apiGroup Sample
+  #   @apiVersion 1.0.0
+  #   @apiPermission none
+  #   @apiParam {String} name Event class name
+  #   @apiQuery {Number=1,2,3} _mode  Controls how the attribute names and enumerated values are translated
+  #   @apiQuery {String} _spaces  Controls how the spaces in the translated attribute names are handled
+  #   @apiSuccess {JSON} The randomly generated sample data
   # }
   @doc """
   Returns an event sample for the given name.
@@ -560,7 +561,7 @@ defmodule SchemaWeb.SchemaController do
     try do
       case Schema.class(extension, id) do
         nil ->
-          send_json_resp(conn, 404, %{error: "Not Found: #{id}"})
+          send_json_resp(conn, 404, %{error: "Class not found: #{id}"})
 
         class ->
           event =
@@ -586,7 +587,7 @@ defmodule SchemaWeb.SchemaController do
   end
 
   # {
-  # @api {get} /sample/objects/:name Request Object data
+  # @api {get} /sample/objects/:name Object
   # @apiName Object Sample
   # @apiGroup Sample
   # @apiVersion 1.0.0
@@ -604,7 +605,7 @@ defmodule SchemaWeb.SchemaController do
     try do
       case Schema.object(extension, id) do
         nil ->
-          send_json_resp(conn, 404, %{error: "Not Found: #{id}"})
+          send_json_resp(conn, 404, %{error: "Object not found: #{id}"})
 
         data ->
           send_json_resp(conn, Schema.generate(data))
