@@ -80,6 +80,10 @@ defmodule SchemaWeb.Router do
 
     post "/translate", SchemaController, :translate
     post "/validate", SchemaController, :validate
+
+    get "/export/classes", SchemaController, :export_classes
+    get "/export/objects", SchemaController, :export_objects
+    get "/export/schema", SchemaController, :export_schema
   end
 
   scope "/export", SchemaWeb do

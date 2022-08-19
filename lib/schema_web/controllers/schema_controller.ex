@@ -259,13 +259,13 @@ defmodule SchemaWeb.SchemaController do
       "uid": 7
     }
   """
-#  swagger_path :categories do
-#    get("/categories")
-#    summary("Categories")
-#    produces("application/json")
-#    description("Get OCSF schema categories.")
-#    response(200, "Success")
-#  end
+  #  swagger_path :categories do
+  #    get("/categories")
+  #    summary("Categories")
+  #    produces("application/json")
+  #    description("Get OCSF schema categories.")
+  #    response(200, "Success")
+  #  end
   def categories(conn, params) do
     send_json_resp(conn, categories(params))
   end
@@ -444,36 +444,49 @@ defmodule SchemaWeb.SchemaController do
     Schema.object(extensions, extension, id, profiles)
   end
 
-
   # -------------------
   # Schema Export API's
   # -------------------
 
-  # {
-  #   @api {get} /export/schema Export Schema
-  #   @apiName ExportSchema
-  #   @apiDescription This API returns the schema defintions, including data types, objects, and classes.
-  #   @apiGroup Export
-  #   @apiVersion 1.0.0
-  #   @apiPermission none
-  #
-  #   @apiExample {curl} Example usage:
-  #     curl https://schema.ocsf.io/export/schema
   #
   #   @apiSuccess {Object} classes The OCSF schema classes.
   #   @apiSuccess {Object} objects The OCSF schema obejcts.
   #   @apiSuccess {Object} types The OCSF schema data types.
   #   @apiSuccess {String} version The OCSF schema version.
   #  
-  #   @apiSuccessExample Success-Response:
-  #       HTTP/2 200 OK
-  #       {
-  #         "classes": {...},
-  #         "objects": {...},
-  #         "types"  : {...},
-  #         "version": "0.16.0"
-  #       }
-  # }
+  @doc """
+  Export the OCSF schema definitions.
+  get /export/schema
+
+  Example usage:
+    curl https://schema.ocsf.io/export/schema
+
+    Success-Response:
+    HTTP/2 200 OK
+    {
+      "classes": {...},
+      "objects": {...},
+      "types"  : {...},
+      "version": "0.16.0"
+    }
+  """
+  swagger_path :export_schema do
+    get("/export/schema")
+    summary("Export Schema")
+    produces("application/json")
+    description("Get OCSF schema defintions, including data types, objects, and classes.")
+
+    parameters do
+      extensions(:query, :array, "Related extensions to include in response",
+        items: [type: :string]
+      )
+
+      profiles(:query, :array, "Related profiles to include in response", items: [type: :string])
+    end
+
+    response(200, "Success")
+  end
+
   @spec export_schema(Plug.Conn.t(), any) :: Plug.Conn.t()
   def export_schema(conn, params) do
     profiles = parse_options(profiles(params))
@@ -481,26 +494,72 @@ defmodule SchemaWeb.SchemaController do
     send_json_resp(conn, data)
   end
 
-  # {
-  # @api {get} /export/classes Export Classes
-  # @apiName Class
-  # @apiGroup Export
-  # @apiVersion 1.0.0
-  # @apiPermission none
-  # }
+  @doc """
+  Export the OCSF schema classes.
+  get /export/classes
+
+  Example usage:
+    curl https://schema.ocsf.io/export/classes
+
+    Success-Response:
+    HTTP/2 200 OK
+    {
+      ...
+    }
+  """
+  swagger_path :export_classes do
+    get("/export/classes")
+    summary("Export Classes")
+    produces("application/json")
+    description("Get OCSF schema classes.")
+
+    parameters do
+      extensions(:query, :array, "Related extensions to include in response",
+        items: [type: :string]
+      )
+
+      profiles(:query, :array, "Related profiles to include in response", items: [type: :string])
+    end
+
+    response(200, "Success")
+  end
+
   def export_classes(conn, params) do
     profiles = parse_options(profiles(params))
     classes = parse_options(extensions(params)) |> Schema.export_classes(profiles)
     send_json_resp(conn, classes)
   end
 
-  # {
-  # @api {get} /export/objects Export Objects
-  # @apiName Objects
-  # @apiGroup Export
-  # @apiVersion 1.0.0
-  # @apiPermission none
-  # }
+  @doc """
+  Export the OCSF schema objects.
+  get /export/objects
+
+  Example usage:
+    curl https://schema.ocsf.io/export/objects
+
+    Success-Response:
+    HTTP/2 200 OK
+    {
+      ...
+    }
+  """
+  swagger_path :export_objects do
+    get("/export/objects")
+    summary("Export Objects")
+    produces("application/json")
+    description("Get OCSF schema objects.")
+
+    parameters do
+      extensions(:query, :array, "Related extensions to include in response",
+        items: [type: :string]
+      )
+
+      profiles(:query, :array, "Related profiles to include in response", items: [type: :string])
+    end
+
+    response(200, "Success")
+  end
+
   def export_objects(conn, params) do
     profiles = parse_options(profiles(params))
     objects = parse_options(extensions(params)) |> Schema.export_objects(profiles)
