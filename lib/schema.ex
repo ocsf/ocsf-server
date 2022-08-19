@@ -375,7 +375,7 @@ defmodule Schema do
   end
 
   defp reduce_object(object) do
-    delete_links(object) |> Map.delete(:description)
+    delete_links(object) |> Map.delete(:_source)
   end
 
   defp reduce_attributes(data, reducer) do
