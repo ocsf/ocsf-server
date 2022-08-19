@@ -72,24 +72,6 @@ defmodule Schema.Repo do
     end)
   end
 
-  @spec export_category(atom) :: nil | Cache.category_t()
-  def export_category(id) do
-    export_category(nil, id)
-  end
-
-  @spec export_category(extensions() | nil, atom) :: nil | Cache.category_t()
-  def export_category(extensions, id) do
-    Agent.get(__MODULE__, fn schema ->
-      case Cache.category(schema, id) do
-        nil ->
-          nil
-
-        category ->
-          add_classes(extensions, {id, category}, Cache.export_classes(schema))
-      end
-    end)
-  end
-
   @spec data_types() :: map()
   def data_types() do
     Agent.get(__MODULE__, fn schema -> Cache.data_types(schema) end)

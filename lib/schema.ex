@@ -247,19 +247,6 @@ defmodule Schema do
   end
 
   @doc """
-    Exports a single category and its classes.
-  """
-  @spec export_category(atom | String.t()) :: nil | Cache.category_t()
-  def export_category(id), do: export_category_classes(Utils.to_uid(id))
-
-  @spec export_category(Repo.extensions(), String.t()) :: nil | Cache.category_t()
-  def export_category(extensions, id), do: export_category_classes(extensions, Utils.to_uid(id))
-
-  @spec export_category(Repo.extensions(), String.t(), String.t()) :: nil | Cache.category_t()
-  def export_category(extensions, extension, id),
-    do: export_category_classes(extensions, Utils.to_uid(extension, id))
-
-  @doc """
     Exports the data types.
   """
   @spec export_data_types :: any
@@ -361,22 +348,6 @@ defmodule Schema do
 
   defp get_category(extensions, id) do
     Repo.category(extensions, id) |> reduce_category()
-  end
-
-  defp export_category_classes(id) do
-    Repo.export_category(id) |> export_cat_classes()
-  end
-
-  defp export_category_classes(extensions, id) do
-    Repo.export_category(extensions, id) |> export_cat_classes()
-  end
-
-  defp export_cat_classes(nil) do
-    nil
-  end
-
-  defp export_cat_classes(category) do
-    Map.update(category, :classes, Map.new(), fn classes -> reduce_objects(classes) end)
   end
 
   defp reduce_category(nil) do
