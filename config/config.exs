@@ -17,7 +17,7 @@ config :schema_server, SchemaWeb.Endpoint,
     certfile: certfile,
     keyfile: keyfile
   ],
-  url: [host: "localhost", path: path],
+#  url: [host: "localhost", path: path],
   secret_key_base: "HUvG8AlzaUpVx5PShWbGv6JpifzM/d46Rj3mxAIddA7DJ9qKg6df8sG6PsKXScAh",
   render_errors: [view: SchemaWeb.ErrorView, accepts: ~w(html json)],
   pubsub_server: Schema.PubSub
@@ -42,6 +42,16 @@ config :phoenix_markdown, :earmark, %{
   compact_output: false,
   smartypants: false
 }
+
+config :schema_server, :phoenix_swagger,
+  swagger_files: %{
+    "priv/static/swagger.json" => [
+      router: SchemaWeb.Router, 
+      endpoint: SchemaWeb.Endpoint
+    ]
+  }
+
+config :phoenix_swagger, json_library: Jason
 
 # Configures the location of the schema files
 config :schema_server, Schema.JsonReader, home: System.get_env("SCHEMA_DIR")

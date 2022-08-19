@@ -385,10 +385,9 @@ defmodule Schema do
 
   defp reduce_category(data) do
     Map.update(data, :classes, [], fn classes ->
-      Enum.map(classes, fn {name, class} ->
+      Enum.into(classes, %{}, fn {name, class} ->
         {name, reduce_class(class)}
       end)
-      |> Map.new()
     end)
   end
 

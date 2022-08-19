@@ -41,3 +41,6 @@ erl_crash.dump
 
 # Ignore /.mix/ folder
 /.mix/
+
+# Ignore generated doc file
+priv/static/swagger.json

@@ -102,4 +102,27 @@ defmodule SchemaWeb.Router do
     get "/classes/:id", SchemaController, :sample_class
     get "/classes/:extension/:id", SchemaController, :sample_class
   end
+
+  scope "/api/doc" do
+    forward "/", PhoenixSwagger.Plug.SwaggerUI,
+      otp_app: :schema_server,
+      swagger_file: "swagger.json"
+  end
+
+  def swagger_info do
+    %{
+      basePath: "/api",
+      info: %{
+        title: "OCSF Schema API",
+        description: "The OCSF Schema API documentation",
+        license: %{
+          name: "Apache 2.0",
+          url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        version: "1.0.0",
+        consumes: ["application/json"],
+        produces: ["application/json"]
+      }
+    }
+  end
 end

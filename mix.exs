@@ -25,7 +25,7 @@ defmodule Schema.MixProject do
       version: "2.7.0-0.17.0-#{build}",
       elixir: "~> 1.13",
       elixirc_paths: elixirc_paths(Mix.env()),
-      compilers: [:phoenix] ++ Mix.compilers(),
+      compilers: [:phoenix] ++ Mix.compilers() ++ [:phoenix_swagger],
       start_permanent: Mix.env() == :prod,
       deps: deps()
     ]
@@ -59,6 +59,8 @@ defmodule Schema.MixProject do
       {:plug_cowboy, "~> 2.3"},
       {:number, "~> 1.0"},
       {:elixir_uuid, "~> 1.6", hex: :uuid_utils},
+      {:phoenix_swagger, "~> 0.8"},
+      {:ex_json_schema, "~> 0.5"},
       {:phoenix_markdown, "~> 1.0"},
       {:credo, "~> 1.5", only: [:dev, :test], runtime: false}
     ]

@@ -244,15 +244,23 @@ defmodule Schema.Repo do
     category_uid = Atom.to_string(id)
 
     list =
-      Enum.filter(
-        classes,
-        fn {_name, class} ->
-          cat = Map.get(class, :category)
-          cat == category_uid or Utils.to_uid(class[:extension], cat) == id
-        end
-      )
+      classes
+      |> Stream.filter(fn {_name, class} ->
+        cat = Map.get(class, :category)
+        cat == category_uid or Utils.to_uid(class[:extension], cat) == id
+      end)
+      |> Stream.map(fn {name, class} ->
+        class =
+          class
+          |> Map.delete(:category)
+          |> Map.delete(:category_name)
+
+        {name, class}
+      end)
+      |> Enum.to_list()
 
     Map.put(category, :classes, list)
+    |> Map.put(:name, category_uid)
   end
 
   defp add_classes(extensions, {id, category}, classes) do

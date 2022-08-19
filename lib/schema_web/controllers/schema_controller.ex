@@ -11,7 +11,10 @@ defmodule SchemaWeb.SchemaController do
   @moduledoc """
   The Event Schema API.
   """
+
   use SchemaWeb, :controller
+
+  import PhoenixSwagger
 
   require Logger
 
@@ -22,131 +25,199 @@ defmodule SchemaWeb.SchemaController do
   # Event Schema API's
   # -------------------
 
-  # {
-  #   @api {get} /api/version Get Version
-  #   @apiName GetVersion
-  #   @apiDescription This API returns the OCSF schema version.
-  #   @apiGroup Schema
-  #   @apiVersion 1.0.0
-  #   @apiPermission none
-  #
-  #   @apiExample {curl} Example usage:
-  #     curl https://schema.ocsf.io/api/version
-  #
-  #   @apiSuccess {String} version The OCSF schema version, using Semantic Versioning Specification (SemVer) format.
-  #  
-  #   @apiSuccessExample Success-Response:
-  #       HTTP/2 200 OK
-  #       {
-  #         "version": "0.16.0"
-  #       }
-  # }
+  def swagger_definitions do
+    %{
+      Version:
+        swagger_schema do
+          title("Version")
+          description("Schema version, using Semantic Versioning Specification (SemVer) format.")
+
+          properties do
+            version(:string, "Version number", required: true)
+          end
+
+          example(%{
+            version: "1.0.0"
+          })
+        end
+    }
+  end
+
   @doc """
-  Renders the schema version.
+  Get the OCSF schema version.
+  get /api/version
+
+  Example usage:
+    curl https://schema.ocsf.io/api/version
+
+    Success-Response:
+    HTTP/2 200 OK
+    {
+      "version": "0.16.0"
+    }
   """
+  swagger_path :version do
+    get("/version")
+    summary("Version")
+    produces("application/json")
+    description("Get OCSF schema version.")
+    response(200, "Success", :Version)
+  end
+
   @spec version(Plug.Conn.t(), any) :: Plug.Conn.t()
   def version(conn, _params) do
     version = %{:version => Schema.version()}
     send_json_resp(conn, version)
   end
 
-  # {
-  #   @api {get} /api/data_types Get Data Types
-  #   @apiName DataTypes
-  #   @apiDescription This API returns the OCSF schema data types.
-  #   @apiGroup Schema
-  #   @apiVersion 1.0.0
-  #   @apiPermission none
-  # }
   @doc """
-  Renders the data types.
+  Get the schema data types.
+  get /api/data_types
+
+  Example usage:
+    curl https://schema.ocsf.io/api/data_types
+
+    Success-Response:
+    HTTP/2 200 OK
+    {
+      "boolean_t": {
+        "caption": "Boolean",
+        "description": "Boolean value. One of <code>true</code> or <code>false</code>.",
+        "values": [
+          false,
+          true
+        ]
+      },
+      ...
+    }
   """
+  swagger_path :data_types do
+    get("/data_types")
+    summary("Data Types")
+    produces("application/json")
+    description("Get OCSF schema data types.")
+    response(200, "Success")
+  end
+
   @spec data_types(Plug.Conn.t(), any) :: Plug.Conn.t()
   def data_types(conn, _params) do
     send_json_resp(conn, Schema.export_data_types())
   end
 
-  # {
-  #   @api {get} /api/extensions Get Extensions
-  #   @apiName Extensions
-  #   @apiDescription This API returns the OCSF schema extensions.
-  #   @apiGroup Schema
-  #   @apiVersion 1.0.0
-  #   @apiPermission none
-  # }
   @doc """
-  Returns the schema extensions.
+  Get the schema extensions.
+  get /api/extensions
+
+  Example usage:
+    curl https://schema.ocsf.io/api/extensions
+
+    Success-Response:
+    HTTP/2 200 OK
+    {
+      "dev": {
+        "caption": "Development",
+        "name": "dev",
+        "uid": 999,
+        "version": "0.0.0"
+      }
+    }
   """
-  @spec extensions(Plug.Conn.t(), any) :: Plug.Conn.t()
-  def extensions(conn, _params) do
-    send_json_resp(conn, Schema.extensions())
+  swagger_path :extensions do
+    get("/extensions")
+    summary("Schema Extensions")
+    produces("application/json")
+    description("Get OCSF schema extensions.")
+    response(200, "Success")
   end
 
-  # {
-  #   @api {get} /api/profiles Ger Profiles
-  #   @apiName Profiles
-  #   @apiDescription This API returns the OCSF schema profiles.
-  #   @apiGroup Schema
-  #   @apiVersion 1.0.0
-  #   @apiPermission none
-  # }
+  @spec extensions(Plug.Conn.t(), any) :: Plug.Conn.t()
+  def extensions(conn, _params) do
+    extensions =
+      Schema.extensions()
+      |> Enum.into(%{}, fn {k, v} ->
+        {k, Map.delete(v, :path)}
+      end)
+
+    send_json_resp(conn, extensions)
+  end
+
   @doc """
-  Returns the schema profiles.
+  Get the schema profiles.
+  get /api/profiles
+
+  Example usage:
+    curl https://schema.ocsf.io/api/profiles
+
+    Success-Response:
+    HTTP/2 200 OK
+    {
+      "cloud": {
+        "caption": "Cloud",
+        "attributes": {
+          "cloud": {
+            "requirement": "required"
+          }
+        }
+      },
+      ...
+    }
   """
+  swagger_path :profiles do
+    get("/profiles")
+    summary("Schema Profiles")
+    produces("application/json")
+    description("Get OCSF schema profiles.")
+    response(200, "Success")
+  end
+
   @spec profiles(Plug.Conn.t(), any) :: Plug.Conn.t()
   def profiles(conn, _params) do
     send_json_resp(conn, Schema.profiles())
   end
 
-  # {
-  #   @api {get} /export/schema Export Schema
-  #   @apiName ExportSchema
-  #   @apiDescription This API returns the schema defintions, including data types, objects, and classes.
-  #   @apiGroup Export
-  #   @apiVersion 1.0.0
-  #   @apiPermission none
-  #
-  #   @apiExample {curl} Example usage:
-  #     curl https://schema.ocsf.io/export/schema
-  #
-  #   @apiSuccess {Object} classes The OCSF schema classes.
-  #   @apiSuccess {Object} objects The OCSF schema obejcts.
-  #   @apiSuccess {Object} types The OCSF schema data types.
-  #   @apiSuccess {String} version The OCSF schema version.
-  #  
-  #   @apiSuccessExample Success-Response:
-  #       HTTP/2 200 OK
-  #       {
-  #         "classes": {...},
-  #         "objects": {...},
-  #         "types"  : {...},
-  #         "version": "0.16.0"
-  #       }
-  # }
-  @spec export_schema(Plug.Conn.t(), any) :: Plug.Conn.t()
-  def export_schema(conn, params) do
-    profiles = parse_options(profiles(params))
-    data = parse_options(extensions(params)) |> Schema.export_schema(profiles)
-    send_json_resp(conn, data)
+  @doc """
+  Get the classes defined in a given category.
+  get /api/categories/:name
+
+  Example usage:
+    curl https://schema.ocsf.io/api/categories/database
+
+    Success-Response:
+    HTTP/2 200 OK
+    {
+      "caption": "Database Activity",
+      "classes": {
+        "database_lifecycle": {
+          "caption": "Database Lifecycle",
+          "description": "Database Lifecycle events report start and stop of a database service.",
+          "name": "database_lifecycle",
+          "uid": 7000
+        }
+      },
+      "description": "Database Activity events.",
+      "uid": 7
+    }
+  """
+  swagger_path :categories do
+    get("/categories/{name}")
+    summary("Category Classes")
+    produces("application/json")
+    description("Get OCSF schema classes defined in the named category.")
+
+    parameters do
+      name(:path, :string, "Category name", required: true)
+    end
+
+    response(200, "Success")
+    response(404, "Category <code>name</code> not found")
   end
 
-  # {
-  # @api {get} /api/categories/:name Get Category Classes
-  # @apiName Category
-  # @apiGroup Schema
-  # @apiVersion 1.0.0
-  # @apiPermission none
-  # @apiParam {String} name Category name
-  # }
-  @doc """
-  Renders categories or the classes in a given category.
-  """
   @spec categories(Plug.Conn.t(), map) :: Plug.Conn.t()
   def categories(conn, %{"id" => id} = params) do
     try do
       case category_classes(params) do
         nil ->
-          send_json_resp(conn, 404, %{error: "Not Found: #{id}"})
+          send_json_resp(conn, 404, %{error: "Category #{id} not found"})
 
         data ->
           send_json_resp(conn, data)
@@ -165,88 +236,52 @@ defmodule SchemaWeb.SchemaController do
   # @apiVersion 1.0.0
   # @apiPermission none
   # }
+  @doc """
+  Get the schema categories.
+  get /api/categories
+
+  Example usage:
+    curl https://schema.ocsf.io/api/categories
+
+    Success-Response:
+    HTTP/2 200 OK
+    {
+      "caption": "Database Activity",
+      "classes": {
+        "database_lifecycle": {
+          "caption": "Database Lifecycle",
+          "description": "Database Lifecycle events report start and stop of a database service.",
+          "name": "database_lifecycle",
+          "uid": 7000
+        }
+      },
+      "description": "Database Activity events.",
+      "uid": 7
+    }
+  """
+#  swagger_path :categories do
+#    get("/categories")
+#    summary("Categories")
+#    produces("application/json")
+#    description("Get OCSF schema categories.")
+#    response(200, "Success")
+#  end
   def categories(conn, params) do
     send_json_resp(conn, categories(params))
   end
 
-  @spec categories(map) :: map
+  @spec categories(map()) :: map()
   def categories(params) do
     parse_options(extensions(params)) |> Schema.categories()
   end
 
-  @spec category_classes(map) :: map | nil
-  def category_classes(%{"id" => id} = params) do
+  @spec category_classes(map()) :: map() | nil
+  def category_classes(params) do
+    name = params["id"]
     extension = extension(params)
     extensions = parse_options(extensions(params))
 
-    Schema.category(extensions, extension, id)
-  end
-
-  # {
-  #   @api {get} /export/category/:name Export Category
-  #   @apiName ExportCategory
-  #   @apiDescription This API returns the classes defined in the given category.
-  #   @apiGroup Export
-  #   @apiVersion 1.0.0
-  #   @apiPermission none
-  #   @apiParam {String} name Category name
-  #
-  #   @apiExample {curl} Example usage:
-  #     curl https://schema.ocsf.io/export/category/system
-  #
-  #   @apiSuccess {String} caption The category caption.
-  #   @apiSuccess {String} description The category description.
-  #   @apiSuccess {Number} uid The category unique identifier.
-  #   @apiSuccess {Object} classes The category classes.
-  #   @apiError UserNotFound The category <code>name</code> was not found.
-  #
-  #   @apiSuccessExample Success-Response:
-  #       HTTP/2 200 OK
-  #       {
-  #         "caption": "System Activity"
-  #         "description": "System Activity events."
-  #         "uid": 1
-  #         "classes": {...}
-  #       }
-  #
-  #   @apiErrorExample {json} Error-Response:
-  #       HTTP/2 404 Not Found
-  #       {
-  #           "error": "The category 'test' was not found."
-  #       }
-  # }
-  @doc """
-  Exports the classes in a given category.
-  """
-  @spec export_category(Plug.Conn.t(), map) :: Plug.Conn.t()
-  def export_category(conn, %{"id" => id} = params) do
-    try do
-      extension = extension(params)
-      extensions = parse_options(extensions(params))
-
-      case Schema.export_category(extensions, extension, id) do
-        nil ->
-          send_json_resp(conn, 404, %{error: "The category '#{id}' was not found."})
-
-        category ->
-          case parse_options(profiles(params)) do
-            nil ->
-              send_json_resp(conn, category)
-
-            profiles ->
-              category =
-                Map.update!(category, :classes, fn classes ->
-                  Schema.apply_profiles(classes, profiles, MapSet.size(profiles))
-                end)
-
-              send_json_resp(conn, category)
-          end
-      end
-    rescue
-      e ->
-        Logger.error("Unable to load the classes for category: #{id}. Error: #{inspect(e)}")
-        send_json_resp(conn, 500, %{error: "Error: #{e[:message]}"})
-    end
+    Schema.category(extensions, extension, name)
   end
 
   # {
@@ -338,19 +373,6 @@ defmodule SchemaWeb.SchemaController do
     send_json_resp(conn, classes)
   end
 
-  # {
-  # @api {get} /export/classes Export Classes
-  # @apiName Class
-  # @apiGroup Export
-  # @apiVersion 1.0.0
-  # @apiPermission none
-  # }
-  def export_classes(conn, params) do
-    profiles = parse_options(profiles(params))
-    classes = parse_options(extensions(params)) |> Schema.export_classes(profiles)
-    send_json_resp(conn, classes)
-  end
-
   @spec classes(map) :: map
   def classes(params) do
     extensions = parse_options(extensions(params))
@@ -408,19 +430,6 @@ defmodule SchemaWeb.SchemaController do
     send_json_resp(conn, objects)
   end
 
-  # {
-  # @api {get} /export/objects Export Objects
-  # @apiName Objects
-  # @apiGroup Export
-  # @apiVersion 1.0.0
-  # @apiPermission none
-  # }
-  def export_objects(conn, params) do
-    profiles = parse_options(profiles(params))
-    objects = parse_options(extensions(params)) |> Schema.export_objects(profiles)
-    send_json_resp(conn, objects)
-  end
-
   @spec objects(map) :: map
   def objects(params) do
     parse_options(extensions(params)) |> Schema.objects()
@@ -433,6 +442,136 @@ defmodule SchemaWeb.SchemaController do
     extensions = parse_options(extensions(params))
 
     Schema.object(extensions, extension, id, profiles)
+  end
+
+
+  # -------------------
+  # Schema Export API's
+  # -------------------
+
+  # {
+  #   @api {get} /export/schema Export Schema
+  #   @apiName ExportSchema
+  #   @apiDescription This API returns the schema defintions, including data types, objects, and classes.
+  #   @apiGroup Export
+  #   @apiVersion 1.0.0
+  #   @apiPermission none
+  #
+  #   @apiExample {curl} Example usage:
+  #     curl https://schema.ocsf.io/export/schema
+  #
+  #   @apiSuccess {Object} classes The OCSF schema classes.
+  #   @apiSuccess {Object} objects The OCSF schema obejcts.
+  #   @apiSuccess {Object} types The OCSF schema data types.
+  #   @apiSuccess {String} version The OCSF schema version.
+  #  
+  #   @apiSuccessExample Success-Response:
+  #       HTTP/2 200 OK
+  #       {
+  #         "classes": {...},
+  #         "objects": {...},
+  #         "types"  : {...},
+  #         "version": "0.16.0"
+  #       }
+  # }
+  @spec export_schema(Plug.Conn.t(), any) :: Plug.Conn.t()
+  def export_schema(conn, params) do
+    profiles = parse_options(profiles(params))
+    data = parse_options(extensions(params)) |> Schema.export_schema(profiles)
+    send_json_resp(conn, data)
+  end
+
+  # {
+  #   @api {get} /export/category/:name Export Category
+  #   @apiName ExportCategory
+  #   @apiDescription This API returns the classes defined in the given category.
+  #   @apiGroup Export
+  #   @apiVersion 1.0.0
+  #   @apiPermission none
+  #   @apiParam {String} name Category name
+  #
+  #   @apiExample {curl} Example usage:
+  #     curl https://schema.ocsf.io/export/category/system
+  #
+  #   @apiSuccess {String} caption The category caption.
+  #   @apiSuccess {String} description The category description.
+  #   @apiSuccess {Number} uid The category unique identifier.
+  #   @apiSuccess {Object} classes The category classes.
+  #   @apiError UserNotFound The category <code>name</code> was not found.
+  #
+  #   @apiSuccessExample Success-Response:
+  #       HTTP/2 200 OK
+  #       {
+  #         "caption": "System Activity"
+  #         "description": "System Activity events."
+  #         "uid": 1
+  #         "classes": {...}
+  #       }
+  #
+  #   @apiErrorExample {json} Error-Response:
+  #       HTTP/2 404 Not Found
+  #       {
+  #           "error": "The category 'test' was not found."
+  #       }
+  # }
+  @doc """
+  Exports the classes in a given category.
+  """
+  @spec export_category(Plug.Conn.t(), map) :: Plug.Conn.t()
+  def export_category(conn, %{"id" => id} = params) do
+    try do
+      extension = extension(params)
+      extensions = parse_options(extensions(params))
+
+      case Schema.export_category(extensions, extension, id) do
+        nil ->
+          send_json_resp(conn, 404, %{error: "The category '#{id}' was not found."})
+
+        category ->
+          case parse_options(profiles(params)) do
+            nil ->
+              send_json_resp(conn, category)
+
+            profiles ->
+              category =
+                Map.update!(category, :classes, fn classes ->
+                  Schema.apply_profiles(classes, profiles, MapSet.size(profiles))
+                end)
+
+              send_json_resp(conn, category)
+          end
+      end
+    rescue
+      e ->
+        Logger.error("Unable to load the classes for category: #{id}. Error: #{inspect(e)}")
+        send_json_resp(conn, 500, %{error: "Error: #{e[:message]}"})
+    end
+  end
+
+  # {
+  # @api {get} /export/classes Export Classes
+  # @apiName Class
+  # @apiGroup Export
+  # @apiVersion 1.0.0
+  # @apiPermission none
+  # }
+  def export_classes(conn, params) do
+    profiles = parse_options(profiles(params))
+    classes = parse_options(extensions(params)) |> Schema.export_classes(profiles)
+    send_json_resp(conn, classes)
+  end
+
+  # {
+  # @api {get} /export/objects Export Objects
+  # @apiName Objects
+  # @apiGroup Export
+  # @apiVersion 1.0.0
+  # @apiPermission none
+  # }
+  def export_objects(conn, params) do
+    profiles = parse_options(profiles(params))
+    objects = parse_options(extensions(params)) |> Schema.export_objects(profiles)
+    send_json_resp(conn, objects)
   end
 
   # ---------------------------------
