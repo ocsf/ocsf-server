@@ -115,10 +115,10 @@ defmodule SchemaWeb.SchemaController do
   """
   swagger_path :version do
     get("/api/version")
-    summary("Schema Version")
+    summary("Version")
     description("Get OCSF schema version.")
     produces("application/json")
-    tag("API")
+    tag("Schema")
     response(200, "Success", :Version)
   end
 
@@ -151,10 +151,10 @@ defmodule SchemaWeb.SchemaController do
   """
   swagger_path :data_types do
     get("/api/data_types")
-    summary("Schema Data Types")
+    summary("Data types")
     description("Get OCSF schema data types.")
     produces("application/json")
-    tag("API")
+    tag("Types and Objects")
     response(200, "Success")
   end
 
@@ -183,10 +183,10 @@ defmodule SchemaWeb.SchemaController do
   """
   swagger_path :extensions do
     get("/api/extensions")
-    summary("Schema Extensions")
+    summary("List extensions")
     description("Get OCSF schema extensions.")
     produces("application/json")
-    tag("API")
+    tag("Schema")
     response(200, "Success")
   end
 
@@ -224,10 +224,10 @@ defmodule SchemaWeb.SchemaController do
   """
   swagger_path :profiles do
     get("/api/profiles")
-    summary("Schema Profiles")
+    summary("List profiles")
     description("Get OCSF schema profiles.")
     produces("application/json")
-    tag("API")
+    tag("Schema")
     response(200, "Success")
   end
 
@@ -261,10 +261,10 @@ defmodule SchemaWeb.SchemaController do
   """
   swagger_path :categories do
     get("/api/categories")
-    summary("Categories")
+    summary("List categories")
     description("Get OCSF schema categories.")
     produces("application/json")
-    tag("API")
+    tag("Categories and Classes")
     response(200, "Success")
   end
 
@@ -306,10 +306,10 @@ defmodule SchemaWeb.SchemaController do
   """
   swagger_path :category do
     get("/api/categories/{name}")
-    summary("Category Classes")
+    summary("List category classes")
     description("Get OCSF schema classes defined in the named category. The category name may contain an extension name. For example, \"dev/policy\".")
     produces("application/json")
-    tag("API")
+    tag("Categories and Classes")
 
     parameters do
       name(:path, :string, "Category name", required: true)
@@ -367,7 +367,7 @@ defmodule SchemaWeb.SchemaController do
     summary("Dictionary")
     description("Get OCSF schema dictionary.")
     produces("application/json")
-    tag("API")
+    tag("Dictionary")
     response(200, "Success")
   end
 
@@ -404,10 +404,10 @@ defmodule SchemaWeb.SchemaController do
   """
   swagger_path :base_event do
     get("/api/base_event")
-    summary("Schema Base Event")
+    summary("Base event")
     description("Get OCSF schema base event class.")
     produces("application/json")
-    tag("API")
+    tag("Categories and Classes")
     response(200, "Success")
   end
 
@@ -451,10 +451,10 @@ defmodule SchemaWeb.SchemaController do
   """
   swagger_path :class do
     get("/api/classes/{name}")
-    summary("Event Class")
+    summary("Event class")
     description("Get OCSF schema class by name. The class name may contain an extension name. For example, \"dev/cpu_usage\".")
     produces("application/json")
-    tag("API")
+    tag("Categories and Classes")
 
     parameters do
       name(:path, :string, "Class name", required: true)
@@ -497,10 +497,10 @@ defmodule SchemaWeb.SchemaController do
   """
   swagger_path :classes do
     get("/api/classes")
-    summary("Classes")
+    summary("List classes")
     description("Get OCSF schema classes.")
     produces("application/json")
-    tag("API")
+    tag("Categories and Classes")
     response(200, "Success", :ClassDesc)
   end
 
@@ -556,7 +556,7 @@ defmodule SchemaWeb.SchemaController do
     summary("Object")
     description("Get OCSF schema object by name. The object name may contain an extension name. For example, \"dev/os_service\".")
     produces("application/json")
-    tag("API")
+    tag("Types and Objects")
 
     parameters do
       name(:path, :string, "Object name", required: true)
@@ -596,10 +596,10 @@ defmodule SchemaWeb.SchemaController do
   """
   swagger_path :objects do
     get("/api/objects")
-    summary("Objects")
+    summary("List objects")
     description("Get OCSF schema objects.")
     produces("application/json")
-    tag("API")
+    tag("Types and Objects")
     response(200, "Success", :ObjectDesc)
   end
 
@@ -649,7 +649,7 @@ defmodule SchemaWeb.SchemaController do
   """
   swagger_path :export_schema do
     get("/export/schema")
-    summary("Export Schema")
+    summary("Export schema")
     description("Get OCSF schema defintions, including data types, objects, and classes.")
     produces("application/json")
     tag("Export")
@@ -687,7 +687,7 @@ defmodule SchemaWeb.SchemaController do
   """
   swagger_path :export_classes do
     get("/export/classes")
-    summary("Export Classes")
+    summary("Export classes")
     description("Get OCSF schema classes.")
     produces("application/json")
     tag("Export")
@@ -724,7 +724,7 @@ defmodule SchemaWeb.SchemaController do
   """
   swagger_path :export_objects do
     get("/export/objects")
-    summary("Export Objects")
+    summary("Export objects")
     description("Get OCSF schema objects.")
     produces("application/json")
     tag("Export")
@@ -842,8 +842,63 @@ defmodule SchemaWeb.SchemaController do
   # --------------------------
 
   @doc """
-  Returns a base event sample.
+  Returns randomly generated event sample data for the base event class.
+  get /sample/base_event
+
+  Example usage:
+    curl https://schema.ocsf.io/sample/base_event
+
+    Success-Response:
+    HTTP/2 200 OK
+    {
+      "_time": 1661209269302764,
+      "activity": "Unknown",
+      "activity_id": 0,
+      "category_name": "brutal",
+      "category_uid": -1,
+      "class_name": "excellent",
+      "class_uid": -1,
+      "count": 54,
+      "duration": 93,
+      "end_time": 1661209269302830,
+      "message": "fm grew inserted",
+      "metadata": {
+        "_uid": "4f72ebf0-226e-11ed-8bb5-acde48001122",
+        "correlation_uid": "4f730270-226e-11ed-bbb9-acde48001122",
+        "logged_time": 1661209269303772,
+        "modified_time": 1661209269303776,
+        "processed_time": 1661209269303778,
+        "sequence": 60,
+        "version": "0.17.1"
+      },
+      "product": {
+        "lang": "en",
+        "name": "latitude replace trend",
+        "uid": "4f730ffe-226e-11ed-9f2b-acde48001122",
+        "version": "0.17.1"
+      },
+      "ref_event_name": "cc chief include",
+      "ref_event_uid": "4f7318e6-226e-11ed-a87b-acde48001122",
+      "ref_time": "2022-08-22T23:01:09.304347Z",
+      "severity": "Unknown",
+      "severity_id": 0,
+      "status": "Failure",
+      "status_detail": "tutorial sensors offerings",
+      "status_id": 2,
+      "timezone_offset": 8,
+      "type_name": "protecting flowers accounts",
+      "type_uid": -100
+    }
   """
+  swagger_path :sample_event do
+    get("/sample/base_event")
+    summary("Base event sample data")
+    description("This API returns randomly generated sample data for the base event class.")
+    produces("application/json")
+    tag("Sample Data")
+    response(200, "Success")
+  end
+
   @spec sample_event(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def sample_event(conn, _params) do
     send_json_resp(conn, Schema.event(:base_event))
@@ -852,7 +907,7 @@ defmodule SchemaWeb.SchemaController do
   # {
   #   @api {get} /sample/classes/:name Classs
   #   @apiName Class Sample
-  #   @apiDescription This API returns sample data for the given event class name.
+  #   @apiDescription This API returns randomly generated sample data for the given event class name.
   #   @apiGroup Sample
   #   @apiVersion 1.0.0
   #   @apiPermission none
@@ -862,8 +917,33 @@ defmodule SchemaWeb.SchemaController do
   #   @apiSuccess {JSON} The randomly generated sample data
   # }
   @doc """
-  Returns an event sample for the given name.
+  Returns randomly generated event sample data for the given name.
+  get /sample/classes/:name
+  get /sample/classes/:extention/:name
+
+  Example usage:
+    curl https://schema.ocsf.io/sample/classes/network_activity
+
+    Success-Response:
+    HTTP/2 200 OK
+    {...}
+    
   """
+  swagger_path :sample_class do
+    get("/sample/classes/{name}")
+    summary("Event sample data")
+    description("This API returns randomly generated sample data for the given event class name. The class name may contain an extension name. For example, \"dev/cpu_usage\".")
+    produces("application/json")
+    tag("Sample Data")
+
+    parameters do
+      name(:path, :string, "Class name", required: true)
+    end
+
+    response(200, "Success")
+    response(404, "Event class <code>name</code> not found")
+  end
+
   @spec sample_class(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def sample_class(conn, %{"id" => id} = options) do
     extension = options["extension"]
@@ -872,7 +952,7 @@ defmodule SchemaWeb.SchemaController do
     try do
       case Schema.class(extension, id) do
         nil ->
-          send_json_resp(conn, 404, %{error: "Class not found: #{id}"})
+          send_json_resp(conn, 404, %{error: "Event class #{id} not found"})
 
         class ->
           event =
@@ -897,18 +977,34 @@ defmodule SchemaWeb.SchemaController do
     end
   end
 
-  # {
-  # @api {get} /sample/objects/:name Object
-  # @apiName Object Sample
-  # @apiGroup Sample
-  # @apiVersion 1.0.0
-  # @apiPermission none
-  # @apiParam {String} name Object name
-  # @apiSuccess {JSON} json The randomly generated sample data
-  # }
   @doc """
-  Returns an object sample data for the given name.
+  Returns randomly generated object sample data for the given name.
+  get /sample/objects/:name
+  get /sample/objects/:extention/:name
+
+  Example usage:
+    curl https://schema.ocsf.io/sample/objects/network_activity
+
+    Success-Response:
+    HTTP/2 200 OK
+    {...}
+    
   """
+  swagger_path :sample_object do
+    get("/sample/objects/{name}")
+    summary("Object sample data")
+    description("This API returns randomly generated sample data for the given object name. The object name may contain an extension name. For example, \"dev/os_service\".")
+    produces("application/json")
+    tag("Sample Data")
+
+    parameters do
+      name(:path, :string, "Object name", required: true)
+    end
+
+    response(200, "Success")
+    response(404, "Object <code>name</code> not found")
+  end
+
   @spec sample_object(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def sample_object(conn, %{"id" => id} = options) do
     extension = options["extension"]
@@ -916,7 +1012,7 @@ defmodule SchemaWeb.SchemaController do
     try do
       case Schema.object(extension, id) do
         nil ->
-          send_json_resp(conn, 404, %{error: "Object not found: #{id}"})
+          send_json_resp(conn, 404, %{error: "Object #{id} not found"})
 
         data ->
           send_json_resp(conn, Schema.generate(data))
