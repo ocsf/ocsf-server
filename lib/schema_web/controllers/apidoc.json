@@ -1,8 +1,0 @@
-{
-  "name": "schema-api",
-  "version": "1.0.0",
-  "description": "The Open Cybersecurity Schema Framework (OCSF) server API allows to access the JSON schema definitions and to validate and translate events.",
-  "title": "OCSF Schema API",
-  "url" : "https://schema.ocsf.io",
-  "json_body": true
-}

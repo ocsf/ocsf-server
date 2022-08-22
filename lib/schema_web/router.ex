@@ -36,9 +36,7 @@ defmodule SchemaWeb.Router do
     get "/classes/:extension/:id", PageController, :classes
 
     get "/base_event", PageController, :base_event
-
     get "/dictionary", PageController, :dictionary
-    get "/dictionary/:extension", PageController, :dictionary
 
     get "/objects", PageController, :objects
     get "/objects/:id", PageController, :objects
@@ -57,33 +55,24 @@ defmodule SchemaWeb.Router do
     get "/extensions", SchemaController, :extensions
 
     get "/categories", SchemaController, :categories
-    get "/categories/:id", SchemaController, :categories
-    get "/categories/:extension/:id", SchemaController, :categories
+    get "/categories/:id", SchemaController, :category
+    get "/categories/:extension/:id", SchemaController, :category
 
     get "/classes", SchemaController, :classes
-    get "/classes/:id", SchemaController, :classes
-    get "/classes/:extension/:id", SchemaController, :classes
+    get "/classes/:id", SchemaController, :class
+    get "/classes/:extension/:id", SchemaController, :class
 
     get "/base_event", SchemaController, :base_event
-
     get "/dictionary", SchemaController, :dictionary
-    get "/dictionary/:extension", SchemaController, :dictionary
 
     get "/objects", SchemaController, :objects
-    get "/objects/:id", SchemaController, :objects
-    get "/objects/:extension/:id", SchemaController, :objects
+    get "/objects/:id", SchemaController, :object
+    get "/objects/:extension/:id", SchemaController, :object
 
     get "/data_types", SchemaController, :data_types
 
-    get "/schema", SchemaController, :schema
-    get "/schema/:extension", SchemaController, :schema
-
     post "/translate", SchemaController, :translate
     post "/validate", SchemaController, :validate
-
-    get "/export/classes", SchemaController, :export_classes
-    get "/export/objects", SchemaController, :export_objects
-    get "/export/schema", SchemaController, :export_schema
   end
 
   scope "/export", SchemaWeb do
@@ -114,10 +103,9 @@ defmodule SchemaWeb.Router do
 
   def swagger_info do
     %{
-      basePath: "/api",
       info: %{
-        title: "OCSF Schema API",
-        description: "The OCSF Schema API documentation",
+        title: "The OCSF Schema API",
+        description: "The Open Cybersecurity Schema Framework (OCSF) server API allows to access the JSON schema definitions and to validate and translate events.",
         license: %{
           name: "Apache 2.0",
           url: "http://www.apache.org/licenses/LICENSE-2.0.html"

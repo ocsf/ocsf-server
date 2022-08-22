@@ -39,6 +39,63 @@ defmodule SchemaWeb.SchemaController do
           example(%{
             version: "1.0.0"
           })
+        end,
+        
+      ClassDesc:
+        swagger_schema do
+          title("Class Descriptor")
+          description("Schema class descriptor.")
+
+          properties do
+            name(:string, "Class name", required: true)
+            caption(:string, "Class caption", required: true)
+            description(:string, "Class description", required: true)
+            category(:string, "Class category", required: true)
+            category_name(:string, "Class category caption", required: true)
+            profiles(:array, "Class profiles", items: %PhoenixSwagger.Schema{type: :string})
+            uid(:integer, "Class unique indentifier", required: true)
+          end
+
+          example([%{
+            caption: "DHCP Activity",
+            category: "network",
+            category_name: "Network Activity",
+            description: "DHCP Activity events report MAC to IP assignment via DHCP.",
+            name: "dhcp_activity",
+            profiles: [
+              "cloud",
+              "host",
+              "user",
+              "reputation",
+              "reputation",
+              "file_security"
+            ],
+            uid: 4004
+          }])
+        end,
+        
+      ObjectDesc:
+        swagger_schema do
+          title("Object Descriptor")
+          description("Schema object descriptor.")
+
+          properties do
+            name(:string, "Object name", required: true)
+            caption(:string, "Object caption", required: true)
+            description(:string, "Object description", required: true)
+            observable(:integer, "Observable ID")
+            profiles(:array, "Object profiles", items: %PhoenixSwagger.Schema{type: :string})
+          end
+
+          example([%{
+            caption: "File",
+            description: "The file object describes files, folders, links and mounts, including the reputation information, if applicable.",
+            name: "file",
+            observable:	24,
+            profiles: [
+              "file_security"
+            ]
+          }])
         end
     }
   end
@@ -57,10 +114,11 @@ defmodule SchemaWeb.SchemaController do
     }
   """
   swagger_path :version do
-    get("/version")
-    summary("Version")
-    produces("application/json")
+    get("/api/version")
+    summary("Schema Version")
     description("Get OCSF schema version.")
+    produces("application/json")
+    tag("API")
     response(200, "Success", :Version)
   end
 
@@ -92,10 +150,11 @@ defmodule SchemaWeb.SchemaController do
     }
   """
   swagger_path :data_types do
-    get("/data_types")
-    summary("Data Types")
-    produces("application/json")
+    get("/api/data_types")
+    summary("Schema Data Types")
     description("Get OCSF schema data types.")
+    produces("application/json")
+    tag("API")
     response(200, "Success")
   end
 
@@ -123,10 +182,11 @@ defmodule SchemaWeb.SchemaController do
     }
   """
   swagger_path :extensions do
-    get("/extensions")
+    get("/api/extensions")
     summary("Schema Extensions")
-    produces("application/json")
     description("Get OCSF schema extensions.")
+    produces("application/json")
+    tag("API")
     response(200, "Success")
   end
 
@@ -163,16 +223,62 @@ defmodule SchemaWeb.SchemaController do
     }
   """
   swagger_path :profiles do
-    get("/profiles")
+    get("/api/profiles")
     summary("Schema Profiles")
-    produces("application/json")
     description("Get OCSF schema profiles.")
+    produces("application/json")
+    tag("API")
     response(200, "Success")
   end
 
   @spec profiles(Plug.Conn.t(), any) :: Plug.Conn.t()
   def profiles(conn, _params) do
     send_json_resp(conn, Schema.profiles())
+  end
+
+  @doc """
+  Get the schema categories.
+  get /api/categories
+
+  Example usage:
+    curl https://schema.ocsf.io/api/categories
+
+    Success-Response:
+    HTTP/2 200 OK
+    {
+      "caption": "Database Activity",
+      "classes": {
+        "database_lifecycle": {
+          "caption": "Database Lifecycle",
+          "description": "Database Lifecycle events report start and stop of a database service.",
+          "name": "database_lifecycle",
+          "uid": 7000
+        }
+      },
+      "description": "Database Activity events.",
+      "uid": 7
+    }
+  """
+  swagger_path :categories do
+    get("/api/categories")
+    summary("Categories")
+    description("Get OCSF schema categories.")
+    produces("application/json")
+    tag("API")
+    response(200, "Success")
+  end
+
+  @doc """
+    Returns the list of categories.
+  """
+  @spec categories(Plug.Conn.t(), map) :: Plug.Conn.t()
+  def categories(conn, params) do
+    send_json_resp(conn, categories(params))
+  end
+
+  @spec categories(map()) :: map()
+  def categories(params) do
+    parse_options(extensions(params)) |> Schema.categories()
   end
 
   @doc """
@@ -198,11 +304,12 @@ defmodule SchemaWeb.SchemaController do
       "uid": 7
     }
   """
-  swagger_path :categories do
-    get("/categories/{name}")
+  swagger_path :category do
+    get("/api/categories/{name}")
     summary("Category Classes")
+    description("Get OCSF schema classes defined in the named category. The category name may contain an extension name. For example, \"dev/policy\".")
     produces("application/json")
-    description("Get OCSF schema classes defined in the named category.")
+    tag("API")
 
     parameters do
       name(:path, :string, "Category name", required: true)
@@ -212,8 +319,8 @@ defmodule SchemaWeb.SchemaController do
     response(404, "Category <code>name</code> not found")
   end
 
-  @spec categories(Plug.Conn.t(), map) :: Plug.Conn.t()
-  def categories(conn, %{"id" => id} = params) do
+  @spec category(Plug.Conn.t(), map) :: Plug.Conn.t()
+  def category(conn, %{"id" => id} = params) do
     try do
       case category_classes(params) do
         nil ->
@@ -229,52 +336,6 @@ defmodule SchemaWeb.SchemaController do
     end
   end
 
-  # {
-  # @api {get} /api/categories Get Categories
-  # @apiName Categories
-  # @apiGroup Schema
-  # @apiVersion 1.0.0
-  # @apiPermission none
-  # }
-  @doc """
-  Get the schema categories.
-  get /api/categories
-
-  Example usage:
-    curl https://schema.ocsf.io/api/categories
-
-    Success-Response:
-    HTTP/2 200 OK
-    {
-      "caption": "Database Activity",
-      "classes": {
-        "database_lifecycle": {
-          "caption": "Database Lifecycle",
-          "description": "Database Lifecycle events report start and stop of a database service.",
-          "name": "database_lifecycle",
-          "uid": 7000
-        }
-      },
-      "description": "Database Activity events.",
-      "uid": 7
-    }
-  """
-  #  swagger_path :categories do
-  #    get("/categories")
-  #    summary("Categories")
-  #    produces("application/json")
-  #    description("Get OCSF schema categories.")
-  #    response(200, "Success")
-  #  end
-  def categories(conn, params) do
-    send_json_resp(conn, categories(params))
-  end
-
-  @spec categories(map()) :: map()
-  def categories(params) do
-    parse_options(extensions(params)) |> Schema.categories()
-  end
-
   @spec category_classes(map()) :: map() | nil
   def category_classes(params) do
     name = params["id"]
@@ -284,16 +345,32 @@ defmodule SchemaWeb.SchemaController do
     Schema.category(extensions, extension, name)
   end
 
-  # {
-  # @api {get} /api/dictionary Get Dictionary
-  # @apiName Dictionary
-  # @apiGroup Schema
-  # @apiVersion 1.0.0
-  # @apiPermission none
-  # }
   @doc """
-  Renders the attribute dictionary.
+  Get the schema dictionary.
+  get /api/dictionary
+
+  Example usage:
+    curl https://schema.ocsf.io/api/dictionary
+
+    Success-Response:
+    HTTP/2 200 OK
+    {
+      "caption": "Attribute Dictionary",
+      "description": "The Attribute Dictionary defines attributes and includes references to the events and objects in which they are used.",
+      "name": "dictionary",
+      "types": {...},
+      "attributes": [...]
+    }
   """
+  swagger_path :dictionary do
+    get("/api/dictionary")
+    summary("Dictionary")
+    description("Get OCSF schema dictionary.")
+    produces("application/json")
+    tag("API")
+    response(200, "Success")
+  end
+
   @spec dictionary(Plug.Conn.t(), any) :: Plug.Conn.t()
   def dictionary(conn, params) do
     data = dictionary(params) |> remove_links(:attributes)
@@ -309,16 +386,31 @@ defmodule SchemaWeb.SchemaController do
     parse_options(extensions(params)) |> Schema.dictionary()
   end
 
-  # {
-  # @api {get} /api/base_event Get Base Event
-  # @apiName Base Event
-  # @apiGroup Schema
-  # @apiVersion 1.0.0
-  # @apiPermission none
-  # }
   @doc """
-  Renders the base event attributes.
+  Get the schema base event class.
+  get /api/base_event
+
+  Example usage:
+    curl https://schema.ocsf.io/api/base_event
+
+    Success-Response:
+    HTTP/2 200 OK
+    {
+      "caption": "Base Event",
+      "description": "The base event is a generic concrete event and it also defines a set of attributes available in most event classes. As a generic event that does not belong to any event category, it could be used to log events that are not otherwise defined by the schema.",
+      "name": "base_event",
+      "attributes": [...]
+    }
   """
+  swagger_path :base_event do
+    get("/api/base_event")
+    summary("Schema Base Event")
+    description("Get OCSF schema base event class.")
+    produces("application/json")
+    tag("API")
+    response(200, "Success")
+  end
+
   @spec base_event(Plug.Conn.t(), any) :: Plug.Conn.t()
   def base_event(conn, params) do
     base = Schema.class(:base_event) |> add_objects(params)
@@ -326,25 +418,60 @@ defmodule SchemaWeb.SchemaController do
     send_json_resp(conn, base)
   end
 
-  # {
-  # @api {get} /api/classes/:type Get Class
-  # @apiName Class
-  # @apiGroup Schema
-  # @apiVersion 1.0.0
-  # @apiPermission none
-  # @apiParam {String} type Event class type name, for example: `mem_usage`
-  # }
   @doc """
-  Renders  an event class.
+  Get an event class by name.
+  get /api/classes/:name
+  get /api/classes/:extention/:name
+
+  Example usage:
+    curl https://schema.ocsf.io/api/classes/network_activity
+
+    Success-Response:
+    HTTP/2 200 OK
+    {
+      "name": "network_activity",
+      "caption": "Network Activity",
+      "description": "Network Activity events report network connection and traffic activity.",
+      "category": "network",
+      "category_name": "Network Activity",
+      "profiles":
+        "cloud",
+        "domain_security",
+        "host",
+        "malware",
+        "user",
+        "reputation",
+        "domain_security",
+        "reputation",
+        "file_security"
+      ],
+      "uid": 4001,
+      "attributes": [...]
+    }
   """
-  @spec classes(Plug.Conn.t(), any) :: Plug.Conn.t()
-  def classes(conn, %{"id" => id} = params) do
+  swagger_path :class do
+    get("/api/classes/{name}")
+    summary("Event Class")
+    description("Get OCSF schema class by name. The class name may contain an extension name. For example, \"dev/cpu_usage\".")
+    produces("application/json")
+    tag("API")
+
+    parameters do
+      name(:path, :string, "Class name", required: true)
+    end
+
+    response(200, "Success")
+    response(404, "Event class <code>name</code> not found")
+  end
+
+  @spec class(Plug.Conn.t(), map()) :: Plug.Conn.t()
+  def class(conn, %{"id" => id} = params) do
     extension = extension(params)
 
     try do
       case Schema.class(extension, id, parse_options(profiles(params))) do
         nil ->
-          send_json_resp(conn, 404, %{error: "Not Found: #{id}"})
+          send_json_resp(conn, 404, %{error: "Event class #{id} not found"})
 
         data ->
           class = Schema.delete_see_also(data) |> add_objects(params)
@@ -357,13 +484,27 @@ defmodule SchemaWeb.SchemaController do
     end
   end
 
-  # {
-  # @api {get} /api/classes Get Classes
-  # @apiName Class
-  # @apiGroup Schema
-  # @apiVersion 1.0.0
-  # @apiPermission none
-  # }
+  @doc """
+  Get the schema classes.
+  get /api/classes
+
+  Example usage:
+    curl https://schema.ocsf.io/api/classes
+
+    Success-Response:
+    HTTP/2 200 OK
+    [..]
+  """
+  swagger_path :classes do
+    get("/api/classes")
+    summary("Classes")
+    description("Get OCSF schema classes.")
+    produces("application/json")
+    tag("API")
+    response(200, "Success", :ClassDesc)
+  end
+
+  @spec classes(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def classes(conn, params) do
     classes =
       Enum.map(classes(params), fn {_name, class} ->
@@ -373,6 +514,9 @@ defmodule SchemaWeb.SchemaController do
     send_json_resp(conn, classes)
   end
 
+  @doc """
+    Returns the list of classes.
+  """
   @spec classes(map) :: map
   def classes(params) do
     extensions = parse_options(extensions(params))
@@ -386,23 +530,48 @@ defmodule SchemaWeb.SchemaController do
     end
   end
 
-  # {
-  # @api {get} /api/objects/:type Get Object
-  # @apiName Object
-  # @apiGroup Schema
-  # @apiVersion 1.0.0
-  # @apiPermission none
-  # @apiParam {String} type Object type name, for example: `container`
-  # }
   @doc """
-  Renders objects.
+  Get an object by name.
+  get /api/objects/:name
+  get /api/objects/:extention/:name
+
+  Example usage:
+    curl https://schema.ocsf.io/api/objects/file
+
+    Success-Response:
+    HTTP/2 200 OK
+    {
+      "caption": "File",
+      "description": "The file object describes files, folders, links and mounts, including the reputation information, if applicable.",
+      "name": "file",
+      "observable": 24,
+      "profiles": [
+        "file_security"
+      ],
+      "attributes": [...]
+    }
   """
-  @spec objects(Plug.Conn.t(), map) :: Plug.Conn.t()
-  def objects(conn, %{"id" => id} = params) do
+  swagger_path :object do
+    get("/api/objects/{name}")
+    summary("Object")
+    description("Get OCSF schema object by name. The object name may contain an extension name. For example, \"dev/os_service\".")
+    produces("application/json")
+    tag("API")
+
+    parameters do
+      name(:path, :string, "Object name", required: true)
+    end
+
+    response(200, "Success")
+    response(404, "Object <code>name</code> not found")
+  end
+
+  @spec object(Plug.Conn.t(), map) :: Plug.Conn.t()
+  def object(conn, %{"id" => id} = params) do
     try do
       case object(params) do
         nil ->
-          send_json_resp(conn, 404, %{error: "Not Found: #{id}"})
+          send_json_resp(conn, 404, %{error: "Object #{id} not found"})
 
         data ->
           send_json_resp(conn, add_objects(data, params))
@@ -414,13 +583,27 @@ defmodule SchemaWeb.SchemaController do
     end
   end
 
-  # {
-  # @api {get} /api/objects Get Objects
-  # @apiName Objects
-  # @apiGroup Schema
-  # @apiVersion 1.0.0
-  # @apiPermission none
-  # }
+  @doc """
+  Get the schema objects.
+  get /api/objects
+
+  Example usage:
+    curl https://schema.ocsf.io/api/objects
+
+    Success-Response:
+    HTTP/2 200 OK
+    [..]
+  """
+  swagger_path :objects do
+    get("/api/objects")
+    summary("Objects")
+    description("Get OCSF schema objects.")
+    produces("application/json")
+    tag("API")
+    response(200, "Success", :ObjectDesc)
+  end
+
+  @spec objects(Plug.Conn.t(), map) :: Plug.Conn.t()
   def objects(conn, params) do
     objects =
       Enum.map(objects(params), fn {_name, map} ->
@@ -448,12 +631,6 @@ defmodule SchemaWeb.SchemaController do
   # Schema Export API's
   # -------------------
 
-  #
-  #   @apiSuccess {Object} classes The OCSF schema classes.
-  #   @apiSuccess {Object} objects The OCSF schema obejcts.
-  #   @apiSuccess {Object} types The OCSF schema data types.
-  #   @apiSuccess {String} version The OCSF schema version.
-  #  
   @doc """
   Export the OCSF schema definitions.
   get /export/schema
@@ -473,8 +650,9 @@ defmodule SchemaWeb.SchemaController do
   swagger_path :export_schema do
     get("/export/schema")
     summary("Export Schema")
-    produces("application/json")
     description("Get OCSF schema defintions, including data types, objects, and classes.")
+    produces("application/json")
+    tag("Export")
 
     parameters do
       extensions(:query, :array, "Related extensions to include in response",
@@ -510,8 +688,9 @@ defmodule SchemaWeb.SchemaController do
   swagger_path :export_classes do
     get("/export/classes")
     summary("Export Classes")
-    produces("application/json")
     description("Get OCSF schema classes.")
+    produces("application/json")
+    tag("Export")
 
     parameters do
       extensions(:query, :array, "Related extensions to include in response",
@@ -546,8 +725,9 @@ defmodule SchemaWeb.SchemaController do
   swagger_path :export_objects do
     get("/export/objects")
     summary("Export Objects")
-    produces("application/json")
     description("Get OCSF schema objects.")
+    produces("application/json")
+    tag("Export")
 
     parameters do
       extensions(:query, :array, "Related extensions to include in response",
