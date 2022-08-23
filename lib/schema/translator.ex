@@ -50,7 +50,7 @@ defmodule Schema.Translator do
           Map.put(acc, key, value)
 
         attribute ->
-          {name, text} = translate_attribute(attribute[:name], key, attribute, value, options)
+          {name, text} = translate_attribute(attribute[:type], key, attribute, value, options)
           Map.put(acc, name, text)
       end
     end)
@@ -128,9 +128,9 @@ defmodule Schema.Translator do
       3 ->
         {name,
          %{
-           "_name" => to_text(attribute[:caption], options),
-           "_type" => attribute[:object_type] || attribute[:type],
-           "_value" => value
+           "name" => to_text(attribute[:caption], options),
+           "type" => attribute[:object_type] || attribute[:type],
+           "value" => value
          }}
 
       _ ->
@@ -151,10 +151,10 @@ defmodule Schema.Translator do
       3 ->
         {name,
          %{
-           "_name" => to_text(attribute[:caption], options),
-           "_type" => attribute[:object_type] || attribute[:type],
-           "_value" => value,
-           "_enum" => translated
+           "name" => to_text(attribute[:caption], options),
+           "type" => attribute[:object_type] || attribute[:type],
+           "value" => value,
+           "caption" => translated
          }}
 
       _ ->

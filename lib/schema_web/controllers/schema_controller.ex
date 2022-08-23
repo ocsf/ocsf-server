@@ -102,16 +102,6 @@ defmodule SchemaWeb.SchemaController do
 
   @doc """
   Get the OCSF schema version.
-  get /api/version
-
-  Example usage:
-    curl https://schema.ocsf.io/api/version
-
-    Success-Response:
-    HTTP/2 200 OK
-    {
-      "version": "0.16.0"
-    }
   """
   swagger_path :version do
     get("/api/version")
@@ -130,31 +120,13 @@ defmodule SchemaWeb.SchemaController do
 
   @doc """
   Get the schema data types.
-  get /api/data_types
-
-  Example usage:
-    curl https://schema.ocsf.io/api/data_types
-
-    Success-Response:
-    HTTP/2 200 OK
-    {
-      "boolean_t": {
-        "caption": "Boolean",
-        "description": "Boolean value. One of <code>true</code> or <code>false</code>.",
-        "values": [
-          false,
-          true
-        ]
-      },
-      ...
-    }
   """
   swagger_path :data_types do
     get("/api/data_types")
     summary("Data types")
     description("Get OCSF schema data types.")
     produces("application/json")
-    tag("Types and Objects")
+    tag("Objects and Types")
     response(200, "Success")
   end
 
@@ -165,21 +137,6 @@ defmodule SchemaWeb.SchemaController do
 
   @doc """
   Get the schema extensions.
-  get /api/extensions
-
-  Example usage:
-    curl https://schema.ocsf.io/api/extensions
-
-    Success-Response:
-    HTTP/2 200 OK
-    {
-      "dev": {
-        "caption": "Development",
-        "name": "dev",
-        "uid": 999,
-        "version": "0.0.0"
-      }
-    }
   """
   swagger_path :extensions do
     get("/api/extensions")
@@ -203,24 +160,6 @@ defmodule SchemaWeb.SchemaController do
 
   @doc """
   Get the schema profiles.
-  get /api/profiles
-
-  Example usage:
-    curl https://schema.ocsf.io/api/profiles
-
-    Success-Response:
-    HTTP/2 200 OK
-    {
-      "cloud": {
-        "caption": "Cloud",
-        "attributes": {
-          "cloud": {
-            "requirement": "required"
-          }
-        }
-      },
-      ...
-    }
   """
   swagger_path :profiles do
     get("/api/profiles")
@@ -238,26 +177,6 @@ defmodule SchemaWeb.SchemaController do
 
   @doc """
   Get the schema categories.
-  get /api/categories
-
-  Example usage:
-    curl https://schema.ocsf.io/api/categories
-
-    Success-Response:
-    HTTP/2 200 OK
-    {
-      "caption": "Database Activity",
-      "classes": {
-        "database_lifecycle": {
-          "caption": "Database Lifecycle",
-          "description": "Database Lifecycle events report start and stop of a database service.",
-          "name": "database_lifecycle",
-          "uid": 7000
-        }
-      },
-      "description": "Database Activity events.",
-      "uid": 7
-    }
   """
   swagger_path :categories do
     get("/api/categories")
@@ -283,26 +202,6 @@ defmodule SchemaWeb.SchemaController do
 
   @doc """
   Get the classes defined in a given category.
-  get /api/categories/:name
-
-  Example usage:
-    curl https://schema.ocsf.io/api/categories/database
-
-    Success-Response:
-    HTTP/2 200 OK
-    {
-      "caption": "Database Activity",
-      "classes": {
-        "database_lifecycle": {
-          "caption": "Database Lifecycle",
-          "description": "Database Lifecycle events report start and stop of a database service.",
-          "name": "database_lifecycle",
-          "uid": 7000
-        }
-      },
-      "description": "Database Activity events.",
-      "uid": 7
-    }
   """
   swagger_path :category do
     get("/api/categories/{name}")
@@ -347,20 +246,6 @@ defmodule SchemaWeb.SchemaController do
 
   @doc """
   Get the schema dictionary.
-  get /api/dictionary
-
-  Example usage:
-    curl https://schema.ocsf.io/api/dictionary
-
-    Success-Response:
-    HTTP/2 200 OK
-    {
-      "caption": "Attribute Dictionary",
-      "description": "The Attribute Dictionary defines attributes and includes references to the events and objects in which they are used.",
-      "name": "dictionary",
-      "types": {...},
-      "attributes": [...]
-    }
   """
   swagger_path :dictionary do
     get("/api/dictionary")
@@ -388,19 +273,6 @@ defmodule SchemaWeb.SchemaController do
 
   @doc """
   Get the schema base event class.
-  get /api/base_event
-
-  Example usage:
-    curl https://schema.ocsf.io/api/base_event
-
-    Success-Response:
-    HTTP/2 200 OK
-    {
-      "caption": "Base Event",
-      "description": "The base event is a generic concrete event and it also defines a set of attributes available in most event classes. As a generic event that does not belong to any event category, it could be used to log events that are not otherwise defined by the schema.",
-      "name": "base_event",
-      "attributes": [...]
-    }
   """
   swagger_path :base_event do
     get("/api/base_event")
@@ -421,33 +293,6 @@ defmodule SchemaWeb.SchemaController do
   @doc """
   Get an event class by name.
   get /api/classes/:name
-  get /api/classes/:extention/:name
-
-  Example usage:
-    curl https://schema.ocsf.io/api/classes/network_activity
-
-    Success-Response:
-    HTTP/2 200 OK
-    {
-      "name": "network_activity",
-      "caption": "Network Activity",
-      "description": "Network Activity events report network connection and traffic activity.",
-      "category": "network",
-      "category_name": "Network Activity",
-      "profiles":
-        "cloud",
-        "domain_security",
-        "host",
-        "malware",
-        "user",
-        "reputation",
-        "domain_security",
-        "reputation",
-        "file_security"
-      ],
-      "uid": 4001,
-      "attributes": [...]
-    }
   """
   swagger_path :class do
     get("/api/classes/{name}")
@@ -486,14 +331,6 @@ defmodule SchemaWeb.SchemaController do
 
   @doc """
   Get the schema classes.
-  get /api/classes
-
-  Example usage:
-    curl https://schema.ocsf.io/api/classes
-
-    Success-Response:
-    HTTP/2 200 OK
-    [..]
   """
   swagger_path :classes do
     get("/api/classes")
@@ -534,29 +371,13 @@ defmodule SchemaWeb.SchemaController do
   Get an object by name.
   get /api/objects/:name
   get /api/objects/:extention/:name
-
-  Example usage:
-    curl https://schema.ocsf.io/api/objects/file
-
-    Success-Response:
-    HTTP/2 200 OK
-    {
-      "caption": "File",
-      "description": "The file object describes files, folders, links and mounts, including the reputation information, if applicable.",
-      "name": "file",
-      "observable": 24,
-      "profiles": [
-        "file_security"
-      ],
-      "attributes": [...]
-    }
   """
   swagger_path :object do
     get("/api/objects/{name}")
     summary("Object")
     description("Get OCSF schema object by name. The object name may contain an extension name. For example, \"dev/os_service\".")
     produces("application/json")
-    tag("Types and Objects")
+    tag("Objects and Types")
 
     parameters do
       name(:path, :string, "Object name", required: true)
@@ -585,21 +406,13 @@ defmodule SchemaWeb.SchemaController do
 
   @doc """
   Get the schema objects.
-  get /api/objects
-
-  Example usage:
-    curl https://schema.ocsf.io/api/objects
-
-    Success-Response:
-    HTTP/2 200 OK
-    [..]
   """
   swagger_path :objects do
     get("/api/objects")
     summary("List objects")
     description("Get OCSF schema objects.")
     produces("application/json")
-    tag("Types and Objects")
+    tag("Objects and Types")
     response(200, "Success", :ObjectDesc)
   end
 
@@ -633,26 +446,13 @@ defmodule SchemaWeb.SchemaController do
 
   @doc """
   Export the OCSF schema definitions.
-  get /export/schema
-
-  Example usage:
-    curl https://schema.ocsf.io/export/schema
-
-    Success-Response:
-    HTTP/2 200 OK
-    {
-      "classes": {...},
-      "objects": {...},
-      "types"  : {...},
-      "version": "0.16.0"
-    }
   """
   swagger_path :export_schema do
     get("/export/schema")
     summary("Export schema")
     description("Get OCSF schema defintions, including data types, objects, and classes.")
     produces("application/json")
-    tag("Export")
+    tag("Schema Export")
 
     parameters do
       extensions(:query, :array, "Related extensions to include in response",
@@ -674,23 +474,13 @@ defmodule SchemaWeb.SchemaController do
 
   @doc """
   Export the OCSF schema classes.
-  get /export/classes
-
-  Example usage:
-    curl https://schema.ocsf.io/export/classes
-
-    Success-Response:
-    HTTP/2 200 OK
-    {
-      ...
-    }
   """
   swagger_path :export_classes do
     get("/export/classes")
     summary("Export classes")
     description("Get OCSF schema classes.")
     produces("application/json")
-    tag("Export")
+    tag("Schema Export")
 
     parameters do
       extensions(:query, :array, "Related extensions to include in response",
@@ -711,23 +501,13 @@ defmodule SchemaWeb.SchemaController do
 
   @doc """
   Export the OCSF schema objects.
-  get /export/objects
-
-  Example usage:
-    curl https://schema.ocsf.io/export/objects
-
-    Success-Response:
-    HTTP/2 200 OK
-    {
-      ...
-    }
   """
   swagger_path :export_objects do
     get("/export/objects")
     summary("Export objects")
     description("Get OCSF schema objects.")
     produces("application/json")
-    tag("Export")
+    tag("Schema Export")
 
     parameters do
       extensions(:query, :array, "Related extensions to include in response",
@@ -750,32 +530,48 @@ defmodule SchemaWeb.SchemaController do
   # Validation and translation API's
   # ---------------------------------
 
-  # {
-  # @api {post} /api/translate?_mode=:mode Translate Event
-  # @apiName Translate
-  # @apiGroup Tools
-  # @apiVersion 1.0.0
-  # @apiPermission none
-  # @apiParam {Number=1,2,3} _mode  Controls how the attribute names and enumerated values are translated
-  # @apiParam {String} _spaces  Controls how the spaces in the translated attribute names are handled
-  # @apiParam {JSON} event  The event to be translated as a JSON object
-  #
-  # @apiParamExample {json} Request-Example:
-  #     {
-  #       "class_uid": 1002,
-  #       "activity_id": 1,
-  #       "severity_id": 1,
-  #       "message": "This is an important message"
-  #     }
-  #
-  # @apiSuccessExample {json} Success-Response:
-  #     {
-  #       "class_uid": "Entity Audit",
-  #       "message": "This is an important message",
-  #       "activity_id": "Created",
-  #       "severity_id": "Informational"
-  #     }
-  # }
+  @doc """
+  Translate event data. A single event is encoded as a JSON object and multiple events are encoded as JSON array of object.
+  """
+  swagger_path :translate do
+    post("/api/translate")
+    summary("Translate Event")
+    description("Translate event data.")
+    produces("application/json")
+    tag("Tools")
+
+    parameters do
+      _mode(:query, :number, 
+        """
+        Controls how attribute names and enumerated values are translated.<br/>
+        The format is _mode=[1|2|3]. The default mode is `1` -- translate enumerated values.
+
+        |Value|Description|Example|
+        |-----|-----------|-------|
+        |1|Translate only the enumerated values|Untranslated:<br/><code>{"class_uid": 1000}</code><br/><br/>Translated:<br/><code>{"class_uid": File Activity"}</code>|
+        |2|Translate enumerated values and attribute names|Untranslated:<br/><code>{"class_uid": 1000}</code><br/><br/>Translated:<br/><code>{"Class ID": File Activity"}</code>|
+        |3|Verbose translation|Untranslated:<br/><code>{"class_uid": 1000}</code><br/><br/>Translated:<br/><code>{"class_uid": {"caption": "File Activity","name": "Class ID","type": "integer_t","value": 1000}}</code>|
+        """)
+        
+      _spaces(:query, :string,
+        """
+        Controls how spaces in the translated attribute names are handled.<br/>
+        By default, the translated attribute names may contain spaces (for example, Event Time). You can remove the spaces or replace the spaces with another string. For example, if you want to forward to a database that does not support spaces.<br/>
+        The format is _spaces=[&lt;empty&gt;|string].
+
+        |Value|Description|Example|
+        |-----|-----------|-------|
+        |&lt;empty&gt;|The spaces in the translated names are removed.|Untranslated:<br/><code>{"class_uid": 1000}</code><br/><br/>Translated:<br/><code>{"ClassID": File Activity"}</code>|
+        |string|The spaces in the translated names are replaced with the given string.|For example, the string is an underscore (_).<br/>Untranslated:<br/><code>{"class_uid": 1000}</code><br/><br/>Translated:<br/><code>{"Class_ID": File Activity"}</code>|
+      """,
+      allowEmptyValue: true)
+      
+      data(:body, :object, "The event data to be translated", required: true)
+    end
+
+    response(200, "Success")
+  end
+
   @spec translate(Plug.Conn.t(), map) :: Plug.Conn.t()
   def translate(conn, data) do
     options = [spaces: data[@spaces], verbose: verbose(data[@verbose])]
@@ -801,29 +597,31 @@ defmodule SchemaWeb.SchemaController do
     end
   end
 
-  # {
-  # @api {post} /api/validate Validate Event
-  # @apiName Validate
-  # @apiGroup Tools
-  # @apiVersion 1.0.0
-  #
-  # @apiDescription The event or events to be translated.
-  # A single event is encoded as a JSON object and multiple events are encoded as JSON array of object.
-  #
-  # @apiParam {Object} event The event or events to be translated.
-  # A single event is encoded as a JSON object and multiple events are encoded as JSON array of object.
-  #
-  # @apiParamExample {json} Request-Example:
-  #    {
-  #      "id": 4711
-  #    }
-  #
-  # }
+  @doc """
+    Validate event data.
+    A single event is encoded as a JSON object and multiple events are encoded as JSON array of object.
+    post /api/validate
+  """
+  swagger_path :validate do
+    post("/api/validate")
+    summary("Validate Event")
+    description("Validate event data.")
+    produces("application/json")
+    tag("Tools")
+
+    parameters do
+      data(:body, :object, "The event data to be validated", required: true)
+    end
+
+    response(200, "Success")
+  end
+
   @spec validate(Plug.Conn.t(), map) :: Plug.Conn.t()
   def validate(conn, data) do
     case data["_json"] do
       nil ->
         # Validate a single events
+        Logger.info("#{inspect(data)}")
         send_json_resp(conn, Schema.Inspector.validate(data))
 
       list when is_list(list) ->
@@ -843,52 +641,6 @@ defmodule SchemaWeb.SchemaController do
 
   @doc """
   Returns randomly generated event sample data for the base event class.
-  get /sample/base_event
-
-  Example usage:
-    curl https://schema.ocsf.io/sample/base_event
-
-    Success-Response:
-    HTTP/2 200 OK
-    {
-      "_time": 1661209269302764,
-      "activity": "Unknown",
-      "activity_id": 0,
-      "category_name": "brutal",
-      "category_uid": -1,
-      "class_name": "excellent",
-      "class_uid": -1,
-      "count": 54,
-      "duration": 93,
-      "end_time": 1661209269302830,
-      "message": "fm grew inserted",
-      "metadata": {
-        "_uid": "4f72ebf0-226e-11ed-8bb5-acde48001122",
-        "correlation_uid": "4f730270-226e-11ed-bbb9-acde48001122",
-        "logged_time": 1661209269303772,
-        "modified_time": 1661209269303776,
-        "processed_time": 1661209269303778,
-        "sequence": 60,
-        "version": "0.17.1"
-      },
-      "product": {
-        "lang": "en",
-        "name": "latitude replace trend",
-        "uid": "4f730ffe-226e-11ed-9f2b-acde48001122",
-        "version": "0.17.1"
-      },
-      "ref_event_name": "cc chief include",
-      "ref_event_uid": "4f7318e6-226e-11ed-a87b-acde48001122",
-      "ref_time": "2022-08-22T23:01:09.304347Z",
-      "severity": "Unknown",
-      "severity_id": 0,
-      "status": "Failure",
-      "status_detail": "tutorial sensors offerings",
-      "status_id": 2,
-      "timezone_offset": 8,
-      "type_name": "protecting flowers accounts",
-      "type_uid": -100
-    }
   """
   swagger_path :sample_event do
     get("/sample/base_event")
@@ -904,30 +656,10 @@ defmodule SchemaWeb.SchemaController do
     send_json_resp(conn, Schema.event(:base_event))
   end
 
-  # {
-  #   @api {get} /sample/classes/:name Classs
-  #   @apiName Class Sample
-  #   @apiDescription This API returns randomly generated sample data for the given event class name.
-  #   @apiGroup Sample
-  #   @apiVersion 1.0.0
-  #   @apiPermission none
-  #   @apiParam {String} name Event class name
-  #   @apiQuery {Number=1,2,3} _mode  Controls how the attribute names and enumerated values are translated
-  #   @apiQuery {String} _spaces  Controls how the spaces in the translated attribute names are handled
-  #   @apiSuccess {JSON} The randomly generated sample data
-  # }
   @doc """
   Returns randomly generated event sample data for the given name.
   get /sample/classes/:name
   get /sample/classes/:extention/:name
-
-  Example usage:
-    curl https://schema.ocsf.io/sample/classes/network_activity
-
-    Success-Response:
-    HTTP/2 200 OK
-    {...}
-    
   """
   swagger_path :sample_class do
     get("/sample/classes/{name}")
@@ -981,14 +713,6 @@ defmodule SchemaWeb.SchemaController do
   Returns randomly generated object sample data for the given name.
   get /sample/objects/:name
   get /sample/objects/:extention/:name
-
-  Example usage:
-    curl https://schema.ocsf.io/sample/objects/network_activity
-
-    Success-Response:
-    HTTP/2 200 OK
-    {...}
-    
   """
   swagger_path :sample_object do
     get("/sample/objects/{name}")
@@ -1102,7 +826,7 @@ defmodule SchemaWeb.SchemaController do
     end
   end
 
-  defp verbose(_), do: 0
+  defp verbose(_), do: 1
 
   defp profiles(params), do: params["profiles"]
   defp extension(params), do: params["extension"]

@@ -262,8 +262,12 @@ defmodule Schema.Utils do
     apply_profiles(attributes, profiles, MapSet.size(profiles))
   end
 
-  def apply_profiles(attributes, profiles) do
+  def apply_profiles(attributes, profiles = %MapSet{}) do
     apply_profiles(attributes, profiles, MapSet.size(profiles))
+  end
+
+  def apply_profiles(attributes, _profiles) do
+    attributes
   end
 
   def apply_profiles(attributes, _profiles, 0) do
