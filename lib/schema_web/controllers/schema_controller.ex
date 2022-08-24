@@ -40,7 +40,6 @@ defmodule SchemaWeb.SchemaController do
             version: "1.0.0"
           })
         end,
-        
       ClassDesc:
         swagger_schema do
           title("Class Descriptor")
@@ -56,24 +55,25 @@ defmodule SchemaWeb.SchemaController do
             uid(:integer, "Class unique indentifier", required: true)
           end
 
-          example([%{
-            caption: "DHCP Activity",
-            category: "network",
-            category_name: "Network Activity",
-            description: "DHCP Activity events report MAC to IP assignment via DHCP.",
-            name: "dhcp_activity",
-            profiles: [
-              "cloud",
-              "host",
-              "user",
-              "reputation",
-              "reputation",
-              "file_security"
-            ],
-            uid: 4004
-          }])
+          example([
+            %{
+              caption: "DHCP Activity",
+              category: "network",
+              category_name: "Network Activity",
+              description: "DHCP Activity events report MAC to IP assignment via DHCP.",
+              name: "dhcp_activity",
+              profiles: [
+                "cloud",
+                "host",
+                "user",
+                "reputation",
+                "reputation",
+                "file_security"
+              ],
+              uid: 4004
+            }
+          ])
         end,
-        
       ObjectDesc:
         swagger_schema do
           title("Object Descriptor")
@@ -87,15 +87,18 @@ defmodule SchemaWeb.SchemaController do
             profiles(:array, "Object profiles", items: %PhoenixSwagger.Schema{type: :string})
           end
 
-          example([%{
-            caption: "File",
-            description: "The file object describes files, folders, links and mounts, including the reputation information, if applicable.",
-            name: "file",
-            observable:	24,
-            profiles: [
-              "file_security"
-            ]
-          }])
+          example([
+            %{
+              caption: "File",
+              description:
+                "The file object describes files, folders, links and mounts, including the reputation information, if applicable.",
+              name: "file",
+              observable: 24,
+              profiles: [
+                "file_security"
+              ]
+            }
+          ])
         end
     }
   end
@@ -184,6 +187,13 @@ defmodule SchemaWeb.SchemaController do
     description("Get OCSF schema categories.")
     produces("application/json")
     tag("Categories and Classes")
+
+    parameters do
+      extensions(:query, :array, "Related extensions to include in response",
+        items: [type: :string]
+      )
+    end
+
     response(200, "Success")
   end
 
@@ -206,12 +216,20 @@ defmodule SchemaWeb.SchemaController do
   swagger_path :category do
     get("/api/categories/{name}")
     summary("List category classes")
-    description("Get OCSF schema classes defined in the named category. The category name may contain an extension name. For example, \"dev/policy\".")
+
+    description(
+      "Get OCSF schema classes defined in the named category. The category name may contain an extension name. For example, \"dev/policy\"."
+    )
+
     produces("application/json")
     tag("Categories and Classes")
 
     parameters do
       name(:path, :string, "Category name", required: true)
+
+      extensions(:query, :array, "Related extensions to include in response",
+        items: [type: :string]
+      )
     end
 
     response(200, "Success")
@@ -253,6 +271,13 @@ defmodule SchemaWeb.SchemaController do
     description("Get OCSF schema dictionary.")
     produces("application/json")
     tag("Dictionary")
+
+    parameters do
+      extensions(:query, :array, "Related extensions to include in response",
+        items: [type: :string]
+      )
+    end
+
     response(200, "Success")
   end
 
@@ -280,14 +305,17 @@ defmodule SchemaWeb.SchemaController do
     description("Get OCSF schema base event class.")
     produces("application/json")
     tag("Categories and Classes")
+
+    parameters do
+      profiles(:query, :array, "Related profiles to include in response", items: [type: :string])
+    end
+
     response(200, "Success")
   end
 
   @spec base_event(Plug.Conn.t(), any) :: Plug.Conn.t()
   def base_event(conn, params) do
-    base = Schema.class(:base_event) |> add_objects(params)
-
-    send_json_resp(conn, base)
+    class(conn, "base_event", params)
   end
 
   @doc """
@@ -297,12 +325,17 @@ defmodule SchemaWeb.SchemaController do
   swagger_path :class do
     get("/api/classes/{name}")
     summary("Event class")
-    description("Get OCSF schema class by name. The class name may contain an extension name. For example, \"dev/cpu_usage\".")
+
+    description(
+      "Get OCSF schema class by name. The class name may contain an extension name. For example, \"dev/cpu_usage\"."
+    )
+
     produces("application/json")
     tag("Categories and Classes")
 
     parameters do
       name(:path, :string, "Class name", required: true)
+      profiles(:query, :array, "Related profiles to include in response", items: [type: :string])
     end
 
     response(200, "Success")
@@ -311,6 +344,10 @@ defmodule SchemaWeb.SchemaController do
 
   @spec class(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def class(conn, %{"id" => id} = params) do
+    class(conn, id, params)
+  end
+
+  defp class(conn, id, params) do
     extension = extension(params)
 
     try do
@@ -338,6 +375,15 @@ defmodule SchemaWeb.SchemaController do
     description("Get OCSF schema classes.")
     produces("application/json")
     tag("Categories and Classes")
+
+    parameters do
+      extensions(:query, :array, "Related extensions to include in response",
+        items: [type: :string]
+      )
+
+      profiles(:query, :array, "Related profiles to include in response", items: [type: :string])
+    end
+
     response(200, "Success", :ClassDesc)
   end
 
@@ -375,12 +421,22 @@ defmodule SchemaWeb.SchemaController do
   swagger_path :object do
     get("/api/objects/{name}")
     summary("Object")
-    description("Get OCSF schema object by name. The object name may contain an extension name. For example, \"dev/os_service\".")
+
+    description(
+      "Get OCSF schema object by name. The object name may contain an extension name. For example, \"dev/os_service\"."
+    )
+
     produces("application/json")
     tag("Objects and Types")
 
     parameters do
       name(:path, :string, "Object name", required: true)
+
+      extensions(:query, :array, "Related extensions to include in response",
+        items: [type: :string]
+      )
+
+      profiles(:query, :array, "Related profiles to include in response", items: [type: :string])
     end
 
     response(200, "Success")
@@ -413,6 +469,13 @@ defmodule SchemaWeb.SchemaController do
     description("Get OCSF schema objects.")
     produces("application/json")
     tag("Objects and Types")
+
+    parameters do
+      extensions(:query, :array, "Related extensions to include in response",
+        items: [type: :string]
+      )
+    end
+
     response(200, "Success", :ObjectDesc)
   end
 
@@ -541,31 +604,33 @@ defmodule SchemaWeb.SchemaController do
     tag("Tools")
 
     parameters do
-      _mode(:query, :number, 
-        """
-        Controls how attribute names and enumerated values are translated.<br/>
-        The format is _mode=[1|2|3]. The default mode is `1` -- translate enumerated values.
+      _mode(:query, :number, """
+      Controls how attribute names and enumerated values are translated.<br/>
+      The format is _mode=[1|2|3]. The default mode is `1` -- translate enumerated values.
 
-        |Value|Description|Example|
-        |-----|-----------|-------|
-        |1|Translate only the enumerated values|Untranslated:<br/><code>{"class_uid": 1000}</code><br/><br/>Translated:<br/><code>{"class_uid": File Activity"}</code>|
-        |2|Translate enumerated values and attribute names|Untranslated:<br/><code>{"class_uid": 1000}</code><br/><br/>Translated:<br/><code>{"Class ID": File Activity"}</code>|
-        |3|Verbose translation|Untranslated:<br/><code>{"class_uid": 1000}</code><br/><br/>Translated:<br/><code>{"class_uid": {"caption": "File Activity","name": "Class ID","type": "integer_t","value": 1000}}</code>|
-        """)
-        
-      _spaces(:query, :string,
-        """
-        Controls how spaces in the translated attribute names are handled.<br/>
-        By default, the translated attribute names may contain spaces (for example, Event Time). You can remove the spaces or replace the spaces with another string. For example, if you want to forward to a database that does not support spaces.<br/>
-        The format is _spaces=[&lt;empty&gt;|string].
+      |Value|Description|Example|
+      |-----|-----------|-------|
+      |1|Translate only the enumerated values|Untranslated:<br/><code>{"class_uid": 1000}</code><br/><br/>Translated:<br/><code>{"class_uid": File Activity"}</code>|
+      |2|Translate enumerated values and attribute names|Untranslated:<br/><code>{"class_uid": 1000}</code><br/><br/>Translated:<br/><code>{"Class ID": File Activity"}</code>|
+      |3|Verbose translation|Untranslated:<br/><code>{"class_uid": 1000}</code><br/><br/>Translated:<br/><code>{"class_uid": {"caption": "File Activity","name": "Class ID","type": "integer_t","value": 1000}}</code>|
+      """)
 
-        |Value|Description|Example|
-        |-----|-----------|-------|
-        |&lt;empty&gt;|The spaces in the translated names are removed.|Untranslated:<br/><code>{"class_uid": 1000}</code><br/><br/>Translated:<br/><code>{"ClassID": File Activity"}</code>|
-        |string|The spaces in the translated names are replaced with the given string.|For example, the string is an underscore (_).<br/>Untranslated:<br/><code>{"class_uid": 1000}</code><br/><br/>Translated:<br/><code>{"Class_ID": File Activity"}</code>|
-      """,
-      allowEmptyValue: true)
-      
+      _spaces(
+        :query,
+        :string,
+        """
+          Controls how spaces in the translated attribute names are handled.<br/>
+          By default, the translated attribute names may contain spaces (for example, Event Time). You can remove the spaces or replace the spaces with another string. For example, if you want to forward to a database that does not support spaces.<br/>
+          The format is _spaces=[&lt;empty&gt;|string].
+
+          |Value|Description|Example|
+          |-----|-----------|-------|
+          |&lt;empty&gt;|The spaces in the translated names are removed.|Untranslated:<br/><code>{"class_uid": 1000}</code><br/><br/>Translated:<br/><code>{"ClassID": File Activity"}</code>|
+          |string|The spaces in the translated names are replaced with the given string.|For example, the string is an underscore (_).<br/>Untranslated:<br/><code>{"class_uid": 1000}</code><br/><br/>Translated:<br/><code>{"Class_ID": File Activity"}</code>|
+        """,
+        allowEmptyValue: true
+      )
+
       data(:body, :object, "The event data to be translated", required: true)
     end
 
@@ -648,12 +713,17 @@ defmodule SchemaWeb.SchemaController do
     description("This API returns randomly generated sample data for the base event class.")
     produces("application/json")
     tag("Sample Data")
+
+    parameters do
+      profiles(:query, :array, "Related profiles to include in response", items: [type: :string])
+    end
+
     response(200, "Success")
   end
 
   @spec sample_event(Plug.Conn.t(), map()) :: Plug.Conn.t()
-  def sample_event(conn, _params) do
-    send_json_resp(conn, Schema.event(:base_event))
+  def sample_event(conn, params) do
+    sample_class(conn, "base_event", params)
   end
 
   @doc """
@@ -664,12 +734,17 @@ defmodule SchemaWeb.SchemaController do
   swagger_path :sample_class do
     get("/sample/classes/{name}")
     summary("Event sample data")
-    description("This API returns randomly generated sample data for the given event class name. The class name may contain an extension name. For example, \"dev/cpu_usage\".")
+
+    description(
+      "This API returns randomly generated sample data for the given event class name. The class name may contain an extension name. For example, \"dev/cpu_usage\"."
+    )
+
     produces("application/json")
     tag("Sample Data")
 
     parameters do
       name(:path, :string, "Class name", required: true)
+      profiles(:query, :array, "Related profiles to include in response", items: [type: :string])
     end
 
     response(200, "Success")
@@ -677,9 +752,13 @@ defmodule SchemaWeb.SchemaController do
   end
 
   @spec sample_class(Plug.Conn.t(), map()) :: Plug.Conn.t()
-  def sample_class(conn, %{"id" => id} = options) do
-    extension = options["extension"]
-    profiles = parse_options(options["profiles"])
+  def sample_class(conn, %{"id" => id} = params) do
+    sample_class(conn, id, params)
+  end
+
+  defp sample_class(conn, id, options) do
+    extension = extension(options)
+    profiles = parse_options(profiles(options))
 
     try do
       case Schema.class(extension, id) do
@@ -717,12 +796,17 @@ defmodule SchemaWeb.SchemaController do
   swagger_path :sample_object do
     get("/sample/objects/{name}")
     summary("Object sample data")
-    description("This API returns randomly generated sample data for the given object name. The object name may contain an extension name. For example, \"dev/os_service\".")
+
+    description(
+      "This API returns randomly generated sample data for the given object name. The object name may contain an extension name. For example, \"dev/os_service\"."
+    )
+
     produces("application/json")
     tag("Sample Data")
 
     parameters do
       name(:path, :string, "Object name", required: true)
+      profiles(:query, :array, "Related profiles to include in response", items: [type: :string])
     end
 
     response(200, "Success")
@@ -731,7 +815,7 @@ defmodule SchemaWeb.SchemaController do
 
   @spec sample_object(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def sample_object(conn, %{"id" => id} = options) do
-    extension = options["extension"]
+    extension = extension(options)
 
     try do
       case Schema.object(extension, id) do

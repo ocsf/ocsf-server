@@ -297,12 +297,12 @@ defmodule Schema do
   @doc """
   Returns a randomly generated sample event.
   """
-  @spec event(atom() | map()) :: nil | map()
-  def event(class) when is_atom(class) do
+  @spec generate_event(atom() | Cache.class_t()) :: nil | map()
+  def generate_event(class) when is_atom(class) do
     Schema.class(class) |> Schema.Generator.event()
   end
 
-  def event(class) when is_map(class) do
+  def generate_event(class) when is_map(class) do
     Schema.Generator.event(class)
   end
 
