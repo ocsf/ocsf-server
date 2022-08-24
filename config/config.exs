@@ -1,6 +1,6 @@
 import Config
 
-port = System.get_env("HTTP_PORT") || System.get_env("PORT") || 8000
+port = System.get_env("HTTP_PORT") || System.get_env("PORT") || 8080
 port_ssl = System.get_env("HTTPS_PORT") || 8443
 
 certfile = System.get_env("HTTPS_CERT_FILE") || "priv/cert/selfsigned.pem"
@@ -54,7 +54,7 @@ config :schema_server, :phoenix_swagger,
 config :phoenix_swagger, json_library: Jason
 
 # Configures the location of the schema files
-config :schema_server, Schema.JsonReader, home: System.get_env("SCHEMA_DIR")
+config :schema_server, Schema.JsonReader, home: System.get_env("SCHEMA_DIR") || "modules/schema"
 config :schema_server, Schema.Application, extension: System.get_env("SCHEMA_EXTENSION")
 
 # Import environment specific config. This must remain at the bottom

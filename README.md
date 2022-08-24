@@ -1,6 +1,6 @@
 # Open Cybersecurity Schema Framework Server
 
-This is the Open Cybersecurity Schema Framework (OCSF) server repository.
+This is the Open Cybersecurity Schema Framework (OCSF) server source code repository.
 
 ## Obtaining the source code
 
@@ -10,22 +10,28 @@ Clone the GitHub OCFS WEB Server repository. Use `--recurse-submodules` to the `
 git clone --recurse-submodules https://github.com/ocsf/ocsf-server.git
 ```
 
-## Build and run schema server docker image
+## Build and run a schema server docker image
 
 ```bash
 cd ocsf-server
-docker build -t docker_ocsf:0.9.0 .
-docker run -it -p 8080:8080 docker_ocsf:0.9.0
+docker build -t docker_ocsf:0.0.0 .
+docker run -it --rm -p 8080:8080 docker_ocsf:0.0.0
 ```
+
 ## Development with docker-compose
+
 The `docker-compose` environment enables development without needing to install any dependencies (apart from Docker/Podman and docker-compose) on the development machine.
 
 When run, the standard `_build` and `deps` folders are created, along with a `.mix` folder. If the environment needs to be recreated for whatever reason, the `_build` folder can be removed and `docker-compose` brought down and up again and the environment will automatically rebuild.
+
 ### Run the ocsf-server and build the development container
+
 ```
 docker-compose up
 ```
+
 Then browse to the schema server at http://localhost:8080
+
 ### Testing the schema with docker-compose
 
 **NOTE:** it is _not_ necessary to run the server with `docker-compose up` first in order to test the schema (or run any other commands in the development container).
@@ -41,10 +47,13 @@ Finished in 0.00 seconds (0.00s async, 0.00s sync)
 
 Randomized with seed 933777
 ```
+
 ### Set aliases to avoid docker-compose inflicted RSI
+
 ```
 source docker-source.sh
 ```
+
 ### Using aliases to run docker-compose commands
 
 ```
@@ -58,10 +67,13 @@ Finished in 0.00 seconds (0.00s async, 0.00s sync)
 
 Randomized with seed 636407
 ```
+
 ### Using environment variables to change docker-compose defaults
+
 Optional environment variables can be placed in a `.env` file in the root of the repo to change the default behavior.
 
 An `.env.sample` is provided, and the following options are available:
+
 ```
 SCHEMA_PATH=./modules/schema    # Set the local schema path, eg. ../ocsf-schema, defaults to ./modules/schema
 OCSF_SERVER_PORT=8080           # Set the port for Docker to listen on for forwarding traffic to the Schema Server, defaults to 8080
@@ -70,11 +82,11 @@ ELIXIR_VERSION=otp-25-alpine    # Set the Elixir container version for developme
 
 ## Local Usage
 
-This section describes how to build the Event Schema server.
+This section describes how to build and run the OCSF Schema Schema server.
 
 ### Required build tools
 
-The event schema server is written in [Elixir](https://elixir-lang.org) using the [Phoenix](https://phoenixframework.org/) web framework.
+The Schema Server is written in [Elixir](https://elixir-lang.org) using the [Phoenix](https://phoenixframework.org/) web framework.
 
 The Elixir site maintains a great installation page, see https://elixir-lang.org/install.html for help.
 
@@ -107,38 +119,45 @@ mix compile
 
 You can use Elixir `mix test` to test the changes made to the schema. For example to ensure the JSON files are correct or the attributes are defined.
 
+Assuming the schema repo has been cloned in `../ocsf-schema` directory, then you can test the schema with this command:
+
 ```shell
-SCHEMA_DIR=../ocsf-schema mix test
+SCHEMA_DIR=../ocsf-schema SCHEMA_EXTENSION=extensions mix test
 ```
 
-Using the module/schema folder:
+Or, test the schema using the `module/schema` folder:
 
 ```shell
-SCHEMA_DIR=modules/schema mix test
+SCHEMA_DIR=modules/schema SCHEMA_EXTENSION=extensions mix test
 ```
 
 If everything is correct, then you should not see any errors or warnings.
 
 ### Running the schema server
 
-You can use the Elixir's interactive shell, [IEx](https://hexdocs.pm/iex/IEx.html), to start the schema server:
+You can use the Elixir's interactive shell, [IEx](https://hexdocs.pm/iex/IEx.html), to start the schema server use:
 
 ```bash
-SCHEMA_DIR=modules/schema SCHEMA_EXTENSION=extensions iex -S mix phx.server
+iex -S mix phx.server
 ```
+
+Now you can access the Schema server at [`localhost:8080`](http://localhost:8080) or [`localhost:8443`](https://localhost:8443).
 
 ### Runtime configuration
 
 The schema server uses a number of environment variables.
 
-| Variable Name    | Description                                                                |
-| ---------------- | -------------------------------------------------------------------------- |
-| RELEASE_NODE     | the Erlang node name                                                       |
-| PORT             | the server port number, default: `8000`                                    |
-| SCHEMA_DIR       | the directory containing the schema, default: `schema`                     |
-| SCHEMA_EXTENSION | the directory containing the schema extensions, relative to the SCHEMA_DIR |
+| Variable Name    | Description |
+| ---------------- | ----------- |
+| HTTP_PORT        | The server HTTP  port number, default: `8080`|
+| HTTPS_PORT       | The server HTTPS port number, default: `8443`|
+| SCHEMA_DIR       | The directory containing the schema, default: `modules/schema` |
+| SCHEMA_EXTENSION | The directory containing the schema extensions, relative to the SCHEMA_DIR |
+| RELEASE_NODE     | The Erlang node name. Set ti if you want to run more than one server on the same computer |
 
-Now you can visit [`localhost:8000`](http://localhost:8000) from your browser.
+```bash
+SCHEMA_DIR=modules/schema SCHEMA_EXTENSION=extensions iex -S mix phx.server
+```
 
 ## Releasing the schema server
 
