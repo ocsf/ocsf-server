@@ -439,13 +439,16 @@ defmodule Schema.Cache do
             base = resolve_extends(classes, base)
             attributes = Utils.deep_merge(base[:attributes], class[:attributes])
 
-            Map.merge(base, class)
+            Map.merge(base, class, &merge_profiles/3)
             |> Map.delete(:extends)
             |> Map.put(:attributes, attributes)
         end
     end
   end
-
+  
+  defp merge_profiles(:profiles, v1, v2), do: Enum.concat(v1, v2) |> Enum.uniq() 
+  defp merge_profiles(_profiles, _v1, v2), do: v2
+  
   defp super_class(classes, class, extends) do
     case class[:extension] do
       nil ->
