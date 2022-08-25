@@ -147,8 +147,9 @@ defmodule Schema.Generator do
     end)
   end
 
-  # don't generate unmapped and raw_data data
+  # don't generate unmapped, profiles and raw_data data
   defp generate({:unmapped, _field}, map), do: map
+  defp generate({:profiles, _field}, map), do: map
   defp generate({:_raw_data, _field}, map), do: map
 
   defp generate({name, field}, map) do

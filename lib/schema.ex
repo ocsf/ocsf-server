@@ -290,9 +290,9 @@ defmodule Schema do
     |> reduce_objects()
   end
 
-  # ------------------#
-  # Sample Functions #
-  # ------------------#
+  # -------------------------------#
+  # Generate Sample Data Functions #
+  # -------------------------------#
 
   @doc """
   Returns a randomly generated sample event.
