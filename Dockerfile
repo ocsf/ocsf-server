@@ -3,6 +3,8 @@ FROM elixir:otp-25-alpine as builder
 # prepare build dir
 WORKDIR /app
 
+RUN apk --update add openssl
+
 # install hex + rebar
 RUN mix local.hex --force && \
     mix local.rebar --force
@@ -22,12 +24,12 @@ COPY config/config.exs config/${MIX_ENV}.exs config/
 RUN mix deps.compile
 
 COPY priv priv
-
 COPY lib lib
 
 # Compile the release
 RUN mix compile
-
+# Generate ssl certificate
+RUN openssl req -new -newkey rsa:4096 -days 365 -nodes -sha256 -x509 -subj "/C=US/ST=CA/L=ocsf/O=ocsf.io/CN=ocsf-schema" -keyout priv/cert/selfsigned_key.pem -out priv/cert/selfsigned.pem
 # Changes to config/runtime.exs don't require recompiling the code
 COPY config/releases.exs  config/runtime.exs
 
