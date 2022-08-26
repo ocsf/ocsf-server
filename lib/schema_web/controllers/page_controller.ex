@@ -63,6 +63,7 @@ defmodule SchemaWeb.PageController do
       Map.put_new(params, "extensions", "")
       |> SchemaController.categories()
       |> sort_attributes(:uid)
+      |> sort_classes()
 
     render(conn, "index.html",
       extensions: Schema.extensions(),
@@ -167,6 +168,14 @@ defmodule SchemaWeb.PageController do
     )
   end
 
+  defp sort_classes(categories) do
+    Map.update!(categories, :attributes, fn list -> 
+      Enum.map(list, fn {name, category} ->
+        {name, Map.update!(category, :classes, &sort_by(&1, :uid))}
+      end)
+    end)
+  end
+
   defp sort_attributes(map) do
     sort_attributes(map, :caption)
   end
@@ -182,4 +191,5 @@ defmodule SchemaWeb.PageController do
   defp sort_by(map, key) do
     Enum.sort(map, fn {_, v1}, {_, v2} -> v1[key] <= v2[key] end)
   end
+
 end
