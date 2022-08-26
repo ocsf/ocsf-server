@@ -45,7 +45,7 @@ defmodule SchemaWeb.PageController do
           send_resp(conn, 404, "Not Found: #{id}")
 
         data ->
-          classes = sort_by_name(data[:classes])
+          classes = sort_by(data[:classes], :uid)
 
           render(conn, "category.html",
             extensions: Schema.extensions(),
@@ -126,7 +126,7 @@ defmodule SchemaWeb.PageController do
   end
 
   def classes(conn, params) do
-    data = SchemaController.classes(params) |> sort_by_name()
+    data = SchemaController.classes(params) |> sort_by(:uid)
 
     render(conn, "classes.html",
       extensions: Schema.extensions(),
