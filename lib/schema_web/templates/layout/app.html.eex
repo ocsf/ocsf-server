@@ -99,6 +99,9 @@ limitations under the License.
         case '/data_types':
           $('#data_types_id').addClass("active");
           break;
+        case '/apidoc':
+          $('#apidoc_id').addClass("active");
+          break;
         case '/guidelines':
           $('#guidelines_id').addClass("active");
           break;
@@ -178,6 +181,10 @@ limitations under the License.
       <div class="navbar-text">|</div>
       <li id="guidelines_id" class="nav-item">
         <a class="nav-link" href='<%= Routes.static_path(@conn, "/guidelines") %>'>Guidelines</a>
+      </li>
+      <div class="navbar-text">|</div>
+      <li id="apidoc_id" class="nav-item">
+        <a class="nav-link" target="_blank" href='<%= Routes.static_path(@conn, "/api/doc") %>'>API Doc</a>
       </li>
       <li class="nav-item">
         <div id="json-schema" class="d-none">
