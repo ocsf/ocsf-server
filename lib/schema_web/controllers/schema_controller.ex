@@ -189,7 +189,7 @@ defmodule SchemaWeb.SchemaController do
     tag("Categories and Classes")
 
     parameters do
-      extensions(:query, :array, "Related extensions to include in response",
+      extensions(:query, :array, "Related extensions to include in response.",
         items: [type: :string]
       )
     end
@@ -227,7 +227,7 @@ defmodule SchemaWeb.SchemaController do
     parameters do
       name(:path, :string, "Category name", required: true)
 
-      extensions(:query, :array, "Related extensions to include in response",
+      extensions(:query, :array, "Related extensions to include in response.",
         items: [type: :string]
       )
     end
@@ -273,7 +273,7 @@ defmodule SchemaWeb.SchemaController do
     tag("Dictionary")
 
     parameters do
-      extensions(:query, :array, "Related extensions to include in response",
+      extensions(:query, :array, "Related extensions to include in response.",
         items: [type: :string]
       )
     end
@@ -307,7 +307,7 @@ defmodule SchemaWeb.SchemaController do
     tag("Categories and Classes")
 
     parameters do
-      profiles(:query, :array, "Related profiles to include in response", items: [type: :string])
+      profiles(:query, :array, "Related profiles to include in response.", items: [type: :string])
     end
 
     response(200, "Success")
@@ -335,7 +335,7 @@ defmodule SchemaWeb.SchemaController do
 
     parameters do
       name(:path, :string, "Class name", required: true)
-      profiles(:query, :array, "Related profiles to include in response", items: [type: :string])
+      profiles(:query, :array, "Related profiles to include in response.", items: [type: :string])
     end
 
     response(200, "Success")
@@ -377,11 +377,11 @@ defmodule SchemaWeb.SchemaController do
     tag("Categories and Classes")
 
     parameters do
-      extensions(:query, :array, "Related extensions to include in response",
+      extensions(:query, :array, "Related extensions to include in response.",
         items: [type: :string]
       )
 
-      profiles(:query, :array, "Related profiles to include in response", items: [type: :string])
+      profiles(:query, :array, "Related profiles to include in response.", items: [type: :string])
     end
 
     response(200, "Success", :ClassDesc)
@@ -432,11 +432,11 @@ defmodule SchemaWeb.SchemaController do
     parameters do
       name(:path, :string, "Object name", required: true)
 
-      extensions(:query, :array, "Related extensions to include in response",
+      extensions(:query, :array, "Related extensions to include in response.",
         items: [type: :string]
       )
 
-      profiles(:query, :array, "Related profiles to include in response", items: [type: :string])
+      profiles(:query, :array, "Related profiles to include in response.", items: [type: :string])
     end
 
     response(200, "Success")
@@ -471,7 +471,7 @@ defmodule SchemaWeb.SchemaController do
     tag("Objects and Types")
 
     parameters do
-      extensions(:query, :array, "Related extensions to include in response",
+      extensions(:query, :array, "Related extensions to include in response.",
         items: [type: :string]
       )
     end
@@ -518,11 +518,11 @@ defmodule SchemaWeb.SchemaController do
     tag("Schema Export")
 
     parameters do
-      extensions(:query, :array, "Related extensions to include in response",
+      extensions(:query, :array, "Related extensions to include in response.",
         items: [type: :string]
       )
 
-      profiles(:query, :array, "Related profiles to include in response", items: [type: :string])
+      profiles(:query, :array, "Related profiles to include in response.", items: [type: :string])
     end
 
     response(200, "Success")
@@ -546,11 +546,11 @@ defmodule SchemaWeb.SchemaController do
     tag("Schema Export")
 
     parameters do
-      extensions(:query, :array, "Related extensions to include in response",
+      extensions(:query, :array, "Related extensions to include in response.",
         items: [type: :string]
       )
 
-      profiles(:query, :array, "Related profiles to include in response", items: [type: :string])
+      profiles(:query, :array, "Related profiles to include in response.", items: [type: :string])
     end
 
     response(200, "Success")
@@ -573,11 +573,11 @@ defmodule SchemaWeb.SchemaController do
     tag("Schema Export")
 
     parameters do
-      extensions(:query, :array, "Related extensions to include in response",
+      extensions(:query, :array, "Related extensions to include in response.",
         items: [type: :string]
       )
 
-      profiles(:query, :array, "Related profiles to include in response", items: [type: :string])
+      profiles(:query, :array, "Related profiles to include in response.", items: [type: :string])
     end
 
     response(200, "Success")
@@ -715,7 +715,7 @@ defmodule SchemaWeb.SchemaController do
     tag("Sample Data")
 
     parameters do
-      profiles(:query, :array, "Related profiles to include in response", items: [type: :string])
+      profiles(:query, :array, "Related profiles to include in response.", items: [type: :string])
     end
 
     response(200, "Success")
@@ -744,7 +744,7 @@ defmodule SchemaWeb.SchemaController do
 
     parameters do
       name(:path, :string, "Class name", required: true)
-      profiles(:query, :array, "Related profiles to include in response", items: [type: :string])
+      profiles(:query, :array, "Related profiles to include in response.", items: [type: :string])
     end
 
     response(200, "Success")
@@ -806,7 +806,7 @@ defmodule SchemaWeb.SchemaController do
 
     parameters do
       name(:path, :string, "Object name", required: true)
-      profiles(:query, :array, "Related profiles to include in response", items: [type: :string])
+      profiles(:query, :array, "Related profiles to include in response.", items: [type: :string])
     end
 
     response(200, "Success")
