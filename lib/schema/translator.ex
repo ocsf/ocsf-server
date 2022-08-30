@@ -16,13 +16,7 @@ defmodule Schema.Translator do
   def translate(data, options) when is_map(data) do
     Logger.debug("translate event: #{inspect(data)}, options: #{inspect(options)}")
 
-    case data[:class_uid] do
-      nil ->
-        translate_class(data["class_uid"], data, options)
-
-      class_uid ->
-        translate_class(class_uid, data, options)
-    end
+    translate_class(data["class_uid"], data, options)
   end
 
   # this is not an event
@@ -32,6 +26,7 @@ defmodule Schema.Translator do
   defp translate_class(nil, data, _options), do: data
 
   defp translate_class(class_uid, data, options) do
+    Logger.debug("translate class #{class_uid}")
     translate_event(Schema.find_class(class_uid), data, options)
   end
 
@@ -41,19 +36,46 @@ defmodule Schema.Translator do
   defp translate_event(type, data, options) do
     attributes = type[:attributes]
 
-    Enum.reduce(data, %{}, fn {key, value}, acc ->
-      Logger.debug("#{key}: #{inspect(value)}")
+    Enum.reduce(data, %{}, fn {name, value}, acc ->
+      Logger.debug("translate attribute #{name}: #{inspect(value)}")
 
-      case attributes[to_atom(key)] do
+      key = to_atom(name)
+
+      case attributes[key] do
         nil ->
           # Attribute name is not defined in the schema
-          Map.put(acc, key, value)
+          Map.put(acc, name, value)
 
         attribute ->
-          {name, text} = translate_attribute(attribute[:type], key, attribute, value, options)
-          Map.put(acc, name, text)
+          {name, text} = translate_attribute(attribute[:type], name, attribute, value, options)
+
+          verbose = Keyword.get(options, :verbose)
+
+          if verbose < 3 and Map.has_key?(attribute, :enum) do
+            sibling = sibling(key, attribute, attributes, verbose) |> to_text(options)
+
+            Logger.debug("translated enum #{name}: #{text}")
+            Logger.debug("translated name #{sibling}")
+
+            Map.put_new(acc, name, value) |> Map.put(sibling, text)
+          else
+            Map.put(acc, name, text)
+          end
       end
     end)
+  end
+
+  defp sibling(key, attribute, _attributes, 1) do
+    Schema.Enums.sibling(key, attribute) |> Atom.to_string()
+  end
+
+  defp sibling(key, attribute, attributes, _verbose) do
+    name = Schema.Enums.sibling(key, attribute)
+
+    case attributes[name] do
+      nil -> Atom.to_string(name)
+      attribute -> attribute[:caption]
+    end
   end
 
   defp to_atom(key) when is_atom(key), do: key
@@ -139,7 +161,7 @@ defmodule Schema.Translator do
   end
 
   defp translate_enum(name, attribute, value, translated, options) do
-    Logger.debug("translate_enum: #{name}: #{value}")
+    Logger.debug("translate  enum #{name}: #{value}")
 
     case Keyword.get(options, :verbose) do
       1 ->
