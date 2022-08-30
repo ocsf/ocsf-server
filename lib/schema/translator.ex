@@ -51,13 +51,13 @@ defmodule Schema.Translator do
 
           verbose = Keyword.get(options, :verbose)
 
-          if verbose < 3 and Map.has_key?(attribute, :enum) do
+          if Map.has_key?(attribute, :enum) and (verbose == 1 or verbose == 2) do
             sibling = sibling(key, attribute, attributes, verbose) |> to_text(options)
 
             Logger.debug("translated enum #{name}: #{text}")
             Logger.debug("translated name #{sibling}")
 
-            Map.put_new(acc, name, value) |> Map.put(sibling, text)
+            Map.put_new(acc, name, value) |> Map.put_new(sibling, text)
           else
             Map.put(acc, name, text)
           end
