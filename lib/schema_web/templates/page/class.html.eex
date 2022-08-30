@@ -142,10 +142,6 @@ limitations under the License.
 <% end %>
 
 <script>
-  $(function () {
-    $('[data-toggle="tooltip"]').tooltip()
-  });
-
   init_schema_buttons();
   init_class_profiles();
 

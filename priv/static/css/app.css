@@ -309,10 +309,11 @@ span.hidden {
 }
 
 .tooltip-inner {
+  white-space: pre-wrap;
   word-wrap: normal;
   max-width: 500px;
   color: #2d2e2ee1;
-  text-align: center;
+  text-align: left;
   background: lightyellow;
   border: 1px solid #161616;
   -webkit-border-radius: 5px;
