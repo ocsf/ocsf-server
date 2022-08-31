@@ -36,6 +36,9 @@
     <div class="text-secondary">
       <%= raw @data[:description] %>
     </div>
+    <div class="mt-1">
+      <%= raw class_profiles(@data, @profiles) %>
+    </div>
   </div>
   <div class="col-md-1"></div>
   <div class="col-md-auto fixed-right">

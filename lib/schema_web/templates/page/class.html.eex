@@ -33,6 +33,9 @@ limitations under the License.
       <div class="text-secondary">
         <%= raw @data[:description] %>
       </div>
+      <div class="mt-1">
+        <%= raw class_profiles(@data, @profiles) %>
+      </div>
       <% see_also = @data[:see_also] %>
       <%= if see_also != nil and see_also != [] do %>
         <div class="container-fluid mt-2">
@@ -53,6 +56,9 @@ limitations under the License.
       <h1 class="move-up"><%= @data[:caption] %></h1>
       <div class="text-secondary">
         <%= raw @data[:description] %>
+      </div>
+      <div class="mt-1">
+        <%= raw class_profiles(@data, @profiles) %>
       </div>
     <% end %>
   </div>

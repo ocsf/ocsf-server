@@ -3,6 +3,16 @@ defmodule SchemaWeb.PageView do
 
   require Logger
 
+  def class_profiles(class, profiles) do
+    [
+      "<strong>Applicable profiles: </strong>",
+      Enum.map(class[:profiles] || [], fn name ->
+        get_in(profiles, [String.to_atom(name), :caption]) || name
+      end)
+      |> Enum.join(", ")
+    ]
+  end
+        
   def format_profiles(nil) do
     ""
   end
