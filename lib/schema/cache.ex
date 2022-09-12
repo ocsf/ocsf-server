@@ -641,7 +641,7 @@ defmodule Schema.Cache do
   end
 
   defp merge_profiles(p1, p2) do
-    p1 ++ p2
+    Enum.concat(p1, p2) |> Enum.uniq() 
   end
 
   defp update_dictionary(dictionary) do
