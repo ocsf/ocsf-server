@@ -252,7 +252,7 @@ defmodule Schema.Utils do
   @doc """
     Filter attributes based on the given profiles.
   """
-  @spec apply_profiles(Enum.t(), nil | MapSet.t(binary())) :: Enum.t()
+  @spec apply_profiles(Enum.t(), nil | list() | MapSet.t()) :: Enum.t()
   def apply_profiles(attributes, nil) do
     attributes
   end
@@ -262,7 +262,7 @@ defmodule Schema.Utils do
     apply_profiles(attributes, profiles, MapSet.size(profiles))
   end
 
-  def apply_profiles(attributes, profiles = %MapSet{}) do
+  def apply_profiles(attributes, %MapSet{} = profiles) do
     apply_profiles(attributes, profiles, MapSet.size(profiles))
   end
 
