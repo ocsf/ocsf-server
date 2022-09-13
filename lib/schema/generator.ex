@@ -13,7 +13,6 @@ defmodule Schema.Generator do
   """
 
   use Agent
-  use Bitwise
 
   alias __MODULE__
   alias Schema.Types
@@ -150,7 +149,7 @@ defmodule Schema.Generator do
   # don't generate unmapped, profiles and raw_data data
   defp generate({:unmapped, _field}, map), do: map
   defp generate({:profiles, _field}, map), do: map
-  defp generate({:_raw_data, _field}, map), do: map
+  defp generate({:raw_data, _field}, map), do: map
 
   defp generate({name, field}, map) do
     generate_field(field[:requirement], name, field, map)
@@ -356,7 +355,6 @@ defmodule Schema.Generator do
   defp generate_data(:lang, _type, _field), do: "en"
   defp generate_data(:uuid, _type, _field), do: uuid()
   defp generate_data(:uid, _type, _field), do: uuid()
-  defp generate_data(:_uid, _type, _field), do: uuid()
   defp generate_data(:creator, _type, _field), do: full_name(2)
   defp generate_data(:accessor, _type, _field), do: full_name(2)
   defp generate_data(:modifier, _type, _field), do: full_name(2)
@@ -364,15 +362,12 @@ defmodule Schema.Generator do
   defp generate_data(:shell, _type, _field), do: shell()
   defp generate_data(:timezone_offset, _type, _field), do: timezone()
   defp generate_data(:home_dir, _type, _field), do: root_dir(random(3))
-  defp generate_data(:parent_folder, _type, _field), do: ""
+  defp generate_data(:parent_folder, _type, _field), do: root_dir(random(3))
   defp generate_data(:country, _type, _field), do: country()[:country_name]
   defp generate_data(:company_name, _type, _field), do: full_name(2)
   defp generate_data(:owner, _type, _field), do: full_name(2)
   defp generate_data(:labels, _type, _field), do: word()
   defp generate_data(:facility, _type, _field), do: facility()
-  defp generate_data(:md5, _type, _field), do: md5()
-  defp generate_data(:sha1, _type, _field), do: sha1()
-  defp generate_data(:sha2, _type, _field), do: sha256()
   defp generate_data(:mime_type, _type, _field), do: path_name(2)
 
   defp generate_data(key, "string_t", _field) do

@@ -43,7 +43,8 @@ Reserved attributes are set by the logging system and must not be used in the ev
 ## Extending the Schema
 The Open Cybersecurity Schema Framework can be extended by adding new attributes, objects, and event classes.
 
-To extend the schema create a new directory in the `schema/extensions` directory. The directory structure is the same as the top level schema directory and it may contain the following files and subdirectories:
+To extend the schema, create a new directory with same structure the top level schema directory. 
+The directory may contain the following optinal files and subdirectories.
 
 |             |           |
 | ----------- | --------- |
