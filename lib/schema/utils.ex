@@ -68,6 +68,7 @@ defmodule Schema.Utils do
     |> link_classes(classes)
     |> link_objects(objects)
     |> update_data_types(objects)
+    |> define_datetime_attributes()
   end
 
   @spec update_objects(map(), map()) :: map()
@@ -286,4 +287,28 @@ defmodule Schema.Utils do
   def remove_profiles(attributes) do
     Enum.filter(attributes, fn {_k, v} -> Map.has_key?(v, :profile) == false end)
   end
+
+  defp define_datetime_attributes(dictionary) do
+    Map.update!(dictionary, :attributes, fn attributes ->
+      Enum.reduce(attributes, %{}, fn {name, attribute}, acc ->
+        define_datetime_attribute(acc, attribute[:type], name, attribute)
+      end)
+    end)
+  end
+
+  defp define_datetime_attribute(acc, "timestamp_t", name, attribute) do
+    key = Atom.to_string(name) <> "_dt" |> String.to_atom()
+    Map.put(acc, key, to_datetime_attribute(attribute))
+    |> Map.put(name, attribute)
+  end
+
+  defp define_datetime_attribute(acc, _type, name, attribute) do
+    Map.put(acc, name, attribute)
+  end
+  
+  defp to_datetime_attribute(attribute) do
+    Map.put(attribute, :type, "datetime_t")
+    |> Map.put(:type_name, "Datetime")
+  end
+
 end
