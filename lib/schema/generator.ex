@@ -403,7 +403,7 @@ defmodule Schema.Generator do
 
   defp generate_data(_name, "hostname_t", _field), do: domain()
   defp generate_data(_name, "ip_t", _field), do: ipv4()
-  defp generate_data(_name, "subnet_t", _field), do: ipv4()
+  defp generate_data(_name, "subnet_t", _field), do: subnet()
   defp generate_data(_name, "mac_t", _field), do: mac()
   defp generate_data(_name, "email_t", _field), do: email()
   defp generate_data(_name, "port_t", _field), do: random(65_536)
@@ -507,13 +507,13 @@ defmodule Schema.Generator do
     Enum.random(["bash", "zsh", "fish", "sh"])
   end
 
-  def ipv4() do
-    Enum.map_join(1..4, ".", fn _n -> random(256) end)
-  end
-
   # 00:25:96:FF:FE:12:34:56
   def mac() do
     Enum.map_join(1..8, ":", fn _n -> random(256) |> Integer.to_string(16) end)
+  end
+
+  def ipv4() do
+    Enum.map_join(1..4, ".", fn _n -> random(256) end)
   end
 
   # 2001:0000:3238:DFE1:0063:0000:0000:FEFB
@@ -523,6 +523,23 @@ defmodule Schema.Generator do
       |> Integer.to_string(16)
       |> String.pad_leading(4, "0")
     end)
+  end
+
+  # 192.168.10/8
+  def subnet() do
+    n = random(3)
+    IO.puts("n=#{inspect(n)}")
+
+    ip =
+      Enum.map_join(0..n, ".", fn _n -> random(256) end) <>
+        "." <>
+        Enum.map_join(1..(3 - n), ".", fn _n -> 0 end)
+
+    case n do
+      0 -> ip <> "/8"
+      1 -> ip <> "/16"
+      2 -> ip <> "/24"
+    end
   end
 
   def email() do
