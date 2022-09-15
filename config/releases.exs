@@ -11,9 +11,10 @@ import Config
 # before starting your production server.
 port_ssl = System.get_env("HTTPS_PORT") || 8443
 certfile = System.get_env("HTTPS_CERT_FILE") || "priv/cert/selfsigned.pem"
-keyfile  = System.get_env("HTTPS_KEY_FILE") || "priv/cert/selfsigned_key.pem"
+keyfile = System.get_env("HTTPS_KEY_FILE") || "priv/cert/selfsigned_key.pem"
 
 config :schema_server, SchemaWeb.Endpoint,
+  force_ssl: [rewrite_on: [:x_forwarded_proto], exclude: ["localhost"]],
   http: [port: System.get_env("PORT") || 8000],
   https: [
     port: port_ssl,
