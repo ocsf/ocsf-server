@@ -73,19 +73,19 @@ defmodule Schema.Utils do
 
   @spec update_objects(map(), map()) :: map()
   def update_objects(objects, dictionary) do
-    Enum.map(objects, fn {name, object} ->
+    Enum.into(objects, %{}, fn {name, object} ->
       links = object_links(dictionary, Atom.to_string(name))
       {name, Map.put(object, :_links, links)}
     end)
-    |> Map.new()
   end
 
   defp object_links(dictionary, name) do
     Enum.filter(dictionary, fn {_name, map} -> Map.get(map, :object_type) == name end)
     |> Enum.map(fn {_, map} -> Map.get(map, :_links) end)
     |> List.flatten()
-    |> Enum.filter(fn links -> links != nil end)
-    |> Enum.uniq()
+    |> Stream.filter(fn links -> links != nil end)
+    |> Stream.uniq()
+    |> Enum.to_list()
   end
 
   defp link_classes(dictionary, classes) do
@@ -107,7 +107,7 @@ defmodule Schema.Utils do
   end
 
   defp update_data_types(attributes, types, objects) do
-    Enum.map(attributes, fn {name, value} ->
+    Enum.into(attributes, %{}, fn {name, value} ->
       data =
         if value[:type] == "object_t" do
           update_object_type(name, value, objects)
@@ -117,7 +117,6 @@ defmodule Schema.Utils do
 
       {name, data}
     end)
-    |> Map.new()
   end
 
   defp update_object_type(name, value, objects) do
@@ -297,18 +296,20 @@ defmodule Schema.Utils do
   end
 
   defp define_datetime_attribute(acc, "timestamp_t", name, attribute) do
-    key = Atom.to_string(name) <> "_dt" |> String.to_atom()
-    Map.put(acc, key, to_datetime_attribute(attribute))
+    acc
+    |> Map.put(make_datetime(name), datetime_attribute(attribute))
     |> Map.put(name, attribute)
   end
 
   defp define_datetime_attribute(acc, _type, name, attribute) do
     Map.put(acc, name, attribute)
   end
-  
-  defp to_datetime_attribute(attribute) do
-    Map.put(attribute, :type, "datetime_t")
-    |> Map.put(:type_name, "Datetime")
+
+  defp datetime_attribute(attribute) do
+    Map.put(attribute, :type, "datetime_t") |> Map.put(:type_name, "Datetime")
   end
 
+  def make_datetime(name) do
+    (Atom.to_string(name) <> "_dt") |> String.to_atom()
+  end
 end

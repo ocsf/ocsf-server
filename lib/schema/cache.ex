@@ -77,14 +77,14 @@ defmodule Schema.Cache do
 
     classes = update_class_profiles(objects, classes)
 
-    sanity_check(objects, attributes)
-    sanity_check(classes, attributes)
+    objects = sanity_check(objects, attributes)
+    classes = sanity_check(classes, attributes)
 
     new(version)
     |> set_profiles(profiles)
     |> set_categories(categories)
     |> set_dictionary(dictionary)
-    |> set_base_event(base_event)
+    |> set_base_event(add_datetime(:base_event, base_event, dictionary))
     |> set_classes(classes)
     |> set_objects(objects)
   end
@@ -440,15 +440,15 @@ defmodule Schema.Cache do
             attributes = Utils.deep_merge(base[:attributes], class[:attributes])
 
             Map.merge(base, class, &merge_profiles/3)
-#            |> Map.delete(:extends)
+            #            |> Map.delete(:extends)
             |> Map.put(:attributes, attributes)
         end
     end
   end
-  
-  defp merge_profiles(:profiles, v1, v2), do: Enum.concat(v1, v2) |> Enum.uniq() 
+
+  defp merge_profiles(:profiles, v1, v2), do: Enum.concat(v1, v2) |> Enum.uniq()
   defp merge_profiles(_profiles, _v1, v2), do: v2
-  
+
   defp super_class(classes, class, extends) do
     case class[:extension] do
       nil ->
@@ -559,16 +559,39 @@ defmodule Schema.Cache do
   end
 
   defp sanity_check(map, dictionary) do
-    Enum.each(map, fn {name, value} ->
-      Enum.each(value[:attributes], fn {key, attribute} ->
-        if is_nil(attribute[:description]) do
-          desc = get_in(dictionary, [key, :description]) || ""
+    Enum.into(map, %{}, fn {name, value} ->
+      {name, add_datetime(name, value, dictionary)}
+    end)
+  end
 
-          if String.contains?(desc, "See specific usage") do
-            Logger.warn("Please update the description for #{name}.#{key}: #{desc}")
+  defp add_datetime(name, map, dictionary) do
+    Map.update!(map, :attributes, fn attributes ->
+      list =
+        Enum.reduce(attributes, [], fn {key, attribute}, acc ->
+          if is_nil(attribute[:description]) do
+            desc = get_in(dictionary, [key, :description]) || ""
+
+            if String.contains?(desc, "See specific usage") do
+              Logger.warn("Please update the description for #{name}.#{key}: #{desc}")
+            end
           end
-        end
-      end)
+
+          case get_in(dictionary, [key, :type]) do
+            "timestamp_t" ->
+              [{Utils.make_datetime(key), Map.put(attribute, :requirement, "optional")} | acc]
+
+            _ ->
+              acc
+          end
+        end)
+
+      case list do
+        [] ->
+          attributes
+
+        list ->
+          Enum.into(list, attributes)
+      end
     end)
   end
 
@@ -641,7 +664,7 @@ defmodule Schema.Cache do
   end
 
   defp merge_profiles(p1, p2) do
-    Enum.concat(p1, p2) |> Enum.uniq() 
+    Enum.concat(p1, p2) |> Enum.uniq()
   end
 
   defp update_dictionary(dictionary) do
