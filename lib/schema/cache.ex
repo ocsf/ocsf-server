@@ -84,7 +84,7 @@ defmodule Schema.Cache do
     |> set_profiles(profiles)
     |> set_categories(categories)
     |> set_dictionary(dictionary)
-    |> set_base_event(add_datetime(:base_event, base_event, dictionary))
+    |> set_base_event(add_datetime(:base_event, base_event, attributes))
     |> set_classes(classes)
     |> set_objects(objects)
   end
