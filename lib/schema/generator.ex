@@ -401,6 +401,9 @@ defmodule Schema.Generator do
   defp generate_data(_name, "timestamp_t", _field),
     do: DateTime.utc_now() |> DateTime.to_unix(:microsecond)
 
+  defp generate_data(_name, "datetime_t", _field),
+    do: DateTime.utc_now() |> DateTime.to_iso8601()
+
   defp generate_data(_name, "hostname_t", _field), do: domain()
   defp generate_data(_name, "ip_t", _field), do: ipv4()
   defp generate_data(_name, "subnet_t", _field), do: subnet()

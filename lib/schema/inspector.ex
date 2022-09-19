@@ -32,7 +32,8 @@ defmodule Schema.Inspector do
     "string_t",
     "subnet_t",
     "url_t",
-    "username_t"
+    "username_t",
+    "datetime_t"
   ]
 
   @integer_types ["port_t", "timestamp_t", "long_t", "json_t"]
