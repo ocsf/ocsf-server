@@ -440,7 +440,6 @@ defmodule Schema.Cache do
             attributes = Utils.deep_merge(base[:attributes], class[:attributes])
 
             Map.merge(base, class, &merge_profiles/3)
-            #            |> Map.delete(:extends)
             |> Map.put(:attributes, attributes)
         end
     end

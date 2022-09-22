@@ -223,7 +223,7 @@ defmodule Schema.JsonReader do
 
   defp read_schema_dir(acc, home, path) do
     if File.dir?(path) do
-      Logger.info(fn -> "#{inspect(__MODULE__)} read files: #{path}" end)
+      Logger.info(fn -> "#{inspect(__MODULE__)} [] read files: #{path}" end)
 
       case File.ls(path) do
         {:ok, files} ->
@@ -394,15 +394,15 @@ defmodule Schema.JsonReader do
         data
 
       file when is_binary(file) ->
-        include_traits(resolver, file, data)
+        include_files(resolver, file, data)
 
       files when is_list(files) ->
-        Enum.reduce(files, data, fn file, acc -> include_traits(resolver, file, acc) end)
+        Enum.reduce(files, data, fn file, acc -> include_files(resolver, file, acc) end)
     end
     |> include_enums(resolver)
   end
 
-  defp include_traits(resolver, file, data) do
+  defp include_files(resolver, file, data) do
     included = get_included_file(resolver, file)
     attributes = Utils.deep_merge(included[:attributes], Map.delete(data[:attributes], @include))
     Map.put(data, :attributes, attributes)
@@ -433,23 +433,23 @@ defmodule Schema.JsonReader do
   end
 
   defp get_included_file(resolver, file) do
-    path = resolver.(file)
-    Logger.debug(fn -> "#{inspect(__MODULE__)} include file #{path}" end)
+    {ext, path} = resolver.(file)
+    Logger.debug(fn -> "#{inspect(__MODULE__)} [#{ext}] include file #{path}" end)
 
     case cache_get(path) do
       [] ->
-        read_json_file(path) |> update_profile_attributes(file) |> cache_put(path)
+        read_json_file(path) |> update_profile_attributes(ext, file) |> cache_put(path)
 
       [{_, cached}] ->
         cached
     end
   end
 
-  defp update_profile_attributes(data, file) do
+  defp update_profile_attributes(data, ext, file) do
     profile =
       case data[:meta] do
         "profile" ->
-          update_profile(data, file)
+          update_profile(data, ext, file)
 
         _ ->
           nil
@@ -463,27 +463,30 @@ defmodule Schema.JsonReader do
 
       annotations ->
         Map.update(data, :attributes, [], fn attributes ->
-          add_annotated_attributes(attributes, profile, annotations)
+          add_annotated_profile(attributes, profile, annotations)
         end)
     end
   end
 
-  defp update_profile(profile, file) do
-    caption = profile[:caption]
-    name = profile[:name]
-
+  defp update_profile(profile, ext, file) do
+    profile_name = profile[:name]
+    name = case ext do
+      nil -> String.to_atom(profile_name)
+      _ex -> String.to_atom(Path.join([ext, profile_name]))
+    end
+    
     profiles = get_profiles()
 
     case profiles[name] do
       nil ->
-        Logger.info("Schema.JsonReader profiles: #{file} defines a new profile: #{name}")
+        Logger.info("Schema.JsonReader [#{ext}] read profile #{name} from #{file}")
 
         profiles
-        |> Map.put(String.to_atom(name), %{caption: caption, attributes: Map.get(profile, :attributes, %{})})
+        |> Map.put(name, profile)
         |> cache_put(:profiles)
 
       _profile ->
-        Logger.warn("Schema.JsonReader profiles: #{file} overwrites an existing profile: #{name}")
+        Logger.warn("Schema.JsonReader [#{ext}] #{file} overwrites an existing profile #{name}")
     end
 
     name
@@ -501,24 +504,21 @@ defmodule Schema.JsonReader do
   end
 
   defp add_profile(attributes, profile) do
-    Enum.map(attributes, fn {name, attribute} ->
+    Enum.into(attributes, %{}, fn {name, attribute} ->
       {name, Map.put(attribute, :profile, profile)}
     end)
-    |> Map.new()
   end
 
-  defp add_annotated_attributes(attributes, nil, annotations) do
-    Enum.map(attributes, fn {name, attribute} ->
+  defp add_annotated_profile(attributes, nil, annotations) do
+    Enum.into(attributes, %{}, fn {name, attribute} ->
       {name, Utils.deep_merge(annotations, attribute)}
     end)
-    |> Map.new()
   end
 
-  defp add_annotated_attributes(attributes, profile, annotations) do
-    Enum.map(attributes, fn {name, attribute} ->
+  defp add_annotated_profile(attributes, profile, annotations) do
+    Enum.into(attributes, %{}, fn {name, attribute} ->
       {name, Utils.deep_merge(annotations, Map.put(attribute, :profile, profile))}
     end)
-    |> Map.new()
   end
 
   # Extensions
@@ -591,7 +591,7 @@ defmodule Schema.JsonReader do
     path = Path.join(home, file)
 
     if File.regular?(path) do
-      path
+      {nil, path}
     else
       error("file #{path} not found in #{home}")
     end
@@ -599,14 +599,15 @@ defmodule Schema.JsonReader do
 
   defp resolve_file(home, ext, file) do
     path = Path.join(ext[:path], file)
+    ext_name = ext[:name]
 
     if File.regular?(path) do
-      path
+      {ext_name, path}
     else
       path = Path.join(home, file)
 
       if File.regular?(path) do
-        path
+        {ext_name, path}
       else
         error("file #{path} not found in [#{ext[:path]}, #{home}]")
       end
