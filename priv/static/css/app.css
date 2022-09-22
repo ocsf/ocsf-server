@@ -36,7 +36,6 @@ body {
   }
 
   .move-up {
-    z-index: -1;
     margin-top: -2rem;
   }
 
@@ -47,7 +46,11 @@ body {
     z-index: 1030;
   }
 
-  .navbar.fixed-left {
+#navbarCollapse {
+    z-index: 99999;
+}
+
+.navbar.fixed-left {
     bottom: 0;
     width: 200px;
     border-right: .1em solid;

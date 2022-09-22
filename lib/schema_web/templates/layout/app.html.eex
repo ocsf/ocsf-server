@@ -112,7 +112,7 @@ limitations under the License.
 
 <body class="bg-light">
 
-<nav class="navbar navbar-expand-md navbar-light">
+<nav class="navbar navbar-expand-md">
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse">
     <span class="navbar-toggler-icon"></span>
   </button>
@@ -159,8 +159,8 @@ limitations under the License.
     <% end %>
   </nav>
 
-  <div class="collapse navbar-collapse w-100 flex-md-column" id="navbarCollapse">
-    <ul class="extensions navbar-nav ml-auto mb-2 mb-md-0">
+  <div class="collapse navbar-collapse" id="navbarCollapse">
+    <ul class="extensions navbar-nav ml-auto">
       <li id="categories_id" class="nav-item">
         <a class="nav-link" href='<%= Routes.static_path(@conn, "/categories") %>'>Categories</a>
       </li>
