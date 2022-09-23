@@ -46,25 +46,19 @@ defmodule Schema.Cache do
   @spec init() :: __MODULE__.t()
   def init() do
     version = JsonReader.read_version()
-
-    case version[:version] do
-      "0.9.0" ->
-        exit("Error: invalid version 0.9.0, please use version 0.10.0 or newer")
-
-      _ ->
-        :ok
-    end
-
+    
     categories = JsonReader.read_categories() |> update_categories()
     dictionary = JsonReader.read_dictionary() |> update_dictionary()
 
     {base_event, classes} = read_classes(categories[:attributes])
-    objects = read_objects()
 
+    objects = read_objects()
     profiles = JsonReader.read_profiles()
 
     # clean up the cached files
     JsonReader.cleanup()
+
+    # TODO: apply profiles to objects and classes
 
     dictionary = Utils.update_dictionary(dictionary, base_event, classes, objects)
     attributes = dictionary[:attributes]

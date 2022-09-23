@@ -12,6 +12,19 @@ defmodule Schema.JsonReader do
   @data_dir "schema"
   @events_dir "events"
   @objects_dir "objects"
+  @profiles_dir "profiles"
+
+  # The schema uses JSON files
+  @schema_file ".json"
+
+  # The Schema version file
+  @version_file "version.json"
+
+  @categories_file "categories.json"
+  @dictionary_file "dictionary.json"
+  @events_dir "events"
+  @objects_dir "objects"
+  @profiles_dir "profiles"
 
   # The schema uses JSON files
   @schema_file ".json"
@@ -59,6 +72,11 @@ defmodule Schema.JsonReader do
 
   @spec read_profiles() :: map()
   def read_profiles() do
+    GenServer.call(__MODULE__, :get_profiles)
+  end
+
+  @spec read_profiles2() :: map()
+  def read_profiles2() do
     GenServer.call(__MODULE__, :read_profiles)
   end
 
@@ -125,6 +143,16 @@ defmodule Schema.JsonReader do
   end
 
   @impl true
+  def handle_call(:read_profiles, _from, {home, ext} = state) do
+    {:reply, read_profiles(home, ext), state}
+  end
+
+  @impl true
+  def handle_call(:get_profiles, _from, state) do
+    {:reply, get_profiles(), state}
+  end
+
+  @impl true
   def handle_call(:read_objects, _from, {home, ext} = state) do
     {:reply, read_objects(home, ext), state}
   end
@@ -132,11 +160,6 @@ defmodule Schema.JsonReader do
   @impl true
   def handle_call(:read_classes, _from, {home, ext} = state) do
     {:reply, read_classes(home, ext), state}
-  end
-
-  @impl true
-  def handle_call(:read_profiles, _from, state) do
-    {:reply, get_profiles(), state}
   end
 
   @impl true
@@ -195,6 +218,20 @@ defmodule Schema.JsonReader do
     Enum.reduce(extensions, dictionary, fn ext, acc ->
       merge_dictionary_file(acc, ext, @dictionary_file)
     end)
+  end
+
+  def read_profiles(home, []) do
+    read_schema_dir(Map.new(), home, Path.join(home, @profiles_dir))
+    |> Enum.into(%{}, fn {name, profile} -> {Atom.to_string(name), profile} end)
+  end
+
+  def read_profiles(home, extensions) do
+    profiles = read_schema_dir(Map.new(), home, Path.join(home, @profiles_dir))
+
+    Enum.reduce(extensions, profiles, fn ext, acc ->
+      read_extension_dir(acc, home, ext, @profiles_dir)
+    end)
+    |> Enum.into(%{}, fn {name, profile} -> {Atom.to_string(name), profile} end)
   end
 
   defp read_objects(home, []) do
@@ -403,7 +440,7 @@ defmodule Schema.JsonReader do
   end
 
   defp include_files(resolver, file, data) do
-    included = get_included_file(resolver, file)
+    included = read_included_file(resolver, file)
     attributes = Utils.deep_merge(included[:attributes], Map.delete(data[:attributes], @include))
     Map.put(data, :attributes, attributes)
   end
@@ -428,11 +465,11 @@ defmodule Schema.JsonReader do
         attribute
 
       file ->
-        get_included_file(resolver, file) |> Utils.deep_merge(Map.delete(attribute, @include))
+        read_included_file(resolver, file) |> Utils.deep_merge(Map.delete(attribute, @include))
     end
   end
 
-  defp get_included_file(resolver, file) do
+  defp read_included_file(resolver, file) do
     {ext, path} = resolver.(file)
     Logger.debug(fn -> "#{inspect(__MODULE__)} [#{ext}] include file #{path}" end)
 
