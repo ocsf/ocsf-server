@@ -104,7 +104,7 @@ function display_attributes(options) {
     options.add("no-profile");
 
     get_selected_profiles().forEach(function (elem) {
-      options.add(elem);
+      options.add(elem.replace("/", "-"));
     });
 
     const rows = table.rows;

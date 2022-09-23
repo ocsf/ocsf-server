@@ -26,14 +26,15 @@ function init_selected_profiles(profiles) {
     });
   } else {
     $.each(profiles, function(index, element) {
-      $("#" + element).prop('checked', true);
+      $("#" + element.replace("/", "-")).prop('checked', true);
     });
 
     $(".ocsf-class").each(function(i, e) {
       let n = 0;
-
+      let list = (e.dataset["profiles"] || "").split(",");
+      
       $.each(profiles, function(index, element) {
-        if (element in e.dataset)
+        if (list.indexOf(element) >= 0)
           n = n + 1;
       });
 
@@ -51,7 +52,7 @@ function init_class_profiles() {
     selected_profiles = [];
     profiles.each(function(){
       if (this.checked)
-        selected_profiles.push(this.id)
+        selected_profiles.push(this.dataset["profile"])
     });
 
     set_selected_profiles(selected_profiles);

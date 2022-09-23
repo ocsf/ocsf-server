@@ -17,9 +17,7 @@ defmodule SchemaWeb.PageView do
   end
 
   def format_profiles(profiles) do
-    Enum.map_join(profiles, " ", fn profile ->
-      "data-" <> profile
-    end)
+    ["data-profiles='", Enum.join(profiles, ","), "'"]
   end
 
   @spec format_name(any, nil | maybe_improper_list | map) :: any
@@ -100,7 +98,7 @@ defmodule SchemaWeb.PageView do
     profile = field[:profile]
 
     if profile != nil do
-      classes <> " " <> profile
+      classes <> " " <> String.replace(profile, "/", "-")
     else
       classes <> " no-profile"
     end
