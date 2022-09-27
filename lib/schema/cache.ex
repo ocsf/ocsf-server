@@ -120,10 +120,9 @@ defmodule Schema.Cache do
 
   @spec export_classes(__MODULE__.t()) :: map()
   def export_classes(%__MODULE__{classes: classes, dictionary: dictionary}) do
-    Enum.map(classes, fn {name, class} ->
+    Enum.into(classes, Map.new(), fn {name, class} ->
       {name, enrich(class, dictionary[:attributes])}
     end)
-    |> Map.new()
   end
 
   @spec class(__MODULE__.t(), atom()) :: nil | class_t()
@@ -132,6 +131,20 @@ defmodule Schema.Cache do
   end
 
   def class(%__MODULE__{dictionary: dictionary, classes: classes}, id) do
+    case Map.get(classes, id) do
+      nil ->
+        nil
+
+      class ->
+        enrich(class, dictionary[:attributes])
+    end
+  end
+
+  @doc """
+  Returns extended class definition, which includes all objects referred by the class.
+  """
+  @spec class_ex(__MODULE__.t(), atom()) :: nil | class_t()
+  def class_ex(%__MODULE__{dictionary: dictionary, classes: classes}, id) do
     case Map.get(classes, id) do
       nil ->
         nil
@@ -154,10 +167,9 @@ defmodule Schema.Cache do
 
   @spec export_objects(__MODULE__.t()) :: map()
   def export_objects(%__MODULE__{dictionary: dictionary, objects: objects}) do
-    Enum.map(objects, fn {name, object} ->
+    Enum.into(objects, Map.new(), fn {name, object} ->
       {name, enrich(object, dictionary[:attributes])}
     end)
-    |> Map.new()
   end
 
   @spec object(__MODULE__.t(), any) :: nil | object_t()
@@ -248,10 +260,9 @@ defmodule Schema.Cache do
 
   defp update_categories(categories) do
     Map.update!(categories, :attributes, fn attributes ->
-      Enum.map(attributes, fn {name, cat} ->
+      Enum.into(attributes, Map.new(), fn {name, cat} ->
         update_category_uid(name, cat, cat[:extension_id])
       end)
-      |> Map.new()
     end)
   end
 

@@ -164,7 +164,7 @@ defmodule Schema.JsonReader do
 
   @impl true
   def handle_call(:extensions, _from, {_home, ext} = state) do
-    extensions = Enum.map(ext, fn ext -> {ext[:name], ext} end) |> Map.new()
+    extensions = Enum.into(ext, %{}, fn ext -> {ext[:name], ext} end)
     {:reply, extensions, state}
   end
 
@@ -222,7 +222,7 @@ defmodule Schema.JsonReader do
 
   def read_profiles(home, []) do
     read_schema_dir(Map.new(), home, Path.join(home, @profiles_dir))
-    |> Enum.into(%{}, fn {name, profile} -> {Atom.to_string(name), profile} end)
+    |> Enum.into(Map.new(), fn {name, profile} -> {Atom.to_string(name), profile} end)
   end
 
   def read_profiles(home, extensions) do
@@ -450,13 +450,13 @@ defmodule Schema.JsonReader do
   end
 
   defp merge_enums(resolver, attributes) do
-    Enum.map(
+    Enum.into(
       attributes,
+      Map.new(),
       fn {name, attribute} ->
         {name, merge_enum_file(resolver, attribute)}
       end
     )
-    |> Map.new()
   end
 
   defp merge_enum_file(resolver, attribute) do

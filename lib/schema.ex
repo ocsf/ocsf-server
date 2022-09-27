@@ -61,12 +61,10 @@ defmodule Schema do
     Returns the event categories defined in the given extension set.
   """
   def categories(extensions) do
-    Map.update(Repo.categories(extensions), :attributes, Map.new(), fn attributes ->
-      Enum.map(attributes, fn {name, _category} ->
+    Map.update(Repo.categories(extensions), :attributes, %{}, fn attributes ->
+      Enum.into(attributes, %{}, fn {name, _category} ->
         {name, category(extensions, name)}
       end)
-      # |> Enum.filter(fn {_name, category} -> map_size(category[:classes]) > 0 end)
-      |> Map.new()
     end)
   end
 
@@ -131,6 +129,31 @@ defmodule Schema do
   def class(extension, id, nil), do: class(extension, id)
 
   def class(extension, id, profiles) do
+    case class(extension, id) do
+      nil ->
+        nil
+
+      class ->
+        Map.update!(class, :attributes, fn attributes ->
+          Utils.apply_profiles(attributes, profiles)
+        end)
+    end
+  end
+
+  @doc """
+    Returns a single event class.
+  """
+  @spec class_ex(atom() | String.t()) :: nil | Cache.class_t()
+  def class_ex(id), do: Repo.class(Utils.to_uid(id))
+
+  @spec class_ex(nil | String.t(), String.t()) :: nil | map()
+  def class_ex(extension, id),
+    do: Repo.class(Utils.to_uid(extension, id))
+
+  @spec class_ex(String.t() | nil, String.t(), Repo.profiles_t() | nil) :: nil | map()
+  def class_ex(extension, id, nil), do: class(extension, id)
+
+  def class_ex(extension, id, profiles) do
     case class(extension, id) do
       nil ->
         nil
@@ -363,7 +386,7 @@ defmodule Schema do
   end
 
   defp reduce_objects(objects) do
-    Enum.map(objects, fn {name, object} ->
+    Enum.into(objects, %{}, fn {name, object} ->
       updated =
         reduce_object(object)
         |> reduce_attributes(&reduce_object/1)
@@ -371,7 +394,6 @@ defmodule Schema do
 
       {name, updated}
     end)
-    |> Map.new()
   end
 
   defp reduce_object(object) do
@@ -380,10 +402,9 @@ defmodule Schema do
 
   defp reduce_attributes(data, reducer) do
     Map.update(data, :attributes, [], fn attributes ->
-      Enum.map(attributes, fn {name, attribute} ->
+      Enum.into(attributes, %{}, fn {name, attribute} ->
         {name, reducer.(attribute)}
       end)
-      |> Map.new()
     end)
   end
 

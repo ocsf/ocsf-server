@@ -184,7 +184,7 @@ defmodule Schema.Inspector do
           "The array contains invalid enum values"
         end
 
-      values = Enum.map(map, fn {key, data} -> {key, data.value} end) |> Map.new()
+      values = Enum.into(map, %{}, fn {key, data} -> {key, data.value} end)
 
       Map.put(acc, name, %{
         :error => error,
