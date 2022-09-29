@@ -16,6 +16,7 @@ defmodule Schema.Generator do
 
   alias __MODULE__
   alias Schema.Types
+  alias Schema.Utils
 
   require Logger
 
@@ -39,6 +40,11 @@ defmodule Schema.Generator do
   @names_file "names.txt"
   @words_file "words.txt"
 
+  @requirement 100
+  @recommended 90
+  @optional 20
+  @max_array_size 3
+
   def init() do
     dir = Application.app_dir(:schema_server, @data_dir)
 
@@ -61,6 +67,109 @@ defmodule Schema.Generator do
     }
   end
 
+  @spec generate_sample_event(Schema.Cache.class_t(), Schema.Repo.profiles_t() | nil) :: map()
+  def generate_sample_event(class, nil) do
+    Logger.debug("generate sample event: #{inspect(class[:name])}")
+
+    generate_sample_event(class) |> remove_profiles()
+  end
+
+  def generate_sample_event(class, profiles) do
+    Logger.debug(fn ->
+      "generate sample event: #{class[:name]}, profiles: #{MapSet.to_list(profiles) |> Enum.join(", ")})"
+    end)
+
+    generate_event(class, profiles, MapSet.size(profiles))
+  end
+
+  @spec generate_sample_event(Schema.Cache.object_t(), Schema.Repo.profiles_t() | nil) :: map()
+  def generate_sample_object(type, nil) do
+    Logger.debug("generate sample object: #{type[:name]})")
+
+    generate_sample_object(type)
+  end
+
+  def generate_sample_object(type, profiles) do
+    Logger.debug(fn ->
+      "generate sample object: #{type[:name]}, profiles: #{MapSet.to_list(profiles) |> Enum.join(", ")})"
+    end)
+
+    generate_sample_object(type, profiles, MapSet.size(profiles))
+  end
+
+  defp generate_event(class, _profiles, 0) do
+    Map.update!(class, :attributes, fn attributes ->
+      Utils.remove_profiles(attributes)
+    end)
+    |> generate_sample_event()
+    |> add_profiles([])
+  end
+
+  defp generate_event(class, profiles, size) do
+    Map.update!(class, :attributes, fn attributes ->
+      Utils.apply_profiles(attributes, profiles, size)
+    end)
+    |> generate_sample_event()
+    |> add_profiles(MapSet.to_list(profiles))
+  end
+
+  defp add_profiles(data, profiles) do
+    put_in(data, [:metadata, :profiles], profiles)
+  end
+  
+  defp remove_profiles(data) do
+    {_, map} = pop_in(data, [:metadata, :profiles])
+    map
+  end
+  
+  defp generate_sample_event(class) do
+    data = generate_sample(class)
+
+    case data[:activity_id] do
+      nil ->
+        data
+
+      activity_id ->
+        uid =
+          if activity_id >= 0 do
+            Types.type_uid(data[:class_uid], activity_id)
+          else
+            -1
+          end
+
+        Map.put(data, :type_uid, uid)
+        |> put_type_name(uid, class)
+        |> Map.delete(:raw_data)
+        |> Map.delete(:unmapped)
+    end
+  end
+
+  defp generate_sample_object(type, _profiles, 0) do
+    Map.update!(type, :attributes, fn attributes ->
+      Utils.remove_profiles(attributes)
+    end)
+    |> generate_sample_object()
+  end
+
+  defp generate_sample_object(type, profiles, size) do
+    Map.update!(type, :attributes, fn attributes ->
+      Utils.apply_profiles(attributes, profiles, size)
+    end)
+    |> generate_sample_object()
+  end
+  
+  defp generate_sample_object(type) do
+    Logger.debug("generate #{type[:name]} (#{type[:caption]})")
+
+    case type[:name] do
+      "fingerprint" -> fingerprint(type)
+      "location" -> location()
+      "attack" -> attack()
+      "file" -> generate_sample(type) |> update_file_path()
+      _type -> generate_sample(type)
+    end
+  end
+
   @doc """
   Generate new event class uid values for a given category.
   """
@@ -75,46 +184,7 @@ defmodule Schema.Generator do
     end
   end
 
-  @doc """
-  Generate an event data using a given class.
-  """
-  def event(nil), do: nil
-
-  def event(class) do
-    Logger.debug("generate class: #{inspect(class[:name])}")
-
-    data = generate(class)
-
-    case data[:activity_id] || data[:disposition_id] do
-      nil ->
-        data
-
-      activity_id ->
-        uid =
-          if activity_id >= 0 do
-            Types.type_uid(data[:class_uid], activity_id)
-          else
-            -1
-          end
-
-        Map.put(data, :type_uid, uid)
-        |> add_type_name(uid, class)
-    end
-  end
-
-  def generate(class) do
-    Logger.debug("generate: #{class[:caption]} #{class[:name]}")
-
-    case class[:name] do
-      "fingerprint" -> fingerprint(class)
-      "location" -> location()
-      "attack" -> attack()
-      "file" -> generate_class(class) |> update_file_path()
-      _type -> generate_class(class)
-    end
-  end
-
-  defp add_type_name(data, uid, class) do
+  defp put_type_name(data, uid, class) do
     case get_in(class, [:attributes, :type_uid, :enum]) do
       nil ->
         data
@@ -126,8 +196,8 @@ defmodule Schema.Generator do
     end
   end
 
-  defp generate_class(class) do
-    Enum.reduce(class[:attributes], Map.new(), fn {name, field} = attribute, map ->
+  defp generate_sample(type) do
+    Enum.reduce(type[:attributes], Map.new(), fn {name, field} = attribute, map ->
       if field[:is_array] == true do
         generate_array(field[:requirement], name, attribute, map)
       else
@@ -136,7 +206,7 @@ defmodule Schema.Generator do
             generate_object(field[:requirement], name, attribute, map)
 
           nil ->
-            Logger.error("Missing class: #{name}")
+            Logger.warn("Invalid type name: #{name}")
             map
 
           _other ->
@@ -145,11 +215,6 @@ defmodule Schema.Generator do
       end
     end)
   end
-
-  # don't generate unmapped, profiles and raw_data data
-  defp generate({:unmapped, _field}, map), do: map
-  defp generate({:profiles, _field}, map), do: map
-  defp generate({:raw_data, _field}, map), do: map
 
   defp generate({name, field}, map) do
     generate_field(field[:requirement], name, field, map)
@@ -160,18 +225,18 @@ defmodule Schema.Generator do
     generate_field(name, field, map)
   end
 
-  #  Generate 80% of the recommended fields
+  #  Generate % of the recommended fields
   defp generate_field("recommended", name, field, map) do
-    if random(100) > 5 do
+    if random(@requirement) < @recommended do
       generate_field(name, field, map)
     else
       map
     end
   end
 
-  #  Generate 50% of the optional fields
+  #  Generate % of the optional fields
   defp generate_field(_requirement, name, field, map) do
-    if random(100) > 25 do
+    if random(@requirement) < @optional do
       generate_field(name, field, map)
     else
       map
@@ -227,7 +292,7 @@ defmodule Schema.Generator do
   end
 
   defp generate_array("recommended", name, attribute, map) do
-    if random(100) > 20 do
+    if random(@requirement) < @recommended do
       Map.put(map, name, generate_array(attribute))
     else
       map
@@ -235,7 +300,7 @@ defmodule Schema.Generator do
   end
 
   defp generate_array(_, name, attribute, map) do
-    if random(100) > 90 do
+    if random(@requirement) < @optional do
       Map.put(map, name, generate_array(attribute))
     else
       map
@@ -247,11 +312,11 @@ defmodule Schema.Generator do
   end
 
   defp generate_array({:loaded_modules, _field}) do
-    Enum.map(1..random(5), fn _ -> file_name(4) end)
+    Enum.map(1..random(@max_array_size), fn _ -> file_name(4) end)
   end
 
   defp generate_array({:fingerprints, type}) do
-    1..random(5)
+    1..random(@max_array_size)
     |> Enum.map(fn _ -> fingerprint(find_object(type)) end)
     |> Enum.uniq_by(fn map -> Map.get(map, :algorithm_id) end)
   end
@@ -261,7 +326,7 @@ defmodule Schema.Generator do
   end
 
   defp generate_array({name, field} = attribute) do
-    n = random(5)
+    n = random(@max_array_size)
 
     case field[:type] do
       "object_t" ->
@@ -277,7 +342,7 @@ defmodule Schema.Generator do
   end
 
   defp generate_object("recommended", name, attribute, map) do
-    if random(100) > 20 do
+    if random(@requirement) < @recommended do
       Map.put(map, name, generate_object(attribute))
     else
       map
@@ -285,7 +350,7 @@ defmodule Schema.Generator do
   end
 
   defp generate_object(_, name, attribute, map) do
-    if random(100) > 90 do
+    if random(@requirement) < @optional do
       Map.put(map, name, generate_object(attribute))
     else
       map
@@ -301,7 +366,7 @@ defmodule Schema.Generator do
   end
 
   defp generate_object({_name, field}) do
-    find_object(field) |> generate()
+    find_object(field) |> generate_sample_object()
   end
 
   defp find_object(field) do
@@ -312,7 +377,7 @@ defmodule Schema.Generator do
     field[:object_type]
     |> String.to_atom()
     |> Schema.object()
-    |> generate()
+    |> generate_sample_object()
     |> update_file_path()
   end
 
@@ -345,7 +410,7 @@ defmodule Schema.Generator do
       |> String.to_atom()
       |> Schema.object()
 
-    Enum.map(1..n, fn _ -> generate(object) end)
+    Enum.map(1..n, fn _ -> generate_sample_object(object) end)
   end
 
   defp generate_data(:ref_time, _type, _field),
@@ -531,7 +596,6 @@ defmodule Schema.Generator do
   # 192.168.10/8
   def subnet() do
     n = random(3)
-    IO.puts("n=#{inspect(n)}")
 
     ip =
       Enum.map_join(0..n, ".", fn _n -> random(256) end) <>

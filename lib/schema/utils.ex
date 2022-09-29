@@ -306,7 +306,9 @@ defmodule Schema.Utils do
   end
 
   defp datetime_attribute(attribute) do
-    Map.put(attribute, :type, "datetime_t") |> Map.put(:type_name, "Datetime")
+    Map.put(attribute, :type, "datetime_t")
+    |> Map.put(:type_name, "Datetime")
+    |> Map.put(:requirement, (attribute[:requirement] || "optional"))
   end
 
   def make_datetime(name) do

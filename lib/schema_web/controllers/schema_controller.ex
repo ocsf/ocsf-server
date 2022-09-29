@@ -604,17 +604,21 @@ defmodule SchemaWeb.SchemaController do
     tag("Tools")
 
     parameters do
-      _mode(:query, :number, """
-      Controls how attribute names and enumerated values are translated.<br/>
-      The format is _mode=[1|2|3]. The default mode is `1` -- translate enumerated values.
+      _mode(
+        :query,
+        :number,
+        """
+        Controls how attribute names and enumerated values are translated.<br/>
+        The format is _mode=[1|2|3]. The default mode is `1` -- translate enumerated values.
 
-      |Value|Description|Example|
-      |-----|-----------|-------|
-      |1|Translate only the enumerated values|Untranslated:<br/><code>{"class_uid": 1000}</code><br/><br/>Translated:<br/><code>{"class_name": File Activity", "class_uid": 1000}</code>|
-      |2|Translate enumerated values and attribute names|Untranslated:<br/><code>{"class_uid": 1000}</code><br/><br/>Translated:<br/><code>{"Class": File Activity", "Class ID": 1000}</code>|
-      |3|Verbose translation|Untranslated:<br/><code>{"class_uid": 1000}</code><br/><br/>Translated:<br/><code>{"class_uid": {"caption": "File Activity","name": "Class ID","type": "integer_t","value": 1000}}</code>|
-      """,
-      default: 1)
+        |Value|Description|Example|
+        |-----|-----------|-------|
+        |1|Translate only the enumerated values|Untranslated:<br/><code>{"class_uid": 1000}</code><br/><br/>Translated:<br/><code>{"class_name": File Activity", "class_uid": 1000}</code>|
+        |2|Translate enumerated values and attribute names|Untranslated:<br/><code>{"class_uid": 1000}</code><br/><br/>Translated:<br/><code>{"Class": File Activity", "Class ID": 1000}</code>|
+        |3|Verbose translation|Untranslated:<br/><code>{"class_uid": 1000}</code><br/><br/>Translated:<br/><code>{"class_uid": {"caption": "File Activity","name": "Class ID","type": "integer_t","value": 1000}}</code>|
+        """,
+        default: 1
+      )
 
       _spaces(
         :query,
@@ -759,7 +763,7 @@ defmodule SchemaWeb.SchemaController do
 
   defp sample_class(conn, id, options) do
     extension = extension(options)
-    profiles = parse_options(profiles(options))
+    profiles = profiles(options) |> parse_options()
 
     try do
       case Schema.class(extension, id) do
@@ -817,6 +821,7 @@ defmodule SchemaWeb.SchemaController do
   @spec sample_object(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def sample_object(conn, %{"id" => id} = options) do
     extension = extension(options)
+    profiles = profiles(options) |> parse_options()
 
     try do
       case Schema.object(extension, id) do
@@ -824,7 +829,7 @@ defmodule SchemaWeb.SchemaController do
           send_json_resp(conn, 404, %{error: "Object #{id} not found"})
 
         data ->
-          send_json_resp(conn, Schema.generate(data))
+          send_json_resp(conn, Schema.generate_object(data, profiles))
       end
     rescue
       e ->
@@ -919,5 +924,11 @@ defmodule SchemaWeb.SchemaController do
 
   defp parse_options(nil), do: nil
   defp parse_options(""), do: MapSet.new()
-  defp parse_options(options), do: String.split(options, ",") |> MapSet.new()
+
+  defp parse_options(options) do
+    options
+    |> String.split(",")
+    |> Enum.map(fn s -> String.trim(s) end)
+    |> MapSet.new()
+  end
 end

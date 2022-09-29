@@ -46,7 +46,7 @@ defmodule Schema.Cache do
   @spec init() :: __MODULE__.t()
   def init() do
     version = JsonReader.read_version()
-    
+
     categories = JsonReader.read_categories() |> update_categories()
     dictionary = JsonReader.read_dictionary() |> update_dictionary()
 
@@ -569,34 +569,36 @@ defmodule Schema.Cache do
   end
 
   defp add_datetime(name, map, dictionary) do
-    Map.update!(map, :attributes, fn attributes ->
-      list =
-        Enum.reduce(attributes, [], fn {key, attribute}, acc ->
-          if is_nil(attribute[:description]) do
-            desc = get_in(dictionary, [key, :description]) || ""
+    attributes = map[:attributes]
 
-            if String.contains?(desc, "See specific usage") do
-              Logger.warn("Please update the description for #{name}.#{key}: #{desc}")
-            end
+    list =
+      Enum.reduce(attributes, [], fn {key, attribute}, acc ->
+        if is_nil(attribute[:description]) do
+          desc = get_in(dictionary, [key, :description]) || ""
+
+          if String.contains?(desc, "See specific usage") do
+            Logger.warn("Please update the description for #{name}.#{key}: #{desc}")
           end
+        end
 
-          case get_in(dictionary, [key, :type]) do
-            "timestamp_t" ->
-              [{Utils.make_datetime(key), Map.put(attribute, :requirement, "optional")} | acc]
+        case get_in(dictionary, [key, :type]) do
+          "timestamp_t" ->
+            [{Utils.make_datetime(key), Map.put(attribute, :profile, "datetime")} | acc]
 
-            _ ->
-              acc
-          end
-        end)
+          _ ->
+            acc
+        end
+      end)
 
-      case list do
-        [] ->
-          attributes
+    case list do
+      [] ->
+        map
 
-        list ->
-          Enum.into(list, attributes)
-      end
-    end)
+      list ->
+        map
+        |> Map.put(:profiles, merge_profiles(map[:profiles], ["datetime"]))
+        |> Map.put(:attributes, Enum.into(list, attributes))
+    end
   end
 
   defp update_object_profiles(objects) do

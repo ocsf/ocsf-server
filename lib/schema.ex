@@ -320,49 +320,41 @@ defmodule Schema do
   @doc """
   Returns a randomly generated sample event.
   """
-  @spec generate_event(atom() | Cache.class_t()) :: nil | map()
-  def generate_event(class) when is_atom(class) do
-    Schema.class(class) |> Schema.Generator.event()
+  @spec generate_event(Cache.class_t() | atom() | binary()) :: nil | map()
+  def generate_event(class) when is_map(class) do
+    Schema.Generator.generate_sample_event(class, nil)
   end
 
-  def generate_event(class) when is_map(class) do
-    Schema.Generator.event(class)
+  def generate_event(class) do
+    Schema.class(class) |> Schema.Generator.generate_sample_event(nil)
   end
 
   @doc """
-  Returns a randomly generated sample event.
+  Returns a randomly generated sample event, based on the spcified profiles.
   """
   @spec generate_event(Cache.class_t(), Repo.profiles_t() | nil) :: map()
-  def generate_event(class, nil) do
-    Schema.Generator.event(class) |> Map.delete(:profiles)
-  end
-
-  def generate_event(class, profiles) do
-    generate_event(class, profiles, MapSet.size(profiles))
-  end
-
-  def generate_event(class, _profiles, 0) do
-    Map.update!(class, :attributes, fn attributes ->
-      Utils.remove_profiles(attributes)
-    end)
-    |> Schema.Generator.event()
-    |> Map.put(:profiles, [])
-  end
-
-  def generate_event(class, profiles, size) do
-    Map.update!(class, :attributes, fn attributes ->
-      Utils.apply_profiles(attributes, profiles, size)
-    end)
-    |> Schema.Generator.event()
-    |> Map.put(:profiles, MapSet.to_list(profiles))
+  def generate_event(class, profiles) when is_map(class) do
+    Schema.Generator.generate_sample_event(class, profiles)
   end
 
   @doc """
-  Returns randomly generated sample data.
+  Returns randomly generated sample object data.
   """
-  @spec generate(map()) :: any()
-  def generate(type) when is_map(type) do
-    Schema.Generator.generate(type)
+  @spec generate_object(Cache.object_t() | atom() | binary()) :: any()
+  def generate_object(type) when is_map(type) do
+    Schema.Generator.generate_sample_object(type, nil)
+  end
+
+  def generate_object(type) do
+    Schema.object(type) |> Schema.Generator.generate_sample_object(nil)
+  end
+
+  @doc """
+  Returns randomly generated sample object data, based on the spcified profiles.
+  """
+  @spec generate_object(Cache.object_t(), Repo.profiles_t() | nil) :: map()
+  def generate_object(type, profiles) when is_map(type) do
+    Schema.Generator.generate_sample_object(type, profiles)
   end
 
   defp get_category(id) do
