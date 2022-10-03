@@ -366,19 +366,25 @@ defmodule Schema.Cache do
   end
 
   defp add_class_uid(data, name) do
+    class_name = data[:caption]
+
     class_uid =
       data[:uid]
       |> Integer.to_string()
       |> String.to_atom()
 
     enum = %{
-      :caption => data[:caption],
+      :caption => class_name,
       :description => data[:description]
     }
 
     data
     |> put_in([:attributes, :class_uid, :enum], %{class_uid => enum})
     |> put_in([:attributes, :class_uid, :_source], name)
+    |> put_in(
+      [:attributes, :class_name, :description],
+      "The event class name, as defined by class_uid value: <code>#{class_name}</code>."
+    )
   end
 
   defp add_category_uid(class, name, categories) do
@@ -403,6 +409,10 @@ defmodule Schema.Cache do
           )
         end
         |> put_in([:attributes, :category_uid, :_source], name)
+        |> put_in(
+          [:attributes, :category_name, :description],
+          "The event category name, as defined by category_uid value: <code>#{category[:caption]}</code>."
+        )
     end
   end
 
