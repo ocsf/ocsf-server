@@ -144,13 +144,14 @@ defmodule Schema.Cache do
   Returns extended class definition, which includes all objects referred by the class.
   """
   @spec class_ex(__MODULE__.t(), atom()) :: nil | class_t()
-  def class_ex(%__MODULE__{dictionary: dictionary, classes: classes}, id) do
+  def class_ex(%__MODULE__{dictionary: dictionary, classes: classes, objects: objects}, id) do
     case Map.get(classes, id) do
       nil ->
         nil
 
       class ->
-        enrich(class, dictionary[:attributes])
+        {class_ex, ref_objects} = enrich_ex(class, dictionary[:attributes], objects, Map.new())
+        Map.put(class_ex, :objects, Map.to_list(ref_objects))
     end
   end
 
@@ -183,8 +184,8 @@ defmodule Schema.Cache do
     end
   end
 
-  defp enrich(map, dictionary) do
-    Map.update!(map, :attributes, fn list -> update_attributes(list, dictionary) end)
+  defp enrich(type, dictionary) do
+    Map.update!(type, :attributes, fn list -> update_attributes(list, dictionary) end)
   end
 
   defp update_attributes(list, dictionary) do
@@ -196,6 +197,41 @@ defmodule Schema.Cache do
 
         base ->
           {name, Utils.deep_merge(base, attribute)}
+      end
+    end)
+  end
+
+  defp enrich_ex(type, dictionary, objects, ref_objects) do
+    {attributes, ref_objects} = update_attributes_ex(type[:attributes], dictionary, objects, ref_objects)
+    {Map.put(type, :attributes, attributes), ref_objects}
+  end
+
+  defp update_attributes_ex(attributes, dictionary, objects, ref_objects) do
+    Enum.map_reduce(attributes, ref_objects, fn {name, attribute}, acc ->
+      case find_attribute(dictionary, name, attribute[:_source]) do
+        nil ->
+          Logger.warn("undefined attribute: #{name}: #{inspect(attribute)}")
+          {{name, attribute}, acc}
+
+        base ->
+          attribute = Utils.deep_merge(base, attribute)
+          |> Map.delete(:_links)
+
+          case attribute[:object_type] do
+            nil ->
+              {{name, attribute}, acc}
+
+            object_name ->
+              obj_type = String.to_atom(object_name)
+              acc = if Map.has_key?(acc, obj_type) do
+                acc
+              else
+                {object, acc} = enrich_ex(objects[obj_type], dictionary, objects, Map.put(acc, obj_type, nil))
+                Map.put(acc, obj_type, object)
+              end
+
+              {{name, attribute}, acc}
+          end
       end
     end)
   end

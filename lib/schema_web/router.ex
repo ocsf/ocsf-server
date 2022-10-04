@@ -75,6 +75,13 @@ defmodule SchemaWeb.Router do
     post "/validate", SchemaController, :validate
   end
 
+  scope "/schema", SchemaWeb do
+    pipe_through :api
+
+    get "/classes/:id", SchemaController, :json_class
+    get "/classes/:extension/:id", SchemaController, :json_class
+  end
+
   scope "/export", SchemaWeb do
     pipe_through :api
 

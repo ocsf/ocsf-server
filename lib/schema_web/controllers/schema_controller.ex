@@ -589,6 +589,54 @@ defmodule SchemaWeb.SchemaController do
     send_json_resp(conn, objects)
   end
 
+  # -----------------
+  # JSON Schema API's
+  # -----------------
+
+  @doc """
+  Get JSON schema definitions for a given event class.
+  get /schema/classes/:name
+  """
+  swagger_path :json_class do
+    get("/schema/classes/{name}")
+    summary("Event class")
+
+    description(
+      "Get OCSF schema class by name, using JSON schema format. The class name may contain an extension name. For example, \"dev/cpu_usage\"."
+    )
+
+    produces("application/json")
+    tag("JSON Schema")
+
+    parameters do
+      name(:path, :string, "Class name", required: true)
+      profiles(:query, :array, "Related profiles to include in response.", items: [type: :string])
+    end
+
+    response(200, "Success")
+    response(404, "Event class <code>name</code> not found")
+  end
+
+  @spec json_class(Plug.Conn.t(), map()) :: Plug.Conn.t()
+  def json_class(conn, %{"id" => id} = params) do
+    extension = extension(params)
+
+    try do
+      case Schema.class_ex(extension, id, parse_options(profiles(params))) do
+        nil ->
+          send_json_resp(conn, 404, %{error: "Event class #{id} not found"})
+
+        data ->
+          class = Schema.JsonSchema.encode(data)
+          send_json_resp(conn, class)
+      end
+    rescue
+      e ->
+        Logger.error("Unable to get class: #{id}. Error: #{inspect(e)}")
+        send_json_resp(conn, 500, %{error: "Error: #{e[:message]}"})
+    end
+  end
+
   # ---------------------------------
   # Validation and translation API's
   # ---------------------------------

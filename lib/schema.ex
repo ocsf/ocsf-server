@@ -144,17 +144,17 @@ defmodule Schema do
     Returns a single event class.
   """
   @spec class_ex(atom() | String.t()) :: nil | Cache.class_t()
-  def class_ex(id), do: Repo.class(Utils.to_uid(id))
+  def class_ex(id), do: Repo.class_ex(Utils.to_uid(id))
 
   @spec class_ex(nil | String.t(), String.t()) :: nil | map()
   def class_ex(extension, id),
-    do: Repo.class(Utils.to_uid(extension, id))
+    do: Repo.class_ex(Utils.to_uid(extension, id))
 
   @spec class_ex(String.t() | nil, String.t(), Repo.profiles_t() | nil) :: nil | map()
-  def class_ex(extension, id, nil), do: class(extension, id)
+  def class_ex(extension, id, nil), do: class_ex(extension, id)
 
   def class_ex(extension, id, profiles) do
-    case class(extension, id) do
+    case class_ex(extension, id) do
       nil ->
         nil
 
