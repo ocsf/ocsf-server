@@ -141,7 +141,7 @@ defmodule Schema do
   end
 
   @doc """
-    Returns a single event class.
+    Returns a single event class with the embedded objects.
   """
   @spec class_ex(atom() | String.t()) :: nil | Cache.class_t()
   def class_ex(id), do: Repo.class_ex(Utils.to_uid(id))
@@ -159,9 +159,7 @@ defmodule Schema do
         nil
 
       class ->
-        Map.update!(class, :attributes, fn attributes ->
-          Utils.apply_profiles(attributes, profiles)
-        end)
+        Schema.Profiles.apply_profiles(class, profiles)
     end
   end
 
