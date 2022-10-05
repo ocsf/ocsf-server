@@ -33,7 +33,8 @@ defmodule Schema.Inspector do
     "subnet_t",
     "url_t",
     "username_t",
-    "datetime_t"
+    "datetime_t",
+    "bytestring_t"
   ]
 
   @integer_types ["port_t", "timestamp_t", "long_t", "json_t"]
@@ -49,10 +50,13 @@ defmodule Schema.Inspector do
 
   defp validate_class(nil, _data), do: %{:error => "Missing class_uid"}
 
-  defp validate_class(class_uid, data),
-    do: validate_type(Schema.find_class(class_uid), data, data["profiles"])
+  defp validate_class(class_uid, data) do
+    profiles = get_in(data, ["metadata", "profiles"])
 
-  defp validate_object(type, data), do: validate_type(type, data, data["profiles"])
+    Logger.info("validate class: #{class_uid} using profiles: #{inspect(profiles)}")
+
+    validate_type(Schema.find_class(class_uid), data, profiles)
+  end
 
   defp validate_type(nil, data, _profiles) do
     class_uid = data[@class_uid]
@@ -63,7 +67,8 @@ defmodule Schema.Inspector do
     attributes = type[:attributes] |> Utils.apply_profiles(profiles)
 
     Enum.reduce(attributes, %{}, fn {name, attribute}, acc ->
-      validate_data(acc, name, attribute, data[Atom.to_string(name)], nil)
+      value = data[Atom.to_string(name)]
+      validate_data(acc, name, attribute, value, profiles)
     end)
     |> undefined_attributes(attributes, data)
   end
@@ -114,9 +119,9 @@ defmodule Schema.Inspector do
     validate_data_type(acc, name, attribute, value, @boolean_types)
   end
 
-  defp validate_data(acc, name, attribute, value, _profiles) when is_map(value) do
+  defp validate_data(acc, name, attribute, value, profiles) when is_map(value) do
     case attribute[:type] do
-      "object_t" -> validate_object(acc, name, attribute, value)
+      "object_t" -> validate_object(acc, name, attribute, value, profiles)
       "json_t" -> acc
       type -> Map.put(acc, name, invalid_data_type(attribute, value, type))
     end
@@ -128,7 +133,7 @@ defmodule Schema.Inspector do
         acc
 
       type ->
-        if attribute[:is_array] == true do
+        if attribute[:is_array] do
           validate_array(acc, name, attribute, value, profiles)
         else
           Map.put(acc, name, invalid_data_type(attribute, value, type))
@@ -165,7 +170,7 @@ defmodule Schema.Inspector do
 
     case attribute[:type] do
       "json_t" -> acc
-      "object_t" -> validate_object_array(acc, name, attribute, value)
+      "object_t" -> validate_object_array(acc, name, attribute, value, profiles)
       _simple_type -> validate_simple_array(acc, name, attribute, value, profiles)
     end
   end
@@ -195,7 +200,7 @@ defmodule Schema.Inspector do
     end
   end
 
-  defp validate_object_array(acc, name, attribute, value) do
+  defp validate_object_array(acc, name, attribute, value, profiles) do
     case attribute[:object_type] do
       "object" ->
         acc
@@ -205,7 +210,7 @@ defmodule Schema.Inspector do
 
         {map, _count} =
           Enum.reduce(value, {Map.new(), 0}, fn data, {map, count} ->
-            map = validate_object(object, data) |> add_count(map, count)
+            map = validate_type(object, data, profiles) |> add_count(map, count)
 
             {map, count + 1}
           end)
@@ -229,14 +234,14 @@ defmodule Schema.Inspector do
     end
   end
 
-  defp validate_object(acc, name, attribute, value) do
+  defp validate_object(acc, name, attribute, value, profiles) do
     case attribute[:object_type] do
       "object" ->
         acc
 
       object_type ->
         Schema.object(object_type)
-        |> validate_object(value)
+        |> validate_type(value, profiles)
         |> valid?(acc, name)
     end
   end
