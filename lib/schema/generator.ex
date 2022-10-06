@@ -79,6 +79,7 @@ defmodule Schema.Generator do
       "generate sample event: #{class[:name]}, profiles: #{MapSet.to_list(profiles) |> Enum.join(", ")})"
     end)
 
+    Process.put(:profiles, profiles)
     generate_event(class, profiles, MapSet.size(profiles))
   end
 
@@ -94,6 +95,7 @@ defmodule Schema.Generator do
       "generate sample object: #{type[:name]}, profiles: #{MapSet.to_list(profiles) |> Enum.join(", ")})"
     end)
 
+    Process.put(:profiles, profiles)
     generate_sample_object(type, profiles, MapSet.size(profiles))
   end
 
@@ -366,7 +368,7 @@ defmodule Schema.Generator do
   end
 
   defp generate_object({_name, field}) do
-    find_object(field) |> generate_sample_object()
+    find_object(field) |> generate_sample_object(Process.get(:profiles))
   end
 
   defp find_object(field) do
@@ -377,7 +379,7 @@ defmodule Schema.Generator do
     field[:object_type]
     |> String.to_atom()
     |> Schema.object()
-    |> generate_sample_object()
+    |> generate_sample_object(Process.get(:profiles))
     |> update_file_path()
   end
 
@@ -410,7 +412,7 @@ defmodule Schema.Generator do
       |> String.to_atom()
       |> Schema.object()
 
-    Enum.map(1..n, fn _ -> generate_sample_object(object) end)
+    Enum.map(1..n, fn _ -> generate_sample_object(object, Process.get(:profiles)) end)
   end
 
   defp generate_data(:ref_time, _type, _field),
