@@ -18,6 +18,21 @@ docker build -t docker_ocsf:0.0.0 .
 docker run -it --rm -p 8080:8080 docker_ocsf:0.0.0
 ```
 
+Run the docker schema server with local schema extensions:
+```bash
+docker run -it --rm --volume /opt/sandbox/splunk:/app/schema/splunk -e SCHEMA_EXTENSION="splunk" -p 8080:8080 -p 8443:8443 --name ocsf-schema rroupski370/ocsf:2.18.2-0.23.1bash
+```
+
+Run the docker schema server with added local schema extensions:
+```bash
+docker run -it --rm --volume /opt/sandbox/splunk:/app/schema/extensions/splunk -e SCHEMA_EXTENSION="extensions" -p 8080:8080 -p 8443:8443 --name ocsf-schema rroupski370/ocsf:2.18.2-0.23.1
+```
+
+Run the docker schema server using a local schema:
+```bash
+docker run -it --rm --volume /opt/sandbox/ocsf-schema:/app/schema -p 8080:8080 -p 8443:8443 --name ocsf-schema rroupski370/ocsf:2.18.2-0.23.1
+```
+
 ## Development with docker-compose
 
 The `docker-compose` environment enables development without needing to install any dependencies (apart from Docker/Podman and docker-compose) on the development machine.
