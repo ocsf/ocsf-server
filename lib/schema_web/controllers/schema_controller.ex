@@ -739,12 +739,14 @@ defmodule SchemaWeb.SchemaController do
     case data["_json"] do
       nil ->
         # Validate a single events
-        Logger.info("#{inspect(data)}")
         send_json_resp(conn, Schema.Inspector.validate(data))
 
       list when is_list(list) ->
         # Validate a list of events
-        result = Enum.map(list, fn data -> Schema.Inspector.validate(data) end)
+        result =
+          list
+          |> Enum.map(&Task.async(fn -> Schema.Inspector.validate(&1) end))
+          |> Enum.map(&Task.await/1)
         send_json_resp(conn, result)
 
       other ->
