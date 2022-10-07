@@ -749,9 +749,11 @@ defmodule SchemaWeb.SchemaController do
           |> Enum.map(&Task.await/1)
         send_json_resp(conn, result)
 
-      other ->
+      _other ->
+        # Validate a single events
+        send_json_resp(conn, Schema.Inspector.validate(data))
         # some other json data
-        send_json_resp(conn, %{:error => "The data does not look like an event", "data" => other})
+        # send_json_resp(conn, %{:error => "The data does not look like an event", "data" => other})
     end
   end
 
