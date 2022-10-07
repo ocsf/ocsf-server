@@ -26,7 +26,7 @@ limitations under the License.
         </span>
       </h1>
 
-      <h4>
+      <h4 class="extensions">
         <a href="<%= path %>"><%= @data[:category_name] %> Category</a>
       </h4>
 
@@ -150,5 +150,4 @@ limitations under the License.
 <script>
   init_schema_buttons();
   init_class_profiles();
-
 </script>
