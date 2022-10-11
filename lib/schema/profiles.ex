@@ -1,4 +1,6 @@
 defmodule Schema.Profiles do
+  require Logger
+
   @doc """
     Filter attributes based on a fiven set of profiles.
   """
@@ -6,7 +8,7 @@ defmodule Schema.Profiles do
     apply_profiles(class, MapSet.new(profiles))
   end
 
-  def apply_profiles(class,  %MapSet{} = profiles) do
+  def apply_profiles(class, %MapSet{} = profiles) do
     size = MapSet.size(profiles)
 
     Map.update!(class, :attributes, fn attributes ->
@@ -37,5 +39,37 @@ defmodule Schema.Profiles do
 
   defp remove_profiles(attributes) do
     Enum.filter(attributes, fn {_k, v} -> Map.has_key?(v, :profile) == false end)
+  end
+
+  @doc """
+    Checks classes or objects if all profile attributes are defined.
+  """
+  def sanity_check(maps, profiles) do
+    Enum.each(maps, fn {name, map} ->
+      sanity_check(name, map[:attributes], map[:profiles], profiles)
+    end)
+    maps
+  end
+
+  @doc """
+    Checks if all profile attributes are defined in the given attribute set.
+  """
+  def sanity_check(_name, _attributes, nil, _all_profiles) do
+  end
+
+  def sanity_check(name, attributes, profiles, all_profiles) do
+    Enum.map(profiles, fn p ->
+      case all_profiles[p] do
+        nil ->
+          Logger.warn("#{name} uses undefined profile: #{p}")
+
+        profile ->
+          Enum.each(profile[:attributes], fn {k, _} ->
+            if Map.has_key?(attributes, k) == false do
+              Logger.warn("#{name} uses '#{p}' profile, but it does not define '#{k}' attribute")
+            end
+          end)
+      end
+    end)
   end
 end

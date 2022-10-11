@@ -49,10 +49,10 @@ defmodule Schema.Cache do
 
     categories = JsonReader.read_categories() |> update_categories()
     dictionary = JsonReader.read_dictionary() |> update_dictionary()
-
+    
     {base_event, classes} = read_classes(categories[:attributes])
-
     objects = read_objects()
+
     profiles = JsonReader.read_profiles()
 
     # clean up the cached files
@@ -67,18 +67,23 @@ defmodule Schema.Cache do
       objects
       |> Utils.update_objects(attributes)
       |> update_observables(dictionary)
+      |> Schema.Profiles.sanity_check(profiles)
       |> update_object_profiles()
-
-    classes = update_class_profiles(objects, classes)
-
-    objects = sanity_check(objects, attributes)
-    classes = sanity_check(classes, attributes)
+      |> sanity_check(attributes, profiles)
+      
+    classes = 
+      classes
+      |> Schema.Profiles.sanity_check(profiles)
+      |> update_class_profiles( objects)
+      |> sanity_check(attributes, profiles)
+    
+    base_event = sanity_check(:base_event, base_event, attributes, profiles)
 
     new(version)
     |> set_profiles(profiles)
     |> set_categories(categories)
     |> set_dictionary(dictionary)
-    |> set_base_event(add_datetime(:base_event, base_event, attributes))
+    |> set_base_event(base_event)
     |> set_classes(classes)
     |> set_objects(objects)
   end
@@ -202,7 +207,9 @@ defmodule Schema.Cache do
   end
 
   defp enrich_ex(type, dictionary, objects, ref_objects) do
-    {attributes, ref_objects} = update_attributes_ex(type[:attributes], dictionary, objects, ref_objects)
+    {attributes, ref_objects} =
+      update_attributes_ex(type[:attributes], dictionary, objects, ref_objects)
+
     {Map.put(type, :attributes, attributes), ref_objects}
   end
 
@@ -214,8 +221,9 @@ defmodule Schema.Cache do
           {{name, attribute}, acc}
 
         base ->
-          attribute = Utils.deep_merge(base, attribute)
-          |> Map.delete(:_links)
+          attribute =
+            Utils.deep_merge(base, attribute)
+            |> Map.delete(:_links)
 
           case attribute[:object_type] do
             nil ->
@@ -223,12 +231,16 @@ defmodule Schema.Cache do
 
             object_name ->
               obj_type = String.to_atom(object_name)
-              acc = if Map.has_key?(acc, obj_type) do
-                acc
-              else
-                {object, acc} = enrich_ex(objects[obj_type], dictionary, objects, Map.put(acc, obj_type, nil))
-                Map.put(acc, obj_type, object)
-              end
+
+              acc =
+                if Map.has_key?(acc, obj_type) do
+                  acc
+                else
+                  {object, acc} =
+                    enrich_ex(objects[obj_type], dictionary, objects, Map.put(acc, obj_type, nil))
+
+                  Map.put(acc, obj_type, object)
+                end
 
               {{name, attribute}, acc}
           end
@@ -608,13 +620,14 @@ defmodule Schema.Cache do
     end)
   end
 
-  defp sanity_check(map, dictionary) do
-    Enum.into(map, %{}, fn {name, value} ->
-      {name, add_datetime(name, value, dictionary)}
+  defp sanity_check(maps, dictionary, profiles) do
+    Enum.into(maps, %{}, fn {name, value} ->
+      {name, sanity_check(name, value, dictionary, profiles)}
     end)
   end
 
-  defp add_datetime(name, map, dictionary) do
+  defp sanity_check(name, map, dictionary, all_profiles) do
+    profiles = map[:profiles]
     attributes = map[:attributes]
 
     list =
@@ -641,8 +654,9 @@ defmodule Schema.Cache do
         map
 
       list ->
+        # add the synthetic datetime profile
         map
-        |> Map.put(:profiles, merge_profiles(map[:profiles], ["datetime"]))
+        |> Map.put(:profiles, merge_profiles(profiles, ["datetime"]))
         |> Map.put(:attributes, Enum.into(list, attributes))
     end
   end
@@ -677,7 +691,7 @@ defmodule Schema.Cache do
     end
   end
 
-  defp update_class_profiles(objects, classes) do
+  defp update_class_profiles(classes, objects) do
     Enum.reduce(objects, classes, fn {name, object}, acc ->
       if Map.has_key?(object, :profiles) do
         update_class_profiles(name, object, acc)
