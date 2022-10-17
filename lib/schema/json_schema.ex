@@ -2,16 +2,8 @@ defmodule Schema.JsonSchema do
   @moduledoc """
   Json schema generator. This module defines functions that generate JSON schema (see http://json-schema.org) schemas for OCSF schema.
   """
-  require Logger
-
-  @base_uri "https://schema.ocsf.io/schema"
-
-  def schema() do
-    %{
-      "$id" => @base_uri,
-      "$schema" => "http://json-schema.org/draft-07/schema#"
-    }
-  end
+  @schema_base_uri "https://schema.ocsf.io/schema/classes"
+  @schema_version "http://json-schema.org/draft-07/schema#"
 
   @doc """
   Generates a JSON schema corresponding to the`type` parameter.
@@ -20,14 +12,14 @@ defmodule Schema.JsonSchema do
   def encode(type) when is_map(type) do
     name = type[:name]
 
-    Logger.info("encode json schema: #{name}")
-
     {properties, required} = map_reduce(name, type[:attributes])
+
     ext = type[:extension]
+
     if Map.has_key?(type, :_links) do
-      schema(make_object_ref(name, ext))
+      object_schema(make_object_ref(name, ext))
     else
-      schema(make_class_ref(name, ext))
+      class_schema(make_class_ref(name, ext))
     end
     |> Map.put("title", type[:caption])
     |> Map.put("type", "object")
@@ -36,13 +28,39 @@ defmodule Schema.JsonSchema do
     |> encode_objects(type[:objects])
   end
 
-  defp schema(id) do
+  defp class_schema(id) do
     %{
+      "$schema" => @schema_version,
       "$id" => id
-      # "additionalProperties" => true
     }
   end
-  
+
+  defp object_schema(id) do
+    %{
+      "$id" => id
+    }
+  end
+
+  defp make_object_ref(name) do
+    Path.join(["/schema/objects", name])
+  end
+
+  defp make_object_ref(name, nil) do
+    Path.join(["/schema/objects", name])
+  end
+
+  defp make_object_ref(name, ext) do
+    Path.join(["/schema/objects", ext, name])
+  end
+
+  defp make_class_ref(name, nil) do
+    Path.join([@schema_base_uri, name])
+  end
+
+  defp make_class_ref(name, ext) do
+    Path.join([@schema_base_uri, ext, name])
+  end
+
   defp encode_objects(schema, nil) do
     schema
   end
@@ -62,26 +80,6 @@ defmodule Schema.JsonSchema do
   end
 
   defp object_self_ref(), do: "#"
-
-  defp make_object_ref(name) do
-    Path.join(["/schema/objects", name])
-  end
-
-  defp make_object_ref(name, nil) do
-    Path.join(["/schema/objects", name])
-  end
-
-  defp make_object_ref(name, ext) do
-    Path.join(["/schema/objects", ext, name])
-  end
-
-  defp make_class_ref(name, nil) do
-    Path.join(["/schema/classes", name])
-  end
-
-  defp make_class_ref(name, ext) do
-    Path.join(["/schema/classes", ext, name])
-  end
 
   defp map_reduce(type_name, attributes) do
     {properties, required} =
