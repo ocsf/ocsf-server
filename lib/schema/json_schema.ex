@@ -21,10 +21,11 @@ defmodule Schema.JsonSchema do
     else
       class_schema(make_class_ref(name, ext))
     end
+    |> empty_object(properties)
     |> Map.put("title", type[:caption])
     |> Map.put("type", "object")
     |> Map.put("properties", properties)
-    |> Map.put("required", required)
+    |> put_required(required)
     |> encode_objects(type[:objects])
   end
 
@@ -61,6 +62,22 @@ defmodule Schema.JsonSchema do
     Path.join([@schema_base_uri, ext, name])
   end
 
+  defp empty_object(map, properties) do
+    if map_size(properties) == 0 do
+      Map.put(map, "additionalProperties", true)
+    else
+      map
+    end
+  end
+  
+  defp put_required(map, []) do
+    map
+  end
+  
+  defp put_required(map, required) do
+    Map.put(map, "required", required)
+  end
+  
   defp encode_objects(schema, nil) do
     schema
   end
@@ -106,6 +123,18 @@ defmodule Schema.JsonSchema do
     encode_integer(name, attr)
   end
 
+  defp encode_attribute(_name, "json_t", attr) do
+    %{"title" => attr[:caption]}
+    |> Map.put("oneOf", [
+      %{"type" => "string"},
+      %{"type" => "integer"},
+      %{"type" => "number"},
+      %{"type" => "boolean"},
+      %{"type" => %{"$ref" => make_object_ref("object")}},
+      %{"type" => "array", "items" => %{ "$ref" => "#" }}
+    ])
+  end
+
   defp encode_attribute(_name, type, attr) do
     %{"type" => encode_type(type)}
     |> Map.put("title", attr[:caption])
@@ -129,7 +158,6 @@ defmodule Schema.JsonSchema do
   defp encode_type("long_t"), do: "integer"
   defp encode_type("timestamp_t"), do: "integer"
   defp encode_type("port_t"), do: "integer"
-
   defp encode_type("float_t"), do: "number"
 
   defp encode_type("boolean_t"), do: "boolean"
