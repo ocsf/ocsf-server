@@ -278,7 +278,6 @@ defmodule Schema.Cache do
   defp read_classes() do
     classes =
       JsonReader.read_classes()
-      |> update_see_also()
       |> Enum.into(%{}, fn class -> attribute_source(class) end)
 
     {Map.get(classes, :base_event), classes}
@@ -521,43 +520,6 @@ defmodule Schema.Cache do
           nil -> Map.get(classes, String.to_atom(extends))
           other -> other
         end
-    end
-  end
-
-  defp update_see_also(classes) do
-    Enum.map(classes, fn {name, class} -> update_see_also(name, class, classes) end)
-  end
-
-  defp update_see_also(name, class, classes) do
-    see_also = find_see_also_classes(class, classes)
-
-    if see_also != nil and length(see_also) > 0 do
-      {name, Map.put(class, :see_also, see_also)}
-    else
-      {name, Map.delete(class, :see_also)}
-    end
-  end
-
-  defp find_see_also_classes(class, classes) do
-    see_also = class[:see_also]
-
-    if see_also != nil do
-      Enum.map(
-        see_also,
-        fn name ->
-          case Utils.find_entity(classes, class, name) do
-            {_, nil} ->
-              Logger.warn("find_see_also_classes: #{name} not found")
-              nil
-
-            {_key, class} ->
-              {Utils.make_path(class[:extension], name), class[:caption]}
-          end
-        end
-      )
-      |> Enum.filter(fn elem -> elem != nil end)
-    else
-      nil
     end
   end
 

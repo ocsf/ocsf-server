@@ -356,7 +356,7 @@ defmodule SchemaWeb.SchemaController do
           send_json_resp(conn, 404, %{error: "Event class #{id} not found"})
 
         data ->
-          class = Schema.delete_see_also(data) |> add_objects(params)
+          class = add_objects(data, params)
           send_json_resp(conn, class)
       end
     rescue

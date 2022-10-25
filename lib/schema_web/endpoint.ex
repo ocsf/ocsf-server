@@ -11,7 +11,7 @@ defmodule SchemaWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :schema_server
 
   socket "/socket", SchemaWeb.UserSocket,
-    websocket: true,
+    websocket: false,
     longpoll: false
 
   # Serve at "/" the static files from "priv/static" directory.

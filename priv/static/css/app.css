@@ -7,7 +7,7 @@ body {
 }
 
 body {
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' height='200px' width='200px'><text transform='translate(20, 200) rotate(-45)' fill='rgb(240, 240, 240)' font-size='100'>draft</text></svg>");
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' height='200px' width='200px'><text transform='translate(32, 200) rotate(-45)' fill='rgb(240, 240, 240)' font-size='120'>draft</text></svg>");
 }
 
 
@@ -137,7 +137,6 @@ body {
     text-decoration: none;
     color: rgb(255, 255, 255);
     position: inherit;
-    font: 700 13px "Helvetica Neue", Helvetica, Arial, sans-serif;
     box-shadow: rgba(0, 0, 0, 0.5) 0px 2px 3px 0px;
     background-color: rgb(170, 0, 0);
     left: -40px;
@@ -188,10 +187,6 @@ sup {
 .optional {
   color: #403D39;
   font-weight: 300;
-}
-
-.base-event {
-  font-style: italic;
 }
 
 strong {

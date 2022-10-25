@@ -380,7 +380,6 @@ defmodule Schema do
       updated =
         reduce_object(object)
         |> reduce_attributes(&reduce_object/1)
-        |> delete_see_also()
 
       {name, updated}
     end)
@@ -400,7 +399,7 @@ defmodule Schema do
 
   @spec reduce_class(map) :: map
   def reduce_class(data) do
-    delete_attributes(data) |> delete_see_also() |> delete_associations()
+    delete_attributes(data) |> delete_associations()
   end
 
   @spec delete_attributes(map) :: map
@@ -411,11 +410,6 @@ defmodule Schema do
   @spec delete_associations(map) :: map
   def delete_associations(data) do
     Map.delete(data, :associations)
-  end
-
-  @spec delete_see_also(map) :: map
-  def delete_see_also(data) do
-    Map.delete(data, :see_also)
   end
 
   @spec delete_links(map) :: map
