@@ -190,7 +190,7 @@ defmodule Schema.JsonSchema do
 
     case attr[:enum] do
       nil ->
-        Map.put(value, "type", "integer")
+        value
 
       enum ->
         case encode_enum_values(enum) do
@@ -201,6 +201,7 @@ defmodule Schema.JsonSchema do
             Map.put(value, "enum", values)
         end
     end
+    |> Map.put("type", "integer")
   end
 
   defp encode_enum_values(enum) do
