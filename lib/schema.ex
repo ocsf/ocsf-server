@@ -27,6 +27,18 @@ defmodule Schema do
   @spec version :: String.t()
   def version(), do: Repo.version()
 
+  @spec build_version :: String.t()
+  def build_version() do
+    build =
+      Application.spec(:schema_server)
+      |> Keyword.get(:vsn)
+      |> to_string()
+      |> String.trim_trailing("-SNAPSHOT")
+
+    version = Repo.version()
+    "#{build}/#{version}"
+  end
+
   @doc """
     Returns the schema extensions.
   """
@@ -201,7 +213,8 @@ defmodule Schema do
     Repo.object(extensions, Utils.to_uid(extension, id))
   end
 
-  @spec object(Repo.extensions() | nil, String.t() | nil, String.t(), Repo.profiles_t() | nil) :: nil | map()
+  @spec object(Repo.extensions() | nil, String.t() | nil, String.t(), Repo.profiles_t() | nil) ::
+          nil | map()
   def object(extensions, extension, id, nil), do: object(extensions, extension, id)
 
   def object(extensions, extension, id, profiles) do
