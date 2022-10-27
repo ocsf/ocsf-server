@@ -19,7 +19,7 @@ defmodule Schema.Repo do
   @typedoc """
   Defines a set of extensions.
   """
-  @type extensions() :: MapSet.t(binary())
+  @type extensions_t() :: MapSet.t(binary())
 
   @type profiles_t() :: MapSet.t(binary())
 
@@ -42,7 +42,7 @@ defmodule Schema.Repo do
     Agent.get(__MODULE__, fn schema -> Cache.categories(schema) end)
   end
 
-  @spec categories(extensions() | nil) :: map()
+  @spec categories(extensions_t() | nil) :: map()
   def categories(nil) do
     Agent.get(__MODULE__, fn schema -> Cache.categories(schema) end)
   end
@@ -59,7 +59,7 @@ defmodule Schema.Repo do
     category(nil, id)
   end
 
-  @spec category(extensions() | nil, atom) :: nil | Cache.category_t()
+  @spec category(extensions_t() | nil, atom) :: nil | Cache.category_t()
   def category(extensions, id) do
     Agent.get(__MODULE__, fn schema ->
       case Cache.category(schema, id) do
@@ -82,7 +82,7 @@ defmodule Schema.Repo do
     Agent.get(__MODULE__, fn schema -> Cache.dictionary(schema) end)
   end
 
-  @spec dictionary(extensions() | nil) :: Cache.dictionary_t()
+  @spec dictionary(extensions_t() | nil) :: Cache.dictionary_t()
   def dictionary(nil) do
     Agent.get(__MODULE__, fn schema -> Cache.dictionary(schema) end)
   end
@@ -101,7 +101,7 @@ defmodule Schema.Repo do
     Agent.get(__MODULE__, fn schema -> Cache.classes(schema) end)
   end
 
-  @spec classes(extensions() | nil) :: map()
+  @spec classes(extensions_t() | nil) :: map()
   def classes(nil) do
     Agent.get(__MODULE__, fn schema -> Cache.classes(schema) end)
   end
@@ -115,7 +115,7 @@ defmodule Schema.Repo do
     Agent.get(__MODULE__, fn schema -> Cache.export_classes(schema) end)
   end
 
-  @spec export_classes(extensions() | nil) :: map()
+  @spec export_classes(extensions_t() | nil) :: map()
   def export_classes(nil) do
     Agent.get(__MODULE__, fn schema -> Cache.export_classes(schema) end)
   end
@@ -146,7 +146,7 @@ defmodule Schema.Repo do
     Agent.get(__MODULE__, fn schema -> Cache.objects(schema) end)
   end
 
-  @spec objects(extensions() | nil) :: map()
+  @spec objects(extensions_t() | nil) :: map()
   def objects(nil) do
     Agent.get(__MODULE__, fn schema -> Cache.objects(schema) end)
   end
@@ -162,7 +162,7 @@ defmodule Schema.Repo do
     Agent.get(__MODULE__, fn schema -> Cache.export_objects(schema) end)
   end
 
-  @spec export_objects(extensions() | nil) :: map()
+  @spec export_objects(extensions_t() | nil) :: map()
   def export_objects(nil) do
     Agent.get(__MODULE__, fn schema -> Cache.export_objects(schema) end)
   end
@@ -180,7 +180,7 @@ defmodule Schema.Repo do
     Agent.get(__MODULE__, fn schema -> Cache.object(schema, id) end)
   end
 
-  @spec object(extensions() | nil, atom) :: nil | Cache.class_t()
+  @spec object(extensions_t() | nil, atom) :: nil | Cache.class_t()
   def object(nil, id) do
     Agent.get(__MODULE__, fn schema -> Cache.object(schema, id) end)
   end
