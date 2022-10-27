@@ -8,8 +8,21 @@ defmodule Schema.JsonSchema do
   @doc """
   Generates a JSON schema corresponding to the `type` parameter.
   The `type` can be either a class or an object defintion.
+
+  Options: :package_name | :schema_version
   """
-  def encode(type) when is_map(type) do
+  @spec encode(map(), nil | Keyword.t()) :: map()
+  def encode(type, options) when is_map(type) do
+    Process.put(:options, options || [])
+
+    try do
+      encode(type)
+    after
+      Process.delete(:options)
+    end
+  end
+
+  def encode(type) do
     name = type[:name]
 
     {properties, required} = map_reduce(name, type[:attributes])
@@ -18,6 +31,7 @@ defmodule Schema.JsonSchema do
 
     if Map.has_key?(type, :_links) do
       object_schema(make_object_ref(name, ext))
+      |> add_java_class(name)
     else
       class_schema(make_class_ref(name, ext))
     end
@@ -27,6 +41,21 @@ defmodule Schema.JsonSchema do
     |> Map.put("properties", properties)
     |> put_required(required)
     |> encode_objects(type[:objects])
+  end
+
+  defp add_java_class(obj, name) do
+    case Process.get(:options) |> Keyword.get(:package_name) do
+      nil ->
+        obj
+
+      package ->
+        Map.put(obj, "existingJavaType", make_java_name(package, name))
+    end
+  end
+
+  defp make_java_name(package, name) do
+    name = String.split(name, "_") |> Enum.map_join(fn name -> String.capitalize(name) end)
+    "#{package}.#{name}"
   end
 
   defp class_schema(id) do

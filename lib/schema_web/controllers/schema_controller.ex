@@ -611,6 +611,7 @@ defmodule SchemaWeb.SchemaController do
     parameters do
       name(:path, :string, "Class name", required: true)
       profiles(:query, :array, "Related profiles to include in response.", items: [type: :string])
+      package_name(:query, :string, "Java package name")
     end
 
     response(200, "Success")
@@ -620,14 +621,15 @@ defmodule SchemaWeb.SchemaController do
   @spec json_class(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def json_class(conn, %{"id" => id} = params) do
     extension = extension(params)
-
+    options = Map.get(params, "package_name") |> parse_java_package()
+    
     try do
       case Schema.class_ex(extension, id, parse_options(profiles(params))) do
         nil ->
           send_json_resp(conn, 404, %{error: "Event class #{id} not found"})
 
         data ->
-          class = Schema.JsonSchema.encode(data)
+          class = Schema.JsonSchema.encode(data, options)
           send_json_resp(conn, class)
       end
     rescue
@@ -981,4 +983,9 @@ defmodule SchemaWeb.SchemaController do
     |> Enum.map(fn s -> String.trim(s) end)
     |> MapSet.new()
   end
+  
+  defp parse_java_package(nil), do: []
+  defp parse_java_package(""), do: []
+  defp parse_java_package(name), do: [package_name: name]
+
 end
