@@ -6,7 +6,7 @@ defmodule Schema.JsonSchema do
   @schema_version "http://json-schema.org/draft-07/schema#"
 
   @doc """
-  Generates a JSON schema corresponding to the`type` parameter.
+  Generates a JSON schema corresponding to the `type` parameter.
   The `type` can be either a class or an object defintion.
   """
   def encode(type) when is_map(type) do
@@ -69,15 +69,15 @@ defmodule Schema.JsonSchema do
       map
     end
   end
-  
+
   defp put_required(map, []) do
     map
   end
-  
+
   defp put_required(map, required) do
     Map.put(map, "required", required)
   end
-  
+
   defp encode_objects(schema, nil) do
     schema
   end
@@ -131,7 +131,7 @@ defmodule Schema.JsonSchema do
       %{"type" => "number"},
       %{"type" => "boolean"},
       %{"type" => %{"$ref" => make_object_ref("object")}},
-      %{"type" => "array", "items" => %{ "$ref" => "#" }}
+      %{"type" => "array", "items" => %{"$ref" => "#"}}
     ])
   end
 

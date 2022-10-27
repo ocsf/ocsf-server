@@ -1,4 +1,8 @@
 defmodule Schema.Profiles do
+  @moduledoc """
+  Profiles helper functions
+  """
+
   require Logger
 
   @doc """
@@ -48,6 +52,7 @@ defmodule Schema.Profiles do
     Enum.each(maps, fn {name, map} ->
       sanity_check(name, map[:attributes], map[:profiles], profiles)
     end)
+
     maps
   end
 
@@ -64,11 +69,17 @@ defmodule Schema.Profiles do
           Logger.warn("#{name} uses undefined profile: #{p}")
 
         profile ->
-          Enum.each(profile[:attributes], fn {k, _} ->
-            if Map.has_key?(attributes, k) == false do
-              Logger.warn("#{name} uses '#{p}' profile, but it does not define '#{k}' attribute")
-            end
-          end)
+          check_profile(name, profile, attributes)
+      end
+    end)
+  end
+
+  defp check_profile(name, profile, attributes) do
+    Enum.each(profile[:attributes], fn {k, _} ->
+      if Map.has_key?(attributes, k) == false do
+        Logger.warn(
+          "#{name} uses '#{profile[:name]}' profile, but it does not define '#{k}' attribute"
+        )
       end
     end)
   end

@@ -49,7 +49,7 @@ defmodule Schema.Cache do
 
     categories = JsonReader.read_categories() |> update_categories()
     dictionary = JsonReader.read_dictionary() |> update_dictionary()
-    
+
     {base_event, classes} = read_classes(categories[:attributes])
     objects = read_objects()
 
@@ -58,8 +58,7 @@ defmodule Schema.Cache do
     # clean up the cached files
     JsonReader.cleanup()
 
-    # TODO: apply profiles to objects and classes
-
+    # Apply profiles to objects and classes
     dictionary = Utils.update_dictionary(dictionary, base_event, classes, objects)
     attributes = dictionary[:attributes]
 
@@ -70,13 +69,13 @@ defmodule Schema.Cache do
       |> Schema.Profiles.sanity_check(profiles)
       |> update_object_profiles()
       |> sanity_check(attributes, profiles)
-      
-    classes = 
+
+    classes =
       classes
       |> Schema.Profiles.sanity_check(profiles)
-      |> update_class_profiles( objects)
+      |> update_class_profiles(objects)
       |> sanity_check(attributes, profiles)
-    
+
     base_event = sanity_check(:base_event, base_event, attributes, profiles)
 
     new(version)
@@ -225,27 +224,35 @@ defmodule Schema.Cache do
             Utils.deep_merge(base, attribute)
             |> Map.delete(:_links)
 
-          case attribute[:object_type] do
-            nil ->
-              {{name, attribute}, acc}
-
-            object_name ->
-              obj_type = String.to_atom(object_name)
-
-              acc =
-                if Map.has_key?(acc, obj_type) do
-                  acc
-                else
-                  {object, acc} =
-                    enrich_ex(objects[obj_type], dictionary, objects, Map.put(acc, obj_type, nil))
-
-                  Map.put(acc, obj_type, object)
-                end
-
-              {{name, attribute}, acc}
-          end
+          update_attributes_ex(
+            attribute[:object_type],
+            name,
+            attribute,
+            fn obj_type ->
+              enrich_ex(objects[obj_type], dictionary, objects, Map.put(acc, obj_type, nil))
+            end,
+            acc
+          )
       end
     end)
+  end
+
+  defp update_attributes_ex(nil, name, attribute, _enrich, acc) do
+    {{name, attribute}, acc}
+  end
+
+  defp update_attributes_ex(object_name, name, attribute, enrich, acc) do
+    obj_type = String.to_atom(object_name)
+
+    acc =
+      if Map.has_key?(acc, obj_type) do
+        acc
+      else
+        {object, acc} = enrich.(obj_type)
+        Map.put(acc, obj_type, object)
+      end
+
+    {{name, attribute}, acc}
   end
 
   defp find_attribute(dictionary, name, source) do
@@ -588,7 +595,7 @@ defmodule Schema.Cache do
     end)
   end
 
-  defp sanity_check(name, map, dictionary, all_profiles) do
+  defp sanity_check(name, map, dictionary, _all_profiles) do
     profiles = map[:profiles]
     attributes = map[:attributes]
 
@@ -639,17 +646,7 @@ defmodule Schema.Cache do
         objects
 
       links ->
-        Enum.reduce(links, objects, fn {type, key, _}, acc ->
-          case type do
-            :object ->
-              Map.update!(acc, String.to_atom(key), fn obj ->
-                Map.put(obj, :profiles, merge_profiles(obj[:profiles], object[:profiles]))
-              end)
-
-            _ ->
-              acc
-          end
-        end)
+        update_linked_profiles(:object, links, object, objects)
     end
   end
 
@@ -669,18 +666,20 @@ defmodule Schema.Cache do
         classes
 
       links ->
-        Enum.reduce(links, classes, fn {type, key, _}, acc ->
-          case type do
-            :class ->
-              Map.update!(acc, String.to_atom(key), fn class ->
-                Map.put(class, :profiles, merge_profiles(class[:profiles], object[:profiles]))
-              end)
-
-            _ ->
-              acc
-          end
-        end)
+        update_linked_profiles(:class, links, object, classes)
     end
+  end
+
+  defp update_linked_profiles(type_id, links, object, classes) do
+    Enum.reduce(links, classes, fn {type, key, _}, acc ->
+      if type == type_id do
+        Map.update!(acc, String.to_atom(key), fn class ->
+          Map.put(class, :profiles, merge_profiles(class[:profiles], object[:profiles]))
+        end)
+      else
+        acc
+      end
+    end)
   end
 
   defp merge_profiles(nil, p2) do

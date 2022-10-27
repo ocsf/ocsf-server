@@ -31,16 +31,18 @@ defmodule Schema.Examples do
   defp create_readme_file(name, path) do
     file = Path.join(path, @readme_file)
 
-    if !File.exists?(file) do
-      case File.write(file, "# #{name} Examples") do
-        :ok ->
-          IO.puts("created README file  : #{file}")
+    case File.exists?(file) do
+      false ->
+        case File.write(file, "# #{name} Examples") do
+          :ok ->
+            IO.puts("created README file  : #{file}")
 
-        {:error, reason} ->
-          IO.puts("unable to create file: #{file}. Error: #{reason}")
-      end
-    else
-      IO.puts("file already exists  : #{file} ")
+          {:error, reason} ->
+            IO.puts("unable to create file: #{file}. Error: #{reason}")
+        end
+
+      true ->
+        IO.puts("file already exists  : #{file} ")
     end
   end
 end
