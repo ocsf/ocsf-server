@@ -80,6 +80,9 @@ defmodule SchemaWeb.Router do
 
     get "/classes/:id", SchemaController, :json_class
     get "/classes/:extension/:id", SchemaController, :json_class
+    
+    get "/objects/:id", SchemaController, :json_object
+    get "/objects/:extension/:id", SchemaController, :json_object
   end
 
   scope "/export", SchemaWeb do

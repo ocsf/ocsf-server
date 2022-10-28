@@ -216,13 +216,47 @@ defmodule Schema do
     Repo.object(extensions, Utils.to_uid(extension, id))
   end
 
-  @spec object(Repo.extensions_t() | nil, String.t() | nil, String.t(), Repo.profiles_t() | nil) ::
+  @spec object(Repo.extensions_t(), String.t(), String.t(), Repo.profiles_t() | nil) ::
           nil | map()
   def object(extensions, extension, id, nil),
     do: object(extensions, extension, id)
 
   def object(extensions, extension, id, profiles) do
     case object(extensions, extension, id) do
+      nil ->
+        nil
+
+      object ->
+        Map.update!(object, :attributes, fn attributes ->
+          Utils.apply_profiles(attributes, profiles)
+        end)
+    end
+  end
+
+  @doc """
+    Returns a single object and with the embedded objects.
+  """
+  @spec object_ex(atom | String.t()) :: nil | Cache.object_t()
+  def object_ex(id),
+    do: Repo.object_ex(Utils.to_uid(id))
+
+  @spec object_ex(nil | String.t(), String.t()) :: nil | map()
+  def object_ex(extension, id) when is_binary(id) do
+    Repo.object_ex(Utils.to_uid(extension, id))
+  end
+
+  @spec object_ex(Repo.extensions_t(), String.t(), String.t()) :: nil | map()
+  def object_ex(extensions, extension, id) when is_binary(id) do
+    Repo.object_ex(extensions, Utils.to_uid(extension, id))
+  end
+
+  @spec object_ex(Repo.extensions_t(), String.t(), String.t(), Repo.profiles_t() | nil) ::
+          nil | map()
+  def object_ex(extensions, extension, id, nil),
+    do: object_ex(extensions, extension, id)
+
+  def object_ex(extensions, extension, id, profiles) do
+    case object_ex(extensions, extension, id) do
       nil ->
         nil
 

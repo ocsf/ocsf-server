@@ -174,8 +174,6 @@ defmodule Schema.Repo do
   end
 
   @spec object(atom) :: nil | Cache.class_t()
-  def object(nil), do: nil
-
   def object(id) do
     Agent.get(__MODULE__, fn schema -> Cache.object(schema, id) end)
   end
@@ -187,6 +185,21 @@ defmodule Schema.Repo do
 
   def object(extensions, id) do
     Agent.get(__MODULE__, fn schema -> Cache.object(schema, id) end)
+    |> Map.update(:_links, [], fn links -> remove_extension_links(links, extensions) end)
+  end
+
+  @spec object_ex(atom) :: nil | Cache.class_t()
+  def object_ex(id) do
+    Agent.get(__MODULE__, fn schema -> Cache.object_ex(schema, id) end)
+  end
+
+  @spec object_ex(extensions_t() | nil, atom) :: nil | Cache.class_t()
+  def object_ex(nil, id) do
+    Agent.get(__MODULE__, fn schema -> Cache.object_ex(schema, id) end)
+  end
+
+  def object_ex(extensions, id) do
+    Agent.get(__MODULE__, fn schema -> Cache.object_ex(schema, id) end)
     |> Map.update(:_links, [], fn links -> remove_extension_links(links, extensions) end)
   end
 

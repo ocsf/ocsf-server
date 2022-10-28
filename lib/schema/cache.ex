@@ -188,6 +188,18 @@ defmodule Schema.Cache do
     end
   end
 
+  @spec object_ex(__MODULE__.t(), any) :: nil | object_t()
+  def object_ex(%__MODULE__{dictionary: dictionary, objects: objects}, id) do
+    case Map.get(objects, id) do
+      nil ->
+        nil
+
+      object ->
+        {object_ex, ref_objects} = enrich_ex(object, dictionary[:attributes], objects, Map.new())
+        Map.put(object_ex, :objects, Map.to_list(ref_objects))
+    end
+  end
+
   defp enrich(type, dictionary) do
     Map.update!(type, :attributes, fn list -> update_attributes(list, dictionary) end)
   end

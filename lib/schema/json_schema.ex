@@ -44,13 +44,21 @@ defmodule Schema.JsonSchema do
   end
 
   defp add_java_class(obj, name) do
-    case Process.get(:options) |> Keyword.get(:package_name) do
+    case Process.get(:options) do
       nil ->
         obj
 
-      package ->
-        Map.put(obj, "existingJavaType", make_java_name(package, name))
+      options ->
+        add_java_class(obj, name, Keyword.get(options, :package_name))
     end
+  end
+
+  defp add_java_class(obj, _name, nil) do
+    obj
+  end
+
+  defp add_java_class(obj, name, package) do
+    Map.put(obj, "existingJavaType", make_java_name(package, name))
   end
 
   defp make_java_name(package, name) do

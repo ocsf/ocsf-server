@@ -639,6 +639,55 @@ defmodule SchemaWeb.SchemaController do
     end
   end
 
+  @doc """
+  Get JSON schema definitions for a given event object.
+  get /schema/classes/:name
+  """
+  swagger_path :json_object do
+    get("/schema/objects/{name}")
+    summary("Object")
+
+    description(
+      "Get OCSF object by name, using JSON schema format. The object name may contain an extension name. For example, \"dev/printer\"."
+    )
+
+    produces("application/json")
+    tag("JSON Schema")
+
+    parameters do
+      name(:path, :string, "Object name", required: true)
+      profiles(:query, :array, "Related profiles to include in response.", items: [type: :string])
+      package_name(:query, :string, "Java package name")
+    end
+
+    response(200, "Success")
+    response(404, "Object <code>name</code> not found")
+  end
+
+  @spec json_object(Plug.Conn.t(), map()) :: Plug.Conn.t()
+  def json_object(conn, %{"id" => id} = params) do
+    options = Map.get(params, "package_name") |> parse_java_package()
+    
+    profiles = parse_options(profiles(params))
+    extension = extension(params)
+    extensions = parse_options(extensions(params))
+    
+    try do
+      case Schema.object_ex(extensions, extension, id, profiles) do
+        nil ->
+          send_json_resp(conn, 404, %{error: "Object #{id} not found"})
+
+        data ->
+          object = Schema.JsonSchema.encode(data, options)
+          send_json_resp(conn, object)
+      end
+    rescue
+      e ->
+        Logger.error("Unable to get object: #{id}. Error: #{inspect(e)}")
+        send_json_resp(conn, 500, %{error: "Error: #{e[:message]}"})
+    end
+  end
+
   # ---------------------------------
   # Validation and translation API's
   # ---------------------------------
