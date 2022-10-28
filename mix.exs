@@ -37,7 +37,7 @@ defmodule Schema.MixProject do
   def application do
     [
       mod: {Schema.Application, []},
-      extra_applications: [:logger, :crypto, :runtime_tools]
+      extra_applications: [:logger, :crypto, :runtime_tools, :earmark, :html_entities]
     ]
   end
 
