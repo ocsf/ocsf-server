@@ -58,7 +58,7 @@ defmodule Schema.JsonSchema do
   end
 
   defp add_java_class(obj, name, package) do
-    Map.put(obj, "existingJavaType", make_java_name(package, name))
+    Map.put(obj, "javaType", make_java_name(package, name))
   end
 
   defp make_java_name(package, name) do

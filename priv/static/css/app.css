@@ -16,10 +16,6 @@ body {
 }
 
 @media only screen and (max-width: 768px) {
-  body {
-    background-color: lightblue;
-  }
-
   .navbar-text {
     display: none;
     visibility: hidden;
