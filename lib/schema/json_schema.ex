@@ -30,7 +30,7 @@ defmodule Schema.JsonSchema do
     ext = type[:extension]
 
     if Map.has_key?(type, :_links) do
-      object_schema(make_object_ref(name, ext))
+      Map.new()
       |> add_java_class(name)
     else
       class_schema(make_class_ref(name, ext))
@@ -73,24 +73,14 @@ defmodule Schema.JsonSchema do
     }
   end
 
-  defp object_schema(id) do
-    %{
-      "$id" => id
-    }
-  end
-
   defp make_object_ref(name) do
-    Path.join(["/schema/objects", name])
+    Path.join([ref_object(), name])
   end
 
-  defp make_object_ref(name, nil) do
-    Path.join(["/schema/objects", name])
+  defp ref_object() do
+    "#/$defs"
   end
-
-  defp make_object_ref(name, ext) do
-    Path.join(["/schema/objects", ext, name])
-  end
-
+  
   defp make_class_ref(name, nil) do
     Path.join([@schema_base_uri, name])
   end

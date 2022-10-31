@@ -602,7 +602,7 @@ defmodule SchemaWeb.SchemaController do
     summary("Event class")
 
     description(
-      "Get OCSF schema class by name, using JSON schema format. The class name may contain an extension name. For example, \"dev/cpu_usage\"."
+      "Get OCSF schema class by name, using JSON schema Draft-07 format (see http://json-schema.org). The class name may contain an extension name. For example, \"dev/cpu_usage\"."
     )
 
     produces("application/json")
@@ -648,7 +648,7 @@ defmodule SchemaWeb.SchemaController do
     summary("Object")
 
     description(
-      "Get OCSF object by name, using JSON schema format. The object name may contain an extension name. For example, \"dev/printer\"."
+      "Get OCSF object by name, using JSON schema Draft-07 format (see http://json-schema.org). The object name may contain an extension name. For example, \"dev/printer\"."
     )
 
     produces("application/json")
