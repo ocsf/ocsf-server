@@ -80,7 +80,7 @@ defmodule Schema.JsonSchema do
   defp ref_object() do
     "#/$defs"
   end
-  
+
   defp make_class_ref(name, nil) do
     Path.join([@schema_base_uri, name])
   end
@@ -119,6 +119,7 @@ defmodule Schema.JsonSchema do
         key = Atom.to_string(name) |> String.replace("/", "_")
         {key, encode(object)}
       end)
+      |> Map.put("json_t", json_type())
 
     Map.put(schema, "$defs", defs)
   end
@@ -136,38 +137,44 @@ defmodule Schema.JsonSchema do
             _ -> acc
           end
 
-        {{name, encode_attribute(type_name, attribute[:type], attribute)}, acc}
+        schema =
+          encode_attribute(type_name, attribute[:type], attribute)
+          |> encode_array(attribute[:is_array])
+
+        {{name, schema}, acc}
       end)
 
     {Map.new(properties), required}
   end
 
   defp encode_attribute(name, "object_t", attr) do
-    encode_object(name, attr)
+    new_schema(attr)
+    |> encode_object(name, attr)
   end
 
-  defp encode_attribute(name, "integer_t", attr) do
-    encode_integer(name, attr)
+  defp encode_attribute(_name, "integer_t", attr) do
+    new_schema(attr)
+    |> encode_integer(attr)
+  end
+
+  defp encode_attribute(_name, "string_t", attr) do
+    new_schema(attr)
+    |> encode_string(attr)
   end
 
   defp encode_attribute(_name, "json_t", attr) do
-    %{"title" => attr[:caption]}
-    |> Map.put("oneOf", [
-      %{"type" => "string"},
-      %{"type" => "integer"},
-      %{"type" => "number"},
-      %{"type" => "boolean"},
-      %{"type" => %{"$ref" => make_object_ref("object")}},
-      %{"type" => "array", "items" => %{"$ref" => "#"}}
-    ])
+    new_schema(attr)
+    |> Map.put("$ref", make_object_ref("json_t"))
   end
 
   defp encode_attribute(_name, type, attr) do
-    %{"type" => encode_type(type)}
-    |> Map.put("title", attr[:caption])
+    new_schema(attr)
+    |> Map.put("type", encode_type(type))
   end
+  
+  defp new_schema(attr), do: 
+    %{"title" => attr[:caption]}
 
-  defp encode_type("string_t"), do: "string"
   defp encode_type("datetime_t"), do: "string"
   defp encode_type("email_t"), do: "string"
   defp encode_type("file_hash_t"), do: "string"
@@ -191,51 +198,81 @@ defmodule Schema.JsonSchema do
 
   defp encode_type(type), do: type
 
-  defp encode_object(name, attr) do
-    object =
-      case attr[:object_type] do
-        ^name ->
-          %{"$ref" => object_self_ref()}
+  defp encode_object(schema, name, attr) do
+    case attr[:object_type] do
+      ^name ->
+        Map.put(schema, "$ref", object_self_ref())
 
-        type ->
-          %{"$ref" => make_object_ref(type)}
-      end
-
-    case attr[:is_array] do
-      true ->
-        Map.new()
-        |> Map.put("type", "array")
-        |> Map.put("items", object)
-
-      _ ->
-        object
+      type ->
+        Map.put(schema, "$ref", make_object_ref(type))
     end
   end
 
-  defp encode_integer(_name, attr) do
-    value = %{"title" => attr[:caption]}
+  defp encode_integer(schema, attr) do
+    encode_enum(schema, attr, "integer", fn name -> Atom.to_string(name) |> String.to_integer() end)
+  end
 
+  defp encode_string(schema, attr) do
+    encode_enum(schema, attr, "string", &Atom.to_string/1)
+  end
+
+  defp encode_enum(schema, attr, type, encoder) do
     case attr[:enum] do
       nil ->
-        value
+        schema
 
       enum ->
-        case encode_enum_values(enum) do
+        case encode_enum_values(enum, encoder) do
           [uid] ->
-            Map.put(value, "const", uid)
+            Map.put(schema, "const", uid)
 
           values ->
-            Map.put(value, "enum", values)
+            Map.put(schema, "enum", values)
         end
     end
-    |> Map.put("type", "integer")
+    |> Map.put("type", type)
   end
 
-  defp encode_enum_values(enum) do
+  defp encode_enum_values(enum, encoder) do
     Enum.map(enum, fn {name, _} ->
-      enum_value_integer(name)
+      encoder.(name)
     end)
   end
 
-  defp enum_value_integer(name), do: Atom.to_string(name) |> String.to_integer()
+  defp json_type() do
+    %{"title" => "JSON"}
+    |> Map.put("oneOf", [
+      %{"type" => "string"},
+      %{"type" => "integer"},
+      %{"type" => "number"},
+      %{"type" => "boolean"},
+      %{"$ref" => make_object_ref("object")},
+      %{"type" => "array", "items" => %{"$ref" => "#"}}
+    ])
+  end
+
+  defp encode_array(schema, true) do
+    IO.inspect(schema)
+
+    type = items_type(schema)
+
+    schema
+    |> Map.put("type", "array")
+    |> Map.put("items", type)
+    |> Map.delete("$ref")
+  end
+
+  defp encode_array(schema, _is_array) do
+    schema
+  end
+
+  defp items_type(schema) do
+    case Map.get(schema, "type") do
+      nil ->
+        %{"$ref" => Map.get(schema, "$ref")}
+
+      type ->
+        %{"type" => type}
+    end
+  end
 end
