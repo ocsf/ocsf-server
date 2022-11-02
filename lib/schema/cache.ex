@@ -492,7 +492,8 @@ defmodule Schema.Cache do
           Enum.into(
             attributes,
             %{},
-            fn {key, attribute} ->
+            fn {key, nil} -> {key, nil}
+              {key, attribute} ->
               {key, Map.put(attribute, :_source, name)}
             end
           )
@@ -519,6 +520,8 @@ defmodule Schema.Cache do
           base ->
             base = resolve_extends(classes, base)
             attributes = Utils.deep_merge(base[:attributes], class[:attributes])
+            |> Enum.filter(fn {_name, attr} -> attr != nil end)
+            |> Map.new()
 
             Map.merge(base, class, &merge_profiles/3)
             |> Map.put(:attributes, attributes)

@@ -459,6 +459,10 @@ defmodule Schema.JsonReader do
     )
   end
 
+  defp merge_enum_file(_resolver, nil) do
+    nil
+  end
+  
   defp merge_enum_file(resolver, attribute) do
     case Map.get(attribute, @include) do
       nil ->
