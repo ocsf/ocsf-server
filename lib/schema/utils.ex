@@ -124,7 +124,7 @@ defmodule Schema.Utils do
 
     case find_entity(objects, value, key) do
       {key, nil} ->
-        Logger.warn("Undefined object type: #{key}, for #{name}")
+        Logger.warn("undefined object type: #{key}, for #{name}")
         Map.put(value, :object_name, "_undefined_")
 
       {key, object} ->
@@ -138,7 +138,7 @@ defmodule Schema.Utils do
     type =
       case value[:type] do
         nil ->
-          Logger.warn("Missing data type for: #{name}, will use string_t type.")
+          Logger.warn("missing data type for: #{name}, will use string_t type.")
           "string_t"
 
         t ->
@@ -147,7 +147,7 @@ defmodule Schema.Utils do
 
     case types[String.to_atom(type)] do
       nil ->
-        Logger.warn("Undefined data type: #{name}: #{type}")
+        Logger.warn("undefined data type: #{name}: #{type}")
         value
 
       type ->

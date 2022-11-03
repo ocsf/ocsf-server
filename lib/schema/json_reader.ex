@@ -117,12 +117,9 @@ defmodule Schema.JsonReader do
     version = read_version(home)
     extensions = extensions(home, ext_dir)
 
-    Logger.info(fn -> "#{inspect(__MODULE__)} schema    : #{home}" end)
-    Logger.info(fn -> "#{inspect(__MODULE__)} version   : #{version.version}" end)
-
-    Logger.info(fn ->
-      "#{inspect(__MODULE__)} extensions: #{Jason.encode!(extensions, pretty: true)}"
-    end)
+    Logger.info("schema    : #{home}")
+    Logger.info("version   : #{version.version}")
+    Logger.info("extensions: #{Jason.encode!(extensions, pretty: true)}")
 
     {:ok, {home, extensions}}
   end
@@ -191,7 +188,7 @@ defmodule Schema.JsonReader do
     if File.regular?(file) do
       read_json_file(file)
     else
-      Logger.warn("#{inspect(__MODULE__)} version file #{file} not found")
+      Logger.warn("version file #{file} not found")
       %{:version => "0.0.0"}
     end
   end
@@ -260,7 +257,7 @@ defmodule Schema.JsonReader do
 
   defp read_schema_dir(acc, home, path) do
     if File.dir?(path) do
-      Logger.info(fn -> "#{inspect(__MODULE__)} [] read files: #{path}" end)
+      Logger.info("[] read files: #{path}")
 
       case File.ls(path) do
         {:ok, files} ->
@@ -311,9 +308,7 @@ defmodule Schema.JsonReader do
     path = Path.join(ext[:path], file)
 
     if File.regular?(path) do
-      Logger.debug(fn ->
-        "merge_category_file: #{inspect(__MODULE__)} read file: [#{ext[:name]}] #{path}"
-      end)
+      Logger.debug("read file: [#{ext[:name]}] #{path}")
 
       Map.update!(acc, :attributes, fn attributes ->
         map = read_json_file(path)
@@ -340,9 +335,7 @@ defmodule Schema.JsonReader do
     path = Path.join(ext[:path], file)
 
     if File.regular?(path) do
-      Logger.debug(fn ->
-        "merge_dictionary_file: #{inspect(__MODULE__)} read file: [#{ext[:name]}] #{path}"
-      end)
+      Logger.debug("read file: [#{ext[:name]}] #{path}")
 
       Map.update!(acc, :attributes, fn attributes ->
         ext_map = read_json_file(path)
@@ -376,7 +369,7 @@ defmodule Schema.JsonReader do
 
   defp read_extension_files(acc, home, ext, path) do
     if File.dir?(path) do
-      Logger.info(fn -> "#{inspect(__MODULE__)} [#{ext[:name]}] read files: #{path}" end)
+      Logger.info("[#{ext[:name]}] read files: #{path}")
 
       case File.ls(path) do
         {:ok, files} ->
@@ -390,7 +383,7 @@ defmodule Schema.JsonReader do
       end
     else
       if Path.extname(path) == @schema_file do
-        Logger.debug(fn -> "#{inspect(__MODULE__)} [#{ext[:name]}] read file: #{path}" end)
+        Logger.debug("[#{ext[:name]}] read file: #{path}")
 
         data =
           read_json_file(path)
@@ -475,7 +468,7 @@ defmodule Schema.JsonReader do
 
   defp read_included_file(resolver, file) do
     {ext, path} = resolver.(file)
-    Logger.debug(fn -> "#{inspect(__MODULE__)} [#{ext}] include file #{path}" end)
+    Logger.debug("[#{ext}] include file #{path}")
 
     case cache_get(path) do
       [] ->
@@ -521,14 +514,14 @@ defmodule Schema.JsonReader do
 
     case profiles[String.to_atom(name)] do
       nil ->
-        Logger.info("Schema.JsonReader [#{ext}] read profile #{name} from #{file}")
+        Logger.info("[#{ext}] read profile '#{name}' from #{file}")
 
         profiles
         |> Map.put(name, profile)
         |> cache_put(:profiles)
 
       _profile ->
-        Logger.warn("Schema.JsonReader [#{ext}] #{file} overwrites an existing profile #{name}")
+        Logger.warn("[#{ext}] #{file} overwrites an existing profile #{name}")
     end
 
     name

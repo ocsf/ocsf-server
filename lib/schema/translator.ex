@@ -26,7 +26,7 @@ defmodule Schema.Translator do
   defp translate_class(nil, data, _options), do: data
 
   defp translate_class(class_uid, data, options) do
-    Logger.debug("translate class #{class_uid}")
+    Logger.debug("translate class: #{class_uid}")
     translate_event(Schema.find_class(class_uid), data, options)
   end
 
@@ -37,7 +37,7 @@ defmodule Schema.Translator do
     attributes = type[:attributes]
 
     Enum.reduce(data, %{}, fn {name, value}, acc ->
-      Logger.debug("translate attribute #{name}: #{inspect(value)}")
+      Logger.debug("translate attribute: #{name} = #{inspect(value)}")
 
       key = to_atom(name)
 
@@ -54,8 +54,8 @@ defmodule Schema.Translator do
           if Map.has_key?(attribute, :enum) and (verbose == 1 or verbose == 2) do
             sibling = sibling(key, attribute, attributes, verbose) |> to_text(options)
 
-            Logger.debug("translated enum #{name}: #{text}")
-            Logger.debug("translated name #{sibling}")
+            Logger.debug("translated enum: #{name} = #{text}")
+            Logger.debug("translated name: #{sibling}")
 
             Map.put_new(acc, name, value) |> Map.put_new(sibling, text)
           else
@@ -161,7 +161,7 @@ defmodule Schema.Translator do
   end
 
   defp translate_enum(name, attribute, value, translated, options) do
-    Logger.debug("translate  enum #{name}: #{value}")
+    Logger.debug("translate  enum: #{name} = #{value}")
 
     case Keyword.get(options, :verbose) do
       1 ->
