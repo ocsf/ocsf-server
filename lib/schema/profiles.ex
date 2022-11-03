@@ -75,11 +75,14 @@ defmodule Schema.Profiles do
   end
 
   defp check_profile(name, profile, attributes) do
-    Enum.each(profile[:attributes], fn {k, _} ->
+    Enum.each(profile[:attributes], fn {k, p} ->
       if Map.has_key?(attributes, k) == false do
-        Logger.warn(
-          "#{name} uses '#{profile[:name]}' profile, but it does not define '#{k}' attribute"
-        )
+        text = "#{name} uses '#{profile[:name]}' profile, but it does not define '#{k}' attribute"
+        if p[:requirement] == "required" do
+          Logger.warn(text)
+        else
+          Logger.info(text)
+        end
       end
     end)
   end
