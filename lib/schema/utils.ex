@@ -297,8 +297,8 @@ defmodule Schema.Utils do
 
   defp define_datetime_attribute(acc, "timestamp_t", name, attribute) do
     acc
-    |> Map.put(make_datetime(name), datetime_attribute(attribute))
     |> Map.put(name, attribute)
+    |> Map.put(make_datetime(name), datetime_attribute(attribute))
   end
 
   defp define_datetime_attribute(acc, _type, name, attribute) do
@@ -306,9 +306,9 @@ defmodule Schema.Utils do
   end
 
   defp datetime_attribute(attribute) do
-    Map.put(attribute, :type, "datetime_t")
+    attribute
+    |> Map.put(:type, "datetime_t")
     |> Map.put(:type_name, "Datetime")
-    |> Map.put(:requirement, (attribute[:requirement] || "optional"))
   end
 
   def make_datetime(name) do

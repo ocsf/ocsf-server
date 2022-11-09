@@ -626,7 +626,8 @@ defmodule Schema.Cache do
 
         case get_in(dictionary, [key, :type]) do
           "timestamp_t" ->
-            [{Utils.make_datetime(key), Map.put(attribute, :profile, "datetime")} | acc]
+            attr = Map.put(attribute, :profile, "datetime") |> Map.put(:requirement, "optional")
+            [{Utils.make_datetime(key), attr} | acc]
 
           _ ->
             acc
