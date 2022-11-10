@@ -1,4 +1,4 @@
-FROM elixir:otp-25-alpine as builder
+FROM elixir:1.14-alpine as builder
 
 # prepare build dir
 WORKDIR /app
@@ -39,7 +39,7 @@ RUN mix release
 
 # start a new build stage so that the final image will only contain
 # the compiled release and other runtime necessities
-FROM elixir:otp-25-alpine
+FROM elixir:1.14-alpine
 
 # Set the locale
 # RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
