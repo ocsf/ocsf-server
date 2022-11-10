@@ -124,7 +124,7 @@ limitations under the License.
 <% associations = @data[:associations] %>
 <%= if associations != nil do %>
 <div class="associations">
-  <h5>Associations</h5>
+  <h5>Attribute Associations</h5>
   <div class="text-monospace">
     <%= raw associations(associations) %>
   </div>
