@@ -14,23 +14,23 @@ git clone --recurse-submodules https://github.com/ocsf/ocsf-server.git
 
 ```bash
 cd ocsf-server
-docker build -t docker_ocsf:0.0.0 .
-docker run -it --rm -p 8080:8080 docker_ocsf:0.0.0
+docker build -t ocsf-server:0.0.0 .
+docker run -it --rm -p 8080:8080 ocsf-server:0.0.0
 ```
 
 Run the docker schema server with local schema extensions:
 ```bash
-docker run -it --rm --volume /opt/sandbox/splunk:/app/schema/splunk -e SCHEMA_EXTENSION="splunk" -p 8080:8080 -p 8443:8443 rroupski370/ocsf:0.0.0
+docker run -it --rm --volume /opt/sandbox/splunk:/app/schema/splunk -e SCHEMA_EXTENSION="splunk" -p 8080:8080 -p 8443:8443 ocsf-server:0.0.0
 ```
 
 Run the docker schema server with added local schema extensions:
 ```bash
-docker run -it --rm --volume /opt/sandbox/splunk:/app/schema/extensions/splunk -e SCHEMA_EXTENSION="extensions" -p 8080:8080 -p 8443:8443 rroupski370/ocsf:0.0.0
+docker run -it --rm --volume /opt/sandbox/splunk:/app/schema/extensions/splunk -e SCHEMA_EXTENSION="extensions" -p 8080:8080 -p 8443:8443 ocsf-server:0.0.0
 ```
 
 Run the docker schema server using a local schema:
 ```bash
-docker run -it --rm --volume /opt/sandbox/ocsf-schema:/app/schema -p 8080:8080 -p 8443:8443 rroupski370/ocsf:0.0.0
+docker run -it --rm --volume /opt/sandbox/ocsf-schema:/app/schema -p 8080:8080 -p 8443:8443 ocsf-server:0.0.0
 ```
 
 ## Development with docker-compose
