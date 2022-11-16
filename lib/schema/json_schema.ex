@@ -74,7 +74,7 @@ defmodule Schema.JsonSchema do
   end
 
   defp make_object_ref(name) do
-    Path.join([ref_object(), name])
+    Path.join([ref_object(), String.replace(name, "/", "_")])
   end
 
   defp ref_object() do
@@ -252,8 +252,6 @@ defmodule Schema.JsonSchema do
   end
 
   defp encode_array(schema, true) do
-    IO.inspect(schema)
-
     type = items_type(schema)
 
     schema
