@@ -6,7 +6,7 @@ defmodule Schema.Profiles do
   require Logger
 
   @doc """
-    Filter attributes based on a fiven set of profiles.
+    Filter attributes based on a given set of profiles.
   """
   def apply_profiles(class, profiles) when is_list(profiles) do
     apply_profiles(class, MapSet.new(profiles))
