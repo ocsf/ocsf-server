@@ -591,10 +591,20 @@ defmodule Schema.Cache do
   end
 
   defp generate_observable_types(types) do
-    Enum.into(types, %{}, fn {_name, type} ->
+    Enum.reduce(types, %{}, fn {_name, type}, acc ->
       k = Integer.to_string(type[:observable]) |> String.to_atom()
       v = %{caption: type[:caption], description: type[:description]}
-      {k, v}
+
+      case type[:extends] do
+        nil ->
+          Map.put(acc, k, v)
+
+        "object" ->
+          Map.put(acc, k, v)
+
+        _ ->
+          acc
+      end
     end)
   end
 
