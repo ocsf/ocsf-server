@@ -138,7 +138,7 @@ defmodule Schema.Utils do
     type =
       case value[:type] do
         nil ->
-          Logger.warn("missing data type for: #{name}, will use string_t type.")
+          Logger.warn("missing data type for: #{name}, will use string_t type")
           "string_t"
 
         t ->
@@ -212,11 +212,28 @@ defmodule Schema.Utils do
     name = item[:caption]
     attributes = item[:attributes]
 
-    Enum.reduce(attributes, dictionary, fn {k, _v}, acc ->
+    Enum.reduce(attributes, dictionary, fn {k, v}, acc ->
       case find_entity(acc, item, k) do
         {_, nil} ->
-          Logger.error("dictionary: missing attribute: #{k} for #{name}")
-          acc
+          case String.split(Atom.to_string(v[:_source]), "/") do
+            [ext, _] ->
+              ext_key = String.to_atom("#{ext}/#{k}")
+
+              data =
+                case Map.get(acc, ext_key) do
+                  nil ->
+                    update_links.(v, link)
+
+                  attr ->
+                    deep_merge(attr, v) |> update_links.(link)
+                end
+
+              Map.put(acc, ext_key, data)
+
+            _ ->
+              Logger.warn("'#{name}' uses undefined attribute: #{k}: #{inspect(v)}")
+              acc
+          end
 
         {key, item} ->
           Map.put(acc, key, update_links.(item, link))

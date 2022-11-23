@@ -286,8 +286,16 @@ defmodule Schema.Cache do
       classes
       |> Stream.map(fn {name, map} -> {name, resolve_extends(classes, map)} end)
       # remove intermediate classes
-      |> Stream.filter(fn {_name, class} -> Map.has_key?(class, :uid) end)
-      |> Stream.map(fn class -> enrich_class(class, categories) end)
+      |> Stream.filter(fn {key, class} ->
+        if class[:name] == class[:extends] do
+          IO.puts("*** class: #{key} -> #{class[:name]}")
+        end
+
+        Map.has_key?(class, :uid)
+      end)
+      |> Stream.map(fn class ->
+        enrich_class(class, categories)
+      end)
       |> Enum.to_list()
       |> Map.new()
 
@@ -303,13 +311,40 @@ defmodule Schema.Cache do
   end
 
   defp read_objects() do
-    JsonReader.read_objects()
-    |> resolve_extends()
-    |> Enum.filter(fn {key, _object} ->
-      # removes abstract objects
-      !String.starts_with?(Atom.to_string(key), "_")
+    objects =
+      JsonReader.read_objects()
+      |> resolve_extends()
+      |> Enum.filter(fn {key, _object} ->
+        # removes abstract objects
+        !String.starts_with?(Atom.to_string(key), "_")
+      end)
+      |> Enum.into(%{}, fn class -> attribute_source(class) end)
+
+    objects
+    |> Enum.reduce(%{}, fn {key, object}, acc ->
+      if object[:name] == object[:extends] do
+        base_key = String.to_atom(object[:name])
+
+        case Map.get(objects, base_key) do
+          nil ->
+            Logger.warn("'#{key}' extends invalid object: #{base_key}")
+            Map.put(acc, key, object)
+
+          base ->
+            profiles = merge(base[:profiles], object[:profiles])
+            attributes = Utils.deep_merge(base[:attributes], object[:attributes])
+
+            updated =
+              base
+              |> Map.put(:profiles, profiles)
+              |> Map.put(:attributes, attributes)
+
+            Map.put(acc, base_key, updated)
+        end
+      else
+        Map.put_new(acc, key, object)
+      end
     end)
-    |> Enum.into(%{}, fn class -> attribute_source(class) end)
   end
 
   # Add category_uid, class_uid, and type_uid
@@ -492,9 +527,12 @@ defmodule Schema.Cache do
           Enum.into(
             attributes,
             %{},
-            fn {key, nil} -> {key, nil}
+            fn
+              {key, nil} ->
+                {key, nil}
+
               {key, attribute} ->
-              {key, Map.put(attribute, :_source, name)}
+                {key, Map.put(attribute, :_source, name)}
             end
           )
         end
@@ -519,9 +557,11 @@ defmodule Schema.Cache do
 
           base ->
             base = resolve_extends(classes, base)
-            attributes = Utils.deep_merge(base[:attributes], class[:attributes])
-            |> Enum.filter(fn {_name, attr} -> attr != nil end)
-            |> Map.new()
+
+            attributes =
+              Utils.deep_merge(base[:attributes], class[:attributes])
+              |> Enum.filter(fn {_name, attr} -> attr != nil end)
+              |> Map.new()
 
             Map.merge(base, class, &merge_profiles/3)
             |> Map.put(:attributes, attributes)
@@ -533,15 +573,21 @@ defmodule Schema.Cache do
   defp merge_profiles(_profiles, _v1, v2), do: v2
 
   defp super_class(classes, class, extends) do
-    case class[:extension] do
+    case Map.get(classes, String.to_atom(extends)) do
       nil ->
-        Map.get(classes, String.to_atom(extends))
+        case class[:extension] do
+          nil ->
+            Map.get(classes, String.to_atom(extends))
 
-      extension ->
-        case Map.get(classes, Utils.to_uid(extension, extends)) do
-          nil -> Map.get(classes, String.to_atom(extends))
-          other -> other
+          extension ->
+            case Map.get(classes, Utils.to_uid(extension, extends)) do
+              nil -> Map.get(classes, String.to_atom(extends))
+              other -> other
+            end
         end
+
+      base ->
+        base
     end
   end
 
@@ -651,7 +697,7 @@ defmodule Schema.Cache do
       list ->
         # add the synthetic datetime profile
         map
-        |> Map.put(:profiles, merge_profiles(profiles, ["datetime"]))
+        |> Map.put(:profiles, merge(profiles, ["datetime"]))
         |> Map.put(:attributes, Enum.into(list, attributes))
     end
   end
@@ -700,7 +746,7 @@ defmodule Schema.Cache do
     Enum.reduce(links, classes, fn {type, key, _}, acc ->
       if type == type_id do
         Map.update!(acc, String.to_atom(key), fn class ->
-          Map.put(class, :profiles, merge_profiles(class[:profiles], object[:profiles]))
+          Map.put(class, :profiles, merge(class[:profiles], object[:profiles]))
         end)
       else
         acc
@@ -708,15 +754,15 @@ defmodule Schema.Cache do
     end)
   end
 
-  defp merge_profiles(nil, p2) do
+  defp merge(nil, p2) do
     p2
   end
 
-  defp merge_profiles(p1, nil) do
+  defp merge(p1, nil) do
     p1
   end
 
-  defp merge_profiles(p1, p2) do
+  defp merge(p1, p2) do
     Enum.concat(p1, p2) |> Enum.uniq()
   end
 

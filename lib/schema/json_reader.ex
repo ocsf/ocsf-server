@@ -390,7 +390,7 @@ defmodule Schema.JsonReader do
           |> resolve_extension_includes(home, ext)
           |> add_extension(ext[:name], ext[:uid])
 
-        name = Utils.to_uid(ext[:name], data[:name])
+        name = Utils.to_uid(ext[:name], data[:name] || data[:extends])
         Map.put(acc, name, data)
       else
         acc
