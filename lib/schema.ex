@@ -18,6 +18,7 @@ defmodule Schema do
   alias Schema.Repo
   alias Schema.Cache
   alias Schema.Utils
+  alias Schema.Profiles
 
   @dialyzer :no_improper_lists
 
@@ -115,66 +116,100 @@ defmodule Schema do
     Returns all event classes.
   """
   @spec classes() :: map()
-  def classes(), do: Repo.classes()
+  def classes() do
+    Repo.classes() |> update_classes()
+  end
 
   @spec classes(Repo.extensions_t()) :: map()
-  def classes(extensions), do: Repo.classes(extensions)
+  def classes(extensions) do
+    Repo.classes(extensions) |> update_classes()
+  end
 
-  @spec classes(Repo.extensions_t(), Repo.profiles_t()) :: map()
+  @spec classes(Repo.extensions_t(), Repo.profiles_t() | nil) :: map()
+  def classes(extensions, nil) do
+    classes(extensions)
+  end
+
   def classes(extensions, profiles) do
-    extensions
-    |> Repo.classes()
-    |> apply_profiles(profiles, MapSet.size(profiles))
+    Repo.classes(extensions) |> update_classes(profiles)
+  end
+
+  defp update_classes(classes) do
+    apply_profiles(classes)
+  end
+
+  defp update_classes(classes, profiles) do
+    apply_profiles(classes, profiles, MapSet.size(profiles))
   end
 
   @doc """
     Returns a single event class.
   """
   @spec class(atom() | String.t()) :: nil | Cache.class_t()
-  def class(id), do: Repo.class(Utils.to_uid(id))
+  def class(id) do
+    Utils.to_uid(id) |> update_class()
+  end
 
   @spec class(nil | String.t(), String.t()) :: nil | map()
-  def class(extension, id),
-    do: Repo.class(Utils.to_uid(extension, id))
+  def class(extension, id) do
+    Utils.to_uid(extension, id) |> update_class()
+  end
 
   @spec class(String.t() | nil, String.t(), Repo.profiles_t() | nil) :: nil | map()
-  def class(extension, id, nil), do: class(extension, id)
+  def class(extension, id, nil) do
+    class(extension, id)
+  end
 
   def class(extension, id, profiles) do
-    case class(extension, id) do
-      nil ->
-        nil
+    Utils.to_uid(extension, id) |> Repo.class() |> update_class(profiles)
+  end
 
-      class ->
-        Map.update!(class, :attributes, fn attributes ->
-          Utils.apply_profiles(attributes, profiles)
-        end)
-    end
+  defp update_class(id) do
+    Repo.class(id) |> update_class(Profiles.new())
+  end
+
+  defp update_class(nil, _profiles) do
+    nil
+  end
+
+  defp update_class(class, profiles) do
+    Map.update!(class, :attributes, fn attributes ->
+      Utils.apply_profiles(attributes, profiles)
+    end)
   end
 
   @doc """
     Returns a single event class with the embedded objects.
   """
   @spec class_ex(atom() | String.t()) :: nil | Cache.class_t()
-  def class_ex(id),
-    do: Repo.class_ex(Utils.to_uid(id))
+  def class_ex(id) do
+    Utils.to_uid(id) |> update_class_ex()
+  end
 
   @spec class_ex(nil | String.t(), String.t()) :: nil | map()
-  def class_ex(extension, id),
-    do: Repo.class_ex(Utils.to_uid(extension, id))
+  def class_ex(extension, id) do
+    Utils.to_uid(extension, id) |> update_class_ex()
+  end
 
   @spec class_ex(String.t() | nil, String.t(), Repo.profiles_t() | nil) :: nil | map()
-  def class_ex(extension, id, nil),
-    do: class_ex(extension, id)
+  def class_ex(extension, id, nil) do
+    class_ex(extension, id)
+  end
 
   def class_ex(extension, id, profiles) do
-    case class_ex(extension, id) do
-      nil ->
-        nil
+    Utils.to_uid(extension, id) |> update_class_ex(profiles)
+  end
 
-      class ->
-        Schema.Profiles.apply_profiles(class, profiles)
-    end
+  defp update_class_ex(id) do
+    Repo.class_ex(id) |> update_class_ex(Profiles.new())
+  end
+
+  defp update_class_ex(nil, _profiles) do
+    nil
+  end
+
+  defp update_class_ex(class, profiles) do
+    Profiles.apply_profiles(class, profiles)
   end
 
   @doc """
@@ -187,84 +222,114 @@ defmodule Schema do
     Returns all objects.
   """
   @spec objects() :: map()
-  def objects(), do: Repo.objects()
+  def objects() do
+    Repo.objects() |> update_objects()
+  end
 
   @spec objects(Repo.extensions_t()) :: map()
-  def objects(extensions), do: Repo.objects(extensions)
+  def objects(extensions) do
+    Repo.objects(extensions) |> update_objects()
+  end
 
   @spec objects(Repo.extensions_t(), Repo.profiles_t()) :: map()
   def objects(extensions, profiles) do
-    extensions
-    |> Repo.objects()
-    |> apply_profiles(profiles, MapSet.size(profiles))
+    Repo.objects(extensions) |> update_objects(profiles)
+  end
+
+  defp update_objects(objects) do
+    apply_profiles(objects)
+  end
+
+  defp update_objects(objects, profiles) do
+    apply_profiles(objects, profiles, MapSet.size(profiles))
   end
 
   @doc """
     Returns a single object.
   """
   @spec object(atom | String.t()) :: nil | Cache.object_t()
-  def object(id),
-    do: Repo.object(Utils.to_uid(id))
+  def object(id) do
+    Utils.to_uid(id) |> update_object()
+  end
 
   @spec object(nil | String.t(), String.t()) :: nil | map()
   def object(extension, id) when is_binary(id) do
-    Repo.object(Utils.to_uid(extension, id))
+    Utils.to_uid(extension, id) |> update_object()
   end
 
   @spec object(Repo.extensions_t(), String.t(), String.t()) :: nil | map()
   def object(extensions, extension, id) when is_binary(id) do
     Repo.object(extensions, Utils.to_uid(extension, id))
+    |> update_object(Profiles.new())
   end
 
   @spec object(Repo.extensions_t(), String.t(), String.t(), Repo.profiles_t() | nil) ::
           nil | map()
-  def object(extensions, extension, id, nil),
-    do: object(extensions, extension, id)
+  def object(extensions, extension, id, nil) do
+    object(extensions, extension, id)
+  end
 
   def object(extensions, extension, id, profiles) do
-    case object(extensions, extension, id) do
-      nil ->
-        nil
+    Repo.object(extensions, Utils.to_uid(extension, id))
+    |> update_object(profiles)
+  end
 
-      object ->
-        Map.update!(object, :attributes, fn attributes ->
-          Utils.apply_profiles(attributes, profiles)
-        end)
-    end
+  defp update_object(id) do
+    Repo.object(id) |> update_object(Profiles.new())
+  end
+
+  defp update_object(nil, _profiles) do
+    nil
+  end
+
+  defp update_object(object, profiles) do
+    Map.update!(object, :attributes, fn attributes ->
+      Utils.apply_profiles(attributes, profiles)
+    end)
   end
 
   @doc """
     Returns a single object and with the embedded objects.
   """
   @spec object_ex(atom | String.t()) :: nil | Cache.object_t()
-  def object_ex(id),
-    do: Repo.object_ex(Utils.to_uid(id))
+  def object_ex(id) do
+    Utils.to_uid(id) |> Repo.object_ex() |> update_object_ex()
+  end
 
   @spec object_ex(nil | String.t(), String.t()) :: nil | map()
   def object_ex(extension, id) when is_binary(id) do
-    Repo.object_ex(Utils.to_uid(extension, id))
+    Utils.to_uid(extension, id) |> Repo.object_ex() |> update_object_ex()
   end
 
   @spec object_ex(Repo.extensions_t(), String.t(), String.t()) :: nil | map()
   def object_ex(extensions, extension, id) when is_binary(id) do
     Repo.object_ex(extensions, Utils.to_uid(extension, id))
+    |> update_object_ex()
   end
 
   @spec object_ex(Repo.extensions_t(), String.t(), String.t(), Repo.profiles_t() | nil) ::
           nil | map()
-  def object_ex(extensions, extension, id, nil),
-    do: object_ex(extensions, extension, id)
+  def object_ex(extensions, extension, id, nil) do
+    object_ex(extensions, extension, id)
+  end
 
   def object_ex(extensions, extension, id, profiles) do
-    case object_ex(extensions, extension, id) do
-      nil ->
-        nil
+    Repo.object_ex(extensions, Utils.to_uid(extension, id))
+    |> update_object_ex(profiles)
+  end
 
-      object ->
-        Map.update!(object, :attributes, fn attributes ->
-          Utils.apply_profiles(attributes, profiles)
-        end)
-    end
+  defp update_object_ex(object) do
+    update_object_ex(object, Profiles.new())
+  end
+
+  defp update_object_ex(nil, _profiles) do
+    nil
+  end
+
+  defp update_object_ex(object, profiles) do
+    Map.update!(object, :attributes, fn attributes ->
+      Utils.apply_profiles(attributes, profiles)
+    end)
   end
 
   # ------------------#
@@ -306,7 +371,7 @@ defmodule Schema do
           version: binary()
         }
   def export_schema(extensions, nil) do
-    export_schema(extensions)
+    export_schema(extensions, MapSet.new())
   end
 
   def export_schema(extensions, profiles) do
@@ -330,36 +395,60 @@ defmodule Schema do
     Exports the classes.
   """
   @spec export_classes() :: map()
-  def export_classes(), do: Repo.export_classes() |> reduce_objects()
+  def export_classes() do
+    Repo.export_classes() |> update_exported_classes()
+  end
 
   @spec export_classes(Repo.extensions_t()) :: map()
-  def export_classes(extensions), do: Repo.export_classes(extensions) |> reduce_objects()
+  def export_classes(extensions) do
+    Repo.export_classes(extensions) |> update_exported_classes()
+  end
 
   @spec export_classes(Repo.extensions_t(), Repo.profiles_t() | nil) :: map()
-  def export_classes(extensions, nil), do: export_classes(extensions)
+  def export_classes(extensions, nil) do
+    export_classes(extensions)
+  end
 
   def export_classes(extensions, profiles) do
-    Repo.export_classes(extensions)
-    |> apply_profiles(profiles, MapSet.size(profiles))
-    |> reduce_objects()
+    Repo.export_classes(extensions) |> update_exported_classes(profiles)
+  end
+
+  defp update_exported_classes(classes) do
+    apply_profiles(classes) |> reduce_objects()
+  end
+
+  defp update_exported_classes(classes, profiles) do
+    apply_profiles(classes, profiles, MapSet.size(profiles)) |> reduce_objects()
   end
 
   @doc """
     Exports the objects.
   """
   @spec export_objects() :: map()
-  def export_objects(), do: Repo.export_objects() |> reduce_objects()
+  def export_objects() do
+    Repo.export_objects() |> update_exported_objects()
+  end
 
   @spec export_objects(Repo.extensions_t()) :: map()
-  def export_objects(extensions), do: Repo.export_objects(extensions) |> reduce_objects()
+  def export_objects(extensions) do
+    Repo.export_objects(extensions) |> update_exported_objects()
+  end
 
   @spec export_objects(Repo.extensions_t(), Repo.profiles_t() | nil) :: map()
-  def export_objects(extensions, nil), do: export_objects(extensions)
+  def export_objects(extensions, nil) do
+    export_objects(extensions)
+  end
 
   def export_objects(extensions, profiles) do
-    Repo.export_objects(extensions)
-    |> apply_profiles(profiles, MapSet.size(profiles))
-    |> reduce_objects()
+    Repo.export_objects(extensions) |> update_exported_objects(profiles)
+  end
+
+  defp update_exported_objects(objects) do
+    apply_profiles(objects) |> reduce_objects()
+  end
+
+  defp update_exported_objects(objects, profiles) do
+    apply_profiles(objects, profiles, MapSet.size(profiles)) |> reduce_objects()
   end
 
   # -------------------------------#
@@ -468,13 +557,19 @@ defmodule Schema do
     Map.delete(data, :_links)
   end
 
-  def apply_profiles(types, _profiles, 0) do
+  defp apply_profiles(types) do
     Enum.into(types, %{}, fn {name, type} ->
       remove_profiles(name, type)
     end)
   end
 
-  def apply_profiles(types, profiles, size) do
+  defp apply_profiles(types, _profiles, 0) do
+    Enum.into(types, %{}, fn {name, type} ->
+      remove_profiles(name, type)
+    end)
+  end
+
+  defp apply_profiles(types, profiles, size) do
     Enum.into(types, %{}, fn {name, type} ->
       apply_profiles(name, type, profiles, size)
     end)

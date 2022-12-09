@@ -51,7 +51,7 @@ defmodule Schema.Inspector do
   defp validate_class(nil, _data), do: %{:error => "Missing class_uid"}
 
   defp validate_class(class_uid, data) do
-    profiles = get_in(data, ["metadata", "profiles"])
+    profiles = get_in(data, ["metadata", "profiles"]) || []
 
     Logger.info("validate class: #{class_uid} using profiles: #{inspect(profiles)}")
 

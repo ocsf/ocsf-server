@@ -403,14 +403,9 @@ defmodule SchemaWeb.SchemaController do
   @spec classes(map) :: map
   def classes(params) do
     extensions = parse_options(extensions(params))
+    profiles = parse_options(profiles(params))
 
-    case parse_options(profiles(params)) do
-      nil ->
-        Schema.classes(extensions)
-
-      profiles ->
-        Schema.classes(extensions, profiles)
-    end
+    Schema.classes(extensions, profiles)
   end
 
   @doc """
@@ -622,7 +617,7 @@ defmodule SchemaWeb.SchemaController do
   def json_class(conn, %{"id" => id} = params) do
     extension = extension(params)
     options = Map.get(params, "package_name") |> parse_java_package()
-    
+
     try do
       case Schema.class_ex(extension, id, parse_options(profiles(params))) do
         nil ->
@@ -667,11 +662,11 @@ defmodule SchemaWeb.SchemaController do
   @spec json_object(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def json_object(conn, %{"id" => id} = params) do
     options = Map.get(params, "package_name") |> parse_java_package()
-    
+
     profiles = parse_options(profiles(params))
     extension = extension(params)
     extensions = parse_options(extensions(params))
-    
+
     try do
       case Schema.object_ex(extensions, extension, id, profiles) do
         nil ->
@@ -798,6 +793,7 @@ defmodule SchemaWeb.SchemaController do
           list
           |> Enum.map(&Task.async(fn -> Schema.Inspector.validate(&1) end))
           |> Enum.map(&Task.await/1)
+
         send_json_resp(conn, result)
 
       other ->
@@ -1032,9 +1028,8 @@ defmodule SchemaWeb.SchemaController do
     |> Enum.map(fn s -> String.trim(s) end)
     |> MapSet.new()
   end
-  
+
   defp parse_java_package(nil), do: []
   defp parse_java_package(""), do: []
   defp parse_java_package(name), do: [package_name: name]
-
 end
