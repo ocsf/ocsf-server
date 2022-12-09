@@ -148,15 +148,22 @@ defmodule Schema.Cache do
   Returns extended class definition, which includes all objects referred by the class.
   """
   @spec class_ex(__MODULE__.t(), atom()) :: nil | class_t()
-  def class_ex(%__MODULE__{dictionary: dictionary, classes: classes, objects: objects}, id) do
-    case Map.get(classes, id) do
-      nil ->
-        nil
+  def class_ex(%__MODULE__{dictionary: dictionary, objects: objects, base_event: base_event}, :base_event) do
+    class_ex(base_event, dictionary, objects)
+  end
 
-      class ->
-        {class_ex, ref_objects} = enrich_ex(class, dictionary[:attributes], objects, Map.new())
-        Map.put(class_ex, :objects, Map.to_list(ref_objects))
-    end
+  def class_ex(%__MODULE__{dictionary: dictionary, classes: classes, objects: objects}, id) do
+    IO.puts("class id: #{id}")
+    Map.get(classes, id) |> class_ex(dictionary, objects)
+  end
+
+  defp class_ex(nil, _dictionary, _objects) do
+    nil
+  end
+  
+  defp class_ex(class, dictionary, objects) do
+    {class_ex, ref_objects} = enrich_ex(class, dictionary[:attributes], objects, Map.new())
+    Map.put(class_ex, :objects, Map.to_list(ref_objects))
   end
 
   @spec find_class(Schema.Cache.t(), any) :: nil | map
