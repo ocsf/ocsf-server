@@ -69,7 +69,9 @@ defmodule Schema.Generator do
 
   @spec generate_sample_event(Schema.Cache.class_t(), Schema.Repo.profiles_t() | nil) :: map()
   def generate_sample_event(class, nil) do
-    generate_sample_event(class, MapSet.new())
+    Logger.debug("generate sample event: #{inspect(class[:name])}")
+
+    generate_sample_event(class) |> remove_profiles()
   end
 
   def generate_sample_event(class, profiles) do
@@ -83,7 +85,9 @@ defmodule Schema.Generator do
 
   @spec generate_sample_event(Schema.Cache.object_t(), Schema.Repo.profiles_t() | nil) :: map()
   def generate_sample_object(type, nil) do
-    generate_sample_object(type, MapSet.new())
+    Logger.debug("generate sample object: #{type[:name]})")
+
+    generate_sample_object(type)
   end
 
   def generate_sample_object(type, profiles) do
@@ -113,6 +117,11 @@ defmodule Schema.Generator do
 
   defp add_profiles(data, profiles) do
     put_in(data, [:metadata, :profiles], profiles)
+  end
+  
+  defp remove_profiles(data) do
+    {_, map} = pop_in(data, [:metadata, :profiles])
+    map
   end
   
   defp generate_sample_event(class) do

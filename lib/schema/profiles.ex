@@ -6,26 +6,6 @@ defmodule Schema.Profiles do
   require Logger
 
   @doc """
-    Returns a new, empty profile.
-  """
-  def new(), do: MapSet.new()
-
-  @doc """
-    Creates a new  profile.
-  """
-  def new(profiles) when is_list(profiles) do
-    MapSet.new(profiles)
-  end
-
-  def new(nil) do
-    MapSet.new()
-  end
-
-  def new(%MapSet{} = profiles) do
-    profiles
-  end
-
-  @doc """
     Filter attributes based on a given set of profiles.
   """
   def apply_profiles(class, profiles) when is_list(profiles) do
@@ -98,7 +78,6 @@ defmodule Schema.Profiles do
     Enum.each(profile[:attributes], fn {k, p} ->
       if Map.has_key?(attributes, k) == false do
         text = "#{name} uses '#{profile[:name]}' profile, but it does not define '#{k}' attribute"
-
         if p[:requirement] == "required" do
           Logger.warn(text)
         else
