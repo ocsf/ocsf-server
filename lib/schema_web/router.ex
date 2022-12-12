@@ -88,6 +88,7 @@ defmodule SchemaWeb.Router do
   scope "/export", SchemaWeb do
     pipe_through :api
 
+    get "/base_event", SchemaController, :export_base_event
     get "/classes", SchemaController, :export_classes
     get "/objects", SchemaController, :export_objects
     get "/schema", SchemaController, :export_schema

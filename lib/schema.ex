@@ -337,11 +337,18 @@ defmodule Schema do
   # ------------------#
 
   @doc """
-    Exports the schema, including data types, objects, abd classes.
+    Exports the schema, including data types, objects, and classes.
   """
-  @spec export_schema() :: %{classes: map(), objects: map(), types: map(), version: binary()}
+  @spec export_schema() :: %{
+          base_event: map(),
+          classes: map(),
+          objects: map(),
+          types: map(),
+          version: binary()
+        }
   def export_schema() do
     %{
+      :base_event => Schema.export_base_event(),
       :classes => Schema.export_classes(),
       :objects => Schema.export_objects(),
       :types => Schema.export_data_types(),
@@ -350,6 +357,7 @@ defmodule Schema do
   end
 
   @spec export_schema(Repo.extensions_t()) :: %{
+          base_event: map(),
           classes: map(),
           objects: map(),
           types: map(),
@@ -357,6 +365,7 @@ defmodule Schema do
         }
   def export_schema(extensions) do
     %{
+      :base_event => Schema.export_base_event(),
       :classes => Schema.export_classes(extensions),
       :objects => Schema.export_objects(extensions),
       :types => Schema.export_data_types(),
@@ -365,17 +374,19 @@ defmodule Schema do
   end
 
   @spec export_schema(Repo.extensions_t(), Repo.profiles_t() | nil) :: %{
+          base_event: map(),
           classes: map(),
           objects: map(),
           types: map(),
           version: binary()
         }
   def export_schema(extensions, nil) do
-    export_schema(extensions, MapSet.new())
+    export_schema(extensions, Profiles.new())
   end
 
   def export_schema(extensions, profiles) do
     %{
+      :base_event => Schema.export_base_event(profiles),
       :classes => Schema.export_classes(extensions, profiles),
       :objects => Schema.export_objects(extensions, profiles),
       :types => Schema.export_data_types(),
@@ -411,6 +422,30 @@ defmodule Schema do
 
   def export_classes(extensions, profiles) do
     Repo.export_classes(extensions) |> update_exported_classes(profiles)
+  end
+
+  @spec export_base_event() :: map()
+  def export_base_event() do
+    Repo.export_base_event()
+    |> reduce_attributes()
+    |> Map.update!(:attributes, fn attributes ->
+      Utils.remove_profiles(attributes) |> Enum.into(%{})
+    end)
+  end
+
+  @spec export_base_event(Repo.profiles_t() | nil) :: map()
+  def export_base_event(nil) do
+    export_base_event()
+  end
+
+  def export_base_event(profiles) do
+    size = MapSet.size(profiles)
+
+    Repo.export_base_event()
+    |> reduce_attributes()
+    |> Map.update!(:attributes, fn attributes ->
+      Utils.apply_profiles(attributes, profiles, size) |> Enum.into(%{})
+    end)
   end
 
   defp update_exported_classes(classes) do
@@ -517,22 +552,21 @@ defmodule Schema do
 
   defp reduce_objects(objects) do
     Enum.into(objects, %{}, fn {name, object} ->
-      updated =
-        reduce_object(object)
-        |> reduce_attributes(&reduce_object/1)
+      updated = reduce_attributes(object)
 
       {name, updated}
     end)
   end
 
-  defp reduce_object(object) do
+  defp reduce_data(object) do
     delete_links(object) |> Map.delete(:_source)
   end
 
-  defp reduce_attributes(data, reducer) do
-    Map.update(data, :attributes, [], fn attributes ->
+  defp reduce_attributes(data) do
+    reduce_data(data)
+    |> Map.update(:attributes, [], fn attributes ->
       Enum.into(attributes, %{}, fn {name, attribute} ->
-        {name, reducer.(attribute)}
+        {name, reduce_data(attribute)}
       end)
     end)
   end

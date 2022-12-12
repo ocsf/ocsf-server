@@ -129,6 +129,11 @@ defmodule Schema.Cache do
     end)
   end
 
+  @spec export_base_event(__MODULE__.t()) :: map()
+  def export_base_event(%__MODULE__{base_event: base_event, dictionary: dictionary}) do
+    enrich(base_event, dictionary[:attributes])
+  end
+
   @spec class(__MODULE__.t(), atom()) :: nil | class_t()
   def class(%__MODULE__{dictionary: dictionary, base_event: base_event}, :base_event) do
     enrich(base_event, dictionary[:attributes])

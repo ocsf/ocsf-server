@@ -126,6 +126,11 @@ defmodule Schema.Repo do
     end)
   end
 
+  @spec export_base_event() :: map()
+  def export_base_event() do
+    Agent.get(__MODULE__, fn schema -> Cache.export_base_event(schema) end)
+  end
+
   @spec class(atom) :: nil | Cache.class_t()
   def class(id) do
     Agent.get(__MODULE__, fn schema -> Cache.class(schema, id) end)

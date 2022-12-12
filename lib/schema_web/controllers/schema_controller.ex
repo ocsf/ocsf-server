@@ -558,6 +558,30 @@ defmodule SchemaWeb.SchemaController do
   end
 
   @doc """
+  Export the OCSF base event class.
+  """
+  swagger_path :export_base_event do
+    get("/export/base_event")
+    summary("Export base event class")
+    description("Get OCSF schema base event class.")
+    produces("application/json")
+    tag("Schema Export")
+
+    parameters do
+      profiles(:query, :array, "Related profiles to include in response.", items: [type: :string])
+    end
+
+    response(200, "Success")
+  end
+
+  def export_base_event(conn, params) do
+    profiles = parse_options(profiles(params))
+    base_event = Schema.export_base_event (profiles)
+
+    send_json_resp(conn, base_event)
+  end
+
+  @doc """
   Export the OCSF schema objects.
   """
   swagger_path :export_objects do
