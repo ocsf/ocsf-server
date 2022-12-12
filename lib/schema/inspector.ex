@@ -63,7 +63,7 @@ defmodule Schema.Inspector do
     %{:error => "Unknown class_uid: #{class_uid}", :value => class_uid}
   end
 
-  defp validate_type(type, data, profiles) do
+  defp validate_type(type, data, profiles) when is_list(profiles) do
     attributes = type[:attributes] |> Utils.apply_profiles(profiles)
 
     Enum.reduce(attributes, %{}, fn {name, attribute}, acc ->
@@ -71,6 +71,10 @@ defmodule Schema.Inspector do
       validate_data(acc, name, attribute, value, profiles)
     end)
     |> undefined_attributes(attributes, data)
+  end
+
+  defp validate_type(_type, _data, profiles) do
+    %{:error => "Invalid profiles value", :value => profiles}
   end
 
   defp undefined_attributes(acc, attributes, data) do
