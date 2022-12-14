@@ -966,12 +966,14 @@ defmodule SchemaWeb.SchemaController do
   defp send_json_resp(conn, error, data) do
     conn
     |> put_resp_content_type("application/json")
+    |> put_resp_header("access-control-allow-origin", "*")
     |> send_resp(error, Jason.encode!(data))
   end
 
   defp send_json_resp(conn, data) do
     conn
     |> put_resp_content_type("application/json")
+    |> put_resp_header("access-control-allow-origin", "*")
     |> send_resp(200, Jason.encode!(data))
   end
 
