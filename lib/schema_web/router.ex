@@ -106,7 +106,7 @@ defmodule SchemaWeb.Router do
     get "/classes/:extension/:id", SchemaController, :sample_class
   end
 
-  scope "/api/doc" do
+  scope "/doc" do
     forward "/", PhoenixSwagger.Plug.SwaggerUI,
       otp_app: :schema_server,
       swagger_file: "swagger.json"

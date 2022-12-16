@@ -118,7 +118,7 @@ limitations under the License.
   </button>
 
   <nav class="navbar collapse navbar-collapse navbar-expand-md navbar-light fixed-left">
-    <a href="/?extensions=" onclick="reset_home_page()" class="navbar-brand ocsf-logo">
+    <a href=<%= Routes.static_path(@conn, "/?extensions=") %> onclick="reset_home_page()" class="navbar-brand ocsf-logo">
       <img src='<%= Routes.static_path(@conn, "/images/ocsf-logo.png") %>' alt="OCSF Logo"/>
     </a>
     <a class="navbar-brand" href>
@@ -192,7 +192,7 @@ limitations under the License.
       </li>
       <div class="navbar-text">|</div>
       <li id="apidoc_id" class="nav-item">
-        <a class="nav-link" target="_blank" href='<%= Routes.static_path(@conn, "/api/doc") %>'>API Doc</a>
+        <a class="nav-link" target="_blank" href='<%= Routes.static_path(@conn, "/doc") %>'>API Doc</a>
       </li>
       <li class="nav-item">
         <div id="json-schema" class="d-none">
