@@ -153,19 +153,21 @@ defmodule Schema.Cache do
   Returns extended class definition, which includes all objects referred by the class.
   """
   @spec class_ex(__MODULE__.t(), atom()) :: nil | class_t()
-  def class_ex(%__MODULE__{dictionary: dictionary, objects: objects, base_event: base_event}, :base_event) do
+  def class_ex(
+        %__MODULE__{dictionary: dictionary, objects: objects, base_event: base_event},
+        :base_event
+      ) do
     class_ex(base_event, dictionary, objects)
   end
 
   def class_ex(%__MODULE__{dictionary: dictionary, classes: classes, objects: objects}, id) do
-    IO.puts("class id: #{id}")
     Map.get(classes, id) |> class_ex(dictionary, objects)
   end
 
   defp class_ex(nil, _dictionary, _objects) do
     nil
   end
-  
+
   defp class_ex(class, dictionary, objects) do
     {class_ex, ref_objects} = enrich_ex(class, dictionary[:attributes], objects, Map.new())
     Map.put(class_ex, :objects, Map.to_list(ref_objects))
@@ -290,73 +292,30 @@ defmodule Schema.Cache do
     end
   end
 
-  @spec read_classes(map) :: {map, map}
-  def read_classes(categories) do
-    {base, classes} = read_classes()
+  defp read_classes(categories) do
+    classes =
+      JsonReader.read_classes()
+      |> Enum.into(%{}, fn class -> attribute_source(class) end)
+      |> extend_type()
+
+    base = Map.get(classes, :base_event)
 
     classes =
-      classes
-      |> Stream.map(fn {name, map} -> {name, resolve_extends(classes, map)} end)
+      resolve_extends(classes)
       # remove intermediate classes
-      |> Stream.filter(fn {key, class} ->
-        if class[:name] == class[:extends] do
-          IO.puts("*** class: #{key} -> #{class[:name]}")
-        end
-
-        Map.has_key?(class, :uid)
-      end)
-      |> Stream.map(fn class ->
-        enrich_class(class, categories)
-      end)
-      |> Enum.to_list()
-      |> Map.new()
+      |> Stream.filter(fn {_key, class} -> Map.has_key?(class, :uid) end)
+      |> Enum.into(%{}, fn class -> enrich_class(class, categories) end)
 
     {base, classes}
   end
 
-  defp read_classes() do
-    classes =
-      JsonReader.read_classes()
-      |> Enum.into(%{}, fn class -> attribute_source(class) end)
-
-    {Map.get(classes, :base_event), classes}
-  end
-
   defp read_objects() do
-    objects =
-      JsonReader.read_objects()
-      |> resolve_extends()
-      |> Enum.filter(fn {key, _object} ->
-        # removes abstract objects
-        !String.starts_with?(Atom.to_string(key), "_")
-      end)
-      |> Enum.into(%{}, fn class -> attribute_source(class) end)
-
-    objects
-    |> Enum.reduce(%{}, fn {key, object}, acc ->
-      if object[:name] == object[:extends] do
-        base_key = String.to_atom(object[:name])
-
-        case Map.get(objects, base_key) do
-          nil ->
-            Logger.warn("'#{key}' extends invalid object: #{base_key}")
-            Map.put(acc, key, object)
-
-          base ->
-            profiles = merge(base[:profiles], object[:profiles])
-            attributes = Utils.deep_merge(base[:attributes], object[:attributes])
-
-            updated =
-              base
-              |> Map.put(:profiles, profiles)
-              |> Map.put(:attributes, attributes)
-
-            Map.put(acc, base_key, updated)
-        end
-      else
-        Map.put_new(acc, key, object)
-      end
-    end)
+    JsonReader.read_objects()
+    |> resolve_extends()
+    # removes abstract objects
+    |> Stream.filter(fn {key, _o} -> !String.starts_with?(Atom.to_string(key), "_") end)
+    |> Enum.into(%{}, fn obj -> attribute_source(obj) end)
+    |> extend_type()
   end
 
   # Add category_uid, class_uid, and type_uid
@@ -553,29 +512,60 @@ defmodule Schema.Cache do
     {name, data}
   end
 
-  defp resolve_extends(classes) do
-    Enum.map(classes, fn {name, class} -> {name, resolve_extends(classes, class)} end)
-  end
+  defp extend_type(items) do
+    Enum.reduce(items, %{}, fn {key, item}, acc ->
+      name = item[:name] || item[:extends]
 
-  defp resolve_extends(classes, class) do
-    case class[:extends] do
-      nil ->
-        class
+      if name == item[:extends] do
+        base_key = String.to_atom(name)
 
-      extends ->
-        case super_class(classes, class, extends) do
+        Logger.info("#{key} extends #{base_key}")
+
+        case Map.get(items, base_key) do
           nil ->
-            exit("Error: #{class[:name]} extends undefined class: #{extends}")
+            Logger.warn("#{key} extends invalid item: #{base_key}")
+            Map.put(acc, key, item)
 
           base ->
-            base = resolve_extends(classes, base)
+            profiles = merge(base[:profiles], item[:profiles])
+            attributes = Utils.deep_merge(base[:attributes], item[:attributes])
+
+            updated =
+              base
+              |> Map.put(:profiles, profiles)
+              |> Map.put(:attributes, attributes)
+
+            Map.put(acc, base_key, updated)
+        end
+      else
+        Map.put_new(acc, key, item)
+      end
+    end)
+  end
+
+  defp resolve_extends(items) do
+    Enum.map(items, fn {name, item} -> {name, resolve_extends(items, item)} end)
+  end
+
+  defp resolve_extends(items, item) do
+    case item[:extends] do
+      nil ->
+        item
+
+      extends ->
+        case find_super_class(items, item, extends) do
+          nil ->
+            exit("Error: #{item[:name]} extends undefined item: #{extends}")
+
+          base ->
+            base = resolve_extends(items, base)
 
             attributes =
-              Utils.deep_merge(base[:attributes], class[:attributes])
+              Utils.deep_merge(base[:attributes], item[:attributes])
               |> Enum.filter(fn {_name, attr} -> attr != nil end)
               |> Map.new()
 
-            Map.merge(base, class, &merge_profiles/3)
+            Map.merge(base, item, &merge_profiles/3)
             |> Map.put(:attributes, attributes)
         end
     end
@@ -584,7 +574,7 @@ defmodule Schema.Cache do
   defp merge_profiles(:profiles, v1, v2), do: Enum.concat(v1, v2) |> Enum.uniq()
   defp merge_profiles(_profiles, _v1, v2), do: v2
 
-  defp super_class(classes, class, extends) do
+  defp find_super_class(classes, class, extends) do
     case Map.get(classes, String.to_atom(extends)) do
       nil ->
         case class[:extension] do
