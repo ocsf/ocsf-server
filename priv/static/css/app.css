@@ -220,6 +220,14 @@ li {
   background-image: linear-gradient(snow, gray);
 }
 
+/* Custom display of Version */
+.version {
+  font-weight: 600;
+  font-size: medium;
+  color: rgb(0, 0, 72);
+  background-color: lightgray;
+}
+
 .active {
   border-bottom: 2px solid #00A4B7;
 }
