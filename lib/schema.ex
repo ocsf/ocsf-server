@@ -29,14 +29,9 @@ defmodule Schema do
 
   @spec build_version :: String.t()
   def build_version() do
-    build =
-      Application.spec(:schema_server)
-      |> Keyword.get(:vsn)
-      |> to_string()
-      |> String.trim_trailing("-SNAPSHOT")
-
-    version = Repo.version()
-    "#{build}/#{version}"
+    Application.spec(:schema_server)
+    |> Keyword.get(:vsn)
+    |> to_string()
   end
 
   @doc """

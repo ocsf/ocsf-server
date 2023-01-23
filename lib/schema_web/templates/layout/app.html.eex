@@ -121,9 +121,9 @@ limitations under the License.
     <a href=<%= Routes.static_path(@conn, "/?extensions=") %> onclick="reset_home_page()" class="navbar-brand ocsf-logo">
       <img src='<%= Routes.static_path(@conn, "/images/ocsf-logo.png") %>' alt="OCSF Logo"/>
     </a>
-    <div class="version">
-      v<%= Schema.Repo.version() %>
-    </div>
+    <h6 class="container-fluid version">
+      Schema Version <%= Schema.version() %>
+    </h6>
     <a class="navbar-brand" href>
       Extensions
       <hr class="divider"/>
@@ -218,7 +218,7 @@ limitations under the License.
 </div>
 
 <div class="footer">
-  Open Cybersecurity Schema Framework v<%= Schema.build_version() %>. This content includes the ICD Schema developed by Symantec, a division of Broadcom.
+  OCSF Server version <%= Schema.build_version() %>. This content includes the ICD Schema developed by Symantec, a division of Broadcom.
 </div>
 
 

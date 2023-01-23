@@ -96,9 +96,16 @@ body {
   }
 
   .ocsf-logo img {
-    height: 72px;
+    height: 78px;
     width: auto;
     display: block;
+  }
+
+  .version {
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    text-align: center;
+    background-color: rgb(245, 245, 200);
+    margin-bottom: 2rem;
   }
 
   .profiles-divider {
@@ -218,14 +225,6 @@ li {
   color: rgb(0, 0, 72);
   background-color: lightgray;
   background-image: linear-gradient(snow, gray);
-}
-
-/* Custom display of Version */
-.version {
-  font-weight: 600;
-  font-size: medium;
-  color: rgb(0, 0, 72);
-  background-color: lightgray;
 }
 
 .active {
