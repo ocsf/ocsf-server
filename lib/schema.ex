@@ -32,6 +32,7 @@ defmodule Schema do
     Application.spec(:schema_server)
     |> Keyword.get(:vsn)
     |> to_string()
+    |> String.trim_trailing("-SNAPSHOT")
   end
 
   @doc """
