@@ -397,10 +397,6 @@ defmodule Schema.Cache do
         enum_values(class_uid, caption, values)
     end
     |> Map.put(
-      integer_to_id(0, -1),
-      Map.new(caption: Types.type_name(caption, "Other"))
-    )
-    |> Map.put(
       integer_to_id(class_uid, 0),
       Map.new(caption: Types.type_name(caption, "Unknown"))
     )
@@ -415,17 +411,11 @@ defmodule Schema.Cache do
   end
 
   defp enum_values(class_uid, caption, values) do
-    for {key, val} = value <- values, into: %{} do
-      case key do
-        :"-1" ->
-          value
-
-        _ ->
+    for {key, val} = _value <- values, into: %{} do
           {
             make_enum_id(class_uid, key),
             Map.put(val, :caption, Types.type_name(caption, val[:caption]))
           }
-      end
     end
   end
 

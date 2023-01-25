@@ -44,6 +44,7 @@ defmodule Schema.Generator do
   @recommended 90
   @optional 20
   @max_array_size 3
+  @other 99
 
   def init() do
     dir = Application.app_dir(:schema_server, @data_dir)
@@ -136,7 +137,7 @@ defmodule Schema.Generator do
           if activity_id >= 0 do
             Types.type_uid(data[:class_uid], activity_id)
           else
-            -1
+            99
           end
 
         Map.put(data, :type_uid, uid)
@@ -272,7 +273,7 @@ defmodule Schema.Generator do
   defp generate_enum_data(key, name, enum, map) do
     id = random_enum_int_value(enum)
 
-    if id == -1 do
+    if id == @other do
       Map.put(map, name, word())
     else
       Map.put(map, name, enum_name(Integer.to_string(id), enum))
@@ -690,7 +691,7 @@ defmodule Schema.Generator do
 
     value =
       case algorithm do
-        -1 ->
+        @other ->
           blake2()
 
         1 ->
@@ -708,7 +709,7 @@ defmodule Schema.Generator do
 
     fingerprint = Map.put(fingerprint, :value, value)
 
-    if algorithm == -1 do
+    if algorithm == @other do
       Map.put(fingerprint, :algorithm, "magic")
     else
       fingerprint
