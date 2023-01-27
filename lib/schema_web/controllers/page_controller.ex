@@ -20,6 +20,29 @@ defmodule SchemaWeb.PageController do
     render(conn, "guidelines.html", extensions: Schema.extensions(), profiles: Schema.profiles())
   end
 
+  @spec graph(Plug.Conn.t(), any) :: Plug.Conn.t()
+  def graph(conn, %{"id" => id} = params) do
+    extension = params["extension"]
+
+    try do
+      case Schema.class_ex(extension, id) do
+        nil ->
+          send_resp(conn, 404, "Not Found: #{id}")
+
+        class ->
+          data = Schema.Graph.build(class)
+          
+          render(conn, "graph.html",
+            extensions: Schema.extensions(),
+            profiles: Schema.profiles(),
+            data: data
+          )
+      end
+    rescue
+      e -> send_resp(conn, 400, "Bad Request: #{inspect(e)}")
+    end
+  end
+
   @doc """
   Renders the data types.
   """

@@ -9,44 +9,40 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 %>
-<script>
-  show("#sample-data");
-  show("#json-schema");
-</script>
-
-<% category = @data[:category] %>
-<% extension = @data[:extension] %>
-<% class_name = @data[:name] %>
+<% class = @data[:class] %>
+<% category = class[:category] %>
+<% extension = class[:extension] %>
+<% class_name = class[:name] %>
 
 <div class="row">
   <div class="col-md move-up">
     <%= if class_name != "base_event" do %>
       <% path = Routes.static_path(@conn, "/categories/" <> category) %>
       <h1>
-        <%= @data[:caption] %>
-        <span class="text-secondary">[<a href="<%= class_graph_path(@conn, @data)  %>"><%= @data[:uid] %></a>]<sup><%= extension || "" %></sup>
+        <%= class[:caption] %>
+        <span class="text-secondary">[<a href="<%= class_path(@conn, class)  %>"><%= class[:uid] %></a>]<sup><%= extension || "" %></sup>
           Class
         </span>
       </h1>
 
       <h4 class="extensions">
-        <a href="<%= path %>"><%= @data[:category_name] %> Category</a>
+        <a href="<%= path %>"><%= class[:category_name] %> Category</a>
       </h4>
 
       <div class="text-secondary">
-        <%= raw @data[:description] %>
+        <%= raw class[:description] %>
       </div>
       <div class="mt-1">
-        <%= raw class_profiles(@data, @profiles) %>
+        <%= raw class_profiles(class, @profiles) %>
       </div>
     <% else %>
       <%# the base event class %>
-      <h1><%= @data[:caption] %></h1>
+      <h1><%= class[:caption] %></h1>
       <div class="text-secondary">
-        <%= raw @data[:description] %>
+        <%= raw class[:description] %>
       </div>
       <div class="mt-1">
-        <%= raw class_profiles(@data, @profiles) %>
+        <%= raw class_profiles(class, @profiles) %>
       </div>
     <% end %>
   </div>
@@ -86,56 +82,28 @@ limitations under the License.
   </div>
 </div>
 
-<div class="mt-4">
-  <table id="data-table" class="table table-bordered sortable">
-    <thead >
-    <tr class="thead-color">
-      <th style="width: 10%">Caption</th>
-      <th style="width: 10%">Name</th>
-      <th style="width: 10%">Group</th>
-      <th style="width: 10%">Requirement</th>
-      <th style="width: 8%">Type</th>
-      <th>Description</th>
-    </tr>
-    </thead>
-    <tbody class="searchable">
-      <%= for {key, field} <- @data[:attributes] do %>
-        <% name = Atom.to_string(key) %>
-        <% profile = field[:profile] || "" %>
-        <tr class="<%= field_classes(field)%>">
-          <td class="name"><%= raw format_attribute_name(name, field) %></td>
-          <td data-toggle="tooltip" title="<%= field[:_source] %>"><%= raw format_profile_name(name, profile) %></td>
-          <td class="capitalize"><%= field[:group] %></td>
-          <td class="capitalize"><%= format_requirement(field) %></td>
-          <td><%= raw format_type(@conn, field) %></td>
-          <td><%= raw format_desc(field) %></td>
-        </tr>
-      <% end %>
-    </tbody>
-  </table>
-</div>
-
-<% constraints = @data[:constraints] %>
-<%= if constraints != nil do %>
-<div class="constraints">
-  <h5>Constraints</h5>
-  <div>
-    <%= raw constraints(constraints) %>
-  </div>
-</div>
-<% end %>
-
-<% associations = @data[:associations] %>
-<%= if associations != nil do %>
-<div class="associations">
-  <h5>Attribute Associations</h5>
-  <div class="text-monospace">
-    <%= raw associations(associations) %>
-  </div>
-</div>
-<% end %>
-
-<script>
-  init_schema_buttons();
-  init_class_profiles();
+<div id="mynetwork"></div>
+<script type="text/javascript" src='<%= Routes.static_path(@conn, "/js/vis-network.min.js") %>'></script>
+<script type="text/javascript">
+   var container = document.getElementById("mynetwork");
+   var data = <%= raw Jason.encode!(@data) %>;
+   var options = {
+      edges:{
+       arrows: 'to',
+       font: {face: 'mono'}
+     },
+     nodes: {
+       "color": "#D7E2FF",
+       shape: 'box',
+       font: {face: 'mono'}
+     },
+     physics: {
+       enabled: true,
+       timestep: 0.4,
+       solver: 'forceAtlas2Based',
+       // solver: 'repulsion',
+     },
+   };
+   
+   let network = new vis.Network(container, data, options);
 </script>

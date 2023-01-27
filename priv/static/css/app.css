@@ -322,3 +322,8 @@ span.hidden {
   border-radius: 5px;
 }
 
+#mynetwork {
+  width: 100%;
+  height: 100vh;
+}
+

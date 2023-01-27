@@ -44,6 +44,9 @@ defmodule SchemaWeb.Router do
 
     get "/data_types", PageController, :data_types
     get "/guidelines", PageController, :guidelines
+    
+    get "/graph/:id", PageController, :graph
+    get "/graph/:extension/:id", PageController, :graph
   end
 
   # Other scopes may use custom stacks.

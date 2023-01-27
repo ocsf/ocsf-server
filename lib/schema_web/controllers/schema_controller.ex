@@ -644,11 +644,10 @@ defmodule SchemaWeb.SchemaController do
 
   @spec json_class(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def json_class(conn, %{"id" => id} = params) do
-    extension = extension(params)
     options = Map.get(params, "package_name") |> parse_java_package()
     
     try do
-      case Schema.class_ex(extension, id, parse_options(profiles(params))) do
+      case class_ex(id, params) do
         nil ->
           send_json_resp(conn, 404, %{error: "Event class #{id} not found"})
 
@@ -661,6 +660,11 @@ defmodule SchemaWeb.SchemaController do
         Logger.error("Unable to get class: #{id}. Error: #{inspect(e)}")
         send_json_resp(conn, 500, %{error: "Error: #{e[:message]}"})
     end
+  end
+
+  def class_ex(id, params) do
+    extension = extension(params)
+    Schema.class_ex(extension, id, parse_options(profiles(params)))
   end
 
   @doc """

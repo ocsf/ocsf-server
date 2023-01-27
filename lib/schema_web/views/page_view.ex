@@ -3,6 +3,30 @@ defmodule SchemaWeb.PageView do
 
   require Logger
 
+  def class_graph_path(conn, data) do
+    class_name = data[:name]
+
+    case data[:extension] do
+      nil ->
+        Routes.static_path(conn, "/graph/" <> class_name)
+
+      extension ->
+        Routes.static_path(conn, "/graph/" <> extension <> "/" <> class_name)
+    end
+  end
+
+  def class_path(conn, data) do
+    class_name = data[:name]
+
+    case data[:extension] do
+      nil ->
+        Routes.static_path(conn, "/classes/" <> class_name)
+
+      extension ->
+        Routes.static_path(conn, "/classes/" <> extension <> "/" <> class_name)
+    end
+  end
+
   def class_profiles(class, profiles) do
     [
       "<strong>Applicable profiles: </strong>",
@@ -11,7 +35,7 @@ defmodule SchemaWeb.PageView do
       end)
     ]
   end
-        
+
   def format_profiles(nil) do
     ""
   end
