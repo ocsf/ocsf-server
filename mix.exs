@@ -22,7 +22,7 @@ defmodule Schema.MixProject do
         ]
       ],
       app: :schema_server,
-      version: "2.35.0-#{build}",
+      version: "2.36.0-#{build}",
       elixir: "~> 1.14",
       elixirc_paths: elixirc_paths(Mix.env()),
       compilers: [:phoenix] ++ Mix.compilers() ++ [:phoenix_swagger],
@@ -50,17 +50,17 @@ defmodule Schema.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
-      {:phoenix, "~> 1.5"},
+      {:phoenix, "~> 1.6"},
       {:phoenix_pubsub, "~> 2.0"},
       {:phoenix_html, "~> 2.14"},
-      {:phoenix_live_reload, "~> 1.2", only: :dev},
-      {:gettext, "~> 0.11"},
-      {:jason, "~> 1.2"},
-      {:plug_cowboy, "~> 2.3"},
+      {:phoenix_live_reload, "~> 1.4", only: :dev},
+      {:gettext, "~> 0.21"},
+      {:jason, "~> 1.4"},
+      {:plug_cowboy, "~> 2.6"},
       {:number, "~> 1.0"},
       {:elixir_uuid, "~> 1.6", hex: :uuid_utils},
       {:phoenix_swagger, "~> 0.8"},
-      {:ex_json_schema, "~> 0.5"},
+      {:ex_json_schema, "~> 0.7"},
       {:phoenix_markdown, "~> 1.0"},
       {:credo, "~> 1.5", only: [:dev, :test], runtime: false}
     ]
