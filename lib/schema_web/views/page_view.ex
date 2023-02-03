@@ -36,6 +36,27 @@ defmodule SchemaWeb.PageView do
     ]
   end
 
+  def class_examples(class) do
+    format_class_examples(class[:examples])
+  end
+
+  defp format_class_examples(nil) do
+    ""
+  end
+  
+  defp format_class_examples([]) do
+    ""
+  end
+  
+  defp format_class_examples(examples) do
+    [
+      "<strong>Examples: </strong>",
+      Enum.map_join(examples, ", ", fn {_uid, name, path} ->
+        "<a target='_blank' href='#{path}'>#{name}</a>"
+      end)
+    ]
+  end
+
   def format_profiles(nil) do
     ""
   end

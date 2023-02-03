@@ -45,6 +45,13 @@ config :phoenix_swagger, json_library: Jason
 config :schema_server, Schema.JsonReader, home: System.get_env("SCHEMA_DIR") || "modules/schema"
 config :schema_server, Schema.Application, extension: System.get_env("SCHEMA_EXTENSION")
 
+# Configure the schema example's repo path and local dicrectory
+config :schema_server, Schema.Examples,
+  repo: System.get_env("EXAMPLES_REPO") || "https://github.com/ocsf/examples/tree/main"
+
+config :schema_server, Schema.Examples,
+  home: System.get_env("EXAMPLES_PATH") || "../examples"
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{Mix.env()}.exs"

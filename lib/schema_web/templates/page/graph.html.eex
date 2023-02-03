@@ -32,17 +32,11 @@ limitations under the License.
       <div class="text-secondary">
         <%= raw class[:description] %>
       </div>
-      <div class="mt-1">
-        <%= raw class_profiles(class, @profiles) %>
-      </div>
     <% else %>
       <%# the base event class %>
       <h1><%= class[:caption] %></h1>
       <div class="text-secondary">
         <%= raw class[:description] %>
-      </div>
-      <div class="mt-1">
-        <%= raw class_profiles(class, @profiles) %>
       </div>
     <% end %>
   </div>

@@ -39,6 +39,9 @@ limitations under the License.
       <div class="mt-1">
         <%= raw class_profiles(@data, @profiles) %>
       </div>
+      <div class="mt-1">
+        <%= raw class_examples(@data) %>
+      </div>
     <% else %>
       <%# the base event class %>
       <h1><%= @data[:caption] %></h1>

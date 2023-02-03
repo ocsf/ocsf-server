@@ -33,6 +33,9 @@ defmodule Schema.Application do
       {Phoenix.PubSub, [name: Schema.PubSub, adapter: Phoenix.PubSub.PG2]}
     ]
 
+    # initialize the example links
+    Schema.Examples.init_cache()
+    
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: Schema.Supervisor]

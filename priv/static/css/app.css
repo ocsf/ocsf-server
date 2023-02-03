@@ -202,7 +202,7 @@ a {
   color: #42638eca;
 }
 
-a:hover, a:focus {
+a:hover, a:focus, a:active {
   color: #1c73e3;
   text-decoration: none;
 }
@@ -284,11 +284,6 @@ tr.thead-color {
 
 .name a {
   color: lightgrey !important;
-}
-
-.name a:hover, a:focus {
-  color: white !important;
-  text-decoration: none;
 }
 
 .capitalize {

@@ -136,8 +136,10 @@ defmodule SchemaWeb.PageController do
           send_resp(conn, 404, "Not Found: #{id}")
 
         data ->
-          sorted = sort_attributes(data)
-
+          uid = data[:uid]
+          examples = Schema.Examples.find(uid)
+          sorted = sort_attributes(data) |> Map.put(:examples, examples)
+          
           render(conn, "class.html",
             extensions: Schema.extensions(),
             profiles: Schema.profiles(),
