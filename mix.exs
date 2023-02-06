@@ -51,10 +51,8 @@ defmodule Schema.MixProject do
   defp deps do
     [
       {:phoenix, "~> 1.6"},
-      {:phoenix_pubsub, "~> 2.0"},
-      {:phoenix_html, "~> 2.14"},
+      {:phoenix_html, "~> 3.0"},
       {:phoenix_live_reload, "~> 1.4", only: :dev},
-      {:gettext, "~> 0.21"},
       {:jason, "~> 1.4"},
       {:plug_cowboy, "~> 2.6"},
       {:number, "~> 1.0"},

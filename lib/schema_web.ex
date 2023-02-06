@@ -31,7 +31,6 @@ defmodule SchemaWeb do
       use Phoenix.Controller, namespace: SchemaWeb
 
       import Plug.Conn
-      import SchemaWeb.Gettext
       alias SchemaWeb.Router.Helpers, as: Routes
     end
   end
@@ -49,7 +48,6 @@ defmodule SchemaWeb do
       use Phoenix.HTML
 
       import SchemaWeb.ErrorHelpers
-      import SchemaWeb.Gettext
       alias SchemaWeb.Router.Helpers, as: Routes
     end
   end
@@ -65,7 +63,6 @@ defmodule SchemaWeb do
   def channel do
     quote do
       use Phoenix.Channel
-      import SchemaWeb.Gettext
     end
   end
 

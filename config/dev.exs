@@ -17,7 +17,6 @@ config :schema_server, SchemaWeb.Endpoint,
   live_reload: [
     patterns: [
       ~r{priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$},
-      ~r{priv/gettext/.*(po)$},
       ~r{lib/schema_web/views/.*(ex)$},
       ~r{lib/schema_web/templates/.*(eex|md)$}
     ]
