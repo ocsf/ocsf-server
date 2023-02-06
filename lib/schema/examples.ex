@@ -65,7 +65,7 @@ defmodule Schema.Examples do
     end
   end
 
-  def fine_uniq_verbs(filename) do
+  def find_uniq_verbs(filename) do
     File.stream!(filename)
     |> Stream.map(fn name ->
       String.trim_trailing(name) |> String.split(~r/(?=[A-Z])/) |> Enum.at(1)

@@ -20,7 +20,7 @@ defmodule Schema.Graph do
     %{
       nodes: build_nodes(class),
       edges: build_edges(class),
-      class: Map.delete(class, :attributes) |> Map.delete(:objects)
+      class: Map.delete(class, :attributes) |> Map.delete(:objects) |> Map.delete(:_links)
     }
   end
 
@@ -35,14 +35,20 @@ defmodule Schema.Graph do
   end
 
   defp build_nodes(nodes, class) do
+    name = class.name
+
     Map.get(class, :objects)
     |> Enum.reduce(nodes, fn {_name, obj}, acc ->
-      node = %{
-        id: obj.name,
-        label: obj.caption
-      }
+      if name != obj.name do
+        node = %{
+          id: obj.name,
+          label: obj.caption
+        }
 
-      [node | acc]
+        [node | acc]
+      else
+        acc
+      end
     end)
   end
 

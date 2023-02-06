@@ -20,8 +20,8 @@ defmodule SchemaWeb.PageController do
     render(conn, "guidelines.html", extensions: Schema.extensions(), profiles: Schema.profiles())
   end
 
-  @spec graph(Plug.Conn.t(), any) :: Plug.Conn.t()
-  def graph(conn, %{"id" => id} = params) do
+  @spec class_graph(Plug.Conn.t(), any) :: Plug.Conn.t()
+  def class_graph(conn, %{"id" => id} = params) do
     extension = params["extension"]
 
     try do
@@ -32,7 +32,30 @@ defmodule SchemaWeb.PageController do
         class ->
           data = Schema.Graph.build(class)
           
-          render(conn, "graph.html",
+          render(conn, "class_graph.html",
+            extensions: Schema.extensions(),
+            profiles: Schema.profiles(),
+            data: data
+          )
+      end
+    rescue
+      e -> send_resp(conn, 400, "Bad Request: #{inspect(e)}")
+    end
+  end
+
+  @spec object_graph(Plug.Conn.t(), any) :: Plug.Conn.t()
+  def object_graph(conn, %{"id" => id} = params) do
+    extension = params["extension"]
+
+    try do
+      case Schema.object_ex(extension, id) do
+        nil ->
+          send_resp(conn, 404, "Not Found: #{id}")
+
+        obj ->
+          data = Schema.Graph.build(obj)
+          
+          render(conn, "object_graph.html",
             extensions: Schema.extensions(),
             profiles: Schema.profiles(),
             data: data
