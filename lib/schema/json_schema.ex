@@ -133,8 +133,6 @@ defmodule Schema.JsonSchema do
     Map.put(schema, "$defs", defs)
   end
 
-  defp object_self_ref(), do: "#"
-
   defp map_reduce(type_name, attributes) do
     {properties, required} =
       Enum.map_reduce(attributes, [], fn {key, attribute}, acc ->
@@ -207,14 +205,9 @@ defmodule Schema.JsonSchema do
 
   defp encode_type(type), do: type
 
-  defp encode_object(schema, name, attr) do
-    case attr[:object_type] do
-      ^name ->
-        Map.put(schema, "$ref", object_self_ref())
-
-      type ->
-        Map.put(schema, "$ref", make_object_ref(type))
-    end
+  defp encode_object(schema, _name, attr) do
+    type = attr[:object_type]
+    Map.put(schema, "$ref", make_object_ref(type))
   end
 
   defp encode_integer(schema, attr) do
