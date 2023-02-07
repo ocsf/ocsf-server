@@ -34,7 +34,12 @@ limitations under the License.
       </div>
     <% else %>
       <%# the base event class %>
-      <h1><%= class[:caption] %></h1>
+      <h1>
+        <%= class[:caption] %>
+        <span class="text-secondary">[<a href="<%= class_path(@conn, class)  %>">99</a>]
+          Class
+        </span>
+      </h1>
       <div class="text-secondary">
         <%= raw class[:description] %>
       </div>
