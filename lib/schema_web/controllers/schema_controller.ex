@@ -696,12 +696,8 @@ defmodule SchemaWeb.SchemaController do
   def json_object(conn, %{"id" => id} = params) do
     options = Map.get(params, "package_name") |> parse_java_package()
     
-    profiles = parse_options(profiles(params))
-    extension = extension(params)
-    extensions = parse_options(extensions(params))
-    
     try do
-      case Schema.object_ex(extensions, extension, id, profiles) do
+      case object_ex(id, params) do
         nil ->
           send_json_resp(conn, 404, %{error: "Object #{id} not found"})
 
@@ -714,6 +710,14 @@ defmodule SchemaWeb.SchemaController do
         Logger.error("Unable to get object: #{id}. Error: #{inspect(e)}")
         send_json_resp(conn, 500, %{error: "Error: #{e[:message]}"})
     end
+  end
+
+  def object_ex(id, params) do
+    profiles = parse_options(profiles(params))
+    extension = extension(params)
+    extensions = parse_options(extensions(params))
+
+    Schema.object_ex(extensions, extension, id, profiles)
   end
 
   # ---------------------------------

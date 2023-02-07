@@ -19,7 +19,7 @@ defmodule Schema.Graph do
   def build(class) do
     %{
       nodes: build_nodes(class),
-      edges: build_edges(class),
+      edges: build_edges(class) |> Enum.uniq(),
       class: Map.delete(class, :attributes) |> Map.delete(:objects) |> Map.delete(:_links)
     }
   end
@@ -28,7 +28,7 @@ defmodule Schema.Graph do
     node =
       Map.new()
       |> Map.put(:color, "#F5F5C8")
-      |> Map.put(:id, class.name)
+      |> Map.put(:id, make_id(class.name, class[:extension]))
       |> Map.put(:label, class.caption)
 
     build_nodes([node], class)
@@ -39,9 +39,10 @@ defmodule Schema.Graph do
 
     Map.get(class, :objects)
     |> Enum.reduce(nodes, fn {_name, obj}, acc ->
+      # avoid recursive calls
       if name != obj.name do
         node = %{
-          id: obj.name,
+          id: make_id(obj.name, obj[:extension]),
           label: obj.caption
         }
 
@@ -52,6 +53,15 @@ defmodule Schema.Graph do
     end)
   end
 
+  defp make_id(name, nil) do
+    name
+  end
+  
+  defp make_id(name, ext) do
+    # name
+    Path.join(ext, name)
+  end
+  
   defp build_edges(class) do
     objects = Map.new(class.objects)
     build_edges([], class, objects)
@@ -63,13 +73,15 @@ defmodule Schema.Graph do
       case obj.type do
         "object_t" ->
           edge = %{
-            from: class.name,
+            from: make_id(class.name, class[:extension]),
             to: obj.object_type,
             label: Atom.to_string(name)
           }
+          |> add_profile(obj[:profile])
 
           acc = [edge | acc]
 
+          # avoid recursive links
           if class.name != obj.object_type do
             o = objects[String.to_atom(obj.object_type)]
             build_edges(acc, o, objects)
@@ -81,5 +93,12 @@ defmodule Schema.Graph do
           acc
       end
     end)
+  end
+
+  defp add_profile(edge, nil) do
+    edge
+  end
+  defp add_profile(edge, profile) do
+    Map.put(edge, :profile, profile)
   end
 end

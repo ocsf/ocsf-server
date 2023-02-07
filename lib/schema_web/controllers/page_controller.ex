@@ -22,10 +22,8 @@ defmodule SchemaWeb.PageController do
 
   @spec class_graph(Plug.Conn.t(), any) :: Plug.Conn.t()
   def class_graph(conn, %{"id" => id} = params) do
-    extension = params["extension"]
-
     try do
-      case Schema.class_ex(extension, id) do
+      case SchemaWeb.SchemaController.class_ex(id, params) do
         nil ->
           send_resp(conn, 404, "Not Found: #{id}")
 
@@ -45,10 +43,8 @@ defmodule SchemaWeb.PageController do
 
   @spec object_graph(Plug.Conn.t(), any) :: Plug.Conn.t()
   def object_graph(conn, %{"id" => id} = params) do
-    extension = params["extension"]
-
     try do
-      case Schema.object_ex(extension, id) do
+      case SchemaWeb.SchemaController.object_ex(id, params) do
         nil ->
           send_resp(conn, 404, "Not Found: #{id}")
 

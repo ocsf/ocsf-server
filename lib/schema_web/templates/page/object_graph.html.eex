@@ -34,9 +34,6 @@ limitations under the License.
     <div class="text-secondary">
       <%= raw class[:description] %>
     </div>
-    <div class="mt-1">
-      <%= raw class_profiles(class, @profiles) %>
-    </div>
   </div>
   <div class="col-md-1"></div>
   <div class="col-md-auto fixed-right">
@@ -77,9 +74,11 @@ limitations under the License.
 <div id="mynetwork"></div>
 <script type="text/javascript" src='<%= Routes.static_path(@conn, "/js/vis-network.min.js") %>'></script>
 <script type="text/javascript">
-   var container = document.getElementById("mynetwork");
-   var data = <%= raw Jason.encode!(@data) %>;
-   var options = {
+  init_class_profiles();
+  
+   let container = document.getElementById("mynetwork");
+   let data = <%= raw Jason.encode!(@data) %>;
+   let options = {
       edges:{
        arrows: 'to',
        font: {face: 'mono'}
