@@ -178,9 +178,8 @@ defmodule Schema.JsonSchema do
     new_schema(attr)
     |> Map.put("type", encode_type(type))
   end
-  
-  defp new_schema(attr), do: 
-    %{"title" => attr[:caption]}
+
+  defp new_schema(attr), do: %{"title" => attr[:caption]}
 
   defp encode_type("datetime_t"), do: "string"
   defp encode_type("email_t"), do: "string"
@@ -211,7 +210,9 @@ defmodule Schema.JsonSchema do
   end
 
   defp encode_integer(schema, attr) do
-    encode_enum(schema, attr, "integer", fn name -> Atom.to_string(name) |> String.to_integer() end)
+    encode_enum(schema, attr, "integer", fn name ->
+      Atom.to_string(name) |> String.to_integer()
+    end)
   end
 
   defp encode_string(schema, attr) do
@@ -254,12 +255,9 @@ defmodule Schema.JsonSchema do
   end
 
   defp encode_array(schema, true) do
-    type = items_type(schema)
+    {type, schema} = items_type(schema)
 
-    schema
-    |> Map.put("type", "array")
-    |> Map.put("items", type)
-    |> Map.delete("$ref")
+    Map.put(schema, "type", "array") |> Map.put("items", type)
   end
 
   defp encode_array(schema, _is_array) do
@@ -269,10 +267,17 @@ defmodule Schema.JsonSchema do
   defp items_type(schema) do
     case Map.get(schema, "type") do
       nil ->
-        %{"$ref" => Map.get(schema, "$ref")}
+        {ref, updated} = Map.pop(schema, "$ref")
+        {%{"$ref" => ref}, updated}
 
       type ->
-        %{"type" => type}
+        case Map.pop(schema, "enum") do
+          {nil, updated} ->
+            {%{"type" => type}, updated}
+
+          {enum, updated} ->
+            {%{"type" => type, "enum" => enum}, updated}
+        end
     end
   end
 end
