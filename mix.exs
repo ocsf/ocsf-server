@@ -10,7 +10,7 @@
 defmodule Schema.MixProject do
   use Mix.Project
 
-  @version "2.38.1"
+  @version "2.40.0"
   
   def project do
     build = System.get_env("GITHUB_RUN_NUMBER") || "SNAPSHOT"
@@ -19,7 +19,6 @@ defmodule Schema.MixProject do
       releases: [
         schema_server: [
           steps: [:assemble, :tar, &write_version/1],
-          overlays: ["modules"],
           include_executables_for: [:unix]
         ]
       ],

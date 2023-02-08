@@ -34,7 +34,6 @@ RUN openssl req -new -newkey rsa:4096 -days 365 -nodes -sha256 -x509 -subj "/C=U
 COPY config/releases.exs  config/runtime.exs
 
 COPY rel rel
-COPY modules modules
 RUN mix release
 
 # start a new build stage so that the final image will only contain
