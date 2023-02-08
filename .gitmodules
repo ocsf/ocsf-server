@@ -1,3 +1,0 @@
-[submodule "modules/schema"]
-	path = modules/schema
-	url = https://github.com/ocsf/ocsf-schema.git
