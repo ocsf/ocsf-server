@@ -1,36 +1,40 @@
 # Open Cybersecurity Schema Framework Server
 
-This is the Open Cybersecurity Schema Framework (OCSF) server source code repository.
+This repository contains the Open Cybersecurity Schema Framework (OCSF) Schema Server source code.
+The schema server is an HTTP server that provides a convenient way to browse and use the OCSF schema.
 
-## Obtaining the source code
+You can access the OCSF schema server, which is running the latest released schema, at [schema.ocsf.io](https://schema.ocsf.io).
 
-Clone the GitHub OCFS WEB Server repository. Use `--recurse-submodules` to the `git clone` command, which will automatically initialize and update the schema submodule in the repository:
+The schema server can be also used locally. To do that clone the `ocsf-server` and `ocsf-schema` repositories and follow the instruction below to build and run the schema server.
 
-```bash
-git clone --recurse-submodules https://github.com/ocsf/ocsf-server.git
+## Clone the OCFS schema (`ocsf-schema`) repository
+```shell
+git clone https://github.com/ocsf/ocsf-schema.git
 ```
 
-## Build and run a schema server docker image
+## Clone the OCFS schema server (`ocsf-server`) repository
+```shell
+git clone https://github.com/ocsf/ocsf-server.git
+```
 
-```bash
+## Build a server docker image
+```shell
 cd ocsf-server
-docker build -t ocsf-server:0.0.0 .
-docker run -it --rm -p 8080:8080 ocsf-server:0.0.0
+docker build -t ocsf-server .
 ```
 
-Run the docker schema server with local schema extensions:
-```bash
-docker run -it --rm --volume /opt/sandbox/splunk:/app/schema/splunk -e SCHEMA_EXTENSION="splunk" -p 8080:8080 -p 8443:8443 ocsf-server:0.0.0
+## Run the server docker image 
+Change the `path/to` to your local OCSF schema directory (use an absolute path). Note, the `-p 8443:8443` parameter enables HTTPS with a self-signed SSL certificate.
+
+```shell
+docker run -it --rm --volume /path/to/ocsf-schema:/app/schema -p 8080:8080 -p 8443:8443 ocsf-server
 ```
 
-Run the docker schema server with added local schema extensions:
-```bash
-docker run -it --rm --volume /opt/sandbox/splunk:/app/schema/extensions/splunk -e SCHEMA_EXTENSION="extensions" -p 8080:8080 -p 8443:8443 ocsf-server:0.0.0
-```
+To access the schema server, open [`localhost:8080`](http://localhost:8080) or [`localhost:8443`](https://localhost:8443) in your Web browser.
 
-Run the docker schema server using a local schema:
-```bash
-docker run -it --rm --volume /opt/sandbox/ocsf-schema:/app/schema -p 8080:8080 -p 8443:8443 ocsf-server:0.0.0
+## Run the server docker image with a local schema extension:
+```shell
+docker run -it --rm --volume /path/to/ocsf-schema:/app/schema --volume /path/to/ocsf-schema:/app/extension -e SCHEMA_EXTENSION="/app/extension" -p 8080:8080 -p 8443:8443 ocsf-server
 ```
 
 ## Development with docker-compose
@@ -90,28 +94,28 @@ Optional environment variables can be placed in a `.env` file in the root of the
 An `.env.sample` is provided, and the following options are available:
 
 ```
-SCHEMA_PATH=./modules/schema    # Set the local schema path, eg. ../ocsf-schema, defaults to ./modules/schema
-OCSF_SERVER_PORT=8080           # Set the port for Docker to listen on for forwarding traffic to the Schema Server, defaults to 8080
+SCHEMA_PATH=../ocsf-schema      # Set the local schema path, eg. ../ocsf-schema, defaults to ../ocsf-schema
+OCSF_SERVER_PORT=8080           # Set the port for Docker to listen on for forwarding traffic to the Schema server, defaults to 8080
 ELIXIR_VERSION=otp-25-alpine    # Set the Elixir container version for development, defaults to otp-25-alpine
 ```
 
 ## Local Usage
 
-This section describes how to build and run the OCSF Schema Schema server.
+This section describes how to build and run the OCSF Schema server.
 
 ### Required build tools
 
-The Schema Server is written in [Elixir](https://elixir-lang.org) using the [Phoenix](https://phoenixframework.org/) web framework.
+The Schema server is written in [Elixir](https://elixir-lang.org) using the [Phoenix](https://phoenixframework.org/) Web framework.
 
 The Elixir site maintains a great installation page, see https://elixir-lang.org/install.html for help.
 
 ### Building the schema server
 
-Elixir uses the [`mix`](https://hexdocs.pm/mix/Mix.html) build tool, which is included in the Elixir installation package..
+Elixir uses the [`mix`](https://hexdocs.pm/mix/Mix.html) build tool, which is included in the Elixir installation package.
 
 #### Install the build tools
 
-```bash
+```shell
 mix local.hex --force && mix local.rebar --force
 ```
 
@@ -119,31 +123,25 @@ mix local.hex --force && mix local.rebar --force
 
 Change to the schema directory, fetch and compile the dependencies:
 
-```bash
+```shell
 cd ocsf-server
 mix do deps.get, deps.compile
 ```
 
 #### Compile the source code
 
-```bash
+```shell
 mix compile
 ```
 
 ### Testing local schema changes
 
-You can use Elixir `mix test` to test the changes made to the schema. For example to ensure the JSON files are correct or the attributes are defined.
+You can use `mix test` command to test the changes made to the schema. For example to ensure the JSON files are correct or the attributes are defined.
 
 Assuming the schema repo has been cloned in `../ocsf-schema` directory, then you can test the schema with this command:
 
 ```shell
 SCHEMA_DIR=../ocsf-schema SCHEMA_EXTENSION=extensions mix test
-```
-
-Or, test the schema using the `module/schema` folder:
-
-```shell
-SCHEMA_DIR=modules/schema SCHEMA_EXTENSION=extensions mix test
 ```
 
 If everything is correct, then you should not see any errors or warnings.
@@ -152,8 +150,8 @@ If everything is correct, then you should not see any errors or warnings.
 
 You can use the Elixir's interactive shell, [IEx](https://hexdocs.pm/iex/IEx.html), to start the schema server use:
 
-```bash
-iex -S mix phx.server
+```shell
+SCHEMA_DIR=../ocsf-schema SCHEMA_EXTENSION=extensions iex -S mix phx.server
 ```
 
 Now you can access the Schema server at [`localhost:8080`](http://localhost:8080) or [`localhost:8443`](https://localhost:8443).
@@ -166,60 +164,10 @@ The schema server uses a number of environment variables.
 | ---------------- | ----------- |
 | HTTP_PORT        | The server HTTP  port number, default: `8080`|
 | HTTPS_PORT       | The server HTTPS port number, default: `8443`|
-| SCHEMA_DIR       | The directory containing the schema, default: `modules/schema` |
-| SCHEMA_EXTENSION | The directory containing the schema extensions, relative to the SCHEMA_DIR |
-| RELEASE_NODE     | The Erlang node name. Set ti if you want to run more than one server on the same computer |
+| SCHEMA_DIR       | The directory containing the schema, default: `../ocsf-schema` |
+| SCHEMA_EXTENSION | The directory containing the schema extensions, relative to SCHEMA_DIR or absolute path |
+| RELEASE_NODE     | The Erlang node name. Set it if you want to run more than one server on the same computer |
 
-```bash
-SCHEMA_DIR=modules/schema SCHEMA_EXTENSION=extensions iex -S mix phx.server
+```shell
+SCHEMA_DIR=../ocsf-schema SCHEMA_EXTENSION=extensions iex -S mix phx.server
 ```
-
-## Releasing the schema server
-
-This section describes how to make a release of the event schema server.
-
-### Create a release
-
-The schema server project uses the [`Elixir Releases`](https://hexdocs.pm/mix/Mix.Tasks.Release.html) to produce an Erlang/OTP release package. To make a production release package, run this command:
-
-```bash
-MIX_ENV=prod mix release --path dist
-```
-
-This command creates the release in the `./dist` directory.
-
-You can use one of the following options to start the Schema server (see the above environment variables):
-
-```bash
-# starts the schema server in the foreground
-> bin/schema_server start
-
-# starts the schema server with IEx attached, like 'iex -S mix phx.server'
-> bin/schema_server start_iex
-
-# starts the schema server in the background, must be stopped with the 'bin/schema_server stop' command
-> bin/schema_server daemon
-```
-
-For example to start the schema server, with all extensions, from the `dist` folder use:
-
-```bash
-cd dist
-SCHEMA_DIR=schema SCHEMA_EXTENSION=extensions bin/schema_server start
-```
-
-For a complete listing of commands use:
-
-```bash
-bin/schema_server
-```
-
-### Deploy the release
-
-A release is built on a **host**, a machine which contains Erlang, Elixir, and any other dependencies needed to compile the schema server. A release is then deployed to a **target**, potentially the same machine as the host, but usually a separate target host.
-
-To deploy the schema server, copy the release archive file (`dist/schema_server-<version>.tar.gz`) from the release folder to the target. Extract the release files to disk from the archive. Note, the following must be the same between the **host** and the **target**:
-
-- Target architecture (for example, x86_64 or ARM)
-- Target vendor + operating system (for example, Windows, Linux, or Darwin/macOS)
-- Target ABI (for example, musl or gnu)
