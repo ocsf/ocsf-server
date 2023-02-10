@@ -975,6 +975,7 @@ defmodule SchemaWeb.SchemaController do
     conn
     |> put_resp_content_type("application/json")
     |> put_resp_header("access-control-allow-origin", "*")
+    |> put_resp_header("access-control-allow-headers", "*")
     |> send_resp(error, Jason.encode!(data))
   end
 
@@ -982,6 +983,7 @@ defmodule SchemaWeb.SchemaController do
     conn
     |> put_resp_content_type("application/json")
     |> put_resp_header("access-control-allow-origin", "*")
+    |> put_resp_header("access-control-allow-headers", "*")
     |> send_resp(200, Jason.encode!(data))
   end
 
