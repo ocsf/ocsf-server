@@ -67,11 +67,11 @@ defmodule SchemaWeb.PageView do
   defp format_class_examples(nil) do
     ""
   end
-  
+
   defp format_class_examples([]) do
     ""
   end
-  
+
   defp format_class_examples(examples) do
     [
       "<strong>Examples: </strong>",
