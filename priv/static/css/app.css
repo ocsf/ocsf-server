@@ -90,9 +90,8 @@ body {
 
   .ocsf-logo {
     background-color: #224F8B;
-    border-radius: 5px;
     margin-top: 0.6rem;
-    margin-bottom: 0.6rem;
+    margin-bottom: 0px;
   }
 
   .ocsf-logo img {
@@ -102,10 +101,33 @@ body {
   }
 
   .version {
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    text-align: center;
-    background-color: rgb(245, 245, 200);
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
+    margin-top: 1rem;
+  }
+  
+  .version form:before {
+    content: "\25BC";
+    font-size: .8rem;
+    margin-left: 2rem;
+  }
+
+  .select-version {
+    cursor: pointer;
+    border: none;
+    -moz-appearance: none;
+    -webkit-appearance: none;
+    appearance: none;
+    margin-left: -10px;
+    padding-left: 8px;
+    background-color: transparent;
+  }
+
+  .select-version option {
+    color: initial
+  }
+
+  .select-version:focus {
+    outline: none
   }
 
   .profiles-divider {

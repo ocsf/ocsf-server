@@ -22,8 +22,15 @@ defmodule Schema.Application do
         ext -> String.split(ext, ",")
       end
 
+    schemas_dir =
+      case Application.get_env(:schema_server, __MODULE__) do
+        nil -> nil
+        env -> Keyword.get(env, :schema_home)
+      end
+
     # List all child processes to be supervised
     children = [
+      {Schemas, schemas_dir},
       {Schema.JsonReader, extension},
       Schema.Repo,
       Schema.Generator,
@@ -35,7 +42,7 @@ defmodule Schema.Application do
 
     # initialize the example links
     Schema.Examples.init_cache()
-    
+
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: Schema.Supervisor]

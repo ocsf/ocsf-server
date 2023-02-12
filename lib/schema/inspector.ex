@@ -51,7 +51,7 @@ defmodule Schema.Inspector do
   defp validate_class(nil, _data), do: %{:error => "Missing class_uid"}
 
   defp validate_class(class_uid, data) do
-    profiles = get_in(data, ["metadata", "profiles"])
+    profiles = get_in(data, ["metadata", "profiles"]) || []
 
     Logger.info("validate class: #{class_uid} using profiles: #{inspect(profiles)}")
 
@@ -60,7 +60,7 @@ defmodule Schema.Inspector do
 
   defp validate_type(nil, data, _profiles) do
     class_uid = data[@class_uid]
-    %{:error => "Unknown class_uid: #{class_uid}", :value => class_uid}
+    %{:error => "Invalid class_uid value", :value => class_uid}
   end
 
   defp validate_type(type, data, profiles) when is_list(profiles) do
@@ -273,7 +273,7 @@ defmodule Schema.Inspector do
 
   defp invalid_data_type(_attribute, value, type) do
     %{
-      :error => "Invalid data: expected #{type} type",
+      :error => "Invalid data type: expected #{type} type",
       :value => value
     }
   end

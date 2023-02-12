@@ -122,8 +122,20 @@ limitations under the License.
       <img src='<%= Routes.static_path(@conn, "/images/ocsf-logo.png") %>' alt="OCSF Logo"/>
     </a>
     <h6 class="container-fluid version">
-      Schema Version <%= Schema.version() %>
+    <form autocomplete="off">
+      <select class="select-version" id="select_version" onchange="selectVersionFun()">
+        <%= raw select_versions(@conn) %>
+      </select>
+      </form>
     </h6>
+
+    <script>
+    function selectVersionFun() {
+      var x = document.getElementById("select_version").value;
+      window.open(x, "_self");
+    }
+    </script>
+
     <a class="navbar-brand" href>
       Extensions
       <hr class="divider"/>

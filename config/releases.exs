@@ -38,3 +38,5 @@ config :schema_server, Schema.Examples,
 
 config :schema_server, Schema.Examples,
   home: System.get_env("EXAMPLES_PATH") || "../examples"
+
+config :schema_server, Schema.Application, schema_home: System.get_env("SCHEMA_HOME")
