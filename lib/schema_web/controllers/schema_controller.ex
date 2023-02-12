@@ -645,7 +645,7 @@ defmodule SchemaWeb.SchemaController do
   @spec json_class(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def json_class(conn, %{"id" => id} = params) do
     options = Map.get(params, "package_name") |> parse_java_package()
-    
+
     try do
       case class_ex(id, params) do
         nil ->
@@ -695,7 +695,7 @@ defmodule SchemaWeb.SchemaController do
   @spec json_object(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def json_object(conn, %{"id" => id} = params) do
     options = Map.get(params, "package_name") |> parse_java_package()
-    
+
     try do
       case object_ex(id, params) do
         nil ->
@@ -975,7 +975,8 @@ defmodule SchemaWeb.SchemaController do
     conn
     |> put_resp_content_type("application/json")
     |> put_resp_header("access-control-allow-origin", "*")
-    |> put_resp_header("access-control-allow-headers", "*")
+    |> put_resp_header("access-control-allow-headers", "content-type")
+    |> put_resp_header("access-control-allow-methods", "POST, GET, OPTIONS")
     |> send_resp(error, Jason.encode!(data))
   end
 
@@ -983,7 +984,8 @@ defmodule SchemaWeb.SchemaController do
     conn
     |> put_resp_content_type("application/json")
     |> put_resp_header("access-control-allow-origin", "*")
-    |> put_resp_header("access-control-allow-headers", "*")
+    |> put_resp_header("access-control-allow-headers", "content-type")
+    |> put_resp_header("access-control-allow-methods", "POST, GET, OPTIONS")
     |> send_resp(200, Jason.encode!(data))
   end
 
@@ -1068,7 +1070,7 @@ defmodule SchemaWeb.SchemaController do
     |> Enum.map(fn s -> String.trim(s) end)
     |> MapSet.new()
   end
-  
+
   defp parse_java_package(nil), do: []
   defp parse_java_package(""), do: []
   defp parse_java_package(name), do: [package_name: name]
