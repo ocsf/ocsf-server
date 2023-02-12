@@ -12,7 +12,7 @@ defmodule SchemaWeb.LayoutView do
     |> Enum.join("\n")
   end
 
-  def select_versions(conn) do
+  def select_versions(_conn) do
     current = Schema.version()
 
     case Schemas.versions() do
@@ -29,7 +29,7 @@ defmodule SchemaWeb.LayoutView do
         Enum.map(versions, fn {version, _path} ->
           [
             "<option value='",
-            Routes.static_path(conn, "/#{version}"),
+            "/#{version}",
             if version == current do
               "' selected=true disabled=true>"
             else
