@@ -27,6 +27,11 @@ defmodule Schemas do
     Agent.start_link(fn -> ls(path) end, name: __MODULE__)
   end
 
+  @doc """
+  Returns a list of available schemas.
+
+  Returns {:ok, list(map())}.
+  """
   def versions do
     Agent.get(__MODULE__, & &1)
   end

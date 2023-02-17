@@ -107,8 +107,6 @@ body {
   
   .version form:before {
     content: "\25BC";
-    font-size: .8rem;
-    margin-left: 2rem;
   }
 
   .select-version {
