@@ -128,7 +128,6 @@ defmodule Schema.JsonSchema do
         key = Atom.to_string(name) |> String.replace("/", "_")
         {key, encode(object)}
       end)
-      |> Map.put("json_t", json_type())
 
     Map.put(schema, "$defs", defs)
   end
@@ -154,29 +153,24 @@ defmodule Schema.JsonSchema do
     {Map.new(properties), required}
   end
 
-  defp encode_attribute(name, "object_t", attr) do
-    new_schema(attr)
-    |> encode_object(name, attr)
-  end
-
   defp encode_attribute(_name, "integer_t", attr) do
-    new_schema(attr)
-    |> encode_integer(attr)
+    new_schema(attr) |> encode_integer(attr)
   end
 
   defp encode_attribute(_name, "string_t", attr) do
-    new_schema(attr)
-    |> encode_string(attr)
+    new_schema(attr) |> encode_string(attr)
+  end
+
+  defp encode_attribute(name, "object_t", attr) do
+    new_schema(attr) |> encode_object(name, attr)
   end
 
   defp encode_attribute(_name, "json_t", attr) do
     new_schema(attr)
-    |> Map.put("$ref", make_object_ref("json_t"))
   end
 
   defp encode_attribute(_name, type, attr) do
-    new_schema(attr)
-    |> Map.put("type", encode_type(type))
+    new_schema(attr) |> Map.put("type", encode_type(type))
   end
 
   defp new_schema(attr), do: %{"title" => attr[:caption]}
@@ -240,18 +234,6 @@ defmodule Schema.JsonSchema do
     Enum.map(enum, fn {name, _} ->
       encoder.(name)
     end)
-  end
-
-  defp json_type() do
-    %{"title" => "JSON"}
-    |> Map.put("oneOf", [
-      %{"type" => "string"},
-      %{"type" => "integer"},
-      %{"type" => "number"},
-      %{"type" => "boolean"},
-      %{"$ref" => make_object_ref("object")},
-      %{"type" => "array", "items" => %{"$ref" => "#"}}
-    ])
   end
 
   defp encode_array(schema, true) do
