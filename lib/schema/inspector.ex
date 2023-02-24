@@ -55,15 +55,21 @@ defmodule Schema.Inspector do
 
     Logger.info("validate class: #{class_uid} using profiles: #{inspect(profiles)}")
 
-    validate_type(Schema.find_class(class_uid), data, profiles)
+    case Schema.find_class(class_uid) do
+      nil ->
+        class_uid = data[@class_uid]
+        %{:error => "Invalid class_uid value", :value => class_uid}
+
+      class ->
+        if is_list(profiles) do
+          validate_type(class, data, profiles)
+        else
+          %{:error => "Invalid profiles value", :value => profiles}
+        end
+    end
   end
 
-  defp validate_type(nil, data, _profiles) do
-    class_uid = data[@class_uid]
-    %{:error => "Invalid class_uid value", :value => class_uid}
-  end
-
-  defp validate_type(type, data, profiles) when is_list(profiles) do
+  defp validate_type(type, data, profiles) when is_map(data) do
     attributes = type[:attributes] |> Utils.apply_profiles(profiles)
 
     Enum.reduce(attributes, %{}, fn {name, attribute}, acc ->
@@ -73,8 +79,8 @@ defmodule Schema.Inspector do
     |> undefined_attributes(attributes, data)
   end
 
-  defp validate_type(_type, _data, profiles) do
-    %{:error => "Invalid profiles value", :value => profiles}
+  defp validate_type(type, data, _profiles) do
+    invalid_data_type(type, data, type.name)
   end
 
   defp undefined_attributes(acc, attributes, data) do
@@ -273,7 +279,7 @@ defmodule Schema.Inspector do
 
   defp invalid_data_type(_attribute, value, type) do
     %{
-      :error => "Invalid data type: expected #{type} type",
+      :error => "Invalid data type: expected '#{type}' type",
       :value => value
     }
   end

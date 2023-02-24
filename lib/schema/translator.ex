@@ -52,12 +52,17 @@ defmodule Schema.Translator do
           verbose = Keyword.get(options, :verbose)
 
           if Map.has_key?(attribute, :enum) and (verbose == 1 or verbose == 2) do
-            sibling = sibling(key, attribute, attributes, verbose) |> to_text(options)
-
             Logger.debug("translated enum: #{name} = #{text}")
-            Logger.debug("translated name: #{sibling}")
 
-            Map.put_new(acc, name, value) |> Map.put_new(sibling, text)
+            case sibling(attribute[:sibling], attributes, options, verbose) do
+              nil ->
+                Map.put_new(acc, name, value)
+
+              sibling ->
+                Logger.debug("translated name: #{sibling}")
+
+                Map.put_new(acc, name, value) |> Map.put_new(sibling, text)
+            end
           else
             Map.put(acc, name, text)
           end
@@ -65,16 +70,18 @@ defmodule Schema.Translator do
     end)
   end
 
-  defp sibling(key, attribute, _attributes, 1) do
-    Schema.Enums.sibling(key, attribute) |> Atom.to_string()
+  defp sibling(nil, _attributes, _options, _verbose) do
+    nil
   end
 
-  defp sibling(key, attribute, attributes, _verbose) do
-    name = Schema.Enums.sibling(key, attribute)
+  defp sibling(name, _attributes, _options, 1) do
+    name
+  end
 
-    case attributes[name] do
-      nil -> Atom.to_string(name)
-      attribute -> attribute[:caption]
+  defp sibling(name, attributes, options, _verbose) do
+    case attributes[String.to_atom(name)] do
+      nil -> nil
+      attr -> attr[:caption] |> to_text(options)
     end
   end
 
@@ -91,12 +98,16 @@ defmodule Schema.Translator do
   end
 
   defp translate_attribute("object_t", name, attribute, value, options) when is_list(value) do
-    obj_type = Schema.object(attribute[:object_type])
-
     translated =
-      Enum.map(value, fn data ->
-        translate_event(obj_type, data, options)
-      end)
+      if attribute[:is_array] and is_map(List.first(value)) do
+        obj_type = Schema.object(attribute[:object_type])
+
+        Enum.map(value, fn data ->
+          translate_event(obj_type, data, options)
+        end)
+      else
+        value
+      end
 
     translate_attribute(name, attribute, translated, options)
   end

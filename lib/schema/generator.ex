@@ -252,7 +252,7 @@ defmodule Schema.Generator do
         Map.put(map, name, random(100))
 
       enum ->
-        generate_enum_data(name, Schema.Enums.sibling(name, field), enum, map)
+        generate_enum_data(name, field[:sibling], enum, map)
     end
   end
 
@@ -268,6 +268,11 @@ defmodule Schema.Generator do
 
   defp generate_field(name, field, map) do
     Map.put_new(map, name, generate_data(name, field[:type], field))
+  end
+
+  defp generate_enum_data(key, nil, enum, map) do
+    id = random_enum_int_value(enum)
+    Map.put(map, key, id)
   end
 
   defp generate_enum_data(key, name, enum, map) do
@@ -682,7 +687,7 @@ defmodule Schema.Generator do
     fingerprint =
       generate_enum_data(
         :algorithm_id,
-        Schema.Enums.sibling(:algorithm_id, algorithm_id),
+        algorithm_id[:sibling],
         algorithm_id[:enum],
         Map.new()
       )
