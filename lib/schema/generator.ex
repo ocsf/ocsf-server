@@ -119,12 +119,12 @@ defmodule Schema.Generator do
   defp add_profiles(data, profiles) do
     put_in(data, [:metadata, :profiles], profiles)
   end
-  
+
   defp remove_profiles(data) do
     {_, map} = pop_in(data, [:metadata, :profiles])
     map
   end
-  
+
   defp generate_sample_event(class) do
     data = generate_sample(class)
 
@@ -160,7 +160,7 @@ defmodule Schema.Generator do
     end)
     |> generate_sample_object()
   end
-  
+
   defp generate_sample_object(type) do
     Logger.debug("generate #{type[:name]} (#{type[:caption]})")
 
@@ -643,24 +643,25 @@ defmodule Schema.Generator do
 
   def tactics() do
     Agent.get(__MODULE__, fn %Generator{tactics: {_len, tactics}} ->
-      words = Map.keys(tactics)
-      Enum.map(1..(random(3) + 1), fn _ -> Enum.random(words) end)
+      Enum.map(1..(random(3) + 1), fn _ ->
+        {uid, name} = Enum.random(tactics)
+        %{:uid => uid, :name => name}
+      end)
     end)
   end
 
   def technique() do
     Agent.get(__MODULE__, fn %Generator{techniques: {_len, techniques}} ->
-      Enum.random(techniques)
+      {uid, name} = Enum.random(techniques)
+      %{:uid => uid, :name => name}
     end)
   end
 
   def attack() do
-    {uid, name} = technique()
-
     Map.new()
     |> Map.put(:tactics, tactics())
-    |> Map.put(:technique_uid, uid)
-    |> Map.put(:technique_name, name)
+    |> Map.put(:technique, technique())
+    |> Map.put(:version, "12.1")
   end
 
   def location() do
@@ -805,7 +806,7 @@ defmodule Schema.Generator do
   end
 
   defp read_json_file(filename) do
-    map = File.read!(filename) |> Jason.decode!(keys: :atoms)
+    map = File.read!(filename) |> Jason.decode!()
 
     {map_size(map), map}
   end
