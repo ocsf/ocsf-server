@@ -12,6 +12,14 @@ defmodule SchemaWeb.LayoutView do
     |> Enum.join("\n")
   end
 
+  def format_extension(nil) do
+    ""
+  end
+
+  def format_extension(extension) do
+    extension[:version] || "undefined"
+  end
+
   def select_versions(_conn) do
     current = Schema.version()
 
