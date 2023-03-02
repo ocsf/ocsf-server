@@ -12,12 +12,24 @@ defmodule SchemaWeb.LayoutView do
     |> Enum.join("\n")
   end
 
-  def format_extension(nil) do
-    ""
+  def format_extension(extension) do
+    caption = extension[:caption]
+
+    case extension[:version] do
+      nil ->
+        caption
+
+      ext_ver ->
+        [caption, "<br/>v", ext_ver]
+    end
   end
 
-  def format_extension(extension) do
-    extension[:version] || "undefined"
+  def format_ext_tooltop(extension) do
+    case extension[:uid] do
+      nil -> ""
+      uid when is_integer(uid) -> ["uid: ", Integer.to_string(uid)]
+      uid -> ["uid: ", inspect(uid)]
+    end
   end
 
   def select_versions(_conn) do

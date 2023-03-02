@@ -145,10 +145,10 @@ limitations under the License.
         <%= for {_key, map} <- @extensions do %>
         <% name = map[:name] %>
         <span class="d-inline-block" tabindex="0"
-           data-toggle="tooltip" data-delay='{"show": 1000}' title='<%= raw format_extension(map) %>' >
+           data-toggle="tooltip" data-delay='{"show": 1000}' title='<%= raw format_ext_tooltop(map) %>' >
           <li class="nav-item">
             <a style="display: inline-block;" class="nav-link">
-              <input type="checkbox" id="<%= name %>"> <%= map[:caption] %>
+              <input type="checkbox" id="<%= name %>"> <%= raw format_extension(map) %>
             </a>
           </li>
         </span>
