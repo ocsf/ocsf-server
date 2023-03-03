@@ -1,10 +1,6 @@
 defmodule SchemaWeb.LayoutView do
   use SchemaWeb, :view
 
-  def format_profile(nil) do
-    ""
-  end
-
   def format_profile(profile) do
     Enum.reduce(profile[:attributes], [], fn {name, _}, acc ->
       [Atom.to_string(name) | acc]
@@ -13,22 +9,14 @@ defmodule SchemaWeb.LayoutView do
   end
 
   def format_extension(extension) do
-    caption = extension[:caption]
+    caption = "#{extension[:caption]} [#{extension[:uid]}]"
 
     case extension[:version] do
       nil ->
         caption
 
       ext_ver ->
-        [caption, "<br/>v", ext_ver]
-    end
-  end
-
-  def format_ext_tooltop(extension) do
-    case extension[:uid] do
-      nil -> ""
-      uid when is_integer(uid) -> ["uid: ", Integer.to_string(uid)]
-      uid -> ["uid: ", inspect(uid)]
+        [caption, "</br>v", ext_ver]
     end
   end
 

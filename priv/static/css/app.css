@@ -342,3 +342,11 @@ span.hidden {
   height: 100vh;
 }
 
+label {
+  display: inline-block; 
+  vertical-align: top;
+}
+
+input[type=checkbox]:hover {
+  box-shadow:0px 0px 8px #1c73e3;
+}
