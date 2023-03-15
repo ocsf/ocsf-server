@@ -74,7 +74,12 @@ defmodule Schema.Inspector do
 
     Enum.reduce(attributes, %{}, fn {name, attribute}, acc ->
       value = data[Atom.to_string(name)]
-      validate_data(acc, name, attribute, value, profiles)
+
+      if attribute[:is_array] == true and value != nil and not is_list(value) do
+        Map.put(acc, name, invalid_data_type(attribute, value, "array of " <> attribute[:type]))
+      else
+        validate_data(acc, name, attribute, value, profiles)
+      end
     end)
     |> undefined_attributes(attributes, data)
   end
