@@ -561,6 +561,7 @@ defmodule Schema.Cache do
     end
   end
 
+  defp merge_profiles(:profiles, v1, nil), do: v1
   defp merge_profiles(:profiles, v1, v2), do: Enum.concat(v1, v2) |> Enum.uniq()
   defp merge_profiles(_profiles, _v1, v2), do: v2
 
