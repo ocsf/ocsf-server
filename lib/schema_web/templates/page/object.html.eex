@@ -18,7 +18,7 @@
 
 <div class="row">
   <div class="col-md move-up">
-    <h1>
+    <h3>
       <%= @data[:caption] %>
       <span class="text-secondary">[<a href="<%= object_graph_path(@conn, @data)  %>"><%= @data[:name] %></a>]</span>
 
@@ -32,7 +32,7 @@
         Observable Object
       </span>
       <% end %>
-    </h1>
+    </h3>
     
     <div class="text-secondary">
       <%= raw @data[:description] %>

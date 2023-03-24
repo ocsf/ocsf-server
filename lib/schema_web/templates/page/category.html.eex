@@ -12,12 +12,12 @@ limitations under the License.
 
 <div class="row">
   <div class="col-md move-up">
-    <h1><%= @data[:caption] %>
+    <h3><%= @data[:caption] %>
       <span class="text-secondary">
         [<%= @data[:uid] %>]<sup><%= @data[:extension] || "" %></sup>
         Category
       </span>
-    </h1>
+    </h3>
     <div class="text-dark"><%= raw @data[:description] %></div>
   </div>
   <div class="col-md-1"></div>
@@ -52,7 +52,7 @@ limitations under the License.
           <a href="<%= path %>"><%= raw format_name(name, class) %></a>
         </td>
         <% uid = class[:uid] %>
-        <%= if uid != nil and uid > 0 do %>
+        <%= if uid != nil do %>
           <td><a href="<%= path %>"><%= uid %></a></td>
         <% else %>
           <td></td>

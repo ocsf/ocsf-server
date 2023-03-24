@@ -137,7 +137,7 @@ defmodule Schema.Generator do
           if activity_id >= 0 do
             Types.type_uid(data[:class_uid], activity_id)
           else
-            99
+            @other
           end
 
         Map.put(data, :type_uid, uid)

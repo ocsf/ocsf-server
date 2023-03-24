@@ -298,15 +298,13 @@ defmodule Schema.Cache do
       |> Enum.into(%{}, fn class -> attribute_source(class) end)
       |> extend_type()
 
-    base = Map.get(classes, :base_event)
-
     classes =
       resolve_extends(classes)
       # remove intermediate classes
-      |> Stream.filter(fn {_key, class} -> Map.has_key?(class, :uid) end)
+      # |> Stream.filter(fn {_key, class} -> Map.has_key?(class, :uid) end)
       |> Enum.into(%{}, fn class -> enrich_class(class, categories) end)
 
-    {base, classes}
+    {Map.get(classes, :base_event), classes}
   end
 
   defp read_objects() do
@@ -352,17 +350,16 @@ defmodule Schema.Cache do
     class = Map.put(class, :category, Atom.to_string(key))
     class = Map.put(class, :category_name, category[:caption])
 
+    cat_uid = category[:uid] || 0
+    class_uid = class[:uid] || 0
+
     try do
       case class[:extension_id] do
         nil ->
-          Map.update(class, :uid, 0, fn uid ->
-            Types.class_uid(category[:uid], uid)
-          end)
+          Map.put(class, :uid, Types.class_uid(cat_uid, class_uid))
 
         ext ->
-          Map.update(class, :uid, 0, fn uid ->
-            Types.class_uid(Types.category_uid_ex(ext, category[:uid]), uid)
-          end)
+          Map.put(class, :uid, Types.class_uid(Types.category_uid_ex(ext, cat_uid), class_uid))
       end
     rescue
       ArithmeticError ->

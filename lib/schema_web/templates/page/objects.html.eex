@@ -11,7 +11,7 @@ limitations under the License.
 %>
 <div class="row">
   <div class="col-md move-up">
-    <h1>Objects</h1>
+    <h3>Objects</h3>
     <div class="text-secondary">
       The OCSF objects.
     </div>

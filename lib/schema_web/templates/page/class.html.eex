@@ -16,47 +16,30 @@ limitations under the License.
 
 <% category = @data[:category] %>
 <% extension = @data[:extension] %>
-<% class_name = @data[:name] %>
 
 <div class="row">
   <div class="col-md move-up">
-    <%= if class_name != "base_event" do %>
-      <% path = Routes.static_path(@conn, "/categories/" <> category) %>
-      <h1>
-        <%= @data[:caption] %>
-        <span class="text-secondary">[<a href="<%= class_graph_path(@conn, @data)  %>"><%= @data[:uid] %></a>]<sup><%= extension || "" %></sup>
-          Class
-        </span>
-      </h1>
+    <% path = Routes.static_path(@conn, "/categories/" <> category) %>
+    <h3>
+      <%= @data[:caption] %>
+      <span class="text-secondary">[<a href="<%= class_graph_path(@conn, @data)  %>"><%= @data[:uid] %></a>]<sup><%= extension || "" %></sup>
+        Class
+      </span>
+    </h3>
 
-      <h4 class="extensions">
-        <a href="<%= path %>"><%= @data[:category_name] %> Category</a>
-      </h4>
+    <h4 class="extensions">
+      <a href="<%= path %>"><%= @data[:category_name] %> Category</a>
+    </h4>
 
-      <div class="text-secondary">
-        <%= raw @data[:description] %>
-      </div>
-      <div class="mt-1">
-        <%= raw class_profiles(@data, @profiles) %>
-      </div>
-      <div class="mt-1">
-        <%= raw class_examples(@data) %>
-      </div>
-    <% else %>
-      <%# the base event class %>
-      <h1>
-        <%= @data[:caption] %>
-        <span class="text-secondary">[<a href="<%= class_graph_path(@conn, @data)  %>">99</a>]
-          Class
-        </span>
-      </h1>
-      <div class="text-secondary">
-        <%= raw @data[:description] %>
-      </div>
-      <div class="mt-1">
-        <%= raw class_profiles(@data, @profiles) %>
-      </div>
-    <% end %>
+    <div class="text-secondary">
+      <%= raw @data[:description] %>
+    </div>
+    <div class="mt-1">
+      <%= raw class_profiles(@data, @profiles) %>
+    </div>
+    <div class="mt-1">
+      <%= raw class_examples(@data) %>
+    </div>
   </div>
   <div class="col-md-1"></div>
   <div class="col-md-auto fixed-right">

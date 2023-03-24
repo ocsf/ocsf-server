@@ -15,7 +15,7 @@ limitations under the License.
 
 <div class="row">
   <div class="col-md move-up">
-    <h1>
+    <h3>
       <%= class[:caption] %>
       <span class="text-secondary">[<a href="<%= object_path(@conn, class)  %>"><%= name %></a>]</span>
 
@@ -29,7 +29,7 @@ limitations under the License.
         Observable Object
       </span>
       <% end %>
-    </h1>
+    </h3>
     
     <div class="text-secondary">
       <%= raw class[:description] %>

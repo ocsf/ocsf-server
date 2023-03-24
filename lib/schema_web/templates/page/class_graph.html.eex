@@ -12,38 +12,24 @@ limitations under the License.
 <% class = @data[:class] %>
 <% category = class[:category] %>
 <% extension = class[:extension] %>
-<% class_name = class[:name] %>
 
 <div class="row">
   <div class="col-md move-up">
-    <%= if class_name != "base_event" do %>
-      <% path = Routes.static_path(@conn, "/categories/" <> category) %>
-      <h1>
-        <%= class[:caption] %>
-        <span class="text-secondary">[<a href="<%= class_path(@conn, class)  %>"><%= class[:uid] %></a>]<sup><%= extension || "" %></sup>
-          Class
-        </span>
-      </h1>
+    <% path = Routes.static_path(@conn, "/categories/" <> category) %>
+    <h3>
+      <%= class[:caption] %>
+      <span class="text-secondary">[<a href="<%= class_path(@conn, class)  %>"><%= class[:uid] %></a>]<sup><%= extension || "" %></sup>
+        Class
+      </span>
+    </h3>
 
-      <h4 class="extensions">
-        <a href="<%= path %>"><%= class[:category_name] %> Category</a>
-      </h4>
+    <h4 class="extensions">
+      <a href="<%= path %>"><%= class[:category_name] %> Category</a>
+    </h4>
 
-      <div class="text-secondary">
-        <%= raw class[:description] %>
-      </div>
-    <% else %>
-      <%# the base event class %>
-      <h1>
-        <%= class[:caption] %>
-        <span class="text-secondary">[<a href="<%= class_path(@conn, class)  %>">99</a>]
-          Class
-        </span>
-      </h1>
-      <div class="text-secondary">
-        <%= raw class[:description] %>
-      </div>
-    <% end %>
+    <div class="text-secondary">
+      <%= raw class[:description] %>
+    </div>
   </div>
   <div class="col-md-1"></div>
   <div class="col-md-auto fixed-right">

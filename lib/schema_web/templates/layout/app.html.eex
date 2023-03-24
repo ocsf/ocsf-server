@@ -15,7 +15,7 @@ limitations under the License.
 <head>
   <meta charset="utf-8"/>
   <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="viewport" content="width=initial-scale=1, shrink-to-fit=no">
   <meta name="description" content="Open Cybersecurity Schema Framework">
   <title>Open Cybersecurity Schema Framework</title>
 
@@ -112,14 +112,15 @@ limitations under the License.
 
 <body class="bg-light">
 
-<nav class="navbar navbar-expand-md">
+<nav class="navbar navbar-light bg-lignt navbar-expand-md">
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse">
     <span class="navbar-toggler-icon"></span>
   </button>
+  <a class="navbar-brand" href="#">OCSF Schema</a>
 
   <nav class="navbar collapse navbar-collapse navbar-expand-md navbar-light fixed-left">
     <a href=<%= Routes.static_path(@conn, "/?extensions=") %> onclick="reset_home_page()" class="navbar-brand ocsf-logo">
-      <img src='<%= Routes.static_path(@conn, "/images/ocsf-logo.png") %>' alt="OCSF Logo"/>
+      <img src='<%= Routes.static_path(@conn, "/images/ocsf-logo.png") %>' alt="OCSF"/>
     </a>
     <h6 class="container-fluid version">
     <form autocomplete="off">
