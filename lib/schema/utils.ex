@@ -15,7 +15,7 @@ defmodule Schema.Utils do
 
   @spec to_uid(binary() | atom()) :: atom
   def to_uid(name) when is_binary(name) do
-    String.downcase(name) |> String.to_atom()
+    String.to_atom(name)
   end
 
   def to_uid(name) when is_atom(name) do

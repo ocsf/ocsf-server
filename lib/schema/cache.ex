@@ -301,7 +301,7 @@ defmodule Schema.Cache do
     classes =
       resolve_extends(classes)
       # remove intermediate classes
-      # |> Stream.filter(fn {_key, class} -> Map.has_key?(class, :uid) end)
+      |> Stream.filter(fn {key, class} -> Map.has_key?(class, :uid) or key == :base_event end)
       |> Enum.into(%{}, fn class -> enrich_class(class, categories) end)
 
     {Map.get(classes, :base_event), classes}

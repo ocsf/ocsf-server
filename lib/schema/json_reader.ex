@@ -31,18 +31,6 @@ defmodule Schema.JsonReader do
 
   @categories_file "categories.json"
   @dictionary_file "dictionary.json"
-  @events_dir "events"
-  @objects_dir "objects"
-  @profiles_dir "profiles"
-
-  # The schema uses JSON files
-  @schema_file ".json"
-
-  # The Schema version file
-  @version_file "version.json"
-
-  @categories_file "categories.json"
-  @dictionary_file "dictionary.json"
 
   # The Schema extension file
   @extension_file "extension.json"
