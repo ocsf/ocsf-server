@@ -382,7 +382,7 @@ defmodule SchemaWeb.PageView do
   end
 
   def associations(name, list, acc) do
-    [Atom.to_string(name), ": <strong>", Enum.join(list, ", "), "</strong><br/>" | acc]
+    [Atom.to_string(name), ": ", Enum.join(list, ", "), "<br/>" | acc]
   end
 
   def links(_, _, nil), do: ""

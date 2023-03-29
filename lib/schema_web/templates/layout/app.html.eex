@@ -112,13 +112,13 @@ limitations under the License.
 
 <body class="bg-light">
 
-<nav class="navbar navbar-light bg-lignt navbar-expand-md">
+<nav class="navbar navbar-light navbar-expand-md">
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse">
     <span class="navbar-toggler-icon"></span>
   </button>
   <a class="navbar-brand" href="#">OCSF Schema</a>
 
-  <nav class="navbar collapse navbar-collapse navbar-expand-md navbar-light fixed-left">
+  <nav class="navbar navbar-bg collapse navbar-collapse navbar-expand-md navbar-light fixed-left">
     <a href=<%= Routes.static_path(@conn, "/?extensions=") %> onclick="reset_home_page()" class="navbar-brand ocsf-logo">
       <img src='<%= Routes.static_path(@conn, "/images/ocsf-logo.png") %>' alt="OCSF"/>
     </a>
@@ -158,7 +158,7 @@ limitations under the License.
     </div>
 
     <%= if map_size(@profiles) > 0 do %>
-    <div class="container-fluid profiles-divider"></div>
+    <div class="container-fluid"></div>
     <a class="navbar-brand" href>Profiles
       <hr class="divider"/>
     </a>

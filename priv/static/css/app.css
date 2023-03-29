@@ -1,11 +1,5 @@
 /* This file is the main application css. */
 
-* { 
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
 body {
   font-size: .8rem;
   font-weight: 400;
@@ -30,8 +24,8 @@ body {
   }
 
   body {
-      min-width: 1024px;
-      margin: 0 auto;
+    min-width: 1024px;
+    margin: 0 auto;
   }
 
   /* Custom page footer */
@@ -46,15 +40,14 @@ body {
     margin-left: 200px;
   }
 
+  .navbar {
+    background-color: #f0f0ef;
+  }
+
   .navbar.fixed-left {
     position: fixed;
     top: 0;
     left: 0;
-    z-index: 1030;
-  }
-
-  #navbarCollapse {
-    z-index: 99999;
   }
 
   .navbar.fixed-left {
@@ -139,17 +132,11 @@ body {
     outline: none
   }
 
-  .profiles-divider {
-    margin-top: 1rem;
-    /* border-top: 1px solid rgb(58, 58, 58); */
-    color: transparent;
-  }
-
   .divider {
     margin-top: 0rem;
     margin-bottom: 0rem;
     border: 0;
-    border-top: 10px solid rgba(0, 0, 0, 0.1);
+    border-top: 4px solid rgba(0, 0, 0, 0.5);
   }
 
   .github-ribbon {
@@ -157,7 +144,7 @@ body {
     width: 150px;
     height: 150px;
     overflow: hidden;
-    z-index: 99999;
+    z-index: 1;
     left: 0px;
     bottom: 0px;
   }
@@ -172,12 +159,21 @@ body {
     color: rgb(255, 255, 255);
     position: inherit;
     box-shadow: rgba(0, 0, 0, 0.5) 0px 2px 3px 0px;
-    background-color: rgb(170, 0, 0);
+    background-color: rgb(160, 0, 0);
     left: -40px;
-    background-image: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.15));
+    background-image: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.5));
     bottom: 45px;
   }
+}
 
+hr {
+  margin-top: 0.1rem;
+  margin-bottom: 0.3rem;
+  background-color: #cccccc;
+}
+
+.move-up {
+  margin-top: 0.6rem;
 }
 
 .title-uppercase {
@@ -210,13 +206,8 @@ sup {
   font-weight: 500;
 }
 
-.observable {
-  background-color: #224F8B;
-  color: white;
-}
-
 .uid {
-  font-weight: 300;
+  font-weight: 400;
 }
 
 .optional {
@@ -229,14 +220,12 @@ strong {
 }
 
 /*     General overwrite     */
-
 a {
-  color: #42638eca;
+  color: #5959a6;
 }
 
 a:hover, a:focus, a:active {
   color: #1c73e3;
-  text-decoration: none;
 }
 
 .ui-slider-handle:focus, .navbar-toggle, input:focus, button:focus {
@@ -284,20 +273,20 @@ table.table-borderless tr td {
 }
 
 tr.thead-color {
-  background-color: #f0f0f0;
+  background-color: #224F8B;
+  color: lightgrey;
+}
+
+tr th a {
+  color: lightgrey;
 }
 
 .borderless th {
   border: none;
 }
 
-.schema {
-  background-color: #f0f0f0;
-}
-
-.name {
-  background-color: #224F8B;
-  color: lightgrey;
+.name, .observable {
+  background-color: #cccccc;
 }
 
 .links {
@@ -311,11 +300,8 @@ tr.thead-color {
 }
 
 .main-page {
+  z-index: -1;
   padding-bottom: 62px;
-}
-
-.name a {
-  color: lightgrey !important;
 }
 
 .capitalize {

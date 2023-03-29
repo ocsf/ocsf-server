@@ -19,23 +19,20 @@ limitations under the License.
       <%= raw @data[:description] %>
     </div>
   </div>
-  <div class="col-md-1"></div>
-  <div class="col-md-auto fixed-right">
-    <nav class="navbar navbar-expand-md navbar-light">
-      <div class="form-inline">
-        <ul class="navbar-nav">
-          <li class="nav-item">
-            <input type="text" id="tableSearch" onkeyup="searchInTable()" class="form-control border-dark" placeholder="Search" autofocus>
-          </li>
-        </ul>
-      </div>
-    </nav>
+  <div class="col-md-auto fixed-right mt-2">
+    <div class="form-inline">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <input type="text" id="tableSearch" onkeyup="searchInTable()" class="form-control border-dark" placeholder="Search" autofocus>
+        </li>
+      </ul>
+    </div>
   </div>
 </div>
 
 <div class="mt-4">
   <table class="table table-bordered">
-    <thead class="extensions">
+    <thead>
       <tr class="thead-color">
         <%= for {key, category} <- @data[:attributes] do %>
           <% name = Atom.to_string(key) %>
@@ -72,7 +69,7 @@ limitations under the License.
   </table>
 </div>
 
-<div class="github-ribbon" style="position: absolute; width: 150px; height: 150px; overflow: hidden; z-index: 99999; left: 0px; bottom: 0px;"><a target="_blank" style="display: inline-block; width: 200px; overflow: hidden; padding: 6px 0px; text-align: center; transform: rotate(45deg); text-decoration: none; color: rgb(255, 255, 255); position: inherit; font: 700 13px &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; box-shadow: rgba(0, 0, 0, 0.5) 0px 2px 3px 0px; background-color: rgb(170, 0, 0); left: -40px; background-image: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.15)); bottom: 45px;" href="https://github.com/ocsf/ocsf-schema">Fork me on GitHub</a></div>
+<div class="github-ribbon"><a target="_blank" href="https://github.com/ocsf/ocsf-schema">Fork me on GitHub</a></div>
 
 <script>
   init_class_profiles();

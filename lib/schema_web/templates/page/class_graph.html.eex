@@ -31,9 +31,8 @@ limitations under the License.
       <%= raw class[:description] %>
     </div>
   </div>
-  <div class="col-md-1"></div>
-  <div class="col-md-auto fixed-right">
-    <nav class="navbar navbar-expand-md navbar-light">
+  <div class="col-md-auto fixed-right mt-2">
+    <div class="navbar-expand-md">
       <div class="form-inline">
         <ul class="navbar-nav">
           <li class="nav-item mr-2">
@@ -63,7 +62,7 @@ limitations under the License.
           </li>
         </ul>
       </div>
-    </nav>
+    </div>
   </div>
 </div>
 
