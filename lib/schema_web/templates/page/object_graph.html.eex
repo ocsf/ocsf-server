@@ -48,22 +48,10 @@ limitations under the License.
               data-selected-text-format="count > 3"
               data-actions-box="true"
               data-width="auto">
-              <option selected id="base-event-select" class="base-event" value="base-event" title="Base Event">Base
-                Event Attributes
-              </option>
-              <optgroup id="groups-select" label="Groups">
-                <option selected value="classification">Classification</option>
-                <option selected value="context">Context</option>
-                <option selected value="occurrence">Occurrence</option>
-                <option selected value="primary">Primary</option>
-              </optgroup>
               <optgroup id="requirements-select" label="Requirements">
                 <option class="optional" value="optional" title="Optional">Optional Attributes</option>
               </optgroup>
             </select>
-          </li>
-          <li class="nav-item">
-            <input type="text" id="tableSearch" onkeyup="searchInTable()" class="form-control border-dark" placeholder="Search" autofocus>
           </li>
         </ul>
       </div>
