@@ -198,7 +198,7 @@ defmodule Schema.JsonReader do
     categories = Path.join(home, @categories_file) |> read_json_file()
 
     Enum.reduce(extensions, categories, fn ext, acc ->
-      merge_category_file(acc, ext, @categories_file)
+      merge_ext_file(acc, ext, @categories_file)
     end)
   end
 
@@ -210,7 +210,7 @@ defmodule Schema.JsonReader do
     dictionary = Path.join(home, @dictionary_file) |> read_json_file()
 
     Enum.reduce(extensions, dictionary, fn ext, acc ->
-      merge_dictionary_file(acc, ext, @dictionary_file)
+      merge_ext_file(acc, ext, @dictionary_file)
     end)
   end
 
@@ -301,21 +301,21 @@ defmodule Schema.JsonReader do
     end
   end
 
-  defp merge_category_file(acc, ext, file) do
+  defp merge_ext_file(acc, ext, file) do
     path = Path.join(ext[:path], file)
 
     if File.regular?(path) do
-      Logger.debug("read file: [#{ext[:name]}] #{path}")
+      Logger.debug("read ext file: [#{ext[:name]}] #{path}")
+
+      ext_data = read_json_file(path)
 
       Map.update!(acc, :attributes, fn attributes ->
-        map = read_json_file(path)
-
         ext_type = ext[:name]
         ext_uid = ext[:uid]
 
         Map.merge(
           attributes,
-          Enum.into(map[:attributes], %{}, fn {name, value} ->
+          Enum.into(ext_data[:attributes], %{}, fn {name, value} ->
             {
               Utils.to_uid(ext_type, name),
               add_extension(value, ext_type, ext_uid)
@@ -323,30 +323,18 @@ defmodule Schema.JsonReader do
           end)
         )
       end)
+      |> merge_ext_types(ext_data)
     else
       acc
     end
   end
 
-  defp merge_dictionary_file(acc, ext, file) do
-    path = Path.join(ext[:path], file)
-
-    if File.regular?(path) do
-      Logger.debug("read file: [#{ext[:name]}] #{path}")
-
-      Map.update!(acc, :attributes, fn attributes ->
-        ext_map = read_json_file(path)
-        ext_type = ext[:name]
-        ext_uid = ext[:uid]
-
-        Map.merge(
-          attributes,
-          Enum.into(ext_map[:attributes], %{}, fn {name, value} ->
-            {
-              Utils.to_uid(ext_type, name),
-              add_extension(value, ext_type, ext_uid)
-            }
-          end)
+  defp merge_ext_types(acc, ext) do
+    if acc[:types] != nil and ext[:types] != nil do
+      update_in(acc, [:types, :attributes], fn types ->
+        Utils.deep_merge(
+          types,
+          get_in(ext, [:types, :attributes])
         )
       end)
     else
@@ -452,7 +440,7 @@ defmodule Schema.JsonReader do
   defp merge_enum_file(_resolver, nil) do
     nil
   end
-  
+
   defp merge_enum_file(resolver, attribute) do
     case Map.get(attribute, @include) do
       nil ->
