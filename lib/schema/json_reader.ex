@@ -488,14 +488,14 @@ defmodule Schema.JsonReader do
   end
 
   defp update_profile(profile, ext, file) do
-    profile_name = profile[:name]
-    profiles = get_profiles()
-
-    name =
-      case ext do
-        nil -> profile_name
-        _ex -> Path.join([ext, profile_name])
+    {name, profile} =
+      if ext == nil do
+        {profile[:name], profile}
+      else
+        {Path.join([ext, profile[:name]]), Map.put(profile, :extension, ext)}
       end
+
+    profiles = get_profiles()
 
     case profiles[String.to_atom(name)] do
       nil ->

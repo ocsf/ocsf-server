@@ -64,10 +64,8 @@ defmodule SchemaWeb.SchemaController do
               name: "dhcp_activity",
               profiles: [
                 "cloud",
+                "datetime",
                 "host",
-                "user",
-                "reputation",
-                "reputation",
                 "file_security"
               ],
               uid: 4004

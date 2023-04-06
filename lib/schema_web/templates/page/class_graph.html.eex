@@ -63,12 +63,12 @@ limitations under the License.
   </div>
 </div>
 
-<div id="mynetwork"></div>
+<div id="network"></div>
 <script type="text/javascript" src='<%= Routes.static_path(@conn, "/js/vis-network.min.js") %>'></script>
 <script type="text/javascript">
   init_class_profiles();
   
-  let container = document.getElementById("mynetwork");
+  let container = document.getElementById("network");
   let data = <%= raw Jason.encode!(@data) %>;
   let options = {
     edges:{
@@ -84,9 +84,9 @@ limitations under the License.
      enabled: true,
      timestep: 0.4,
      solver: 'forceAtlas2Based',
-     // solver: 'repulsion',
+     solver: 'repulsion',
    },
   };
 
-  let network = new vis.Network(container, data, options);
+  new vis.Network(container, data, options);
 </script>

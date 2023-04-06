@@ -73,6 +73,9 @@ defmodule Schema.Graph do
       case obj.type do
         "object_t" ->
           edge = %{
+            source: Atom.to_string(obj[:_source]),
+            group: obj[:group],
+            requirement: obj[:requirement] || "optional",
             from: make_id(class.name, class[:extension]),
             to: obj.object_type,
             label: Atom.to_string(name)
