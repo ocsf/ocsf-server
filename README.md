@@ -158,7 +158,7 @@ Now you can access the Schema server at [`localhost:8080`](http://localhost:8080
 
 ### Reloading the schema
 
-You can use the following command in the `iex` shell to force reloading the schema with an extensions:
+You can use the following command in the `iex` shell to force reloading the schema with extensions:
 
 ```
 Schema.reload(["<extension folder>", "<extension folder>", ...])
