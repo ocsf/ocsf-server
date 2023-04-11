@@ -45,7 +45,7 @@ When run, the standard `_build` and `deps` folders are created, along with a `.m
 
 ### Run the ocsf-server and build the development container
 
-```
+```shell
 docker-compose up
 ```
 
@@ -69,7 +69,7 @@ Randomized with seed 933777
 
 ### Set aliases to avoid docker-compose inflicted RSI
 
-```
+```shell
 source docker-source.sh
 ```
 
@@ -160,7 +160,7 @@ Now you can access the Schema server at [`localhost:8080`](http://localhost:8080
 
 You can use the following command in the `iex` shell to force reloading the schema with extensions:
 
-```
+```elixir
 Schema.reload(["<extension folder>", "<extension folder>", ...])
 ```
 
@@ -172,19 +172,19 @@ Schema.reload()
 
 Reload the schema with the default `dev` extension (note the folder is relative to the `SCHEMA_DIR` folder):
 
-```
+```elixir
 Schema.reload(["extensions/dev"])
 ```
 
 Reload the schema with all extensions defined in the `extensions` folder (note the folder is relative to the `SCHEMA_DIR` folder):
 
-```
+```elixir
 Schema.reload(["extensions"])
 ```
 
 Reload the schema with extensions defined outside the `SCHEMA_DIR` folder:
 
-```
+```elixir
 Schema.reload(["/home/schema/cloud", "../linux"])
 ```
 
