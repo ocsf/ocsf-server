@@ -156,6 +156,38 @@ SCHEMA_DIR=../ocsf-schema SCHEMA_EXTENSION=extensions iex -S mix phx.server
 
 Now you can access the Schema server at [`localhost:8080`](http://localhost:8080) or [`localhost:8443`](https://localhost:8443).
 
+### Reloading the schema
+
+You can use the following command in the `iex` shell to force reloading the schema with an extensions:
+
+```
+Schema.reload(["<extension folder>", "<extension folder>", ...])
+```
+
+Reload the core schema without extensions:
+
+```elixir
+Schema.reload()
+```
+
+Reload the schema with the default `dev` extension (note the folder is relative to the `SCHEMA_DIR` folder):
+
+```
+Schema.reload(["extensions/dev"])
+```
+
+Reload the schema with all extensions defined in the `extensions` folder (note the folder is relative to the `SCHEMA_DIR` folder):
+
+```
+Schema.reload(["extensions"])
+```
+
+Reload the schema with extensions defined outside the `SCHEMA_DIR` folder:
+
+```
+Schema.reload(["/home/schema/cloud", "../linux"])
+```
+
 ### Runtime configuration
 
 The schema server uses a number of environment variables.
