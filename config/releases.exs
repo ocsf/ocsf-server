@@ -29,7 +29,7 @@ config :schema_server, SchemaWeb.Endpoint,
   ]
 
 # Configures the location of the schema files
-config :schema_server, Schema.JsonReader, home: System.get_env("SCHEMA_DIR")
+config :schema_server, Schema.Application, home: System.get_env("SCHEMA_DIR")
 config :schema_server, Schema.Application, extension: System.get_env("SCHEMA_EXTENSION")
 
 # Configure the schema example's repo path and local dicrectory

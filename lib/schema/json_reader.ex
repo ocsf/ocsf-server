@@ -17,8 +17,7 @@ defmodule Schema.JsonReader do
 
   require Logger
 
-  # The default location of the schema files
-  @data_dir "schema"
+  # The default location of the schema file"schema"
   @events_dir "events"
   @objects_dir "objects"
   @profiles_dir "profiles"
@@ -102,17 +101,13 @@ defmodule Schema.JsonReader do
   end
 
   @impl true
-  @spec init(String.t() | list()) :: {:ok, term()}
-  def init(ext_dir) when is_binary(ext_dir) do
-    init([ext_dir])
-  end
-
-  def init(ext_dir) do
+  @spec init(list()) :: {:ok, term()}
+  def init([schema_dir, ext_dir]) do
     init_cache()
 
-    home = data_dir()
+    home = schema_home(schema_dir)
     version = read_version(home)
-    extensions = extensions(home, ext_dir)
+    extensions = read_extensions(home, ext_dir)
 
     Logger.info("schema    : #{home}")
     Logger.info("version   : #{version.version}")
@@ -164,7 +159,7 @@ defmodule Schema.JsonReader do
 
   @impl true
   def handle_cast({:reset, ext}, {home, _ext}) do
-    {:noreply, {home, extensions(home, ext)}}
+    {:noreply, {home, read_extensions(home, ext)}}
   end
 
   @impl true
@@ -173,10 +168,8 @@ defmodule Schema.JsonReader do
     {:noreply, state}
   end
 
-  defp data_dir() do
-    (Application.get_env(:schema_server, __MODULE__) |> Keyword.get(:home) || @data_dir)
-    |> Path.absname()
-    |> Path.expand()
+  defp schema_home(dir) do
+    Path.absname(dir) |> Path.expand()
   end
 
   defp read_version(home) do
@@ -542,12 +535,12 @@ defmodule Schema.JsonReader do
   end
 
   # Extensions
-  @spec extensions(any, binary | maybe_improper_list) :: any
-  def extensions(home, path) when is_binary(path) do
+  @spec read_extensions(any, binary | maybe_improper_list) :: any
+  def read_extensions(home, path) when is_binary(path) do
     find_extensions(home, path, [])
   end
 
-  def extensions(home, list) when is_list(list) do
+  def read_extensions(home, list) when is_list(list) do
     Enum.reduce(list, [], fn path, acc ->
       find_extensions(home, String.trim(path), acc)
     end)
