@@ -53,15 +53,15 @@ defmodule Schema.Cache do
     {base_event, classes} = read_classes(categories[:attributes])
     objects = read_objects()
 
-    profiles = JsonReader.read_profiles()
+    dictionary = Utils.update_dictionary(dictionary, base_event, classes, objects)
+    attributes = dictionary[:attributes]
+
+    profiles = JsonReader.read_profiles() |> update_profiles(attributes)
 
     # clean up the cached files
     JsonReader.cleanup()
 
     # Apply profiles to objects and classes
-    dictionary = Utils.update_dictionary(dictionary, base_event, classes, objects)
-    attributes = dictionary[:attributes]
-
     objects =
       objects
       |> Utils.update_objects(attributes)
@@ -779,6 +779,43 @@ defmodule Schema.Cache do
     end)
   end
 
+  defp update_profiles(profiles, dictionary) do
+    Enum.into(profiles, %{}, fn {name, profile} ->
+      profile = Map.update!(profile, :attributes, fn attributes ->
+        Enum.into(attributes, %{}, fn {name, attribute} ->
+          data = case Map.get(dictionary, name) do
+            nil ->
+              Logger.warn("#{name} is not defined in the dictionary")
+              attribute
+
+            attr ->
+              attribute
+              |> copy(attr, :caption)
+              |> copy(attr, :description)
+              |> copy(attr, :is_array)
+              |> copy(attr, :enum)
+              |> copy(attr, :type)
+              |> copy(attr, :type_name)
+              |> copy(attr, :object_name)
+              |> copy(attr, :object_type)
+          end
+          |> Map.delete(:profile)
+          
+          {name, data}
+        end)
+      end)
+
+      {name, profile}
+    end)
+  end
+
+  defp copy(to, from, key) do
+    case from[key] do
+      nil -> to
+      val -> Map.put_new(to, key, val)
+    end
+  end
+  
   defp error(message) do
     Logger.error(message)
     System.stop(1)
