@@ -31,6 +31,10 @@ defmodule SchemaWeb.Router do
     get "/categories/:id", PageController, :categories
     get "/categories/:extension/:id", PageController, :categories
 
+    get "/profiles", PageController, :profiles
+    get "/profiles/:id", PageController, :profiles
+    get "/profiles/:extension/:id", PageController, :profiles
+
     get "/classes", PageController, :classes
     get "/classes/:id", PageController, :classes
     get "/classes/:extension/:id", PageController, :classes
@@ -47,7 +51,7 @@ defmodule SchemaWeb.Router do
 
     get "/object/graph/:id", PageController, :object_graph
     get "/object/graph/:extension/:id", PageController, :object_graph
-
+    
     get "/data_types", PageController, :data_types
     get "/guidelines", PageController, :guidelines
   end

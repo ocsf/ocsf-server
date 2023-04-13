@@ -77,6 +77,43 @@ defmodule SchemaWeb.PageController do
   end
 
   @doc """
+  Renders schema profiles.
+  """
+  @spec profiles(Plug.Conn.t(), map) :: Plug.Conn.t()
+  def profiles(conn, %{"id" => id} = params) do
+    name = case params["extension"] do
+      nil -> id
+      extension -> "#{extension}/#{id}"
+    end
+
+    try do
+      data = Schema.profiles()
+      case Map.get(data, name) do
+        nil ->
+          send_resp(conn, 404, "Not Found: #{name}")
+
+        profile ->
+          render(conn, "profile.html",
+            extensions: Schema.extensions(),
+            profiles: data,
+            data: sort_attributes(profile)
+          )
+      end
+    rescue
+      e -> send_resp(conn, 400, "Bad Request: #{inspect(e)}")
+    end
+  end
+  def profiles(conn, _params) do
+    data = Schema.profiles()
+
+    render(conn, "profiles.html",
+      extensions: Schema.extensions(),
+      profiles: data,
+      data: data
+    )
+  end
+
+  @doc """
   Renders categories or the classes in a given category.
   """
   @spec categories(Plug.Conn.t(), map) :: Plug.Conn.t()

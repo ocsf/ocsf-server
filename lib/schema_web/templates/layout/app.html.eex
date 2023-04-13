@@ -137,10 +137,10 @@ limitations under the License.
     }
     </script>
 
-    <a class="navbar-brand" href>
+    <div class="navbar-brand">
       Extensions
       <hr class="divider"/>
-    </a>
+    </div>
     <div class="collapse navbar-collapse" id="checkbox-extensions">
       <ul class="navbar-nav">
         <%= for {_key, map} <- @extensions do %>
@@ -159,7 +159,7 @@ limitations under the License.
 
     <%= if map_size(@profiles) > 0 do %>
     <div class="container-fluid"></div>
-    <a class="navbar-brand" href>Profiles
+    <a class="navbar-brand" href='<%= Routes.static_path(@conn, "/profiles") %>'>Profiles
       <hr class="divider"/>
     </a>
     <div class="collapse navbar-collapse" id="checkbox-profiles">
