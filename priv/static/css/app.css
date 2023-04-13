@@ -134,7 +134,7 @@ body {
 
   .divider {
     margin-top: 0rem;
-    margin-bottom: 0rem;
+    margin-bottom: 0.2rem;
     border: 0;
     border-top: 4px solid rgba(0, 0, 0, 0.5);
   }
@@ -226,6 +226,14 @@ a {
 
 a:hover, a:focus, a:active {
   color: #1c73e3;
+}
+
+#profiles {
+  color: #5959a6 !important;
+}
+
+#profiles a:hover, a:focus, a:active {
+  color: #1c73e3 !important;
 }
 
 .ui-slider-handle:focus, .navbar-toggle, input:focus, button:focus {
