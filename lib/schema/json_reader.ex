@@ -71,11 +71,6 @@ defmodule Schema.JsonReader do
     GenServer.call(__MODULE__, :get_profiles)
   end
 
-  @spec read_profiles2() :: map()
-  def read_profiles2() do
-    GenServer.call(__MODULE__, :read_profiles)
-  end
-
   @spec reset() :: :ok
   def reset() do
     GenServer.cast(__MODULE__, {:reset, []})
@@ -129,11 +124,6 @@ defmodule Schema.JsonReader do
   @impl true
   def handle_call(:read_dictionary, _from, {home, ext} = state) do
     {:reply, read_dictionary(home, ext), state}
-  end
-
-  @impl true
-  def handle_call(:read_profiles, _from, {home, ext} = state) do
-    {:reply, read_profiles(home, ext), state}
   end
 
   @impl true
@@ -458,51 +448,53 @@ defmodule Schema.JsonReader do
   end
 
   defp update_profile_attributes(data, ext, file) do
-    profile =
+    {name, _profile} =
       case data[:meta] do
         "profile" ->
-          update_profile(data, ext, file)
+          update_profile(data, ext)
 
         _ ->
-          nil
+          {nil, nil}
       end
 
-    case data[:annotations] do
+    data = case data[:annotations] do
       nil ->
         Map.update(data, :attributes, [], fn attributes ->
-          add_profile(attributes, profile)
+          add_profile(attributes, name)
         end)
 
       annotations ->
         Map.update(data, :attributes, [], fn attributes ->
-          add_annotated_profile(attributes, profile, annotations)
+          add_annotated_profile(attributes, name, annotations)
         end)
+    end
+
+    if data[:meta] == "profile" do
+      put_profile(name, data, ext, file)
+    end
+
+    data
+  end
+
+  defp update_profile(profile, ext) do
+    if ext == nil do
+      {profile[:name], profile}
+    else
+      {Path.join([ext, profile[:name]]), Map.put(profile, :extension, ext)}
     end
   end
 
-  defp update_profile(profile, ext, file) do
-    {name, profile} =
-      if ext == nil do
-        {profile[:name], profile}
-      else
-        {Path.join([ext, profile[:name]]), Map.put(profile, :extension, ext)}
-      end
-
+  defp put_profile(name, profile, ext, file) do
     profiles = get_profiles()
 
     case profiles[String.to_atom(name)] do
       nil ->
         Logger.info("[#{ext}] read profile '#{name}' from #{file}")
-
-        profiles
-        |> Map.put(name, profile)
-        |> cache_put(:profiles)
+        Map.put(profiles, name, profile) |> cache_put(:profiles)
 
       _profile ->
         Logger.warn("[#{ext}] #{file} overwrites an existing profile #{name}")
     end
-
-    name
   end
 
   defp get_profiles() do
