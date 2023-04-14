@@ -448,13 +448,13 @@ defmodule Schema.JsonReader do
   end
 
   defp update_profile_attributes(data, ext, file) do
-    {name, _profile} =
+    {name, data} =
       case data[:meta] do
         "profile" ->
           update_profile(data, ext)
 
         _ ->
-          {nil, nil}
+          {nil, data}
       end
 
     data = case data[:annotations] do

@@ -409,10 +409,10 @@ defmodule Schema.Cache do
 
   defp enum_values(class_uid, caption, values) do
     for {key, val} = _value <- values, into: %{} do
-          {
-            make_enum_id(class_uid, key),
-            Map.put(val, :caption, Types.type_name(caption, val[:caption]))
-          }
+      {
+        make_enum_id(class_uid, key),
+        Map.put(val, :caption, Types.type_name(caption, val[:caption]))
+      }
     end
   end
 
@@ -763,50 +763,54 @@ defmodule Schema.Cache do
       Enum.into(attributes, %{}, fn {name, attribute} ->
         type = attribute[:type] || "object_t"
 
-        attribute =
-          case types[String.to_atom(type)] do
-            nil ->
-              attribute
-              |> Map.put(:type, "object_t")
-              |> Map.put(:object_type, type)
+        {name,
+         case types[String.to_atom(type)] do
+           nil ->
+             attribute
+             |> Map.put(:type, "object_t")
+             |> Map.put(:object_type, type)
 
-            _type ->
-              attribute
-          end
-
-        {name, attribute}
+           _type ->
+             attribute
+         end}
       end)
     end)
   end
 
   defp update_profiles(profiles, dictionary) do
     Enum.into(profiles, %{}, fn {name, profile} ->
-      profile = Map.update!(profile, :attributes, fn attributes ->
-        Enum.into(attributes, %{}, fn {name, attribute} ->
-          data = case Map.get(dictionary, name) do
-            nil ->
-              Logger.warn("#{name} is not defined in the dictionary")
-              attribute
-
-            attr ->
-              attribute
-              |> copy(attr, :caption)
-              |> copy(attr, :description)
-              |> copy(attr, :is_array)
-              |> copy(attr, :enum)
-              |> copy(attr, :type)
-              |> copy(attr, :type_name)
-              |> copy(attr, :object_name)
-              |> copy(attr, :object_type)
-          end
-          |> Map.delete(:profile)
-          
-          {name, data}
-        end)
-      end)
-
-      {name, profile}
+      {name,
+       Map.update!(profile, :attributes, fn attributes ->
+         update_profile(name, attributes, dictionary)
+       end)}
     end)
+  end
+
+  defp update_profile(profile, attributes, dictionary) do
+    Enum.into(attributes, %{}, fn {name, attribute} ->
+      {name,
+       case find_attribute(dictionary, name, String.to_atom(profile)) do
+         nil ->
+           Logger.warn("profile #{profile} uses #{name} that is not defined in the dictionary")
+           attribute
+
+         attr ->
+           copy(attribute, attr)
+       end
+       |> Map.delete(:profile)}
+    end)
+  end
+
+  defp copy(to, from) do
+    to
+    |> copy(from, :caption)
+    |> copy(from, :description)
+    |> copy(from, :is_array)
+    |> copy(from, :enum)
+    |> copy(from, :type)
+    |> copy(from, :type_name)
+    |> copy(from, :object_name)
+    |> copy(from, :object_type)
   end
 
   defp copy(to, from, key) do
@@ -815,7 +819,7 @@ defmodule Schema.Cache do
       val -> Map.put_new(to, key, val)
     end
   end
-  
+
   defp error(message) do
     Logger.error(message)
     System.stop(1)
