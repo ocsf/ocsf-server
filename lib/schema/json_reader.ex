@@ -284,6 +284,7 @@ defmodule Schema.JsonReader do
     end
   end
 
+  # used by dictionary and categories
   defp merge_ext_file(acc, ext, file) do
     path = Path.join(ext[:path], file)
 
@@ -298,11 +299,15 @@ defmodule Schema.JsonReader do
 
         Map.merge(
           attributes,
-          Enum.into(ext_data[:attributes], %{}, fn {name, value} ->
-            {
-              Utils.to_uid(ext_type, name),
-              add_extension(value, ext_type, ext_uid)
-            }
+          Enum.into(ext_data[:attributes], %{}, fn {name, value} = attribute ->
+            if value[:overwrite] == true do
+                attribute
+            else
+              {
+                Utils.to_uid(ext_type, name),
+                add_extension(value, ext_type, ext_uid)
+              }
+            end
           end)
         )
       end)
