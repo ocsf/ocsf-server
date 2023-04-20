@@ -301,7 +301,13 @@ defmodule Schema.JsonReader do
           attributes,
           Enum.into(ext_data[:attributes], %{}, fn {name, value} = attribute ->
             if value[:overwrite] == true do
-                attribute
+              case attributes[name] do
+                nil ->
+                  attribute
+
+                a ->
+                  {name, Map.merge(a, value)}
+              end
             else
               {
                 Utils.to_uid(ext_type, name),
@@ -462,17 +468,18 @@ defmodule Schema.JsonReader do
           {nil, data}
       end
 
-    data = case data[:annotations] do
-      nil ->
-        Map.update(data, :attributes, [], fn attributes ->
-          add_profile(attributes, name)
-        end)
+    data =
+      case data[:annotations] do
+        nil ->
+          Map.update(data, :attributes, [], fn attributes ->
+            add_profile(attributes, name)
+          end)
 
-      annotations ->
-        Map.update(data, :attributes, [], fn attributes ->
-          add_annotated_profile(attributes, name, annotations)
-        end)
-    end
+        annotations ->
+          Map.update(data, :attributes, [], fn attributes ->
+            add_annotated_profile(attributes, name, annotations)
+          end)
+      end
 
     if data[:meta] == "profile" do
       put_profile(name, data, ext, file)
