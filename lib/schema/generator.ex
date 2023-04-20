@@ -276,6 +276,7 @@ defmodule Schema.Generator do
   end
 
   defp generate_enum_data(key, name, enum, map) do
+    name = String.to_atom(name)
     id = random_enum_int_value(enum)
 
     if id == @other do
