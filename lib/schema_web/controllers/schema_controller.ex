@@ -1032,7 +1032,7 @@ defmodule SchemaWeb.SchemaController do
   defp update_object(field, acc) do
     case field[:type] do
       "object_t" ->
-        type = field[:object_type] |> String.to_atom()
+        type = field[:object_type] |> String.to_existing_atom()
 
         if Map.has_key?(acc, type) do
           acc

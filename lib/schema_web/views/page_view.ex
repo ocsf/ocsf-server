@@ -330,13 +330,13 @@ defmodule SchemaWeb.PageView do
               desc = Map.get(item, :description) || ""
 
               [
-                "<tr class='bg-transparent'><td style='width: 50px' class='text-right'><code>",
+                "<tr class='bg-transparent'><td style='width: 25px' class='text-right'><code>",
                 Atom.to_string(id),
-                "</code></td><td class='text-nowrap'>",
+                "</code></td><td class='textnowrap'>",
                 Map.get(item, :caption, Atom.to_string(id)),
-                "</td><td>",
+                "<div class='text-secondary'>",
                 desc,
-                "</td><tr>" | acc
+                "</div></td><tr>" | acc
               ]
             end
           ),
