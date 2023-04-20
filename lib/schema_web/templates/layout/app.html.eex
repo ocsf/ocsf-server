@@ -124,7 +124,10 @@ limitations under the License.
     </a>
     <h6 class="container-fluid version">
     <form autocomplete="off">
-      <select class="select-version" id="select_version" onchange="selectVersionFun()">
+      <select
+        class="select-version"
+        id="select_version"
+        onchange="selectVersionFun()">
         <%= raw select_versions(@conn) %>
       </select>
       </form>
@@ -132,7 +135,8 @@ limitations under the License.
 
     <script>
     function selectVersionFun() {
-      var x = document.getElementById("select_version").value;
+      let x = document.getElementById("select_version").value;
+      reset_home_page();
       window.open(x, "_self");
     }
     </script>
