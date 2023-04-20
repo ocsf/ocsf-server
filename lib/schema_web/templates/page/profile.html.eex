@@ -70,7 +70,6 @@
     <tbody class="searchable">
       <%= for {key, field} <- @data[:attributes] do %>
       <% name = Atom.to_string(key) %>
-      <% profile = field[:profile] || "" %>
       <tr class="<%= field_classes(field)%>">
         <td class="name"><%= raw format_attribute_name(name, field) %></td>
         <td data-toggle="tooltip" title="<%= field[:_source] %>"><%= name %></td>

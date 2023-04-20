@@ -450,6 +450,10 @@ defmodule Schema.Cache do
     case class[:category] do
       nil ->
         Logger.warn("class '#{class[:name]}' has no category")
+        class
+
+      "other" ->
+        class
 
       cat_name ->
         {_key, category} = Utils.find_entity(categories, class, cat_name)

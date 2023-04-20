@@ -18,29 +18,6 @@ defmodule Schema.Inspector do
 
   @class_uid "class_uid"
 
-  @string_types [
-    "email_t",
-    "file_hash_t",
-    "file_name_t",
-    "hostname_t",
-    "ip_t",
-    "json_t",
-    "mac_t",
-    "path_t",
-    "process_name_t",
-    "resource_uid_t",
-    "string_t",
-    "subnet_t",
-    "url_t",
-    "username_t",
-    "datetime_t",
-    "bytestring_t"
-  ]
-
-  @integer_types ["port_t", "timestamp_t", "long_t", "json_t"]
-  @float_types ["float_t", "json_t"]
-  @boolean_types ["boolean_t", "json_t"]
-
   @doc """
   Validates the given event using `class_uid` value and the schema.
   """
@@ -109,7 +86,7 @@ defmodule Schema.Inspector do
         end
 
       _ ->
-        validate_data_type(acc, name, attribute, value, @string_types)
+        validate_data_type(acc, name, attribute, value, "string_t")
     end
   end
 
@@ -122,16 +99,16 @@ defmodule Schema.Inspector do
         end
 
       _ ->
-        validate_data_type(acc, name, attribute, value, @integer_types)
+        validate_data_type(acc, name, attribute, value, ["integer_t", "long_t"])
     end
   end
 
   defp validate_data(acc, name, attribute, value, _profiles) when is_float(value) do
-    validate_data_type(acc, name, attribute, value, @float_types)
+    validate_data_type(acc, name, attribute, value, "float_t")
   end
 
   defp validate_data(acc, name, attribute, value, _profiles) when is_boolean(value) do
-    validate_data_type(acc, name, attribute, value, @boolean_types)
+    validate_data_type(acc, name, attribute, value, "boolean_t")
   end
 
   defp validate_data(acc, name, attribute, value, profiles) when is_map(value) do
@@ -270,15 +247,13 @@ defmodule Schema.Inspector do
   end
 
   # check the attribute value type
-  defp validate_data_type(acc, name, attribute, value, types) do
+  defp validate_data_type(acc, name, attribute, value, value_type) do
     type = attribute[:type]
 
-    case member?(types, type) do
-      nil ->
-        Map.put(acc, name, invalid_data_type(attribute, value, type))
-
-      _ ->
-        acc
+    if type == value_type or Schema.data_type?(String.to_atom(type), value_type) do
+      acc
+    else
+      Map.put(acc, name, invalid_data_type(attribute, value, type))
     end
   end
 
@@ -287,10 +262,6 @@ defmodule Schema.Inspector do
       :error => "Invalid data type: expected '#{type}' type",
       :value => value
     }
-  end
-
-  defp member?(types, type) do
-    Enum.find(types, fn t -> t == type end)
   end
 
   # Validate an integer enum value
