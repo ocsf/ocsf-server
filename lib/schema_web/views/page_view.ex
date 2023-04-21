@@ -52,12 +52,17 @@ defmodule SchemaWeb.PageView do
   end
 
   def class_profiles(class, profiles) do
-    [
-      "<strong>Applicable profiles: </strong>",
-      Enum.map_join(class[:profiles] || [], ", ", fn name ->
-        get_in(profiles, [String.to_atom(name), :caption]) || name
-      end)
-    ]
+    case (class[:profiles] || []) do
+      [] ->
+        ""
+      list ->
+        [
+          "<strong>Applicable profiles: </strong>",
+          Enum.map_join(list, ", ", fn name ->
+            get_in(profiles, [String.to_atom(name), :caption]) || name
+          end)
+        ]
+    end
   end
 
   def class_examples(class) do
