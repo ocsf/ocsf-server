@@ -106,7 +106,7 @@ limitations under the License.
 </div>
 
 <% constraints = @data[:constraints] %>
-<%= if constraints != nil do %>
+<%= if constraints != nil and map_size(constraints) > 0 do %>
   <h5>Constraints</h5>
   <div>
     <%= raw constraints(constraints) %>
@@ -114,7 +114,7 @@ limitations under the License.
 <% end %>
 
 <% associations = @data[:associations] %>
-<%= if associations != nil do %>
+<%= if associations != nil and map_size(associations) > 0 do %>
   <h5>Attribute Associations</h5>
   <div class="text-monospace">
     <%= raw associations(associations) %>

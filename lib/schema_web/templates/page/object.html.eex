@@ -105,7 +105,7 @@
   </div>
   <% end %>
 <% constraints = @data[:constraints] %>
-<%= if constraints != nil do %>
+<%= if constraints != nil and map_size(constraints) > 0 do %>
   <h5>Constraints</h5>
   <div>
     <%= raw constraints(constraints) %>
