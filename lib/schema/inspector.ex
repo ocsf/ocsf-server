@@ -250,7 +250,7 @@ defmodule Schema.Inspector do
   defp validate_data_type(acc, name, attribute, value, value_type) do
     type = attribute[:type]
 
-    if type == value_type or Schema.data_type?(String.to_atom(type), value_type) do
+    if type == value_type or Schema.data_type?(type, value_type) do
       acc
     else
       Map.put(acc, name, invalid_data_type(attribute, value, type))
