@@ -1,9 +1,9 @@
 /* This file is the main application css. */
 
 body {
+  font-family: 'Bai Jamjuree', sans-serif;
+
   font-size: .8rem;
-  font-weight: 400;
-  line-height: 1.5;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' height='200px' width='200px'><text transform='translate(32, 200) rotate(-45)' fill='rgb(240, 240, 240)' font-size='120'>draft</text></svg>");
 }
 
@@ -27,12 +27,6 @@ body {
     min-width: 1024px;
     margin: 0 auto;
   }
-
-  /* Custom page footer */
-  .footer {
-    font-size: .6rem;
-  }
-
 }
 
 @media (min-width:768px) {
@@ -248,7 +242,9 @@ li {
   position: fixed;
   bottom: 0;
   width: 100%;
-  font-weight: 75;
+  padding-top: 3px;
+  padding-bottom: 3px;
+  font-size: .7rem;
   text-align: center;
   color: rgb(0, 0, 72);
   background-color: lightgray;
