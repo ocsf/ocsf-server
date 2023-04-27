@@ -9,14 +9,15 @@ defmodule SchemaWeb.LayoutView do
   end
 
   def format_extension(extension) do
-    caption = "#{extension[:caption]} [#{extension[:uid]}]"
+    caption = "#{extension[:caption]}"
+    uid = "[#{extension[:uid]}]"
 
     case extension[:version] do
       nil ->
-        caption
+        [caption, "</br>", uid]
 
       ext_ver ->
-        [caption, "</br>v", ext_ver]
+        [caption, "</br>", uid, " v", ext_ver]
     end
   end
 
