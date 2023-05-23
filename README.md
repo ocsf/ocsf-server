@@ -170,10 +170,10 @@ Reload the core schema without extensions:
 Schema.reload()
 ```
 
-Reload the schema with the default `dev` extension (note the folder is relative to the `SCHEMA_DIR` folder):
+Reload the schema only with the `linux` extension (note the folder is relative to the `SCHEMA_DIR` folder):
 
 ```elixir
-Schema.reload(["extensions/dev"])
+Schema.reload(["extensions/linux"])
 ```
 
 Reload the schema with all extensions defined in the `extensions` folder (note the folder is relative to the `SCHEMA_DIR` folder):
@@ -182,10 +182,10 @@ Reload the schema with all extensions defined in the `extensions` folder (note t
 Schema.reload(["extensions"])
 ```
 
-Reload the schema with extensions defined outside the `SCHEMA_DIR` folder:
+Reload the schema with extensions defined outside the `SCHEMA_DIR` folder (use an absolute or relative path):
 
 ```elixir
-Schema.reload(["/home/schema/cloud", "../linux"])
+Schema.reload(["/home/schema/cloud", "../dev-ext"])
 ```
 
 ### Runtime configuration
