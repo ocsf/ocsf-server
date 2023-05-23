@@ -56,7 +56,7 @@ RUN chown nobody /app
 ENV MIX_ENV="prod"
 ENV PORT=8080
 ENV SCHEMA_DIR="/app/schema"
-ENV SCHEMA_EXTENSION="extensions/dev"
+ENV SCHEMA_EXTENSION="extensions"
 
 # Only copy the final release from the build stage
 COPY --from=builder --chown=nobody:root /app/_build/${MIX_ENV}/rel/schema_server ./
