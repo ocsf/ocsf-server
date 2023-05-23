@@ -85,6 +85,9 @@ defmodule Schema.Inspector do
           error -> Map.put(acc, name, error)
         end
 
+      "json_t" ->
+        acc
+
       _ ->
         validate_data_type(acc, name, attribute, value, "string_t")
     end
@@ -97,6 +100,9 @@ defmodule Schema.Inspector do
           :ok -> acc
           error -> Map.put(acc, name, error)
         end
+
+      "json_t" ->
+        acc
 
       _ ->
         validate_data_type(acc, name, attribute, value, ["integer_t", "long_t"])
@@ -248,12 +254,19 @@ defmodule Schema.Inspector do
 
   # check the attribute value type
   defp validate_data_type(acc, name, attribute, value, value_type) do
-    type = attribute[:type]
+    case attribute[:type] do
+      "json_t" ->
+        acc
 
-    if type == value_type or Schema.data_type?(type, value_type) do
-      acc
-    else
-      Map.put(acc, name, invalid_data_type(attribute, value, type))
+      ^value_type ->
+        acc
+
+      type ->
+        if Schema.data_type?(type, value_type) do
+          acc
+        else
+          Map.put(acc, name, invalid_data_type(attribute, value, type))
+        end
     end
   end
 
