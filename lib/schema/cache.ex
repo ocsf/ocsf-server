@@ -642,6 +642,9 @@ defmodule Schema.Cache do
         "object" ->
           Map.put(acc, k, v)
 
+        "entity" ->
+          Map.put(acc, k, v)
+
         _ ->
           acc
       end
