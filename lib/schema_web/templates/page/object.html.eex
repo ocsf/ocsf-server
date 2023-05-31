@@ -19,19 +19,25 @@
 <div class="row">
   <div class="col-md move-up">
     <h3>
-      <%= @data[:caption] %>
-      <span class="text-secondary">[<a href="<%= object_graph_path(@conn, @data)  %>"><%= @data[:name] %></a>]</span>
-
+      <a href="<%= object_graph_path(@conn, @data)  %>"><%= @data[:caption] %></a>
       <% observable = @data[:observable] %>
       <%= if is_nil(observable) do %>
-      <span class="text-secondary"><sup><%= @data[:extension] || "" %></sup>
-        Object
-      </span>
+        <span class="small"><sup><%= @data[:extension] || "" %></sup>
+          object
+        </span>
       <% else %>
-      <span class="text-secondary"><sup><%= @data[:extension] || "" %></sup>
-        Observable Object
-      </span>
+        <span class="small"><sup><%= @data[:extension] || "" %></sup>
+          [<%= observable %>] object
+        </span>
       <% end %>
+      <% extends = @data[:extends] || "object" %>
+      <span class="small">
+        <%= if extends != "object" do %>
+          <span>
+            extends <a href="<%= Routes.static_path(@conn, "/objects/" <> extends) %>"><%= extends %></a>
+          </span>
+        <% end %>
+      </span>
     </h3>
     
     <div class="text-secondary">
@@ -93,6 +99,7 @@
     </tbody>
   </table>
 </div>
+
 <% links = @data[:_links] %>
 <%= if Enum.empty?(links) do %>
   <div></div>

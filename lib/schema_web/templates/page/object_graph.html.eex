@@ -10,25 +10,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 %>
 <% class = @data[:class] %>
-<% name = class[:name] %>
+<% name = class[:caption] %>
 <% extension = class[:extension] %>
 
 <div class="row">
   <div class="col-md move-up">
     <h3>
-      <%= class[:caption] %>
-      <span class="text-secondary">[<a href="<%= object_path(@conn, class)  %>"><%= name %></a>]</span>
-
+      <a href="<%= object_path(@conn, class)  %>"><%= name %></a>
+      <sup><%= extension || "" %></sup>
       <% observable = class[:observable] %>
-      <%= if is_nil(observable) do %>
-      <span class="text-secondary"><sup><%= extension || "" %></sup>
-        Object
-      </span>
-      <% else %>
-      <span class="text-secondary"><sup><%= extension || "" %></sup>
-        Observable Object
-      </span>
+      <%= unless is_nil(observable) do %>
+        [<%= observable %>]
       <% end %>
+      object
     </h3>
     
     <div class="text-secondary">
