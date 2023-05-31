@@ -32,7 +32,7 @@
       <% end %>
       <% extends = @data[:extends] || "object" %>
       <span class="small">
-        <%= if extends != "object" do %>
+        <%= if extends != "object" and not String.starts_with?(extends, "_") do %>
           <span>
             extends <a href="<%= Routes.static_path(@conn, "/objects/" <> extends) %>"><%= extends %></a>
           </span>
