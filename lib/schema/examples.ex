@@ -93,7 +93,7 @@ defmodule Schema.Examples do
 
   defp examples_dir() do
     (Application.get_env(:schema_server, __MODULE__)
-    |> Keyword.get(:home) || "../examples")
+    |> Keyword.get(:home))
     |> Path.absname()
     |> Path.expand()
   end
@@ -113,7 +113,7 @@ defmodule Schema.Examples do
       |> Stream.map(fn item -> reduce(repo, path, item) end)
       |> Enum.each(&cache_put/1)
     else
-      Logger.warn("#{path} is not a directory")
+      Logger.info("#{path} is not a directory")
     end
   end
 

@@ -10,7 +10,7 @@
 defmodule Schema.MixProject do
   use Mix.Project
 
-  @version "2.49.0"
+  @version "3.0.0"
   
   def project do
     build = System.get_env("GITHUB_RUN_NUMBER") || "SNAPSHOT"
@@ -43,7 +43,7 @@ defmodule Schema.MixProject do
   end
 
   # Specifies which paths to compile per environment.
-  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(:test), do: ["lib", "test"]
   defp elixirc_paths(_), do: ["lib"]
 
   # Specifies your project dependencies.

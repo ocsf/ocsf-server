@@ -197,7 +197,7 @@ defmodule Schema.JsonReader do
     end)
   end
 
-  def read_profiles(home, []) do
+  def read_profiles(home) do
     read_schema_dir(Map.new(), home, Path.join(home, @profiles_dir))
     |> Enum.into(Map.new(), fn {name, profile} -> {Atom.to_string(name), profile} end)
   end

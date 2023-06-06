@@ -1,0 +1,10 @@
+{
+  "enum": {
+    "99": {
+      "caption": "Other"
+    },
+    "0": {
+      "caption": "Unknown"
+    }
+  }
+}

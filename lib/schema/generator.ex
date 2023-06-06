@@ -84,7 +84,6 @@ defmodule Schema.Generator do
     generate_event(class, profiles, MapSet.size(profiles))
   end
 
-  @spec generate_sample_event(Schema.Cache.object_t(), Schema.Repo.profiles_t() | nil) :: map()
   def generate_sample_object(type, nil) do
     Logger.debug("generate sample object: #{type[:name]})")
 

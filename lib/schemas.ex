@@ -41,7 +41,7 @@ defmodule Schemas do
 
   Returns {:ok, list} in case of success, {:error, reason} otherwise.
   """
-  @spec ls(Path.t()) :: {:ok, list()} | {:error, File.posix()}
+  @spec ls(Path.t()) :: list() | {:error, String.t()}
   def ls(path) do
     with {:ok, list} <- File.ls(path) do
       Stream.map(list, fn name ->
