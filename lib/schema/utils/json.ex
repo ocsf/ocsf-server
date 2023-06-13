@@ -55,9 +55,9 @@ defmodule Schema.Utils.JSON do
     do: read_dir!(%{}, home, path)
 
   defp read_dir!(acc, home, path) do
-    Logger.info("[] read_dir: #{path}")
-
     if File.dir?(path) do
+      Logger.info("[] read_dir: #{path}")
+
       File.ls!(path)
       |> Stream.map(fn file -> Path.join(path, file) end)
       |> Enum.reduce(acc, fn file, map -> read_dir!(map, home, file) end)
@@ -87,13 +87,14 @@ defmodule Schema.Utils.JSON do
   defp apply_annotations({nil, data}),
     do: data
 
-  defp apply_annotations({annotations, data}),
-    do: Maps.put_new_in(data, @attributes, annotations)
+  defp apply_annotations({annotations, data}) do
+    Logger.info("#{data[:caption]} apply_annotations: #{inspect(annotations)}")
+    Maps.put_new_in(data, @attributes, annotations)
+  end
 
   defp read_included_files(data, resolver) do
     include_files(
       fn file, data ->
-        Logger.info("  include_file: #{file}")
         included = read_file(resolver, file)
 
         Map.update!(data, @attributes, fn attributes ->
@@ -102,11 +103,11 @@ defmodule Schema.Utils.JSON do
       end,
       pop_in(data, [@attributes, @include])
     )
-    |> include_enums(resolver)
+    |> include(resolver)
   end
 
-  defp include_enums(data, resolver) do
-    Map.update!(data, @attributes, fn attributes -> merge_enums(resolver, attributes) end)
+  defp include(data, resolver) do
+    Map.update!(data, @attributes, fn attributes -> merge_attributes(resolver, attributes) end)
   end
 
   defp include_files(_resolver, {nil, data}),
@@ -118,7 +119,7 @@ defmodule Schema.Utils.JSON do
   defp include_files(resolver, {files, data}) when is_list(files),
     do: Enum.reduce(files, data, fn file, acc -> resolver.(file, acc) end)
 
-  defp merge_enums(resolver, attributes) do
+  defp merge_attributes(resolver, attributes) do
     Enum.into(
       attributes,
       Map.new(),
@@ -127,9 +128,7 @@ defmodule Schema.Utils.JSON do
           name,
           include_files(
             fn file, data ->
-              Logger.info("  include: #{file}")
-              included = read_file(resolver, file)
-              Maps.deep_merge(data, included)
+              Maps.deep_merge(data, read_file(resolver, file))
             end,
             Map.pop(map, @include)
           )
