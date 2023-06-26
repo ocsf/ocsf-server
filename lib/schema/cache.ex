@@ -218,8 +218,8 @@ defmodule Schema.Cache do
     Map.update!(type, :attributes, fn list -> update_attributes(list, dictionary) end)
   end
 
-  defp update_attributes(list, dictionary) do
-    Enum.map(list, fn {name, attribute} ->
+  defp update_attributes(attributes, dictionary) do
+    Enum.map(attributes, fn {name, attribute} ->
       case find_attribute(dictionary, name, attribute[:_source]) do
         nil ->
           Logger.warning("undefined attribute: #{name}: #{inspect(attribute)}")
@@ -289,6 +289,9 @@ defmodule Schema.Cache do
       [ext, _] ->
         ext_name = String.to_atom("#{ext}/#{name}")
         dictionary[ext_name] || dictionary[name]
+      _ ->
+        Logger.warning("#{name} has an invalid source: #{source}")
+        dictionary[name]
     end
   end
 
