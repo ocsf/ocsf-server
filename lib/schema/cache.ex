@@ -222,7 +222,7 @@ defmodule Schema.Cache do
     Enum.map(list, fn {name, attribute} ->
       case find_attribute(dictionary, name, attribute[:_source]) do
         nil ->
-          Logger.warn("undefined attribute: #{name}: #{inspect(attribute)}")
+          Logger.warning("undefined attribute: #{name}: #{inspect(attribute)}")
           {name, attribute}
 
         base ->
@@ -242,7 +242,7 @@ defmodule Schema.Cache do
     Enum.map_reduce(attributes, ref_objects, fn {name, attribute}, acc ->
       case find_attribute(dictionary, name, attribute[:_source]) do
         nil ->
-          Logger.warn("undefined attribute: #{name}: #{inspect(attribute)}")
+          Logger.warning("undefined attribute: #{name}: #{inspect(attribute)}")
           {{name, attribute}, acc}
 
         base ->
@@ -387,7 +387,7 @@ defmodule Schema.Cache do
 
     case event_id(attributes)[:enum] do
       nil ->
-        Logger.warn("class '#{name}' has no activity_id nor disposition_id")
+        Logger.warning("class '#{name}' has no activity_id nor disposition_id")
         %{}
 
       values ->
@@ -449,7 +449,7 @@ defmodule Schema.Cache do
   defp add_category_uid(class, name, categories) do
     case class[:category] do
       nil ->
-        Logger.warn("class '#{class[:name]}' has no category")
+        Logger.warning("class '#{class[:name]}' has no category")
         class
 
       "other" ->
@@ -459,7 +459,7 @@ defmodule Schema.Cache do
         {_key, category} = Utils.find_entity(categories, class, cat_name)
 
         if category == nil do
-          Logger.warn("class '#{class[:name]}' has an invalid category: #{cat_name}")
+          Logger.warning("class '#{class[:name]}' has an invalid category: #{cat_name}")
           class
         else
           update_in(
@@ -514,7 +514,7 @@ defmodule Schema.Cache do
 
         case Map.get(items, base_key) do
           nil ->
-            Logger.warn("#{key} extends invalid item: #{base_key}")
+            Logger.warning("#{key} extends invalid item: #{base_key}")
             Map.put(acc, key, item)
 
           base ->
@@ -673,7 +673,7 @@ defmodule Schema.Cache do
           desc = get_in(dictionary, [key, :description]) || ""
 
           if String.contains?(desc, "See specific usage") do
-            Logger.warn("Please update the description for #{name}.#{key}: #{desc}")
+            Logger.warning("Please update the description for #{name}.#{key}: #{desc}")
           end
         end
 
@@ -798,7 +798,7 @@ defmodule Schema.Cache do
       {name,
        case find_attribute(dictionary, name, String.to_atom(profile)) do
          nil ->
-           Logger.warn("profile #{profile} uses #{name} that is not defined in the dictionary")
+           Logger.warning("profile #{profile} uses #{name} that is not defined in the dictionary")
            attribute
 
          attr ->

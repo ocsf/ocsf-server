@@ -402,7 +402,7 @@ defmodule SchemaWeb.PageView do
             type
 
           nil ->
-            Logger.warn("group-by: found unused attribute of '#{name}' object")
+            Logger.warning("group-by: found unused attribute of '#{name}' object")
             nil
         end
       )

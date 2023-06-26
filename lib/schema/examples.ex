@@ -99,7 +99,7 @@ defmodule Schema.Examples do
   end
 
   defp build_cache(nil, _path) do
-    Logger.warn("The EXAMPLES_REPO path is not configured.")
+    Logger.warning("The EXAMPLES_REPO path is not configured.")
   end
   
   defp build_cache(repo, path) do
@@ -113,7 +113,7 @@ defmodule Schema.Examples do
       |> Stream.map(fn item -> reduce(repo, path, item) end)
       |> Enum.each(&cache_put/1)
     else
-      Logger.warn("#{path} is not a directory")
+      Logger.warning("#{path} is not a directory")
     end
   end
 

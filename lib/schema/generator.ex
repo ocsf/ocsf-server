@@ -209,7 +209,7 @@ defmodule Schema.Generator do
             generate_object(field[:requirement], name, attribute, map)
 
           nil ->
-            Logger.warn("Invalid type name: #{name}")
+            Logger.warning("Invalid type name: #{name}")
             map
 
           _other ->
