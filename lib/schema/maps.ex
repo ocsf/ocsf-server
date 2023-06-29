@@ -1,4 +1,4 @@
-defmodule Schema.Utils.Maps do
+defmodule Schema.Maps do
   @moduledoc """
   This module contains helper functions to work with maps.
   """
