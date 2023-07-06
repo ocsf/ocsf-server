@@ -168,7 +168,7 @@ defmodule Schema.JsonReader do
     if File.regular?(file) do
       read_json_file(file)
     else
-      Logger.warn("version file #{file} not found")
+      Logger.warning("version file #{file} not found")
       %{:version => "0.0.0"}
     end
   end
@@ -357,7 +357,7 @@ defmodule Schema.JsonReader do
           |> Enum.reduce(acc, fn file, map -> read_extension_files(map, home, ext, file) end)
 
         error ->
-          Logger.warn("unable to access #{path} directory. Error: #{inspect(error)}")
+          Logger.warning("unable to access #{path} directory. Error: #{inspect(error)}")
           System.stop(0)
       end
     else
@@ -369,7 +369,7 @@ defmodule Schema.JsonReader do
           |> resolve_extension_includes(home, ext)
           |> add_extension(ext[:name], ext[:uid])
 
-        name = Utils.to_uid(ext[:name], data[:name] || data[:extends])
+        name = Utils.to_uid(ext[:name], data[:name] || Path.basename(data[:extends]))
         Map.put(acc, name, data)
       else
         acc
@@ -505,7 +505,7 @@ defmodule Schema.JsonReader do
         Map.put(profiles, name, profile) |> cache_put(:profiles)
 
       _profile ->
-        Logger.warn("[#{ext}] #{file} overwrites an existing profile #{name}")
+        Logger.warning("[#{ext}] #{file} overwrites an existing profile #{name}")
     end
   end
 
@@ -562,7 +562,7 @@ defmodule Schema.JsonReader do
     if File.dir?(path) do
       find_extensions(path, list)
     else
-      Logger.warn("invalid extensions path: #{path}")
+      Logger.warning("invalid extensions path: #{path}")
       list
     end
   end

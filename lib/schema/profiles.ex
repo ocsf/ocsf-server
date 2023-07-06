@@ -66,7 +66,7 @@ defmodule Schema.Profiles do
     Enum.map(profiles, fn p ->
       case all_profiles[p] do
         nil ->
-          Logger.warn("#{name} uses undefined profile: #{p}")
+          Logger.warning("#{name} uses undefined profile: #{p}")
 
         profile ->
           check_profile(name, profile, attributes)
@@ -79,7 +79,7 @@ defmodule Schema.Profiles do
       if Map.has_key?(attributes, k) == false do
         text = "#{name} uses '#{profile[:name]}' profile, but it does not define '#{k}' attribute"
         if p[:requirement] == "required" do
-          Logger.warn(text)
+          Logger.warning(text)
         else
           Logger.info(text)
         end
