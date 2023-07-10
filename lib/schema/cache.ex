@@ -645,7 +645,7 @@ defmodule Schema.Cache do
         "object" ->
           Map.put(acc, k, v)
 
-        "entity" ->
+        "_entity" ->
           Map.put(acc, k, v)
 
         _ ->
@@ -654,9 +654,9 @@ defmodule Schema.Cache do
     end)
   end
 
-  defp observables(e) do
-    Enum.filter(e, fn {_, value} ->
-      Map.has_key?(value, :observable) and Map.get(value, :observable) > 0
+  defp observables(list) do
+    Enum.filter(list, fn {_, value} ->
+      Map.get(value, :observable, 0) > 0
     end)
   end
 
