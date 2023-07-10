@@ -10,8 +10,8 @@
 defmodule Schema.MixProject do
   use Mix.Project
 
-  @version "2.50.0"
-  
+  @version "2.50.1"
+
   def project do
     build = System.get_env("GITHUB_RUN_NUMBER") || "SNAPSHOT"
 
