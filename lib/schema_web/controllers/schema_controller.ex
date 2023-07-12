@@ -21,6 +21,9 @@ defmodule SchemaWeb.SchemaController do
   @verbose "_mode"
   @spaces "_spaces"
 
+  @enum_text "_enum_text"
+  @observables "_observables"
+
   # -------------------
   # Event Schema API's
   # -------------------
@@ -579,7 +582,7 @@ defmodule SchemaWeb.SchemaController do
 
   def export_base_event(conn, params) do
     profiles = parse_options(profiles(params))
-    base_event = Schema.export_base_event (profiles)
+    base_event = Schema.export_base_event(profiles)
 
     send_json_resp(conn, base_event)
   end
@@ -718,17 +721,91 @@ defmodule SchemaWeb.SchemaController do
     Schema.object_ex(extensions, extension, id, profiles)
   end
 
-  # ---------------------------------
-  # Validation and translation API's
-  # ---------------------------------
+  # ---------------------------------------------
+  # Enrichment, validation, and translation API's
+  # ---------------------------------------------
 
   @doc """
-  Translate event data. A single event is encoded as a JSON object and multiple events are encoded as JSON array of object.
+  Enrich event data by adding type_uid, enumerated text, and observables.
+  A single event is encoded as a JSON object and multiple events are encoded as JSON array of objects.
+  """
+  swagger_path :enrich do
+    post("/api/enrich")
+    summary("Enrich Event")
+
+    description("""
+    The purpose of this API is to enrich the provided event data with <code>type_uid</code>, enumerated text, and <code>observables</code> array.
+    Each event is represented as a JSON object, while multiple events are encoded as a JSON array of objects.
+    """)
+
+    produces("application/json")
+    tag("Tools")
+
+    parameters do
+      _enum_text(
+        :query,
+        :boolean,
+        """
+        Enhance the event data by adding the enumerated text values.<br/>
+
+        |Value|Example|
+        |-----|-------|
+        |true|Untranslated:<br/><code>{"category_uid":0,"class_uid":0,"activity_id": 0,"severity_id": 5,"status": "Something else","status_id": 99,"time": 1689125893360905}</code><br/><br/>Translated:<br/><code>{"activity_name": "Unknown", "activity_id": 0, "category_name": "Uncategorized", "category_uid": 0, "class_name": "Base Event", "class_uid": 0, "severity": "Critical", "severity_id": 5, "status": "Something else", "status_id": 99, "time": 1689125893360905, "type_name": "Base Event: Unknown", "type_uid": 0}</code>|
+        """,
+        default: false
+      )
+
+      _observables(
+        :query,
+        :boolean,
+        """
+        <strong>TODO</strong>: Enhance the event data by adding the observables associated with the event.
+        """,
+        default: false
+      )
+
+      data(:body, :object, "The event data to be enriched.", required: true)
+    end
+
+    response(200, "Success")
+  end
+
+  @spec enrich(Plug.Conn.t(), map) :: Plug.Conn.t()
+  def enrich(conn, data) do
+    {enum_text, data} = Map.pop(data, @enum_text)
+    {observables, data} = Map.pop(data, @observables)
+
+    result =
+      case data["_json"] do
+        # Enrich a single events
+        nil ->
+          Schema.enrich(data, enum_text, observables)
+
+        # Enrich a list of events
+        list when is_list(list) ->
+          Enum.map(list, &Task.async(fn -> Schema.enrich(&1, enum_text, observables) end))
+          |> Enum.map(&Task.await/1)
+
+        # something other than json data
+        other ->
+          %{:error => "The data does not look like an event", :data => other}
+      end
+
+    send_json_resp(conn, result)
+  end
+
+  @doc """
+  Translate event data. A single event is encoded as a JSON object and multiple events are encoded as JSON array of objects.
   """
   swagger_path :translate do
     post("/api/translate")
     summary("Translate Event")
-    description("Translate event data.")
+
+    description("""
+    The purpose of this API is to translate the provided event data using the OCSF schema.
+    Each event is represented as a JSON object, while multiple events are encoded as a JSON array of objects.
+    """)
+
     produces("application/json")
     tag("Tools")
 
@@ -775,25 +852,24 @@ defmodule SchemaWeb.SchemaController do
   def translate(conn, data) do
     options = [spaces: data[@spaces], verbose: verbose(data[@verbose])]
 
-    case data["_json"] do
-      nil ->
+    result =
+      case data["_json"] do
         # Translate a single events
-        data =
+        nil ->
           Map.delete(data, @verbose)
           |> Map.delete(@spaces)
           |> Schema.Translator.translate(options)
 
-        send_json_resp(conn, data)
-
-      list when is_list(list) ->
         # Translate a list of events
-        translated = Enum.map(list, fn data -> Schema.Translator.translate(data, options) end)
-        send_json_resp(conn, translated)
+        list when is_list(list) ->
+          Enum.map(list, fn data -> Schema.Translator.translate(data, options) end)
 
-      other ->
         # some other json data
-        send_json_resp(conn, other)
-    end
+        other ->
+          %{:error => "The data does not look like an event", "data" => other}
+      end
+
+    send_json_resp(conn, result)
   end
 
   @doc """
@@ -804,7 +880,12 @@ defmodule SchemaWeb.SchemaController do
   swagger_path :validate do
     post("/api/validate")
     summary("Validate Event")
-    description("Validate event data.")
+
+    description("""
+    The primary objective of this API is to validate the provided event data against the OCSF schema.
+    Each event is represented as a JSON object, while multiple events are encoded as a JSON array of objects.
+    """)
+
     produces("application/json")
     tag("Tools")
 
@@ -817,23 +898,23 @@ defmodule SchemaWeb.SchemaController do
 
   @spec validate(Plug.Conn.t(), map) :: Plug.Conn.t()
   def validate(conn, data) do
-    case data["_json"] do
-      nil ->
+    result =
+      case data["_json"] do
         # Validate a single events
-        send_json_resp(conn, Schema.Inspector.validate(data))
+        nil ->
+          Schema.Inspector.validate(data)
 
-      list when is_list(list) ->
         # Validate a list of events
-        result =
-          list
-          |> Enum.map(&Task.async(fn -> Schema.Inspector.validate(&1) end))
+        list when is_list(list) ->
+          Enum.map(list, &Task.async(fn -> Schema.Inspector.validate(&1) end))
           |> Enum.map(&Task.await/1)
-        send_json_resp(conn, result)
 
-      other ->
         # some other json data
-        send_json_resp(conn, %{:error => "The data does not look like an event", "data" => other})
-    end
+        other ->
+          %{:error => "The data does not look like an event", "data" => other}
+      end
+
+    send_json_resp(conn, result)
   end
 
   # --------------------------
@@ -1072,5 +1153,4 @@ defmodule SchemaWeb.SchemaController do
   defp parse_java_package(nil), do: []
   defp parse_java_package(""), do: []
   defp parse_java_package(name), do: [package_name: name]
-
 end
