@@ -2,9 +2,11 @@
 
 body {
   font-family: 'Bai Jamjuree', sans-serif;
-
   font-size: .8rem;
+
+/*
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' height='200px' width='200px'><text transform='translate(32, 200) rotate(-45)' fill='rgb(240, 240, 240)' font-size='120'>draft</text></svg>");
+*/
 }
 
 .navbar-toggler-icon {
