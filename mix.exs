@@ -11,7 +11,7 @@ defmodule Schema.MixProject do
   use Mix.Project
 
   @version "3.0.0"
-  
+
   def project do
     build = System.get_env("GITHUB_RUN_NUMBER") || "SNAPSHOT"
 

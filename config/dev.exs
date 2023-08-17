@@ -29,7 +29,7 @@ config :schema_server, SchemaWeb.Endpoint,
 
 # Do not include metadata nor timestamps in development logs
 config :logger, :console,
-  level: :info,
+  level: :debug,
   format: "[$level] $message\n"
   # metadata: [:pid, :mfa, :line]
 

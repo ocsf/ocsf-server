@@ -81,6 +81,7 @@ defmodule SchemaWeb.Router do
 
     get "/data_types", SchemaController, :data_types
 
+    post "/enrich", SchemaController, :enrich
     post "/translate", SchemaController, :translate
     post "/validate", SchemaController, :validate
   end

@@ -163,7 +163,7 @@ defmodule Schema.Reader do
     else
       if !File.regular?(path) do
         # invalid directory name
-        Logger.warn("invalid extensions path: #{path}")
+        Logger.warning("invalid extensions path: #{path}")
       end
       list
     end
@@ -312,7 +312,7 @@ defmodule Schema.Reader do
         :ok
 
       _ ->
-        Logger.warn("ETS table with name #{name} already exists.")
+        Logger.warning("ETS table with name #{name} already exists.")
         cache_clear()
         :ok
     end

@@ -418,6 +418,14 @@ defmodule Schema do
     |> reduce_objects()
   end
 
+  # ----------------------------#
+  # Enrich Event Data Functions #
+  # ----------------------------#
+
+  def enrich(data, enum_text, observables) do
+  	Schema.Helper.enrich(data, enum_text, observables)
+  end
+
   # -------------------------------#
   # Generate Sample Data Functions #
   # -------------------------------#
