@@ -51,20 +51,31 @@ defmodule SchemaWeb.PageView do
     end
   end
 
-  def class_profiles(class, profiles) do
+  def class_profiles(conn, class, profiles) do
     case (class[:profiles] || []) do
       [] ->
         ""
       list ->
         [
-          "<strong>Applicable profiles: </strong>",
+          "<h5>Profiles</h5>",
+          "Applicable profiles: ",
           Enum.map_join(list, ", ", fn name ->
-            get_in(profiles, [String.to_atom(name), :caption]) || name
-          end)
+            profile_link(conn, get_in(profiles, [name, :caption]), name)
+          end),
+          "."
         ]
     end
   end
 
+  defp profile_link(_conn, nil, name) do
+    name
+  end
+  
+  defp profile_link(conn, caption, name) do
+    path = Routes.static_path(conn, "/profiles/" <> name)
+    "<a href='#{path}'>#{caption}</a>"
+  end
+  
   def class_examples(class) do
     format_class_examples(class[:examples])
   end

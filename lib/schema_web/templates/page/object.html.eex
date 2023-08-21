@@ -43,9 +43,6 @@
     <div class="text-secondary">
       <%= raw @data[:description] %>
     </div>
-    <div class="mt-1">
-      <%= raw class_profiles(@data, @profiles) %>
-    </div>
   </div>
   <div class="col-md-auto fixed-right mt-2">
     <div class="navbar-expand-md">
@@ -118,6 +115,9 @@
     <%= raw constraints(constraints) %>
   </div>
 <% end %>
+<div class="mt-2">
+  <%= raw class_profiles(@conn, @data, @profiles) %>
+</div>
 <script>
   init_schema_buttons();
   init_class_profiles();
