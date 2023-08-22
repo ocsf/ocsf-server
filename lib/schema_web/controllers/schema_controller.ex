@@ -176,7 +176,11 @@ defmodule SchemaWeb.SchemaController do
 
   @spec profiles(Plug.Conn.t(), any) :: Plug.Conn.t()
   def profiles(conn, _params) do
-    send_json_resp(conn, Schema.profiles())
+    profiles =
+      Enum.into(Schema.profiles(), %{}, fn {k, v} ->
+        {k, Schema.delete_links(v)}
+      end)
+    send_json_resp(conn, profiles)
   end
 
   @doc """
@@ -217,7 +221,7 @@ defmodule SchemaWeb.SchemaController do
           send_json_resp(conn, 404, %{error: "Profile #{name} not found"})
 
         profile ->
-          send_json_resp(conn, profile)
+          send_json_resp(conn, Schema.delete_links(profile))
       end
     rescue
       e ->

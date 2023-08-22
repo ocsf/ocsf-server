@@ -82,6 +82,17 @@
     </tbody>
   </table>
 </div>
+<% links = @data[:_links] %>
+<%= if Enum.empty?(links) do %>
+  <div></div>
+<% else %>
+  <div class="links">
+    <h5>Referenced By</h5>
+    <div>
+      <%= raw links(@conn, @data[:caption], links) %>
+    </div>
+  </div>
+<% end %>
 <script>
   init_schema_buttons();
   init_class_profiles();

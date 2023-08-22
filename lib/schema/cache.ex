@@ -63,7 +63,7 @@ defmodule Schema.Cache do
     JsonReader.cleanup()
 
     # Apply profiles to objects and classes
-    {objects, profiles} = Profiles.sanity_check(objects, profiles)
+    {objects, profiles} = Profiles.sanity_check(:object, objects, profiles)
     objects =
       objects
       |> Utils.update_objects(attributes)
@@ -71,7 +71,7 @@ defmodule Schema.Cache do
       |> update_objects()
       |> final_check(attributes)
 
-    {classes, profiles} = Profiles.sanity_check(classes, profiles)
+    {classes, profiles} = Profiles.sanity_check(:class, classes, profiles)
 
     classes =
       update_classes(classes, objects)

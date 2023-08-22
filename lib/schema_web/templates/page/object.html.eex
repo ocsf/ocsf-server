@@ -100,14 +100,14 @@
 <% links = @data[:_links] %>
 <%= if Enum.empty?(links) do %>
   <div></div>
-  <% else %>
+<% else %>
   <div class="links">
     <h5>Referenced By</h5>
     <div>
       <%= raw links(@conn, @data[:caption], links) %>
     </div>
   </div>
-  <% end %>
+<% end %>
 <% constraints = @data[:constraints] %>
 <%= if constraints != nil and map_size(constraints) > 0 do %>
   <h5>Constraints</h5>
