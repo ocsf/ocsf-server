@@ -49,20 +49,20 @@ defmodule Schema.Profiles do
     Checks classes or objects if all profile attributes are defined.
   """
   def sanity_check(maps, profiles) do
-    Enum.each(maps, fn {name, map} ->
-      sanity_check(name, map[:attributes], map[:profiles], profiles)
-    end)
+    profiles =
+      Enum.reduce(maps, profiles, fn {name, map}, acc ->
+        check_profiles(name, map[:attributes], map[:profiles], acc)
+      end)
 
-    maps
+    {maps, profiles}
   end
 
-  @doc """
-    Checks if all profile attributes are defined in the given attribute set.
-  """
-  def sanity_check(_name, _attributes, nil, _all_profiles) do
+  # Checks if all profile attributes are defined in the given attribute set.
+  defp check_profiles(_name, _attributes, nil, all_profiles) do
+    all_profiles
   end
 
-  def sanity_check(name, attributes, profiles, all_profiles) do
+  defp check_profiles(name, attributes, profiles, all_profiles) do
     Enum.map(profiles, fn p ->
       case all_profiles[p] do
         nil ->
@@ -72,12 +72,15 @@ defmodule Schema.Profiles do
           check_profile(name, profile, attributes)
       end
     end)
+
+    all_profiles
   end
 
   defp check_profile(name, profile, attributes) do
     Enum.each(profile[:attributes], fn {k, p} ->
       if Map.has_key?(attributes, k) == false do
         text = "#{name} uses '#{profile[:name]}' profile, but it does not define '#{k}' attribute"
+
         if p[:requirement] == "required" do
           Logger.warning(text)
         else

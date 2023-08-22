@@ -68,6 +68,9 @@ defmodule SchemaWeb.Router do
     get "/categories/:id", SchemaController, :category
     get "/categories/:extension/:id", SchemaController, :category
 
+    get "/profiles/:id", SchemaController, :profile
+    get "/profiles/:extension/:id", SchemaController, :profile
+
     get "/classes", SchemaController, :classes
     get "/classes/:id", SchemaController, :class
     get "/classes/:extension/:id", SchemaController, :class

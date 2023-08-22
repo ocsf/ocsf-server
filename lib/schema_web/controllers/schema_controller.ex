@@ -180,6 +180,53 @@ defmodule SchemaWeb.SchemaController do
   end
 
   @doc """
+  Get a profile by name.
+  get /api/profiles/:name
+  get /api/profiles/:extention/:name
+  """
+  swagger_path :profile do
+    get("/api/profiles/{name}")
+    summary("Profile")
+
+    description(
+      "Get OCSF schema profile by name. The profile name may contain an extension name. For example, \"linux/linux_users\"."
+    )
+
+    produces("application/json")
+    tag("Schema")
+
+    parameters do
+      name(:path, :string, "Profile name", required: true)
+    end
+
+    response(200, "Success")
+    response(404, "Profile <code>name</code> not found")
+  end
+
+  @spec profile(Plug.Conn.t(), map) :: Plug.Conn.t()
+  def profile(conn, %{"id" => id} = params) do
+    name = case params["extension"] do
+      nil -> id
+      extension -> "#{extension}/#{id}"
+    end
+
+    try do
+      data = Schema.profiles()
+      case Map.get(data, name) do
+        nil ->
+          send_json_resp(conn, 404, %{error: "Profile #{name} not found"})
+
+        profile ->
+          send_json_resp(conn, profile)
+      end
+    rescue
+      e ->
+        Logger.error("Unable to get profile: #{id}. Error: #{inspect(e)}")
+        send_json_resp(conn, 500, %{error: "Error: #{e[:message]}"})
+    end
+  end
+
+  @doc """
   Get the schema categories.
   """
   swagger_path :categories do

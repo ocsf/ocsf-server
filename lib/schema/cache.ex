@@ -14,6 +14,7 @@ defmodule Schema.Cache do
 
   alias Schema.Utils
   alias Schema.JsonReader
+  alias Schema.Profiles
   alias Schema.Types
 
   require Logger
@@ -62,21 +63,21 @@ defmodule Schema.Cache do
     JsonReader.cleanup()
 
     # Apply profiles to objects and classes
+    {objects, profiles} = Profiles.sanity_check(objects, profiles)
     objects =
       objects
       |> Utils.update_objects(attributes)
       |> update_observables(dictionary)
-      |> Schema.Profiles.sanity_check(profiles)
-      |> update_object_profiles()
-      |> sanity_check(attributes, profiles)
+      |> update_objects()
+      |> final_check(attributes)
+
+    {classes, profiles} = Profiles.sanity_check(classes, profiles)
 
     classes =
-      classes
-      |> Schema.Profiles.sanity_check(profiles)
-      |> update_class_profiles(objects)
-      |> sanity_check(attributes, profiles)
+      update_classes(classes, objects)
+      |> final_check(attributes)
 
-    base_event = sanity_check(:base_event, base_event, attributes, profiles)
+    base_event = final_check(:base_event, base_event, attributes)
 
     new(version)
     |> set_profiles(profiles)
@@ -660,13 +661,13 @@ defmodule Schema.Cache do
     end)
   end
 
-  defp sanity_check(maps, dictionary, profiles) do
+  defp final_check(maps, dictionary) do
     Enum.into(maps, %{}, fn {name, value} ->
-      {name, sanity_check(name, value, dictionary, profiles)}
+      {name, final_check(name, value, dictionary)}
     end)
   end
 
-  defp sanity_check(name, map, dictionary, _all_profiles) do
+  defp final_check(name, map, dictionary) do
     profiles = map[:profiles]
     attributes = map[:attributes]
 
@@ -702,17 +703,17 @@ defmodule Schema.Cache do
     end
   end
 
-  defp update_object_profiles(objects) do
-    Enum.reduce(objects, objects, fn {name, object}, acc ->
+  defp update_objects(objects) do
+    Enum.reduce(objects, objects, fn {_name, object}, acc ->
       if Map.has_key?(object, :profiles) do
-        update_object_profiles(name, object, acc)
+        update_object_profiles(object, acc)
       else
         acc
       end
     end)
   end
 
-  defp update_object_profiles(_name, object, objects) do
+  defp update_object_profiles(object, objects) do
     case object[:_links] do
       nil ->
         objects
@@ -722,7 +723,7 @@ defmodule Schema.Cache do
     end
   end
 
-  defp update_class_profiles(classes, objects) do
+  defp update_classes(classes, objects) do
     Enum.reduce(objects, classes, fn {name, object}, acc ->
       if Map.has_key?(object, :profiles) do
         update_class_profiles(name, object, acc)
@@ -742,9 +743,9 @@ defmodule Schema.Cache do
     end
   end
 
-  defp update_linked_profiles(type_id, links, object, classes) do
+  defp update_linked_profiles(name, links, object, classes) do
     Enum.reduce(links, classes, fn {type, key, _}, acc ->
-      if type == type_id do
+      if type == name do
         Map.update!(acc, String.to_atom(key), fn class ->
           Map.put(class, :profiles, merge(class[:profiles], object[:profiles]))
         end)
