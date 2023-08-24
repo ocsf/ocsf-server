@@ -32,7 +32,7 @@ limitations under the License.
     </h4>
 
     <div class="text-secondary">
-      <%= raw @data[:description] %>
+      <%= raw description(@data) %>
     </div>
     <div class="mt-1">
       <%= raw class_examples(@data) %>

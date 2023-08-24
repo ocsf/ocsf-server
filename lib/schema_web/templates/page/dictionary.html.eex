@@ -47,7 +47,7 @@ limitations under the License.
           <td><%= name %></td>
           <td><%= raw format_type(@conn, field) %></td>
           <td><%= raw links(@conn, key, field[:_links]) %></td>
-          <td><%= raw field[:description] %></td>
+          <td><%= raw description(field) %></td>
         </tr>
       <% end %>
     </tbody>

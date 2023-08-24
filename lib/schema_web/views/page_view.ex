@@ -313,9 +313,9 @@ defmodule SchemaWeb.PageView do
     end
   end
 
-  @spec format_desc(nil | map) :: any
+  @spec format_desc(map) :: any
   def format_desc(obj) do
-    description = Map.get(obj, :description)
+    description = description(obj)
 
     case Map.get(obj, :enum) do
       nil ->
@@ -488,4 +488,22 @@ defmodule SchemaWeb.PageView do
   defp format_number(n) do
     Number.Delimit.number_to_delimited(n, precision: 0)
   end
+
+  def description(map) do
+    deprecated(map, Map.get(map, :"@deprecated"))
+  end
+  
+  defp deprecated(map, nil) do
+    Map.get(map, :description)
+  end
+  
+  defp deprecated(map, deprecated) do
+    [
+      Map.get(map, :description),
+      "<div class='text-dark mt-2'><span class='bg-warning'>DEPRECATED</span> ",
+      Map.get(deprecated, :message),
+      "</div>"
+    ]
+  end
+
 end

@@ -45,7 +45,7 @@ limitations under the License.
           <td class="name"><a href="<%= path %>"><%= raw format_attribute_name(name, map) %></a></td>
           <td><a href="<%= path %>"><%= name %></a></td>
           <td><%= raw links(@conn, name, map[:_links]) %></td>
-          <td><%= raw map[:description] %></td>
+          <td><%= raw description(map) %></td>
         </tr>
       <% end %>
     </tbody>

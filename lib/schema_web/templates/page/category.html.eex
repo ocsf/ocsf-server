@@ -18,7 +18,7 @@ limitations under the License.
         Category
       </span>
     </h3>
-    <div class="text-dark"><%= raw @data[:description] %></div>
+    <div class="text-dark"><%= raw description(@data) %></div>
   </div>
   <div class="col-md-auto fixed-right mt-2">
     <div class="form-inline">
@@ -54,7 +54,7 @@ limitations under the License.
         <% else %>
           <td></td>
         <% end %>
-        <td><%= raw class[:description] %></td>
+        <td><%= raw description(class) %></td>
       </tr>
     <% end %>
     </tbody>
