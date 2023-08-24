@@ -41,6 +41,8 @@ defmodule Schema.Cache do
   @type category_t() :: map()
   @type dictionary_t() :: map()
 
+  @ocsf_deprecated :"@deprecated"
+
   @doc """
   Load the schema files and initialize the cache.
   """
@@ -64,6 +66,7 @@ defmodule Schema.Cache do
 
     # Apply profiles to objects and classes
     {objects, profiles} = Profiles.sanity_check(:object, objects, profiles)
+
     objects =
       objects
       |> Utils.update_objects(attributes)
@@ -290,6 +293,7 @@ defmodule Schema.Cache do
       [ext, _] ->
         ext_name = String.to_atom("#{ext}/#{name}")
         dictionary[ext_name] || dictionary[name]
+
       _ ->
         Logger.warning("#{name} has an invalid source: #{source}")
         dictionary[name]
@@ -662,9 +666,26 @@ defmodule Schema.Cache do
   end
 
   defp final_check(maps, dictionary) do
-    Enum.into(maps, %{}, fn {name, value} ->
-      {name, final_check(name, value, dictionary)}
+    Enum.into(maps, %{}, fn {name, map} ->
+      deprecated_type(name, map, Map.get(map, @ocsf_deprecated))
+
+      {name, final_check(name, map, dictionary)}
     end)
+  end
+
+  defp deprecated_type(_name, _map, nil) do
+  end
+  
+  defp deprecated_type(name, map, deprecated) do
+    type =
+      if Map.has_key?(map, :category) do
+        "class"
+      else
+        "object"
+      end
+
+    message = Map.get(deprecated, :message)
+    Logger.warning("The #{name} #{type} has been deprecated. #{message}")
   end
 
   defp final_check(name, map, dictionary) do
@@ -673,6 +694,16 @@ defmodule Schema.Cache do
 
     list =
       Enum.reduce(attributes, [], fn {key, attribute}, acc ->
+        case Map.get(attribute, @ocsf_deprecated) do
+          nil ->
+            :ok
+
+          deprecated ->
+            Logger.warning(
+              "The #{key} attribute in #{name} has been deprecated. #{Map.get(deprecated, :message)}"
+            )
+        end
+
         if is_nil(attribute[:description]) do
           desc = get_in(dictionary, [key, :description]) || ""
 

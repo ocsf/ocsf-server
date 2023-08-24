@@ -50,7 +50,7 @@ limitations under the License.
           <% else %>
             <td></td>
           <% end %>
-          <td><%= raw map[:description] %></td>
+          <td><%= raw description(map) %></td>
         </tr>
       <% end %>
     </tbody>
