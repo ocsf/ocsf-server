@@ -175,30 +175,17 @@ defmodule Schema.JsonSchema do
 
   defp new_schema(attr), do: %{"title" => attr[:caption]}
 
-  defp encode_type("datetime_t"), do: "string"
-  defp encode_type("email_t"), do: "string"
-  defp encode_type("file_hash_t"), do: "string"
-  defp encode_type("file_name_t"), do: "string"
-  defp encode_type("hostname_t"), do: "string"
-  defp encode_type("ip_t"), do: "string"
-  defp encode_type("mac_t"), do: "string"
-  defp encode_type("path_t"), do: "string"
-  defp encode_type("process_name_t"), do: "string"
-  defp encode_type("resource_uid_t"), do: "string"
-  defp encode_type("subnet_t"), do: "string"
-  defp encode_type("url_t"), do: "string"
-  defp encode_type("username_t"), do: "string"
-  defp encode_type("uuid_t"), do: "string"
-
-  defp encode_type("long_t"), do: "integer"
-  defp encode_type("timestamp_t"), do: "integer"
-  defp encode_type("port_t"), do: "integer"
-  defp encode_type("float_t"), do: "number"
-
-  defp encode_type("boolean_t"), do: "boolean"
-
-  defp encode_type(type), do: type
-
+  defp encode_type(type) do
+    cond do
+      Schema.data_type?(type, "string_t") -> "string"
+      Schema.data_type?(type, "integer_t") -> "integer"
+      Schema.data_type?(type, "long_t") -> "integer"
+      Schema.data_type?(type, "float_t") -> "number"
+      Schema.data_type?(type, "boolean_t") -> "boolean"
+      true -> type
+    end
+  end
+  
   defp encode_object(schema, _name, attr) do
     type = attr[:object_type]
     Map.put(schema, "$ref", make_object_ref(type))

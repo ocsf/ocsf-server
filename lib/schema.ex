@@ -108,6 +108,8 @@ defmodule Schema do
   def data_types(), do: Repo.data_types()
 
   @spec data_type?(binary(), binary() | list(binary())) :: boolean()
+  def data_type?(type, type), do: true
+  
   def data_type?(type, base_type) when is_binary(base_type) do
     types = Map.get(Repo.data_types(), :attributes)
 
