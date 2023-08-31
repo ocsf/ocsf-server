@@ -189,6 +189,9 @@ defmodule Schema.JsonSchema do
   defp encode_type("url_t"), do: "string"
   defp encode_type("username_t"), do: "string"
   defp encode_type("uuid_t"), do: "string"
+  defp encode_type("asset_type_t"), do: "string"
+  defp encode_type("managed_state_t"), do: "string"
+  defp encode_type("review_status_t"), do: "string"
 
   defp encode_type("long_t"), do: "integer"
   defp encode_type("timestamp_t"), do: "integer"
