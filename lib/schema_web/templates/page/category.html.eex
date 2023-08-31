@@ -46,7 +46,7 @@ limitations under the License.
       <% path = Routes.static_path(@conn, "/classes/" <> name) %>
       <tr class="extensions ocsf-class" <%= raw format_profiles(class[:profiles])%>>
         <td class="name">
-          <a href="<%= path %>"><%= raw format_name(name, class) %></a>
+          <a href="<%= path %>"><%= raw format_caption(name, class) %></a>
         </td>
         <% uid = class[:uid] %>
         <%= if uid != nil do %>

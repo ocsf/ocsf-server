@@ -105,8 +105,8 @@ defmodule SchemaWeb.PageView do
     ["data-profiles='", Enum.join(profiles, ","), "'"]
   end
 
-  @spec format_name(any, nil | maybe_improper_list | map) :: any
-  def format_name(name, field) do
+  @spec format_caption(any, nil | maybe_improper_list | map) :: any
+  def format_caption(name, field) do
     name = field[:caption] || name
 
     name =
@@ -121,8 +121,8 @@ defmodule SchemaWeb.PageView do
     end
   end
 
-  @spec format_attribute_name(any, nil | maybe_improper_list | map) :: any
-  def format_attribute_name(name, field) do
+  @spec format_attribute_caption(any, nil | maybe_improper_list | map) :: any
+  def format_attribute_caption(name, field) do
     name = field[:caption] || name
 
     name =
@@ -137,12 +137,9 @@ defmodule SchemaWeb.PageView do
     end
   end
 
-  @spec format_profile_name(any, any) :: any
-  def format_profile_name(name, profile) do
-    case profile do
-      "" -> name
-      profile -> name <> " <sup>#{profile}</sup>"
-    end
+  @spec format_attribute_name(binary()) :: any
+  def format_attribute_name(name) do
+    Path.basename(name)
   end
 
   @spec format_range([nil | number | Decimal.t(), ...]) :: nonempty_binary
