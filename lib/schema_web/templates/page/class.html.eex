@@ -15,22 +15,25 @@ limitations under the License.
 </script>
 
 <% category = @data[:category] %>
+<% category_name = @data[:category_name] %>
 <% extension = @data[:extension] %>
 
 <div class="row">
   <div class="col-md move-up">
     <% path = Routes.static_path(@conn, "/categories/" <> category) %>
-    <h3>
+    <h3 class="extensions">
       <%= @data[:caption] %>
       <span class="text-secondary">[<a href="<%= class_graph_path(@conn, @data)  %>"><%= @data[:uid] %></a>]<sup><%= extension || "" %></sup>
         Class
       </span>
     </h3>
 
-    <h4 class="extensions">
-      <a href="<%= path %>"><%= @data[:category_name] %> Category</a>
-    </h4>
-
+    <%= if category_name != nil do %>
+      <h4 class="extensions">
+        <a href="<%= path %>"><%= category_name %></a>
+         Category
+      </h4>
+    <% end %>
     <div class="text-secondary">
       <%= raw description(@data) %>
     </div>
@@ -93,7 +96,7 @@ limitations under the License.
           <td data-toggle="tooltip" title="<%= field[:_source] %>"><%= raw format_attribute_name(name) %></td>
           <td class="capitalize"><%= field[:group] %></td>
           <td class="capitalize"><%= format_requirement(field) %></td>
-          <td><%= raw format_type(@conn, field) %></td>
+          <td class="extensions"><%= raw format_type(@conn, field) %></td>
           <td><%= raw format_desc(field) %></td>
         </tr>
       <% end %>
@@ -109,13 +112,13 @@ limitations under the License.
   </div>
 <% end %>
 
-<div class="mt-1">
+<div class="extensions">
   <%= raw class_profiles(@conn, @data, @profiles) %>
 </div>
 
 <% associations = @data[:associations] %>
 <%= if associations != nil and map_size(associations) > 0 do %>
-  <h5>Attribute Associations</h5>
+  <h5 class="mt-3">Attribute Associations</h5>
   <div class="text-monospace">
     <%= raw associations(associations) %>
   </div>

@@ -16,8 +16,8 @@ defmodule SchemaWeb.PageController do
   alias SchemaWeb.SchemaController
 
   @spec guidelines(Plug.Conn.t(), any) :: Plug.Conn.t()
-  def guidelines(conn, _params) do
-    render(conn, "guidelines.html", extensions: Schema.extensions(), profiles: Schema.profiles())
+  def guidelines(conn, params) do
+    render(conn, "guidelines.html", extensions: Schema.extensions(), profiles: SchemaController.get_profiles(params))
   end
 
   @spec class_graph(Plug.Conn.t(), any) :: Plug.Conn.t()
@@ -32,7 +32,7 @@ defmodule SchemaWeb.PageController do
           
           render(conn, "class_graph.html",
             extensions: Schema.extensions(),
-            profiles: Schema.profiles(),
+            profiles: SchemaController.get_profiles(params),
             data: data
           )
       end
@@ -53,7 +53,7 @@ defmodule SchemaWeb.PageController do
           
           render(conn, "object_graph.html",
             extensions: Schema.extensions(),
-            profiles: Schema.profiles(),
+            profiles: SchemaController.get_profiles(params),
             data: data
           )
       end
@@ -66,12 +66,12 @@ defmodule SchemaWeb.PageController do
   Renders the data types.
   """
   @spec data_types(Plug.Conn.t(), any) :: Plug.Conn.t()
-  def data_types(conn, _params) do
+  def data_types(conn, params) do
     data = Schema.data_types() |> sort_attributes()
 
     render(conn, "data_types.html",
       extensions: Schema.extensions(),
-      profiles: Schema.profiles(),
+      profiles: SchemaController.get_profiles(params),
       data: data
     )
   end
@@ -87,7 +87,7 @@ defmodule SchemaWeb.PageController do
     end
 
     try do
-      data = Schema.profiles()
+      data = SchemaController.get_profiles(params)
       case Map.get(data, name) do
         nil ->
           send_resp(conn, 404, "Not Found: #{name}")
@@ -103,8 +103,9 @@ defmodule SchemaWeb.PageController do
       e -> send_resp(conn, 400, "Bad Request: #{inspect(e)}")
     end
   end
-  def profiles(conn, _params) do
-    data = Schema.profiles()
+
+  def profiles(conn, params) do
+    data = SchemaController.get_profiles(params)
 
     render(conn, "profiles.html",
       extensions: Schema.extensions(),
@@ -128,7 +129,7 @@ defmodule SchemaWeb.PageController do
 
           render(conn, "category.html",
             extensions: Schema.extensions(),
-            profiles: Schema.profiles(),
+            profiles: SchemaController.get_profiles(params),
             data: Map.put(data, :classes, classes)
           )
       end
@@ -146,7 +147,7 @@ defmodule SchemaWeb.PageController do
 
     render(conn, "index.html",
       extensions: Schema.extensions(),
-      profiles: Schema.profiles(),
+      profiles: SchemaController.get_profiles(params),
       data: data
     )
   end
@@ -160,7 +161,7 @@ defmodule SchemaWeb.PageController do
 
     render(conn, "dictionary.html",
       extensions: Schema.extensions(),
-      profiles: Schema.profiles(),
+      profiles: SchemaController.get_profiles(params),
       data: data
     )
   end
@@ -169,12 +170,12 @@ defmodule SchemaWeb.PageController do
   Renders the base event attributes.
   """
   @spec base_event(Plug.Conn.t(), any) :: Plug.Conn.t()
-  def base_event(conn, _params) do
+  def base_event(conn, params) do
     data = Schema.class(:base_event)
 
     render(conn, "class.html",
       extensions: Schema.extensions(),
-      profiles: Schema.profiles(),
+      profiles: SchemaController.get_profiles(params),
       data: sort_attributes(data)
     )
   end
@@ -198,7 +199,7 @@ defmodule SchemaWeb.PageController do
           
           render(conn, "class.html",
             extensions: Schema.extensions(),
-            profiles: Schema.profiles(),
+            profiles: SchemaController.get_profiles(params),
             data: sorted
           )
       end
@@ -212,7 +213,7 @@ defmodule SchemaWeb.PageController do
 
     render(conn, "classes.html",
       extensions: Schema.extensions(),
-      profiles: Schema.profiles(),
+      profiles: SchemaController.get_profiles(params),
       data: data
     )
   end
@@ -230,7 +231,7 @@ defmodule SchemaWeb.PageController do
         data ->
           render(conn, "object.html",
             extensions: Schema.extensions(),
-            profiles: Schema.profiles(),
+            profiles: SchemaController.get_profiles(params),
             data: sort_attributes(data)
           )
       end
@@ -244,7 +245,7 @@ defmodule SchemaWeb.PageController do
 
     render(conn, "objects.html",
       extensions: Schema.extensions(),
-      profiles: Schema.profiles(),
+      profiles: SchemaController.get_profiles(params),
       data: data
     )
   end

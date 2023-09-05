@@ -57,9 +57,10 @@ defmodule SchemaWeb.PageView do
         ""
       list ->
         [
-          "<h5>Profiles</h5>",
+          "<h5 class='mt-3'>Profiles</h5>",
           "Applicable profiles: ",
-          Enum.map_join(list, ", ", fn name ->
+          Stream.filter(list, fn profile -> Map.has_key?(profiles, profile)  end)
+          |> Enum.map_join(", ", fn name ->
             profile_link(conn, get_in(profiles, [name, :caption]), name)
           end),
           "."

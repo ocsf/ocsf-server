@@ -37,6 +37,15 @@ defmodule Schema.Repo do
     Agent.get(__MODULE__, fn schema -> Cache.profiles(schema) end)
   end
 
+  @spec profiles(extensions_t() | nil) :: map()
+  def profiles(nil) do
+    Agent.get(__MODULE__, fn schema -> Cache.profiles(schema) end)
+  end
+
+  def profiles(extensions) do
+    Agent.get(__MODULE__, fn schema -> Cache.profiles(schema) |> filter(extensions) end)
+  end
+
   @spec categories :: map()
   def categories() do
     Agent.get(__MODULE__, fn schema -> Cache.categories(schema) end)

@@ -42,11 +42,11 @@ limitations under the License.
         <% name = Atom.to_string(key) %>
         <% path = Routes.static_path(@conn, "/classes/" <> name) %>
         <tr class="ocsf-class" <%= raw format_profiles(map[:profiles])%>>
-          <td class="name"><a href="<%= path %>"><%= raw format_caption(name, map) %></a></td>
-          <td><a href="<%= path %>"><%= name %></a></td>
+          <td class="name"><%= raw format_caption(name, map) %></td>
+          <td class="extensions"><a href="<%= path %>"><%= name %></a></td>
           <% uid = map[:uid] %>
           <%= if uid != nil do %>
-            <td><a href="<%= path %>"><%= uid %></a></td>
+            <td><%= uid %></td>
           <% else %>
             <td></td>
           <% end %>

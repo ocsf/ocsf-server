@@ -47,6 +47,11 @@ defmodule Schema do
   @spec profiles :: map()
   def profiles(), do: Repo.profiles()
 
+  @spec profiles(Repo.extensions_t()) :: map()
+  def profiles(extensions) do
+    Repo.profiles(extensions)
+  end
+
   @doc """
     Reloads the event schema without the extensions.
   """

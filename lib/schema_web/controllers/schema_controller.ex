@@ -175,12 +175,21 @@ defmodule SchemaWeb.SchemaController do
   end
 
   @spec profiles(Plug.Conn.t(), any) :: Plug.Conn.t()
-  def profiles(conn, _params) do
+  def profiles(conn, params) do
     profiles =
-      Enum.into(Schema.profiles(), %{}, fn {k, v} ->
+      Enum.into(get_profiles(params), %{}, fn {k, v} ->
         {k, Schema.delete_links(v)}
       end)
     send_json_resp(conn, profiles)
+  end
+
+  @doc """
+    Returns the list of profiles.
+  """
+  @spec get_profiles(map) :: map
+  def get_profiles(params) do
+    extensions = parse_options(extensions(params))
+    Schema.profiles(extensions)
   end
 
   @doc """
