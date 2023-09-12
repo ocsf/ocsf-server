@@ -19,7 +19,7 @@ defmodule Schema.Application do
     env = Application.get_env(:schema_server, __MODULE__)
 
     schema_dir = Keyword.get(env, :home)
-    schemas_dir =Keyword.get(env, :schema_home)
+    schemas_dir = Keyword.get(env, :schema_home)
 
     extensions =
       case Keyword.get(env, :extension) do
