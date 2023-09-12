@@ -694,52 +694,66 @@ defmodule Schema.Cache do
 
     list =
       Enum.reduce(attributes, [], fn {key, attribute}, acc ->
-        case Map.get(attribute, @ocsf_deprecated) do
-          nil ->
-            :ok
-
-          deprecated ->
-            Logger.warning(
-              "The #{key} attribute in #{name} has been deprecated. #{Map.get(deprecated, :message)}"
-            )
-        end
-
-        if is_nil(attribute[:description]) do
-          desc = get_in(dictionary, [key, :description]) || ""
-
-          if String.contains?(desc, "See specific usage") do
-            Logger.warning("Please update the description for #{name}.#{key}: #{desc}")
-          end
-        end
-
-        case Utils.find_entity(dictionary, map, key) do
-          {_k, nil} ->
-            acc
-
-          {_k, v} ->
-            case Map.get(v, :type) do
-              "timestamp_t" ->
-                attr =
-                  Map.put(attribute, :profile, "datetime") |> Map.put(:requirement, "optional")
-
-                [{Utils.make_datetime(key), attr} | acc]
-
-              _ ->
-                acc
-            end
-        end
+        deprecated_warning(name, key, attribute)
+        missing_desc_warning(attribute[:description], name, key, dictionary)
+        add_datetime(Utils.find_entity(dictionary, map, key), key, attribute, acc)
       end)
 
-    case list do
-      [] ->
-        map
+    update_profiles(list, map, profiles, attributes)
+  end
 
-      list ->
-        # add the synthetic datetime profile
-        map
-        |> Map.put(:profiles, merge(profiles, ["datetime"]))
-        |> Map.put(:attributes, Enum.into(list, attributes))
+  defp deprecated_warning(name, key, attribute) do
+    case Map.get(attribute, @ocsf_deprecated) do
+      nil ->
+        :ok
+
+      deprecated ->
+        Logger.warning(
+          "The #{key} attribute in #{name} has been deprecated. #{Map.get(deprecated, :message)}"
+        )
     end
+  end
+
+  defp missing_desc_warning(nil, name, key, dictionary) do
+    desc = get_in(dictionary, [key, :description]) || ""
+
+    if String.contains?(desc, "See specific usage") do
+      Logger.warning("Please update the description for #{name}.#{key}: #{desc}")
+    end
+  end
+
+  defp missing_desc_warning(_desc, _name, _key, _dict) do
+    :ok
+  end
+
+  defp add_datetime({_k, nil}, _key, _attribute, acc) do
+    acc
+  end
+
+  defp add_datetime({_k, v}, key, attribute, acc) do
+    case Map.get(v, :type) do
+      "timestamp_t" ->
+        attribute =
+          attribute
+          |> Map.put(:profile, "datetime")
+          |> Map.put(:requirement, "optional")
+
+        [{Utils.make_datetime(key), attribute} | acc]
+
+      _ ->
+        acc
+    end
+  end
+
+  defp update_profiles([], map, _profiles, _attributes) do
+    map
+  end
+
+  defp update_profiles(list, map, profiles, attributes) do
+    # add the synthetic datetime profile
+    map
+    |> Map.put(:profiles, merge(profiles, ["datetime"]))
+    |> Map.put(:attributes, Enum.into(list, attributes))
   end
 
   defp update_objects(objects) do
