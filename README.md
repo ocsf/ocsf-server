@@ -24,11 +24,18 @@ docker build -t ocsf-server .
 ```
 
 ## Run the server docker image 
-Change the `path/to` to your local OCSF schema directory (use an absolute path). Note, the `-p 8443:8443` parameter enables HTTPS with a self-signed SSL certificate.
+Change the `/path/to` to your local OCSF schema directory (use an absolute path). Note, the `-p 8443:8443` parameter enables HTTPS with a self-signed SSL certificate.
 
 ```shell
 docker run -it --rm --volume /path/to/ocsf-schema:/app/schema -p 8080:8080 -p 8443:8443 ocsf-server
 ```
+
+For example, if the `ocsf-schema` and `ocsf-server` repos were cloned to the local directory `~/github-projects`, this would be the proper replacement for `/path/to`:
+```shell
+docker run -it --rm --volume ~/github-projects/ocsf/ocsf-schema:/app/schema -p 8080:8080 -p 8443:8443 ocsf-server
+```
+
+(Note that paths used for volume mounts with `docker run` cannot be relative.)
 
 To access the schema server, open [`localhost:8080`](http://localhost:8080) or [`localhost:8443`](https://localhost:8443) in your Web browser.
 
