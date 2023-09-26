@@ -140,7 +140,15 @@ defmodule SchemaWeb.SchemaController do
     available_versions = Schemas.versions()
     |> Enum.map(fn {version, _} -> version end)
 
-    versions_response = %{:versions => available_versions}
+
+    versions_response = case available_versions do
+      [] ->
+        # If there is no response, we only provide a single schema
+        %{:versions => [Schema.version()]}
+      [_head | _tail] ->
+        %{:versions => available_versions}
+    end
+
     send_json_resp(conn, versions_response)
   end
 
