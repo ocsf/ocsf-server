@@ -123,6 +123,28 @@ defmodule SchemaWeb.SchemaController do
   end
 
   @doc """
+  Get available OCSF schema versions.
+  """
+  swagger_path :versions do
+    get("/api/versions")
+    summary("Versions")
+    description("Get available OCSF schema versions.")
+    produces("application/json")
+    tag("Schema")
+    response(200, "Success", :Version)
+  end
+
+  @spec versions(Plug.Conn.t(), any) :: Plug.Conn.t()
+  def versions(conn, _params) do
+
+    available_versions = Schemas.versions()
+    |> Enum.map(fn {version, _} -> version end)
+
+    versions_response = %{:versions => available_versions}
+    send_json_resp(conn, versions_response)
+  end
+
+  @doc """
   Get the schema data types.
   """
   swagger_path :data_types do

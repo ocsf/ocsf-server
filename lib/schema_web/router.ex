@@ -38,7 +38,7 @@ defmodule SchemaWeb.Router do
     get "/classes", PageController, :classes
     get "/classes/:id", PageController, :classes
     get "/classes/:extension/:id", PageController, :classes
-    
+
     get "/class/graph/:id", PageController, :class_graph
     get "/class/graph/:extension/:id", PageController, :class_graph
 
@@ -51,7 +51,7 @@ defmodule SchemaWeb.Router do
 
     get "/object/graph/:id", PageController, :object_graph
     get "/object/graph/:extension/:id", PageController, :object_graph
-    
+
     get "/data_types", PageController, :data_types
     get "/guidelines", PageController, :guidelines
   end
@@ -61,6 +61,8 @@ defmodule SchemaWeb.Router do
     pipe_through :api
 
     get "/version", SchemaController, :version
+    get "/versions", SchemaController, :versions
+
     get "/profiles", SchemaController, :profiles
     get "/extensions", SchemaController, :extensions
 
@@ -94,7 +96,7 @@ defmodule SchemaWeb.Router do
 
     get "/classes/:id", SchemaController, :json_class
     get "/classes/:extension/:id", SchemaController, :json_class
-    
+
     get "/objects/:id", SchemaController, :json_object
     get "/objects/:extension/:id", SchemaController, :json_object
   end
