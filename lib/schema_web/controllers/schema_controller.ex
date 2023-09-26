@@ -43,6 +43,19 @@ defmodule SchemaWeb.SchemaController do
             version: "1.0.0"
           })
         end,
+      Versions:
+        swagger_schema do
+          title("Versions")
+          description("Schema versions, using Semantic Versioning Specification (SemVer) format.")
+
+          properties do
+            versions(:string, "Version numbers", required: true)
+          end
+
+          example(%{
+            versions: ["1.0.0", "1.1.0"]
+          })
+        end,
       ClassDesc:
         swagger_schema do
           title("Class Descriptor")
@@ -131,7 +144,7 @@ defmodule SchemaWeb.SchemaController do
     description("Get available OCSF schema versions.")
     produces("application/json")
     tag("Schema")
-    response(200, "Success", :Version)
+    response(200, "Success", :Versions)
   end
 
   @spec versions(Plug.Conn.t(), any) :: Plug.Conn.t()
