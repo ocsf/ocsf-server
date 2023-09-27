@@ -154,12 +154,23 @@ defmodule SchemaWeb.SchemaController do
     |> Enum.map(fn {version, _} -> version end)
 
 
+    default_version = %{:version => Schema.version(), :url => "/api"}
+
     versions_response = case available_versions do
       [] ->
         # If there is no response, we only provide a single schema
-        %{:versions => [Schema.version()]}
+        %{:versions => [%{:version => Schema.version(), :url => "/api"}], :default => default_version}
+
       [_head | _tail] ->
-        %{:versions => available_versions}
+
+        available_versions_objects = available_versions
+        |> Enum.map(fn version -> %{:version => version, :url => "/#{version}/api"} end)
+
+
+        url = Application.get_env(:schema_server, SchemaWeb.Endpoint)[:url]
+
+        %{:versions => available_versions_objects, :default => default_version}
+
     end
 
     send_json_resp(conn, versions_response)
