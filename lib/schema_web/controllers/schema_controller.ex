@@ -149,7 +149,10 @@ defmodule SchemaWeb.SchemaController do
 
   @spec versions(Plug.Conn.t(), any) :: Plug.Conn.t()
   def versions(conn, _params) do
-    base_url = "#{conn.scheme}://#{conn.host}:#{conn.port}"
+
+    url = Application.get_env(:schema_server, SchemaWeb.Endpoint)[:url]
+
+    base_url = "#{conn.scheme}://#{Keyword.fetch!(url, :host)}:#{Keyword.fetch!(url, :port)}"
 
     available_versions = Schemas.versions()
     |> Enum.map(fn {version, _} -> version end)
@@ -163,7 +166,7 @@ defmodule SchemaWeb.SchemaController do
 
       [_head | _tail] ->
         available_versions_objects = available_versions
-        |> Enum.map(fn version -> %{:version => version, :url => "#{conn.scheme}://#{conn.host}:#{conn.port}/#{version}/api"} end)
+        |> Enum.map(fn version -> %{:version => version, :url => "#{base_url}/#{version}/api"} end)
         %{:versions => available_versions_objects, :default => default_version}
 
     end
