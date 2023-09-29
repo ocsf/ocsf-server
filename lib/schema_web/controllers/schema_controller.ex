@@ -53,7 +53,20 @@ defmodule SchemaWeb.SchemaController do
           end
 
           example(%{
-            versions: ["1.0.0", "1.1.0"]
+            default: %{
+              version: "1.0.0",
+              url: "https://schema.example.com:443/api"
+            },
+            versions: [
+              %{
+                version: "1.1.0-dev",
+                url: "https://schema.example.com:443/1.1.0-dev/api"
+              },
+              %{
+                version: "1.0.0",
+                url: "https://schema.example.com:443/1.0.0/api"
+              }
+            ]
           })
         end,
       ClassDesc:
