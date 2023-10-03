@@ -43,6 +43,32 @@ defmodule SchemaWeb.SchemaController do
             version: "1.0.0"
           })
         end,
+      Versions:
+        swagger_schema do
+          title("Versions")
+          description("Schema versions, using Semantic Versioning Specification (SemVer) format.")
+
+          properties do
+            versions(:string, "Version numbers", required: true)
+          end
+
+          example(%{
+            default: %{
+              version: "1.0.0",
+              url: "https://schema.example.com:443/api"
+            },
+            versions: [
+              %{
+                version: "1.1.0-dev",
+                url: "https://schema.example.com:443/1.1.0-dev/api"
+              },
+              %{
+                version: "1.0.0",
+                url: "https://schema.example.com:443/1.0.0/api"
+              }
+            ]
+          })
+        end,
       ClassDesc:
         swagger_schema do
           title("Class Descriptor")
@@ -120,6 +146,50 @@ defmodule SchemaWeb.SchemaController do
   def version(conn, _params) do
     version = %{:version => Schema.version()}
     send_json_resp(conn, version)
+  end
+
+  @doc """
+  Get available OCSF schema versions.
+  """
+  swagger_path :versions do
+    get("/api/versions")
+    summary("Versions")
+    description("Get available OCSF schema versions.")
+    produces("application/json")
+    tag("Schema")
+    response(200, "Success", :Versions)
+  end
+
+  @spec versions(Plug.Conn.t(), any) :: Plug.Conn.t()
+  def versions(conn, _params) do
+
+    url = Application.get_env(:schema_server, SchemaWeb.Endpoint)[:url]
+
+    # The :url key is meant to be set for production, but isn't set for local development
+    base_url = if url == nil do
+      "#{conn.scheme}://#{conn.host}:#{conn.port}"
+    else
+      "#{conn.scheme}://#{Keyword.fetch!(url, :host)}:#{Keyword.fetch!(url, :port)}"
+    end
+
+    available_versions = Schemas.versions()
+    |> Enum.map(fn {version, _} -> version end)
+
+    default_version = %{:version => Schema.version(), :url => "#{base_url}/#{Schema.version()}/api"}
+
+    versions_response = case available_versions do
+      [] ->
+        # If there is no response, we only provide a single schema
+        %{:versions => [default_version], :default => default_version}
+
+      [_head | _tail] ->
+        available_versions_objects = available_versions
+        |> Enum.map(fn version -> %{:version => version, :url => "#{base_url}/#{version}/api"} end)
+        %{:versions => available_versions_objects, :default => default_version}
+
+    end
+
+    send_json_resp(conn, versions_response)
   end
 
   @doc """
