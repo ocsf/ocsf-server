@@ -165,12 +165,17 @@ defmodule SchemaWeb.SchemaController do
 
     url = Application.get_env(:schema_server, SchemaWeb.Endpoint)[:url]
 
-    base_url = "#{conn.scheme}://#{Keyword.fetch!(url, :host)}:#{Keyword.fetch!(url, :port)}"
+    # The :url key is meant to be set for production, but isn't set for local development
+    base_url = if url == nil do
+      "#{conn.scheme}://#{conn.host}:#{conn.port}"
+    else
+      "#{conn.scheme}://#{Keyword.fetch!(url, :host)}:#{Keyword.fetch!(url, :port)}"
+    end
 
     available_versions = Schemas.versions()
     |> Enum.map(fn {version, _} -> version end)
 
-    default_version = %{:version => Schema.version(), :url => "#{base_url}/api"}
+    default_version = %{:version => Schema.version(), :url => "#{base_url}/#{Schema.version()}/api"}
 
     versions_response = case available_versions do
       [] ->
