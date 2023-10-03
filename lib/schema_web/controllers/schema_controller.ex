@@ -126,6 +126,12 @@ defmodule SchemaWeb.SchemaController do
               ]
             }
           ])
+        end,
+      Event:
+        swagger_schema do
+          title("Event")
+          description("An OCSF formatted event object.")
+          type(:object)
         end
     }
   end
@@ -894,7 +900,7 @@ defmodule SchemaWeb.SchemaController do
         default: false
       )
 
-      data(:body, :object, "The event data to be enriched.", required: true)
+      data(:body, PhoenixSwagger.Schema.ref(:Event), "The event data to be enriched.", required: true)
     end
 
     response(200, "Success")
@@ -972,7 +978,7 @@ defmodule SchemaWeb.SchemaController do
         allowEmptyValue: true
       )
 
-      data(:body, :object, "The event data to be translated", required: true)
+      data(:body, PhoenixSwagger.Schema.ref(:Event), "The event data to be translated", required: true)
     end
 
     response(200, "Success")
@@ -1020,7 +1026,7 @@ defmodule SchemaWeb.SchemaController do
     tag("Tools")
 
     parameters do
-      data(:body, :object, "The event data to be validated", required: true)
+      data(:body, PhoenixSwagger.Schema.ref(:Event), "The event data to be validated", required: true)
     end
 
     response(200, "Success")
