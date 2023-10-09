@@ -188,6 +188,8 @@ defmodule SchemaWeb.PageView do
 
     if deprecated?(field) do
       classes <> " deprecated "
+    else
+      classes <> " "
     end
 
   end
