@@ -61,11 +61,11 @@ limitations under the License.
                 <option selected value="context">Context</option>
                 <option selected value="occurrence">Occurrence</option>
                 <option selected value="primary">Primary</option>
-                <option selected value="deprecated">Deprecated</option>
               </optgroup>
               <optgroup id="requirements-select" label="Requirements">
                 <option class="optional" value="optional" title="Optional">Optional Attributes</option>
               </optgroup>
+              <option selected value="deprecated">Deprecated Attributes</option>
             </select>
           </li>
           <li class="nav-item">
