@@ -61,6 +61,7 @@ limitations under the License.
                 <option selected value="context">Context</option>
                 <option selected value="occurrence">Occurrence</option>
                 <option selected value="primary">Primary</option>
+                <option selected value="deprecated">Deprecated</option>
               </optgroup>
               <optgroup id="requirements-select" label="Requirements">
                 <option class="optional" value="optional" title="Optional">Optional Attributes</option>
@@ -86,6 +87,7 @@ limitations under the License.
       <th style="width: 10%">Requirement</th>
       <th style="width: 10%">Type</th>
       <th style="width: 50%">Description</th>
+      <th style="display:none">Deprecated</th>
     </tr>
     </thead>
     <tbody class="searchable">
