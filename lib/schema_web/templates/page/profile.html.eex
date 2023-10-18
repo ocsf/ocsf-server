@@ -18,7 +18,7 @@
         Profile
       </span>
     </h3>
-    
+
     <div class="text-secondary">
       <%= raw @data[:description] %>
     </div>
@@ -43,6 +43,7 @@
               </optgroup>
               <optgroup id="requirements-select" label="Requirements">
                 <option class="optional" value="optional" title="Optional">Optional Attributes</option>
+                <option class="recommended" value="recommended" title="Recommended">Recommended Attributes</option>
               </optgroup>
             </select>
           </li>

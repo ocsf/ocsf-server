@@ -10,9 +10,6 @@ Attributes that are most common across all use cases are defined as core attribu
 *Optional Attributes*
 Optional attributes may apply to more narrow use cases, or may be more open to interpretation depending on the use case. The optional attributes are marked as **Optional**.
 
-*Reserved Attributes*
-Reserved attributes are set by the logging system and must not be used in the event data. The reserved attributes are marked as **Reserved**.
-
 ## Guidelines for attribute names
 - Attribute names must be a valid UTF-8 sequence.
 
