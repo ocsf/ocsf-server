@@ -37,7 +37,7 @@ function set_selected_extensions(extensions) {
   localStorage.setItem("schema_extensions", JSON.stringify(extensions));
 }
 
-const defaultSelectedValues = ["base-event", "optional", "classification", "context", "occurrence", "primary"];
+const defaultSelectedValues = ["base-event", "optional", "recommended", "classification", "context", "occurrence", "primary"];
 const storageKey = "selected-attributes"
 
 function hide(name) {
