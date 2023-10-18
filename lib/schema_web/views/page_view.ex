@@ -71,12 +71,12 @@ defmodule SchemaWeb.PageView do
   defp profile_link(_conn, nil, name) do
     name
   end
-  
+
   defp profile_link(conn, caption, name) do
     path = Routes.static_path(conn, "/profiles/" <> name)
     "<a href='#{path}'>#{caption}</a>"
   end
-  
+
   def class_examples(class) do
     format_class_examples(class[:examples])
   end
@@ -166,7 +166,11 @@ defmodule SchemaWeb.PageView do
       if required?(field) do
         base <> "required "
       else
-        base <> "optional "
+        if recommended?(field) do
+        base <> "recommended "
+        else
+          base <> "optional "
+        end
       end
 
     group = field[:group]
@@ -189,7 +193,12 @@ defmodule SchemaWeb.PageView do
 
   defp required?(field) do
     r = Map.get(field, :requirement)
-    r == "required" or r == "recommended"
+    r == "required"
+  end
+
+  defp recommended?(field) do
+    r = Map.get(field, :requirement)
+    r == "recommended"
   end
 
   def format_constraints(:string_t, field) do
@@ -490,11 +499,11 @@ defmodule SchemaWeb.PageView do
   def description(map) do
     deprecated(map, Map.get(map, :"@deprecated"))
   end
-  
+
   defp deprecated(map, nil) do
     Map.get(map, :description)
   end
-  
+
   defp deprecated(map, deprecated) do
     [
       Map.get(map, :description),
