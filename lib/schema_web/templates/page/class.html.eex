@@ -64,8 +64,8 @@ limitations under the License.
               </optgroup>
               <optgroup id="requirements-select" label="Requirements">
                 <option class="optional" value="optional" title="Optional">Optional Attributes</option>
+                <option class="deprecated" value="deprecated" title="Deprecated">Deprecated Attributes</option>
               </optgroup>
-              <option selected value="deprecated">Deprecated Attributes</option>
             </select>
           </li>
           <li class="nav-item">

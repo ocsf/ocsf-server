@@ -59,6 +59,9 @@
               <optgroup id="requirements-select" label="Requirements">
                 <option class="optional" value="optional" title="Optional">Optional Attributes</option>
               </optgroup>
+                <option class="deprecated" value="deprecated" title="Deprecated">Deprecated Attributes</option>
+              <optgroup id="deprecation-select" label="Deprecation">
+              </optgroup>
             </select>
           </li>
           <li class="nav-item">
@@ -79,6 +82,7 @@
         <th style="width: 8%">Requirement</th>
         <th style="width: 8%">Type</th>
         <th style="width: 30%">Description</th>
+        <th style="display:none">Deprecated</th>
       </tr>
     </thead>
     <tbody class="searchable">

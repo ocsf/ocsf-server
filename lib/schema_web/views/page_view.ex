@@ -180,27 +180,23 @@ defmodule SchemaWeb.PageView do
 
     profile = field[:profile]
 
-    if profile != nil do
-      classes <> " " <> String.replace(profile, "/", "-")
-    else
-      classes <> " no-profile"
-    end
+    profiles =
+      if profile != nil do
+        classes <> " " <> String.replace(profile, "/", "-")
+      else
+        classes <> " no-profile"
+      end
 
-    if deprecated?(field) do
-      classes <> " deprecated "
+    if field[:"@deprecated"] != nil do
+      profiles <> " deprecated "
     else
-      classes <> " "
+      profiles <> ""
     end
-
   end
 
   defp required?(field) do
     r = Map.get(field, :requirement)
     r == "required" or r == "recommended"
-  end
-
-  defp deprecated?(field) do
-    Map.get(field, :"@deprecated")
   end
 
   def format_constraints(:string_t, field) do
