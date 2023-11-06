@@ -80,7 +80,6 @@
         <th style="width: 8%">Requirement</th>
         <th style="width: 8%">Type</th>
         <th style="width: 30%">Description</th>
-        <th style="display:none">Deprecated</th>
       </tr>
     </thead>
     <tbody class="searchable">
