@@ -162,14 +162,21 @@ defmodule SchemaWeb.PageView do
         "event "
       end
 
+    deprecation_status =
+      if field[:"@deprecated"] != nil do
+        base <> "deprecated "
+      else
+        base <> "not-deprecated "
+      end
+
     classes =
       if required?(field) do
-        base <> "required "
+        deprecation_status <> "required "
       else
         if recommended?(field) do
-        base <> "recommended "
+          deprecation_status <> "recommended "
         else
-          base <> "optional "
+          deprecation_status <> "optional "
         end
       end
 
