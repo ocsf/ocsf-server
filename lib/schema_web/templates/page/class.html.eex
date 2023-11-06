@@ -56,6 +56,7 @@ limitations under the License.
               <option selected id="base-event-select" class="base-event" value="base-event" title="Base Event">Base
                 Event Attributes
               </option>
+              <option value="deprecated" title="Deprecated">Deprecated Attributes</option>
               <optgroup id="groups-select" label="Groups">
                 <option selected value="classification">Classification</option>
                 <option selected value="context">Context</option>

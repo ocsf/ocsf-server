@@ -37,7 +37,7 @@ function set_selected_extensions(extensions) {
   localStorage.setItem("schema_extensions", JSON.stringify(extensions));
 }
 
-const defaultSelectedValues = ["base-event", "optional", "recommended", "classification", "context", "occurrence", "primary"];
+const defaultSelectedValues = ["base-event", "deprecated", "optional", "recommended", "classification", "context", "occurrence", "primary"];
 const storageKey = "selected-attributes"
 
 function hide(name) {
@@ -99,6 +99,7 @@ function display_attributes(options) {
   if (table != null) {
     // add classes that are always shown
     options.add("event");
+    options.add("not-deprecated")
     options.add("required");
     options.add("no-group");
     options.add("no-profile");
@@ -133,7 +134,7 @@ function intersection(setA, setB) {
 }
 
 function display_row(set, classList) {
-  if (set.size == 4)
+  if (set.size == 5)
     classList.remove('d-none');
   else
     classList.add('d-none');

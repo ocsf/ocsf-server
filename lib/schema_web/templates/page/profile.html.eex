@@ -35,6 +35,7 @@
               data-selected-text-format="count > 3"
               data-actions-box="true"
               data-width="auto">
+              <option value="deprecated" title="Deprecated">Deprecated Attributes</option>
               <optgroup id="groups-select" label="Groups">
                 <option selected value="classification">Classification</option>
                 <option selected value="context">Context</option>
