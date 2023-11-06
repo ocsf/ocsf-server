@@ -56,11 +56,9 @@
               data-selected-text-format="count > 3"
               data-actions-box="true"
               data-width="auto">
+              <option value="deprecated" title="Deprecated">Deprecated Attributes</option>
               <optgroup id="requirements-select" label="Requirements">
                 <option class="optional" value="optional" title="Optional">Optional Attributes</option>
-              </optgroup>
-                <option class="deprecated" value="deprecated" title="Deprecated">Deprecated Attributes</option>
-              <optgroup id="deprecation-select" label="Deprecation">
               </optgroup>
             </select>
           </li>

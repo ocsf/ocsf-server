@@ -162,11 +162,18 @@ defmodule SchemaWeb.PageView do
         "event "
       end
 
+    deprecated =
+      if field[:"@deprecated"] != nil do
+        base <> "deprecated "
+      else
+        base <> "not-deprecated "
+      end
+
     classes =
       if required?(field) do
-        base <> "required "
+        deprecated <> "required "
       else
-        base <> "optional "
+        deprecated <> "optional "
       end
 
     group = field[:group]
@@ -180,17 +187,10 @@ defmodule SchemaWeb.PageView do
 
     profile = field[:profile]
 
-    profiles =
-      if profile != nil do
-        classes <> " " <> String.replace(profile, "/", "-")
-      else
-        classes <> " no-profile"
-      end
-
-    if field[:"@deprecated"] != nil do
-      profiles <> " deprecated "
+    if profile != nil do
+      classes <> " " <> String.replace(profile, "/", "-")
     else
-      profiles <> ""
+      classes <> " no-profile"
     end
   end
 
