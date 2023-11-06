@@ -54,6 +54,7 @@ limitations under the License.
               </optgroup>
               <optgroup id="requirements-select" label="Requirements">
                 <option class="optional" value="optional" title="Optional">Optional Attributes</option>
+                <option class="recommended" value="recommended" title="Recommended">Recommended Attributes</option>
               </optgroup>
             </select>
           </li>
@@ -67,7 +68,7 @@ limitations under the License.
 <script type="text/javascript" src='<%= Routes.static_path(@conn, "/js/vis-network.min.js") %>'></script>
 <script type="text/javascript">
   init_class_profiles();
-  
+
   let container = document.getElementById("network");
   let data = <%= raw Jason.encode!(@data) %>;
   let options = {
