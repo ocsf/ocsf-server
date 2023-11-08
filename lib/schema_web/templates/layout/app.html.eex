@@ -100,15 +100,6 @@ limitations under the License.
         case '/objects':
           $('#objects_id').addClass("active");
           break;
-        case '/data_types':
-          $('#data_types_id').addClass("active");
-          break;
-        case '/apidoc':
-          $('#apidoc_id').addClass("active");
-          break;
-        case '/guidelines':
-          $('#guidelines_id').addClass("active");
-          break;
       }
     });
   </script>
@@ -204,25 +195,27 @@ limitations under the License.
       <li id="base_event_id" class="nav-item">
         <a class="nav-link" href='<%= Routes.static_path(@conn, "/base_event") %>'>Base Event</a>
       </li>
-      <div class="navbar-text">|</div>
       <li id="dictionary_id" class="nav-item">
         <a class="nav-link" href='<%= Routes.static_path(@conn, "/dictionary") %>'>Dictionary</a>
       </li>
-      <div class="navbar-text">|</div>
       <li id="objects_id"  class="nav-item">
         <a class="nav-link" href='<%= Routes.static_path(@conn, "/objects") %>'>Objects</a>
       </li>
-      <li id="data_types_id" class="nav-item">
-        <a class="nav-link" href='<%= Routes.static_path(@conn, "/data_types") %>'>Data Types</a>
-      </li>
+
       <div class="navbar-text">|</div>
-      <li id="guidelines_id" class="nav-item">
-        <a class="nav-link" href='<%= Routes.static_path(@conn, "/guidelines") %>'>Guidelines</a>
+
+      <li id=resources_id class="nav-link">
+        <div class="dropdown">
+          Resources
+          <div class="dropdown-content">
+            <a class="nav-link" href="https://github.com/ocsf/ocsf-docs/blob/main/Understanding%20OCSF.pdf">Understanding OCSF</a>
+            <a class="nav-link" href="https://github.com/ocsf/ocsf-schema/blob/main/CONTRIBUTING.md">Contributing to OCSF</a>
+            <a class="nav-link" href='<%= Routes.static_path(@conn, "/data_types") %>'>OCSF Data Types</a>
+            <a class="nav-link" target="_blank" href='<%= Routes.static_path(@conn, "/doc") %>'>API Documentation</a>
+          </div>
+        </div>
       </li>
-      <div class="navbar-text">|</div>
-      <li id="apidoc_id" class="nav-item">
-        <a class="nav-link" target="_blank" href='<%= Routes.static_path(@conn, "/doc") %>'>API Doc</a>
-      </li>
+
       <li class="nav-item">
         <div id="json-schema" class="d-none">
           <button type="button" id="btn-json-schema" class="btn btn-link btn-sm">Schema</button>
