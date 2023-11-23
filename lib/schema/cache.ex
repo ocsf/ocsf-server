@@ -82,6 +82,12 @@ defmodule Schema.Cache do
 
     base_event = final_check(:base_event, base_event, attributes)
 
+    log_context = MapSet.new()
+    {profiles, log_context} = fix_entities(profiles, log_context)
+    {base_event, log_context} = fix_entity(base_event, log_context)
+    {classes, log_context} = fix_entities(classes, log_context)
+    {objects, _} = fix_entities(objects, log_context)
+
     new(version)
     |> set_profiles(profiles)
     |> set_categories(categories)
@@ -590,6 +596,59 @@ defmodule Schema.Cache do
 
       base ->
         base
+    end
+  end
+
+  # Final fix up a map of many name -> entity key-value pairs.
+  # The term "entities" means to profiles, objects, or classes.
+  @spec fix_entities(map(), MapSet.t()) :: {map(), MapSet.t()}
+  defp fix_entities(entities, log_context) do
+    Enum.reduce(
+      entities,
+      {Map.new(), log_context},
+      fn ({entity_name, entity}, {entities, log_context}) ->
+        {entity, log_context} = fix_entity(entity, log_context)
+        {Map.put(entities, entity_name, entity), log_context}
+      end
+    )
+  end
+
+  # Final fix up of an entity definition map.
+  # The term "entity" mean a single profile, object, class, or base_event (a special class).
+  @spec fix_entity(map(), MapSet.t()) :: {map(), MapSet.t()}
+  defp fix_entity(entity, log_context) do
+    {attributes, log_context} = fix_attributes(entity[:attributes], log_context)
+    {Map.put(entity, :attributes, attributes), log_context}
+  end
+
+  # Final fix up an attributes map.
+  @spec fix_attributes(map(), MapSet.t) :: {map(), MapSet.t}
+  defp fix_attributes(attributes, log_context) do
+    Enum.reduce(
+      attributes,
+      {Map.new(), log_context},
+      fn ({attribute_name, attribute_details}, {attributes, log_context}) ->
+        {
+          Map.put(attributes, attribute_name, Map.put_new(attribute_details, :requirement, "optional")),
+          log_requirement(attribute_name, attribute_details, log_context)
+        }
+      end)
+  end
+
+  @spec log_requirement(String.t(), map(), MapSet.t()) :: MapSet.t()
+  defp log_requirement(attribute_name, attribute_details, log_context) do
+    if Map.has_key?(attribute_details, :requirement) do
+      log_context
+    else
+      source = attribute_details[:_source]
+      context = "#{source}:#{attribute_name}"
+      if MapSet.member?(log_context, context) do
+        log_context
+      else
+        Logger.warning("Attribute \"#{attribute_name}\" from \"#{source}\"" <>
+          " does not have \"requirement\", \"optional\" will be used")
+        MapSet.put(log_context, context)
+      end
     end
   end
 
