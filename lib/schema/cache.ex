@@ -82,11 +82,20 @@ defmodule Schema.Cache do
 
     base_event = final_check(:base_event, base_event, attributes)
 
-    log_context = MapSet.new()
-    {profiles, log_context} = fix_entities(profiles, log_context)
-    {base_event, log_context} = fix_entity(base_event, log_context)
-    {classes, log_context} = fix_entities(classes, log_context)
-    {objects, _} = fix_entities(objects, log_context)
+    no_req_set = MapSet.new()
+    {profiles, no_req_set} = fix_entities(profiles, no_req_set)
+    {base_event, no_req_set} = fix_entity(base_event, no_req_set)
+    {classes, no_req_set} = fix_entities(classes, no_req_set)
+    {objects, no_req_set} = fix_entities(objects, no_req_set)
+
+    if MapSet.size(no_req_set) > 0 do
+      no_reqs = no_req_set |> Enum.sort() |> Enum.join(", ")
+
+      Logger.warning(
+        "The following attributes do not have a \"requirement\" field," <>
+          " a value of \"optional\" will be used: #{no_reqs}"
+      )
+    end
 
     new(version)
     |> set_profiles(profiles)
@@ -602,13 +611,13 @@ defmodule Schema.Cache do
   # Final fix up a map of many name -> entity key-value pairs.
   # The term "entities" means to profiles, objects, or classes.
   @spec fix_entities(map(), MapSet.t()) :: {map(), MapSet.t()}
-  defp fix_entities(entities, log_context) do
+  defp fix_entities(entities, no_req_set) do
     Enum.reduce(
       entities,
-      {Map.new(), log_context},
-      fn ({entity_name, entity}, {entities, log_context}) ->
-        {entity, log_context} = fix_entity(entity, log_context)
-        {Map.put(entities, entity_name, entity), log_context}
+      {Map.new(), no_req_set},
+      fn {entity_name, entity}, {entities, no_req_set} ->
+        {entity, no_req_set} = fix_entity(entity, no_req_set)
+        {Map.put(entities, entity_name, entity), no_req_set}
       end
     )
   end
@@ -616,38 +625,43 @@ defmodule Schema.Cache do
   # Final fix up of an entity definition map.
   # The term "entity" mean a single profile, object, class, or base_event (a special class).
   @spec fix_entity(map(), MapSet.t()) :: {map(), MapSet.t()}
-  defp fix_entity(entity, log_context) do
-    {attributes, log_context} = fix_attributes(entity[:attributes], log_context)
-    {Map.put(entity, :attributes, attributes), log_context}
+  defp fix_entity(entity, no_req_set) do
+    {attributes, no_req_set} = fix_attributes(entity[:attributes], no_req_set)
+    {Map.put(entity, :attributes, attributes), no_req_set}
   end
 
   # Final fix up an attributes map.
-  @spec fix_attributes(map(), MapSet.t) :: {map(), MapSet.t}
-  defp fix_attributes(attributes, log_context) do
+  @spec fix_attributes(map(), MapSet.t()) :: {map(), MapSet.t()}
+  defp fix_attributes(attributes, no_req_set) do
     Enum.reduce(
       attributes,
-      {Map.new(), log_context},
-      fn ({attribute_name, attribute_details}, {attributes, log_context}) ->
+      {Map.new(), no_req_set},
+      fn {attribute_name, attribute_details}, {attributes, no_req_set} ->
         {
-          Map.put(attributes, attribute_name, Map.put_new(attribute_details, :requirement, "optional")),
-          log_requirement(attribute_name, attribute_details, log_context)
+          # The Map.put_new fixes the actual missing requirement problem
+          Map.put(
+            attributes,
+            attribute_name,
+            Map.put_new(attribute_details, :requirement, "optional")
+          ),
+          # This adds attributes with missing requirement to a set for later logging
+          track_missing_requirement(attribute_name, attribute_details, no_req_set)
         }
-      end)
+      end
+    )
   end
 
-  @spec log_requirement(String.t(), map(), MapSet.t()) :: MapSet.t()
-  defp log_requirement(attribute_name, attribute_details, log_context) do
+  @spec track_missing_requirement(String.t(), map(), MapSet.t()) :: MapSet.t()
+  defp track_missing_requirement(attribute_name, attribute_details, no_req_set) do
     if Map.has_key?(attribute_details, :requirement) do
-      log_context
+      no_req_set
     else
-      source = attribute_details[:_source]
-      context = "#{source}:#{attribute_name}"
-      if MapSet.member?(log_context, context) do
-        log_context
+      context = "#{attribute_details[:_source]}.#{attribute_name}"
+
+      if MapSet.member?(no_req_set, context) do
+        no_req_set
       else
-        Logger.warning("Attribute \"#{attribute_name}\" from \"#{source}\"" <>
-          " does not have \"requirement\", \"optional\" will be used")
-        MapSet.put(log_context, context)
+        MapSet.put(no_req_set, context)
       end
     end
   end
