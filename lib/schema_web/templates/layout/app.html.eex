@@ -137,7 +137,7 @@ limitations under the License.
     </script>
 
     <div class="navbar-brand">
-      Extensions
+      <a target="_blank" href=https://github.com/ocsf/ocsf-schema/blob/main/extensions.md>Extensions</a>
       <hr class="divider"/>
     </div>
     <div class="collapse navbar-collapse" id="checkbox-extensions">
