@@ -209,6 +209,7 @@ limitations under the License.
           Resources
           <div class="dropdown-content">
             <a class="nav-link" target="_blank" href="https://github.com/ocsf/ocsf-docs/blob/main/Understanding%20OCSF.pdf">Understanding OCSF</a>
+            <a class="nav-link" target="_blank" href="https://github.com/ocsf/examples/tree/main">Example Mappings</a>
             <a class="nav-link" target="_blank" href="https://github.com/ocsf/ocsf-schema/blob/main/CONTRIBUTING.md">Contributing to OCSF</a>
             <a class="nav-link" href='<%= Routes.static_path(@conn, "/data_types") %>'>OCSF Data Types</a>
             <a class="nav-link" target="_blank" href='<%= Routes.static_path(@conn, "/doc") %>'>API Documentation</a>
@@ -218,7 +219,12 @@ limitations under the License.
 
       <li class="nav-item">
         <div id="json-schema" class="d-none">
-          <button type="button" id="btn-json-schema" class="btn btn-link btn-sm">Schema</button>
+          <button type="button" id="btn-json-schema" class="btn btn-link btn-sm">JSON Schema</button>
+        </div>
+      </li>
+      <li class="nav-item">
+        <div id="schema" class="d-none">
+          <button type="button" id="btn-schema" class="btn btn-link btn-sm">Schema</button>
         </div>
       </li>
       <li class="nav-item">
