@@ -180,6 +180,11 @@ function init_schema_buttons() {
   });
 
   $('#btn-json-schema').on('click', function(event) {
+    const url = '/schema' + window.location.pathname + "?profiles=" + get_selected_profiles().toString();
+    window.open(url,'_blank');
+  });
+
+  $('#btn-schema').on('click', function(event) {
     const url = '/api' + window.location.pathname + "?profiles=" + get_selected_profiles().toString();
     window.open(url,'_blank');
   });
