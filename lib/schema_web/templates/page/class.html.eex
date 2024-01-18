@@ -38,11 +38,6 @@ limitations under the License.
     <div class="text-secondary">
       <%= raw description(@data) %>
     </div>
-    <!--
-    <div class="mt-1">
-      <%= raw class_examples(@data) %>
-    </div>
-    -->
   </div>
   <div class="col-md-auto fixed-right mt-2">
     <div class="navbar-expand-md">
