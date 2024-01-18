@@ -34,7 +34,7 @@ config :phoenix_markdown, :earmark, %{
 config :schema_server, :phoenix_swagger,
   swagger_files: %{
     "priv/static/swagger.json" => [
-      router: SchemaWeb.Router, 
+      router: SchemaWeb.Router,
       endpoint: SchemaWeb.Endpoint
     ]
   }
@@ -45,13 +45,6 @@ config :phoenix_swagger, json_library: Jason
 config :schema_server, Schema.Application, home: System.get_env("SCHEMA_DIR") || "../ocsf-schema"
 config :schema_server, Schema.Application, extension: System.get_env("SCHEMA_EXTENSION")
 config :schema_server, Schema.Application, schema_home: System.get_env("SCHEMA_HOME")
-
-# Configure the schema example's repo path and local dicrectory
-config :schema_server, Schema.Examples,
-  repo: System.get_env("EXAMPLES_REPO") || "https://github.com/ocsf/examples/tree/main"
-
-config :schema_server, Schema.Examples,
-  home: System.get_env("EXAMPLES_PATH") || "../examples"
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
