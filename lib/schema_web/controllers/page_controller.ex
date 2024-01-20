@@ -29,7 +29,7 @@ defmodule SchemaWeb.PageController do
 
         class ->
           data = Schema.Graph.build(class)
-          
+
           render(conn, "class_graph.html",
             extensions: Schema.extensions(),
             profiles: SchemaController.get_profiles(params),
@@ -50,7 +50,7 @@ defmodule SchemaWeb.PageController do
 
         obj ->
           data = Schema.Graph.build(obj)
-          
+
           render(conn, "object_graph.html",
             extensions: Schema.extensions(),
             profiles: SchemaController.get_profiles(params),
@@ -193,10 +193,9 @@ defmodule SchemaWeb.PageController do
           send_resp(conn, 404, "Not Found: #{id}")
 
         data ->
-          uid = data[:uid]
-          examples = Schema.Examples.find(uid)
-          sorted = sort_attributes(data) |> Map.put(:examples, examples)
-          
+          #uid = data[:uid]
+          sorted = sort_attributes(data)
+
           render(conn, "class.html",
             extensions: Schema.extensions(),
             profiles: SchemaController.get_profiles(params),
@@ -251,7 +250,7 @@ defmodule SchemaWeb.PageController do
   end
 
   defp sort_classes(categories) do
-    Map.update!(categories, :attributes, fn list -> 
+    Map.update!(categories, :attributes, fn list ->
       Enum.map(list, fn {name, category} ->
         {name, Map.update!(category, :classes, &sort_by(&1, :uid))}
       end)

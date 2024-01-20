@@ -32,11 +32,4 @@ config :schema_server, SchemaWeb.Endpoint,
 config :schema_server, Schema.Application, home: System.get_env("SCHEMA_DIR")
 config :schema_server, Schema.Application, extension: System.get_env("SCHEMA_EXTENSION")
 
-# Configure the schema example's repo path and local dicrectory
-config :schema_server, Schema.Examples,
-  repo: System.get_env("EXAMPLES_REPO") || "https://github.com/ocsf/examples/tree/main"
-
-config :schema_server, Schema.Examples,
-  home: System.get_env("EXAMPLES_PATH") || "../examples"
-
 config :schema_server, Schema.Application, schema_home: System.get_env("SCHEMA_HOME")
