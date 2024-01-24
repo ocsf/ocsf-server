@@ -52,14 +52,15 @@ defmodule SchemaWeb.PageView do
   end
 
   def class_profiles(conn, class, profiles) do
-    case (class[:profiles] || []) do
+    case class[:profiles] || [] do
       [] ->
         ""
+
       list ->
         [
           "<h5 class='mt-3'>Profiles</h5>",
           "Applicable profiles: ",
-          Stream.filter(list, fn profile -> Map.has_key?(profiles, profile)  end)
+          Stream.filter(list, fn profile -> Map.has_key?(profiles, profile) end)
           |> Enum.map_join(", ", fn name ->
             profile_link(conn, get_in(profiles, [name, :caption]), name)
           end),
@@ -251,7 +252,7 @@ defmodule SchemaWeb.PageView do
         end
 
       r ->
-        max_len <> "</br>" <> r
+        max_len <> "<br>" <> r
     end
   end
 
@@ -372,16 +373,16 @@ defmodule SchemaWeb.PageView do
     [
       "At least one attribute must be present: <strong>",
       Enum.join(list, ", "),
-      "</strong><br/>" | acc
+      "</strong><br>" | acc
     ]
   end
 
   def constraints(:just_one, list, acc) do
-    ["Only one attribute can be present: <strong>", Enum.join(list, ", "), "</strong><br/>" | acc]
+    ["Only one attribute can be present: <strong>", Enum.join(list, ", "), "</strong><br>" | acc]
   end
 
   def constraints(name, list, acc) do
-    [Atom.to_string(name), ": <strong>", Enum.join(list, ", "), "</strong><br/>" | acc]
+    [Atom.to_string(name), ": <strong>", Enum.join(list, ", "), "</strong><br>" | acc]
   end
 
   def associations(rules) do
@@ -391,7 +392,7 @@ defmodule SchemaWeb.PageView do
   end
 
   def associations(name, list, acc) do
-    [Atom.to_string(name), ": ", Enum.join(list, ", "), "<br/>" | acc]
+    [Atom.to_string(name), ": ", Enum.join(list, ", "), "<br>" | acc]
   end
 
   def links(_, _, nil), do: ""
@@ -418,12 +419,14 @@ defmodule SchemaWeb.PageView do
     )
   end
 
+  defp join_html([], [], []), do: []
   defp join_html(commons, [], []), do: commons
   defp join_html([], classes, []), do: classes
-  defp join_html(commons, _classes, []), do: commons
-  defp join_html(_, [], objects), do: objects
-  defp join_html([], classes, objects), do: [classes, "<hr/>", objects]
-  defp join_html(commons, _classes, objects), do: [commons, "<hr/>", objects]
+  defp join_html([], [], objects), do: objects
+  defp join_html(commons, classes, []), do: [commons, "<hr>", classes]
+  defp join_html(commons, [], objects), do: [commons, "<hr>", objects]
+  defp join_html([], classes, objects), do: [classes, "<hr>", objects]
+  defp join_html(commons, classes, objects), do: [commons, "<hr>", classes, "<hr>", objects]
 
   defp to_html(_, _, nil), do: []
 
@@ -438,7 +441,7 @@ defmodule SchemaWeb.PageView do
       [],
       fn _, acc ->
         type_path = SchemaWeb.Router.Helpers.static_path(conn, "/base_event")
-        ["<a href='", type_path, "'>", " Base Event</a>", ", " | acc]
+        ["<a href='", type_path, "'>", "Base Event Class</a>", ", " | acc]
       end
     )
     |> List.delete_at(-1)
@@ -455,7 +458,7 @@ defmodule SchemaWeb.PageView do
       [],
       fn {_type, link, name}, acc ->
         type_path = SchemaWeb.Router.Helpers.static_path(conn, "/classes/" <> link)
-        ["<a href='", type_path, "'>", name, " Event</a>", ", " | acc]
+        ["<a href='", type_path, "'>", name, " Class</a>", ", " | acc]
       end
     )
     |> List.delete_at(-1)
@@ -493,11 +496,10 @@ defmodule SchemaWeb.PageView do
   defp deprecated(map, deprecated) do
     [
       Map.get(map, :description),
-      "<div class='text-dark mt-2'><span class='bg-warning'>DEPRECATED since v",
+      "<div class='text-dark mt-2 bg-warning'>DEPRECATED since v",
       Map.get(deprecated, :since),
-      "</span></div>",
+      "</div>",
       Map.get(deprecated, :message)
     ]
   end
-
 end

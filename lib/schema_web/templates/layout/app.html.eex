@@ -114,7 +114,7 @@ limitations under the License.
   <a class="navbar-brand" href="#">OCSF Schema</a>
 
   <nav class="navbar navbar-bg collapse navbar-collapse navbar-expand-md navbar-light fixed-left">
-    <a href=<%= Routes.static_path(@conn, "/?extensions=") %> onclick="reset_home_page()" class="navbar-brand ocsf-logo">
+    <a href="<%= Routes.static_path(@conn, "/?extensions=") %>" onclick="reset_home_page()" class="navbar-brand ocsf-logo">
       <img src='<%= Routes.static_path(@conn, "/images/ocsf-logo.png") %>' alt="OCSF"/>
     </a>
     <h6 class="container-fluid version">
