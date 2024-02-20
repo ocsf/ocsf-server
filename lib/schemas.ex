@@ -39,9 +39,9 @@ defmodule Schemas do
   @doc """
   Returns a list of schemas is the given directory.
 
-  Returns {:ok, list} in case of success, {:error, reason} otherwise.
+  Returns list of {version, path} tuples in case of success, {:error, reason} otherwise.
   """
-  @spec ls(Path.t()) :: {:ok, list()} | {:error, File.posix()}
+  @spec ls(Path.t()) :: list({String.t(), String.t()}) | {:error, File.posix()}
   def ls(path) do
     with {:ok, list} <- File.ls(path) do
       Stream.map(list, fn name ->

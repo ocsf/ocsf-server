@@ -19,27 +19,29 @@ defmodule Schema.Cache do
 
   require Logger
 
-  @enforce_keys [:version, :profiles, :dictionary, :categories, :base_event, :classes, :objects]
-  defstruct ~w[version profiles dictionary base_event categories classes objects]a
-
-  @spec new(map()) :: __MODULE__.t()
-  def new(version) do
-    %__MODULE__{
-      version: version,
-      profiles: Map.new(),
-      dictionary: Map.new(),
-      categories: Map.new(),
-      base_event: Map.new(),
-      classes: Map.new(),
-      objects: Map.new()
-    }
-  end
+  @enforce_keys [
+    :version,
+    :profiles,
+    :categories,
+    :dictionary,
+    :base_event,
+    :classes,
+    :all_classes,
+    :objects
+  ]
+  defstruct ~w[version profiles dictionary base_event categories classes all_classes objects]a
 
   @type t() :: %__MODULE__{}
   @type class_t() :: map()
   @type object_t() :: map()
   @type category_t() :: map()
   @type dictionary_t() :: map()
+  @type link_t() :: %{
+          group: :common | :class | :object,
+          type: String.t(),
+          caption: String.t(),
+          attribute_keys: nil | MapSet.t(String.t())
+        }
 
   @ocsf_deprecated :"@deprecated"
 
@@ -53,7 +55,7 @@ defmodule Schema.Cache do
     categories = JsonReader.read_categories() |> update_categories()
     dictionary = JsonReader.read_dictionary() |> update_dictionary()
 
-    {base_event, classes} = read_classes(categories[:attributes])
+    {base_event, classes, all_classes} = read_classes(categories[:attributes])
     objects = read_objects()
 
     dictionary = Utils.update_dictionary(dictionary, base_event, classes, objects)
@@ -97,13 +99,16 @@ defmodule Schema.Cache do
       )
     end
 
-    new(version)
-    |> set_profiles(profiles)
-    |> set_categories(categories)
-    |> set_dictionary(dictionary)
-    |> set_base_event(base_event)
-    |> set_classes(classes)
-    |> set_objects(objects)
+    %__MODULE__{
+      version: version,
+      profiles: profiles,
+      categories: categories,
+      dictionary: dictionary,
+      base_event: base_event,
+      classes: classes,
+      all_classes: all_classes,
+      objects: objects
+    }
   end
 
   @doc """
@@ -140,6 +145,9 @@ defmodule Schema.Cache do
 
   @spec classes(__MODULE__.t()) :: map()
   def classes(%__MODULE__{classes: classes}), do: classes
+
+  @spec all_classes(__MODULE__.t()) :: map()
+  def all_classes(%__MODULE__{all_classes: all_classes}), do: all_classes
 
   @spec export_classes(__MODULE__.t()) :: map()
   def export_classes(%__MODULE__{classes: classes, dictionary: dictionary}) do
@@ -321,13 +329,29 @@ defmodule Schema.Cache do
       |> Enum.into(%{}, fn class -> attribute_source(class) end)
       |> extend_type()
 
+    resolved = resolve_extends(classes)
+
     classes =
-      resolve_extends(classes)
+      resolved
       # remove intermediate classes
       |> Stream.filter(fn {key, class} -> Map.has_key?(class, :uid) or key == :base_event end)
       |> Enum.into(%{}, fn class -> enrich_class(class, categories) end)
 
-    {Map.get(classes, :base_event), classes}
+    # all_classes has just enough info to interrogate the complete class hierarchy,
+    # removing most details. It can be used to get the caption and parent (extends) of
+    # any class, including hidden ones (classes without a uid)
+    all_classes =
+      Enum.map(
+        resolved,
+        fn {class_name, class_info} ->
+          {class_name,
+           Map.take(class_info, [:name, :caption, :extends])
+           |> Map.put(:hidden?, class_name != :base_event && !Map.has_key?(class_info, :uid))}
+        end
+      )
+      |> Enum.into(%{})
+
+    {Map.get(classes, :base_event), classes, all_classes}
   end
 
   defp read_objects() do
@@ -666,30 +690,6 @@ defmodule Schema.Cache do
     end
   end
 
-  defp set_profiles(%__MODULE__{} = schema, profiles) do
-    struct(schema, profiles: profiles)
-  end
-
-  defp set_dictionary(%__MODULE__{} = schema, dictionary) do
-    struct(schema, dictionary: dictionary)
-  end
-
-  defp set_categories(%__MODULE__{} = schema, categories) do
-    struct(schema, categories: categories)
-  end
-
-  defp set_base_event(%__MODULE__{} = schema, base_event) do
-    struct(schema, base_event: base_event)
-  end
-
-  defp set_classes(%__MODULE__{} = schema, classes) do
-    struct(schema, classes: classes)
-  end
-
-  defp set_objects(%__MODULE__{} = schema, objects) do
-    struct(schema, objects: objects)
-  end
-
   defp update_observables(objects, dictionary) do
     if Map.has_key?(objects, :observable) do
       observable_types = get_in(dictionary, [:types, :attributes]) |> observables()
@@ -869,10 +869,10 @@ defmodule Schema.Cache do
     end
   end
 
-  defp update_linked_profiles(name, links, object, classes) do
-    Enum.reduce(links, classes, fn {type, key, _}, acc ->
-      if type == name do
-        Map.update!(acc, String.to_atom(key), fn class ->
+  defp update_linked_profiles(group, links, object, classes) do
+    Enum.reduce(links, classes, fn link, acc ->
+      if link[:group] == group do
+        Map.update!(acc, String.to_atom(link[:type]), fn class ->
           Map.put(class, :profiles, merge(class[:profiles], object[:profiles]))
         end)
       else

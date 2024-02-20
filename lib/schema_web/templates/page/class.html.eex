@@ -93,7 +93,7 @@ limitations under the License.
         <% name = Atom.to_string(key) %>
         <tr class="<%= field_classes(field)%>">
           <td class="name"><%= raw format_attribute_caption(name, field) %></td>
-          <td data-toggle="tooltip" title="<%= field[:_source] %>"><%= raw format_attribute_name(name) %></td>
+          <td data-toggle="tooltip" title="<%= format_class_attribute_source(field) %>"><%= raw format_attribute_name(name) %></td>
           <td class="capitalize"><%= field[:group] %></td>
           <td class="capitalize"><%= format_requirement(field) %></td>
           <td class="extensions"><%= raw format_type(@conn, field) %></td>

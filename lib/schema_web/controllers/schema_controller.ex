@@ -81,7 +81,7 @@ defmodule SchemaWeb.SchemaController do
             category(:string, "Class category", required: true)
             category_name(:string, "Class category caption", required: true)
             profiles(:array, "Class profiles", items: %PhoenixSwagger.Schema{type: :string})
-            uid(:integer, "Class unique indentifier", required: true)
+            uid(:integer, "Class unique identifier", required: true)
           end
 
           example([
@@ -168,32 +168,40 @@ defmodule SchemaWeb.SchemaController do
 
   @spec versions(Plug.Conn.t(), any) :: Plug.Conn.t()
   def versions(conn, _params) do
-
     url = Application.get_env(:schema_server, SchemaWeb.Endpoint)[:url]
 
     # The :url key is meant to be set for production, but isn't set for local development
-    base_url = if url == nil do
-      "#{conn.scheme}://#{conn.host}:#{conn.port}"
-    else
-      "#{conn.scheme}://#{Keyword.fetch!(url, :host)}:#{Keyword.fetch!(url, :port)}"
-    end
+    base_url =
+      if url == nil do
+        "#{conn.scheme}://#{conn.host}:#{conn.port}"
+      else
+        "#{conn.scheme}://#{Keyword.fetch!(url, :host)}:#{Keyword.fetch!(url, :port)}"
+      end
 
-    available_versions = Schemas.versions()
-    |> Enum.map(fn {version, _} -> version end)
+    available_versions =
+      Schemas.versions()
+      |> Enum.map(fn {version, _} -> version end)
 
-    default_version = %{:version => Schema.version(), :url => "#{base_url}/#{Schema.version()}/api"}
+    default_version = %{
+      :version => Schema.version(),
+      :url => "#{base_url}/#{Schema.version()}/api"
+    }
 
-    versions_response = case available_versions do
-      [] ->
-        # If there is no response, we only provide a single schema
-        %{:versions => [default_version], :default => default_version}
+    versions_response =
+      case available_versions do
+        [] ->
+          # If there is no response, we only provide a single schema
+          %{:versions => [default_version], :default => default_version}
 
-      [_head | _tail] ->
-        available_versions_objects = available_versions
-        |> Enum.map(fn version -> %{:version => version, :url => "#{base_url}/#{version}/api"} end)
-        %{:versions => available_versions_objects, :default => default_version}
+        [_head | _tail] ->
+          available_versions_objects =
+            available_versions
+            |> Enum.map(fn version ->
+              %{:version => version, :url => "#{base_url}/#{version}/api"}
+            end)
 
-    end
+          %{:versions => available_versions_objects, :default => default_version}
+      end
 
     send_json_resp(conn, versions_response)
   end
@@ -256,6 +264,7 @@ defmodule SchemaWeb.SchemaController do
       Enum.into(get_profiles(params), %{}, fn {k, v} ->
         {k, Schema.delete_links(v)}
       end)
+
     send_json_resp(conn, profiles)
   end
 
@@ -271,7 +280,7 @@ defmodule SchemaWeb.SchemaController do
   @doc """
   Get a profile by name.
   get /api/profiles/:name
-  get /api/profiles/:extention/:name
+  get /api/profiles/:extension/:name
   """
   swagger_path :profile do
     get("/api/profiles/{name}")
@@ -294,13 +303,15 @@ defmodule SchemaWeb.SchemaController do
 
   @spec profile(Plug.Conn.t(), map) :: Plug.Conn.t()
   def profile(conn, %{"id" => id} = params) do
-    name = case params["extension"] do
-      nil -> id
-      extension -> "#{extension}/#{id}"
-    end
+    name =
+      case params["extension"] do
+        nil -> id
+        extension -> "#{extension}/#{id}"
+      end
 
     try do
       data = Schema.profiles()
+
       case Map.get(data, name) do
         nil ->
           send_json_resp(conn, 404, %{error: "Profile #{name} not found"})
@@ -553,7 +564,7 @@ defmodule SchemaWeb.SchemaController do
   @doc """
   Get an object by name.
   get /api/objects/:name
-  get /api/objects/:extention/:name
+  get /api/objects/:extension/:name
   """
   swagger_path :object do
     get("/api/objects/{name}")
@@ -650,7 +661,7 @@ defmodule SchemaWeb.SchemaController do
   swagger_path :export_schema do
     get("/export/schema")
     summary("Export schema")
-    description("Get OCSF schema defintions, including data types, objects, and classes.")
+    description("Get OCSF schema definitions, including data types, objects, and classes.")
     produces("application/json")
     tag("Schema Export")
 
@@ -900,7 +911,9 @@ defmodule SchemaWeb.SchemaController do
         default: false
       )
 
-      data(:body, PhoenixSwagger.Schema.ref(:Event), "The event data to be enriched.", required: true)
+      data(:body, PhoenixSwagger.Schema.ref(:Event), "The event data to be enriched.",
+        required: true
+      )
     end
 
     response(200, "Success")
@@ -978,7 +991,9 @@ defmodule SchemaWeb.SchemaController do
         allowEmptyValue: true
       )
 
-      data(:body, PhoenixSwagger.Schema.ref(:Event), "The event data to be translated", required: true)
+      data(:body, PhoenixSwagger.Schema.ref(:Event), "The event data to be translated",
+        required: true
+      )
     end
 
     response(200, "Success")
@@ -1026,7 +1041,9 @@ defmodule SchemaWeb.SchemaController do
     tag("Tools")
 
     parameters do
-      data(:body, PhoenixSwagger.Schema.ref(:Event), "The event data to be validated", required: true)
+      data(:body, PhoenixSwagger.Schema.ref(:Event), "The event data to be validated",
+        required: true
+      )
     end
 
     response(200, "Success")
@@ -1082,7 +1099,7 @@ defmodule SchemaWeb.SchemaController do
   @doc """
   Returns randomly generated event sample data for the given name.
   get /sample/classes/:name
-  get /sample/classes/:extention/:name
+  get /sample/classes/:extension/:name
   """
   swagger_path :sample_class do
     get("/sample/classes/{name}")
@@ -1144,7 +1161,7 @@ defmodule SchemaWeb.SchemaController do
   @doc """
   Returns randomly generated object sample data for the given name.
   get /sample/objects/:name
-  get /sample/objects/:extention/:name
+  get /sample/objects/:extension/:name
   """
   swagger_path :sample_object do
     get("/sample/objects/{name}")

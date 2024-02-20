@@ -83,8 +83,32 @@ defmodule Schema.Utils do
     Enum.filter(dictionary, fn {_name, map} -> Map.get(map, :object_type) == name end)
     |> Enum.map(fn {_, map} -> Map.get(map, :_links) end)
     |> List.flatten()
-    |> Stream.filter(fn links -> links != nil end)
-    |> Stream.uniq()
+    |> Enum.filter(fn links -> links != nil end)
+    # We need to de-duplicate by group and type, and merge the attribute_keys sets for each
+    # First group_by
+    |> Enum.group_by(fn link -> {link[:group], link[:type]} end)
+    # Next use reduce to merge each group
+    |> Enum.reduce(
+      [],
+      fn {_group, group_links}, acc ->
+        group_link =
+          Enum.reduce(
+            group_links,
+            fn link, link_acc ->
+              Map.update(
+                link_acc,
+                :attribute_keys,
+                MapSet.new(),
+                fn attribute_keys ->
+                  MapSet.union(attribute_keys, link[:attribute_keys])
+                end
+              )
+            end
+          )
+
+        [group_link | acc]
+      end
+    )
     |> Enum.to_list()
   end
 
@@ -158,7 +182,7 @@ defmodule Schema.Utils do
   # Adds attribute's used-by links to the dictionary.
   defp add_common_links(dict, class) do
     Map.update!(dict, :attributes, fn attributes ->
-      link = {:common, class[:name], class[:caption]}
+      link = %{group: :common, type: class[:name], caption: class[:caption]}
 
       update_attributes(
         class,
@@ -177,7 +201,7 @@ defmodule Schema.Utils do
           _ -> Atom.to_string(name)
         end
 
-      link = {:class, type, class[:caption] || "*No name*"}
+      link = %{group: :class, type: type, caption: class[:caption] || "*No name*"}
 
       update_attributes(
         class,
@@ -190,14 +214,13 @@ defmodule Schema.Utils do
 
   defp update_dictionary_links(item, link) do
     Map.update(item, :_links, [link], fn links ->
-      [{_, id, _} | _] = links
-      if id > 0, do: [link | links], else: links
+      [link | links]
     end)
   end
 
   defp add_object_links(dict, {name, obj}) do
     Map.update!(dict, :attributes, fn dictionary ->
-      link = {:object, Atom.to_string(name), obj[:caption] || "*No name*"}
+      link = %{group: :object, type: Atom.to_string(name), caption: obj[:caption] || "*No name*"}
       update_attributes(obj, dictionary, link, &update_object_links/2)
     end)
   end
@@ -212,26 +235,39 @@ defmodule Schema.Utils do
     name = item[:caption]
     attributes = item[:attributes]
 
-    Enum.reduce(attributes, dictionary, fn {k, v}, acc ->
-      case find_entity(acc, item, k) do
+    Enum.reduce(attributes, dictionary, fn {attribute_key, attribute_map}, acc ->
+      link =
+        Map.update(
+          link,
+          :attribute_keys,
+          MapSet.new([attribute_key]),
+          fn attribute_keys ->
+            MapSet.put(attribute_keys, attribute_key)
+          end
+        )
+
+      case find_entity(acc, item, attribute_key) do
         {_, nil} ->
-          case String.split(Atom.to_string(v[:_source]), "/") do
+          case String.split(Atom.to_string(attribute_map[:_source]), "/") do
             [ext, _] ->
-              ext_key = String.to_atom("#{ext}/#{k}")
+              ext_key = String.to_atom("#{ext}/#{attribute_key}")
 
               data =
                 case Map.get(acc, ext_key) do
                   nil ->
-                    update_links.(v, link)
+                    update_links.(attribute_map, link)
 
                   attr ->
-                    deep_merge(attr, v) |> update_links.(link)
+                    deep_merge(attr, attribute_map) |> update_links.(link)
                 end
 
               Map.put(acc, ext_key, data)
 
             _ ->
-              Logger.warning("'#{name}' uses undefined attribute: #{k}: #{inspect(v)}")
+              Logger.warning(
+                "'#{name}' uses undefined attribute: #{attribute_key}: #{inspect(attribute_map)}"
+              )
+
               acc
           end
 

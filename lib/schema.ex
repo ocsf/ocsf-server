@@ -114,7 +114,7 @@ defmodule Schema do
 
   @spec data_type?(binary(), binary() | list(binary())) :: boolean()
   def data_type?(type, type), do: true
-  
+
   def data_type?(type, base_type) when is_binary(base_type) do
     types = Map.get(Repo.data_types(), :attributes)
 
@@ -152,6 +152,9 @@ defmodule Schema do
     |> Repo.classes()
     |> apply_profiles(profiles, MapSet.size(profiles))
   end
+
+  @spec all_classes() :: map()
+  def all_classes(), do: Repo.all_classes()
 
   @doc """
     Returns a single event class.
@@ -430,7 +433,7 @@ defmodule Schema do
   # ----------------------------#
 
   def enrich(data, enum_text, observables) do
-  	Schema.Helper.enrich(data, enum_text, observables)
+    Schema.Helper.enrich(data, enum_text, observables)
   end
 
   # -------------------------------#
