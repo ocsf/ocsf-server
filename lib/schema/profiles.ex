@@ -48,21 +48,21 @@ defmodule Schema.Profiles do
   @doc """
     Checks classes or objects if all profile attributes are defined.
   """
-  def sanity_check(type, maps, profiles) do
+  def sanity_check(group, maps, profiles) do
     profiles =
       Enum.reduce(maps, profiles, fn {name, map}, acc ->
-        check_profiles(type, name, map, map[:profiles], acc)
+        check_profiles(group, name, map, map[:profiles], acc)
       end)
 
     {maps, profiles}
   end
 
   # Checks if all profile attributes are defined in the given attribute set.
-  defp check_profiles(_type, _name, _map, nil, all_profiles) do
+  defp check_profiles(_group, _name, _map, nil, all_profiles) do
     all_profiles
   end
 
-  defp check_profiles(type, name, map, profiles, all_profiles) do
+  defp check_profiles(group, name, map, profiles, all_profiles) do
     Enum.reduce(profiles, all_profiles, fn p, acc ->
       case acc[p] do
         nil ->
@@ -71,7 +71,7 @@ defmodule Schema.Profiles do
 
         profile ->
           check_profile(name, profile, map[:attributes])
-          link = {type, Atom.to_string(name), map[:caption]}
+          link = %{group: group, type: Atom.to_string(name), caption: map[:caption]}
           profile = Map.update(profile, :_links, [link], fn links -> [link | links] end)
           Map.put(acc, p, profile)
       end

@@ -44,7 +44,7 @@ limitations under the License.
         <tr class="ocsf-class" <%= raw format_profiles(map[:profiles])%>>
           <td class="name"><%= raw format_attribute_caption(name, map) %></td>
           <td class="extensions"><a href="<%= path %>"><%= name %></a></td>
-          <td class="extensions"><%= raw links(@conn, name, map[:_links]) %></td>
+          <td class="extensions"><%= raw object_links(@conn, map[:name], map[:_links], :collapse) %></td>
           <td><%= raw description(map) %></td>
         </tr>
       <% end %>

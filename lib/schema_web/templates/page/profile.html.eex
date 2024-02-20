@@ -91,7 +91,7 @@
   <div class="links">
     <h5>Referenced By</h5>
     <div>
-      <%= raw links(@conn, @data[:caption], links) %>
+      <%= raw profile_links(@conn, @data[:name], links) %>
     </div>
   </div>
 <% end %>
