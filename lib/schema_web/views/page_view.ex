@@ -421,20 +421,15 @@ defmodule SchemaWeb.PageView do
     )
   end
 
-  defp collapse_html(collapse_id, button_text, items, primary? \\ true) do
-    style = if primary?, do: "btn-outline-primary", else: "btn-outline-secondary"
-
+  defp collapse_html(collapse_id, text, items) do
     [
-      "<button class=\"btn btn-sm ",
-      style,
-      " dropdown-toggle\" type=\"button\"",
-      " data-toggle=\"collapse\" data-target=\"#",
+      "<a class=\"dropdown-toggle\" data-toggle=\"collapse\" data-target=\"#",
       collapse_id,
       "\" aria-expanded=\"false\" aria-controls=\"",
       collapse_id,
       "\">",
-      button_text,
-      "</button>",
+      text,
+      "</a><br>",
       "<div class=\"collapse\" id=\"",
       collapse_id,
       "\">",
@@ -691,8 +686,7 @@ defmodule SchemaWeb.PageView do
           Integer.to_string(length(html_list)),
           noun_text
         ],
-        Enum.intersperse(html_list, "<br>"),
-        false
+        Enum.intersperse(html_list, "<br>")
       )
     end
   end
