@@ -88,11 +88,9 @@
 <%= if Enum.empty?(links) do %>
   <div></div>
 <% else %>
-  <div class="links">
-    <h5>Referenced By</h5>
-    <div>
-      <%= raw profile_links(@conn, @data[:name], links) %>
-    </div>
+  <a class="h5 links dropdown-toggle" data-toggle="collapse" data-target="#profile-links" aria-expanded="false" aria-controls="object-links">Referenced By</a>
+  <div class="extensions collapse" id="profile-links">
+    <%= raw profile_links(@conn, @data[:name], links) %>
   </div>
 <% end %>
 <script>

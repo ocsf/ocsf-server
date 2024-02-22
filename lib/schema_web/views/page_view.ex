@@ -1042,9 +1042,9 @@ defmodule SchemaWeb.PageView do
   defp deprecated(map, deprecated) do
     [
       Map.get(map, :description),
-      "<div class='text-dark mt-2 bg-warning'>DEPRECATED since v",
+      "<div class='text-dark mt-2'><span class='bg-warning'>DEPRECATED since v",
       Map.get(deprecated, :since),
-      "</div>",
+      "</span></div>",
       Map.get(deprecated, :message)
     ]
   end
