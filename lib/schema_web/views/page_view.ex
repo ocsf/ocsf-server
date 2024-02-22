@@ -124,20 +124,59 @@ defmodule SchemaWeb.PageView do
     Path.basename(name)
   end
 
-  @spec format_class_attribute_source(map()) :: String.t()
-  def format_class_attribute_source(field) do
+  @spec format_class_attribute_source(String.t(), map()) :: String.t()
+  def format_class_attribute_source(class_name, field) do
+    all_classes = Schema.all_classes()
     source = field[:_source]
-    class = Schema.all_classes()[source]
+    {ok, path} = build_class_hierarchy(Schema.Utils.to_uid(class_name), source, all_classes)
 
-    if class do
-      if class[:hidden?] do
-        "#{class[:caption]} (hidden class)"
-      else
-        class[:caption]
-      end
+    if ok do
+      format_class_hierarchy(path, all_classes)
     else
       to_string(source)
     end
+  end
+
+  # Build a class hierarchy path from class to parent_class.
+  # Returns {true, path} when a path is found, and {false, []} otherwise.
+  @spec build_class_hierarchy(atom(), atom(), map(), list()) :: {boolean(), list()}
+  defp build_class_hierarchy(
+         class,
+         parent_class,
+         all_classes,
+         path_result \\ []
+       ) do
+    cond do
+      class == nil ->
+        {false, []}
+
+      class == parent_class ->
+        {true, [class | path_result]}
+
+      true ->
+        build_class_hierarchy(
+          Schema.Utils.to_uid(all_classes[class][:extends]),
+          parent_class,
+          all_classes,
+          [class | path_result]
+        )
+    end
+  end
+
+  defp format_class_hierarchy(path, all_classes) do
+    Enum.map(
+      path,
+      fn class ->
+        class_info = all_classes[class]
+
+        if class_info[:hidden?] do
+          [all_classes[class][:caption], " (hidden class)"]
+        else
+          all_classes[class][:caption]
+        end
+      end
+    )
+    |> Enum.intersperse(" ← ")
   end
 
   @spec format_range([nil | number | Decimal.t(), ...]) :: nonempty_binary
@@ -430,7 +469,7 @@ defmodule SchemaWeb.PageView do
       "\">",
       text,
       "</a><br>",
-      "<div class=\"collapse\" id=\"",
+      "<div class=\"collapse multi-collapse\" id=\"",
       collapse_id,
       "\">",
       items,
@@ -486,46 +525,6 @@ defmodule SchemaWeb.PageView do
     |> Enum.intersperse("<br>")
   end
 
-  @spec find_path_to_possible_parent(atom(), atom(), map(), list()) :: {boolean(), list()}
-  defp find_path_to_possible_parent(
-         class,
-         parent_class,
-         all_classes,
-         path_result \\ []
-       ) do
-    cond do
-      class == nil ->
-        {false, []}
-
-      class == parent_class ->
-        {true, [class | path_result]}
-
-      true ->
-        find_path_to_possible_parent(
-          Schema.Utils.to_uid(all_classes[class][:extends]),
-          parent_class,
-          all_classes,
-          [class | path_result]
-        )
-    end
-  end
-
-  defp format_class_path(path, all_classes) do
-    Enum.map(
-      path,
-      fn class ->
-        class_info = all_classes[class]
-
-        if class_info[:hidden?] do
-          [all_classes[class][:caption], " (hidden class)"]
-        else
-          all_classes[class][:caption]
-        end
-      end
-    )
-    |> Enum.intersperse(" ← ")
-  end
-
   defp dictionary_links_class_to_html(_, _, nil), do: []
 
   defp dictionary_links_class_to_html(conn, attribute_name, linked_classes) do
@@ -542,29 +541,9 @@ defmodule SchemaWeb.PageView do
           class_key = Schema.Utils.to_uid(link[:type])
           source = classes[class_key][:attributes][attribute_key][:_source]
 
-          {source_via_hidden?, path} =
-            if all_classes[source][:hidden?] do
-              find_path_to_possible_parent(class_key, source, all_classes)
-            else
-              {false, []}
-            end
-
           cond do
-            source_via_hidden? ->
-              [
-                [
-                  "<a href=\"",
-                  type_path,
-                  "\" data-toggle=\"tooltip\" title=\"Indirectly referenced via ",
-                  format_class_path(path, all_classes),
-                  "\">",
-                  link[:caption],
-                  " Class</a>"
-                ]
-                | acc
-              ]
-
             source == nil ->
+              # This means the attribute's :_source is incorrectly missing. Show with warning.
               [
                 [
                   "<a href=\"",
@@ -576,7 +555,7 @@ defmodule SchemaWeb.PageView do
                 | acc
               ]
 
-            true ->
+            source == class_key ->
               [
                 [
                   "<a href=\"",
@@ -587,6 +566,37 @@ defmodule SchemaWeb.PageView do
                 ]
                 | acc
               ]
+
+            true ->
+              # Any indirect situation, including through hidden classes
+              {ok, path} = build_class_hierarchy(class_key, source, all_classes)
+
+              if ok do
+                [
+                  [
+                    "<a href=\"",
+                    type_path,
+                    "\" data-toggle=\"tooltip\" title=\"Indirectly referenced: ",
+                    format_class_hierarchy(path, all_classes),
+                    "\">",
+                    link[:caption],
+                    " Class</a>"
+                  ]
+                  | acc
+                ]
+              else
+                # This means there's a bad class hierarchy. Show with warning.
+                [
+                  [
+                    "<a href=\"",
+                    type_path,
+                    "\" data-toggle=\"tooltip\" title=\"Referenced via unknown parent\">",
+                    link[:caption],
+                    " Class</a> <span class=\"bg-warning\">Unknown parent</span>"
+                  ]
+                  | acc
+                ]
+              end
           end
         end
       )
@@ -618,58 +628,71 @@ defmodule SchemaWeb.PageView do
         fn link, acc ->
           class_key = Schema.Utils.to_uid(link[:type])
 
-          if class_key == :base_event do
-            acc
-          else
-            type_path = SchemaWeb.Router.Helpers.static_path(conn, "/classes/" <> link[:type])
-            source = classes[class_key][:attributes][attribute_key][:_source]
+          type_path = SchemaWeb.Router.Helpers.static_path(conn, "/classes/" <> link[:type])
+          source = classes[class_key][:attributes][attribute_key][:_source]
 
-            cond do
-              source == class_key ->
+          cond do
+            source == nil ->
+              # This means the attribute's :_source is incorrectly missing. Show with warning.
+              [
+                [
+                  "<a href=\"",
+                  type_path,
+                  "\" data-toggle=\"tooltip\" title=\"No source\">",
+                  link[:caption],
+                  " Class</a> <span class=\"bg-warning\">No source</span>"
+                ]
+                | acc
+              ]
+
+            source == :base_event ->
+              # Skip base_event source:
+              #   - Reduces noise
+              #   - It is redundant with showing Base Event Class separately
+              acc
+
+            source == class_key ->
+              [
+                [
+                  "<a href=\"",
+                  type_path,
+                  "\" data-toggle=\"tooltip\" title=\"Directly updated\">",
+                  link[:caption],
+                  " Class</a>"
+                ]
+                | acc
+              ]
+
+            true ->
+              # Any indirect situation, including through hidden classes
+              {ok, path} = build_class_hierarchy(class_key, source, all_classes)
+
+              if ok do
                 [
                   [
                     "<a href=\"",
                     type_path,
-                    "\" data-toggle=\"tooltip\" title=\"Updated directly\">",
+                    "\" data-toggle=\"tooltip\" title=\"Indirectly updated: ",
+                    format_class_hierarchy(path, all_classes),
+                    "\">",
                     link[:caption],
                     " Class</a>"
                   ]
                   | acc
                 ]
-
-              all_classes[source][:hidden?] ->
-                {ok, path} = find_path_to_possible_parent(class_key, source, all_classes)
-
-                if ok do
+              else
+                # This means there's a bad class hierarchy. Show with warning.
+                [
                   [
-                    [
-                      "<a href=\"",
-                      type_path,
-                      "\" data-toggle=\"tooltip\" title=\"Updated indirectly via ",
-                      format_class_path(path, all_classes),
-                      "\">",
-                      link[:caption],
-                      " Class</a>"
-                    ]
-                    | acc
+                    "<a href=\"",
+                    type_path,
+                    "\" data-toggle=\"tooltip\" title=\"Updated via unknown parent\">",
+                    link[:caption],
+                    " Class</a> <span class=\"bg-warning\">Unknown parent</span>"
                   ]
-                else
-                  # This means there's a bad class hierarchy. Show with warning.
-                  [
-                    [
-                      "<a href=\"",
-                      type_path,
-                      "\" data-toggle=\"tooltip\" title=\"Updated via unknown parent\">",
-                      link[:caption],
-                      " Class</a> <span class=\"bg-warning\">Unknown parent</span>"
-                    ]
-                    | acc
-                  ]
-                end
-
-              true ->
-                acc
-            end
+                  | acc
+                ]
+              end
           end
         end
       )
