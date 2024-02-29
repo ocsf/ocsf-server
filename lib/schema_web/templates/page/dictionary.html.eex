@@ -54,7 +54,7 @@ limitations under the License.
           <td><%= format_attribute_name(name) %></td>
           <td class="extensions"><%= raw format_type(@conn, field) %></td>
           <td class="extensions"><%= raw dictionary_links(@conn, key, field[:_links]) %></td>
-          <td><%= raw description(field) %></td>
+          <td><%= raw format_desc(field) %></td>
         </tr>
       <% end %>
     </tbody>
