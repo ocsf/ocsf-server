@@ -1,0 +1,246 @@
+{
+  "caption": "Attribute Dictionary",
+  "description": "The Attribute Dictionary defines attributes and includes references to the events and objects in which they are used.",
+  "name": "dictionary",
+  "attributes": {
+    "activity_id": {
+      "caption": "Activity ID",
+      "description": "The normalized identifier of the activity that triggered the event.",
+      "enum": {
+        "99": {
+          "caption": "Other",
+          "description": "The event activity is not mapped. See the <code>activity_name</code> attribute, which contains a data source specific value."
+        },
+        "0": {
+          "caption": "Unknown",
+          "description": "The event activity is unknown."
+        }
+      },
+      "sibling": "activity_name",
+      "type": "integer_t"
+    },
+    "activity_name": {
+      "caption": "Activity",
+      "description": "The event activity name, as defined by the activity_id.",
+      "type": "string_t"
+    },
+    "category_name": {
+      "caption": "Category",
+      "description": "The event category name, as defined by category_uid value.",
+      "type": "string_t"
+    },
+    "category_uid": {
+      "caption": "Category ID",
+      "description": "The category unique identifier of the event.",
+      "sibling": "category_name",
+      "type": "integer_t"
+    },
+    "class_name": {
+      "caption": "Class",
+      "description": "The event class name, as defined by class_uid value.",
+      "type": "string_t"
+    },
+    "class_uid": {
+      "caption": "Class ID",
+      "description": "The unique identifier of a class. A Class describes the attributes available in an event.",
+      "sibling": "class_name",
+      "type": "integer_t"
+    },
+    "correlation_uid": {
+      "caption": "Correlation UID",
+      "description": "The unique identifier used to correlate events.",
+      "type": "string_t"
+    },
+    "desc": {
+      "caption": "Description",
+      "description": "The description that pertains to the object or event. See specific usage.",
+      "type": "string_t"
+    },
+    "destination_node": {
+      "caption": "Destination Node",
+      "description": "Destination network node.",
+      "type": "network_node"
+    },
+    "destination_port": {
+      "caption": "Destination Port",
+      "description": "Destination network port.",
+      "type": "port_t",
+      "observable": 1000
+    },
+    "device": {
+      "caption": "Device",
+      "description": "An addressable device, computer system or host.",
+      "type": "device"
+    },
+    "entity_thing": {
+      "caption": "Entity Thing",
+      "description": "An entity's thingy. (From base dictionary attribute.)",
+      "type": "entity_thing_t"
+    },
+    "hostname": {
+      "caption": "Hostname",
+      "description": "The hostname of an endpoint or a device.",
+      "type": "hostname_t"
+    },
+    "ip": {
+      "caption": "IP Address",
+      "description": "The IP address, in either IPv4 or IPv6 format.",
+      "type": "ip_t"
+    },
+    "message": {
+      "caption": "Message",
+      "description": "The description of the event/finding, as defined by the source.",
+      "type": "string_t"
+    },
+    "metadata": {
+      "caption": "Metadata",
+      "description": "The metadata associated with the event or a finding.",
+      "type": "metadata"
+    },
+    "name": {
+      "caption": "Name",
+      "description": "The name of the entity. See specific usage.",
+      "type": "string_t"
+    },
+    "observables": {
+      "caption": "Observables",
+      "description": "The observables associated with the event or a finding.",
+      "is_array": true,
+      "type": "observable"
+    },
+    "port": {
+      "type": "port_t",
+      "caption": "Port",
+      "description": "The TCP/UDP port number. For example: <code>80</code> or <code>22</code>."
+    },
+    "source_node": {
+      "caption": "Source Node",
+      "description": "Source network node.",
+      "type": "network_node"
+    },
+    "source_port": {
+      "caption": "Source Port",
+      "description": "Source network port. This is often an ephemeral port.",
+      "type": "port_t",
+      "observable": 1001
+    },
+    "time": {
+      "caption": "Event Time",
+      "description": "The normalized event occurrence time or the finding creation time.",
+      "type": "timestamp_t"
+    },
+    "type": {
+      "caption": "Type",
+      "description": "The type of an object or value, normalized to the caption of the type_id value. In the case of 'Other', it is defined by the event source. See specific usage.",
+      "type": "string_t"
+    },
+    "type_id": {
+      "caption": "Type ID",
+      "description": "The normalized type identifier of an object. See specific usage.",
+      "enum": {
+        "99": {
+          "caption": "Other",
+          "description": "The type is not mapped. See the <code>type</code> attribute, which contains a data source specific value."
+        },
+        "0": {
+          "caption": "Unknown",
+          "description": "The type is unknown."
+        }
+      },
+      "sibling": "type",
+      "type": "integer_t"
+    },
+    "type_name": {
+      "caption": "Type Name",
+      "description": "The event/finding type name, as defined by the type_uid.",
+      "type": "string_t"
+    },
+    "type_uid": {
+      "caption": "Type ID",
+      "description": "The event/finding type ID. It identifies the event's semantics and structure. The value is calculated by the logging system as: <code>class_uid * 100 + activity_id</code>.",
+      "sibling": "type_name",
+      "type": "long_t"
+    },
+    "uid": {
+      "caption": "Unique ID",
+      "description": "The unique identifier. See specific usage.",
+      "type": "string_t"
+    },
+    "value": {
+      "caption": "Value",
+      "description": "The value that pertains to the object. See specific usage.",
+      "type": "string_t"
+    },
+    "version": {
+      "caption": "Version",
+      "description": "The version that pertains to the event or object. See specific usage.",
+      "type": "string_t"
+    }
+  },
+  "types": {
+    "caption": "Data Types",
+    "description": "The predefined data types. The data type specifies what kind of data a value can have.",
+    "attributes": {
+      "boolean_t": {
+        "caption": "Boolean",
+        "description": "Boolean value. One of <code>true</code> or <code>false</code>.",
+        "values": [
+          false,
+          true
+        ]
+      },
+      "entity_thing_t": {
+        "caption": "Entity Thing",
+        "description": "An entity's thingy. (From base dictionary attribute type.)",
+        "type": "string_t",
+        "type_name": "String"
+      },
+      "integer_t": {
+        "caption": "Integer",
+        "description": "Signed 32-bit integer value."
+      },
+      "hostname_t": {
+        "caption": "Hostname",
+        "description": "Unique name assigned to a device connected to a computer network. A domain name in general is an Internet address that can be resolved through the Domain Name System (DNS). For example: <code>r2-d2.example.com</code>.",
+        "observable": 1,
+        "regex": "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])$",
+        "type": "string_t",
+        "type_name": "String"
+      },
+      "ip_t": {
+        "caption": "IP Address",
+        "description": "Internet Protocol address (IP address), in either IPv4 or IPv6 format. For example, <code>192.168.200.24</code> or <code>2001:0db8:85a3:0000:0000:8a2e:0370:7334</code>.",
+        "max_len": 40,
+        "observable": 2,
+        "regex": "((^\\s*((([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]).){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))\\s*$)|(^\\s*((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:)))(%.+)?\\s*$))",
+        "type": "string_t",
+        "type_name": "String"
+      },
+      "long_t": {
+        "caption": "Long",
+        "description": "Signed 64-bit integer value."
+      },
+      "port_t": {
+        "caption": "Port",
+        "description": "The TCP/UDP port number. For example: <code>80</code> or <code>22</code>.",
+        "range": [
+          0,
+          65535
+        ],
+        "type": "integer_t",
+        "type_name": "Integer"
+      },
+      "string_t": {
+        "caption": "String",
+        "description": "UTF-8 encoded byte sequence.",
+        "max_len": 65535
+      },
+      "timestamp_t": {
+        "caption": "Timestamp",
+        "description": "The timestamp format is the number of milliseconds since the Epoch 01/01/1970 00:00:00 UTC. For example <code>1618524549901</code>.",
+        "type": "long_t",
+        "type_name": "Long"
+      }
+    }
+  }
+}

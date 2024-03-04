@@ -39,6 +39,24 @@ defmodule Schema.Utils do
   def make_path(nil, name), do: name
   def make_path(extension, name), do: Path.join(extension, name)
 
+  @spec descope(atom() | String.t()) :: String.t()
+  def descope(name) when is_binary(name) do
+    Path.basename(name)
+  end
+
+  def descope(name) when is_atom(name) do
+    Path.basename(Atom.to_string(name))
+  end
+
+  @spec descope_to_uid(atom() | String.t()) :: atom()
+  def descope_to_uid(name) when is_binary(name) do
+    String.to_atom(Path.basename(name))
+  end
+
+  def descope_to_uid(name) when is_atom(name) do
+    String.to_atom(Path.basename(Atom.to_string(name)))
+  end
+
   def find_entity(map, entity, name) when is_binary(name) do
     find_entity(map, entity, String.to_atom(name))
   end
@@ -125,8 +143,10 @@ defmodule Schema.Utils do
   end
 
   defp update_data_types(dictionary, objects) do
+    types = dictionary[:types][:attributes]
+
     Map.update!(dictionary, :attributes, fn attributes ->
-      update_data_types(attributes, get_in(dictionary, [:types, :attributes]), objects)
+      update_data_types(attributes, types, objects)
     end)
   end
 
@@ -148,7 +168,7 @@ defmodule Schema.Utils do
 
     case find_entity(objects, value, key) do
       {key, nil} ->
-        Logger.warning("undefined object type: #{key}, for #{name}")
+        Logger.warning("Undefined object type: #{key}, for #{name}")
         Map.put(value, :object_name, "_undefined_")
 
       {key, object} ->
@@ -162,7 +182,7 @@ defmodule Schema.Utils do
     type =
       case value[:type] do
         nil ->
-          Logger.warning("missing data type for: #{name}, will use string_t type")
+          Logger.warning("Missing data type for: #{name}, will use string_t type")
           "string_t"
 
         t ->
@@ -171,7 +191,7 @@ defmodule Schema.Utils do
 
     case types[String.to_atom(type)] do
       nil ->
-        Logger.warning("undefined data type: #{name}: #{type}")
+        Logger.warning("Undefined data type: #{name}: #{type}")
         value
 
       type ->

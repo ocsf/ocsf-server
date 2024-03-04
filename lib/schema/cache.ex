@@ -241,13 +241,13 @@ defmodule Schema.Cache do
     end
   end
 
-  defp enrich(type, dictionary) do
-    Map.update!(type, :attributes, fn list -> update_attributes(list, dictionary) end)
+  defp enrich(type, dictionary_attributes) do
+    Map.update!(type, :attributes, fn list -> update_attributes(list, dictionary_attributes) end)
   end
 
-  defp update_attributes(attributes, dictionary) do
+  defp update_attributes(attributes, dictionary_attributes) do
     Enum.map(attributes, fn {name, attribute} ->
-      case find_attribute(dictionary, name, attribute[:_source]) do
+      case find_attribute(dictionary_attributes, name, attribute[:_source]) do
         nil ->
           Logger.warning("undefined attribute: #{name}: #{inspect(attribute)}")
           {name, attribute}
@@ -258,16 +258,16 @@ defmodule Schema.Cache do
     end)
   end
 
-  defp enrich_ex(type, dictionary, objects, ref_objects) do
+  defp enrich_ex(type, dictionary_attributes, objects, ref_objects) do
     {attributes, ref_objects} =
-      update_attributes_ex(type[:attributes], dictionary, objects, ref_objects)
+      update_attributes_ex(type[:attributes], dictionary_attributes, objects, ref_objects)
 
     {Map.put(type, :attributes, attributes), ref_objects}
   end
 
-  defp update_attributes_ex(attributes, dictionary, objects, ref_objects) do
+  defp update_attributes_ex(attributes, dictionary_attributes, objects, ref_objects) do
     Enum.map_reduce(attributes, ref_objects, fn {name, attribute}, acc ->
-      case find_attribute(dictionary, name, attribute[:_source]) do
+      case find_attribute(dictionary_attributes, name, attribute[:_source]) do
         nil ->
           Logger.warning("undefined attribute: #{name}: #{inspect(attribute)}")
           {{name, attribute}, acc}
@@ -282,7 +282,12 @@ defmodule Schema.Cache do
             name,
             attribute,
             fn obj_type ->
-              enrich_ex(objects[obj_type], dictionary, objects, Map.put(acc, obj_type, nil))
+              enrich_ex(
+                objects[obj_type],
+                dictionary_attributes,
+                objects,
+                Map.put(acc, obj_type, nil)
+              )
             end,
             acc
           )
@@ -328,6 +333,9 @@ defmodule Schema.Cache do
       JsonReader.read_classes()
       |> Enum.into(%{}, fn class -> attribute_source(class) end)
       |> extend_type()
+      |> Enum.into(%{}, fn {class_key, class} ->
+        {class_key, Map.put(class, :meta_type, :class)}
+      end)
 
     resolved = resolve_extends(classes)
 
@@ -356,11 +364,23 @@ defmodule Schema.Cache do
 
   defp read_objects() do
     JsonReader.read_objects()
+    |> Enum.into(%{}, fn {object_key, object} ->
+      {object_key, Map.put(object, :meta_type, :object)}
+    end)
     |> resolve_extends()
     # removes abstract objects
-    |> Stream.filter(fn {key, _o} -> !String.starts_with?(Atom.to_string(key), "_") end)
+    |> Stream.filter(fn {key, _o} -> !hidden_object?(key) end)
     |> Enum.into(%{}, fn obj -> attribute_source(obj) end)
     |> extend_type()
+  end
+
+  @spec hidden_object?(atom() | String.t()) :: boolean()
+  def hidden_object?(object_name) when is_binary(object_name) do
+    String.starts_with?(object_name, "_")
+  end
+
+  def hidden_object?(object_key) when is_atom(object_key) do
+    hidden_object?(Atom.to_string(object_key))
   end
 
   # Add category_uid, class_uid, and type_uid
@@ -593,7 +613,8 @@ defmodule Schema.Cache do
       extends ->
         case find_super_class(items, item, extends) do
           nil ->
-            exit("Error: #{item[:name]} extends undefined item: #{extends}")
+            Logger.error("#{item[:name]} extends undefined item: #{extends}")
+            System.stop(1)
 
           base ->
             base = resolve_extends(items, base)
@@ -603,9 +624,30 @@ defmodule Schema.Cache do
               |> Enum.filter(fn {_name, attr} -> attr != nil end)
               |> Map.new()
 
+            item = fix_observable(base, item)
+
             Map.merge(base, item, &merge_profiles/3)
             |> Map.put(:attributes, attributes)
         end
+    end
+  end
+
+  defp fix_observable(base, item) do
+    if Map.has_key?(item, :observable) do
+      Map.put(item, :observable_inherited?, false)
+    else
+      cond do
+        base[:meta_type] == :object && hidden_object?(base[:name]) ->
+          # Hidden objects are removed,
+          # so we never mark inherited object with :inherited_observable? true
+          item
+
+        Map.has_key?(base, :observable) ->
+          Map.put(item, :observable_inherited?, true)
+
+        true ->
+          item
+      end
     end
   end
 
@@ -692,49 +734,70 @@ defmodule Schema.Cache do
 
   defp update_observables(objects, dictionary) do
     if Map.has_key?(objects, :observable) do
-      observable_types = get_in(dictionary, [:types, :attributes]) |> observables()
+      observable_attribute_types = get_in(dictionary, [:types, :attributes]) |> observables()
       observable_objects = observables(objects)
+      observable_attributes = observables(dictionary[:attributes])
 
       Map.update!(objects, :observable, fn observable ->
         observable
-        |> update_observable_types(observable_types)
-        |> update_observable_types(observable_objects)
+        |> update_observable_type_id_enum(
+          observable_attribute_types,
+          fn _name, attribute -> "#{attribute[:caption]} (Type)" end
+        )
+        |> update_observable_type_id_enum(
+          observable_objects,
+          fn _name, object -> "#{object[:caption]} (Object)" end
+        )
+        |> update_observable_type_id_enum(
+          observable_attributes,
+          fn _name, attribute -> "#{attribute[:caption]} (Attribute)" end
+        )
       end)
     else
       objects
     end
   end
 
-  defp update_observable_types(observable, types) do
+  defp update_observable_type_id_enum(observable, entities, caption_fn) do
     update_in(observable, [:attributes, :type_id, :enum], fn enum ->
-      Map.merge(enum, generate_observable_types(types))
+      new_enum = generate_observable_type_id_enum(entities, caption_fn)
+
+      Map.merge(
+        enum,
+        new_enum,
+        fn type_id, v1, v2 ->
+          Logger.error(
+            "Observable type_id collision on #{type_id}: \"#{v1[:caption]}\" and \"#{v2[:caption]}\" (detected while updating)"
+          )
+
+          System.stop(1)
+          v1
+        end
+      )
     end)
   end
 
-  defp generate_observable_types(types) do
-    Enum.reduce(types, %{}, fn {_name, type}, acc ->
-      k = Integer.to_string(type[:observable]) |> String.to_atom()
-      v = %{caption: type[:caption], description: type[:description]}
+  defp generate_observable_type_id_enum(entities, caption_fn) do
+    Enum.reduce(entities, %{}, fn {name, entity}, acc ->
+      type_id = Integer.to_string(entity[:observable]) |> String.to_atom()
+      caption = caption_fn.(name, entity)
+      description = entity[:description]
 
-      case type[:extends] do
-        nil ->
-          Map.put(acc, k, v)
+      if Map.has_key?(acc, type_id) do
+        Logger.error(
+          "Observable type_id collision on #{type_id}: \"#{acc[type_id][:caption]}\" and \"#{caption}\" (detected while generating)"
+        )
 
-        "object" ->
-          Map.put(acc, k, v)
-
-        "_entity" ->
-          Map.put(acc, k, v)
-
-        _ ->
-          acc
+        System.stop(1)
       end
+
+      Map.put(acc, type_id, %{caption: caption, description: description})
     end)
   end
 
   defp observables(list) do
-    Enum.filter(list, fn {_, value} ->
-      Map.get(value, :observable, 0) > 0
+    Enum.filter(list, fn {_key, value} ->
+      Map.has_key?(value, :observable) && !value[:observable_inherited?]
     end)
   end
 
@@ -894,39 +957,50 @@ defmodule Schema.Cache do
   end
 
   defp update_dictionary(dictionary) do
+    dictionary =
+      Map.update!(dictionary, :types, fn types ->
+        Map.update!(types, :attributes, fn attributes ->
+          Enum.into(attributes, %{}, fn {type_key, type} ->
+            {type_key, Map.put(type, :meta_type, :dictionary_type)}
+          end)
+        end)
+      end)
+
     types = get_in(dictionary, [:types, :attributes])
 
     Map.update!(dictionary, :attributes, fn attributes ->
       Enum.into(attributes, %{}, fn {name, attribute} ->
         type = attribute[:type] || "object_t"
 
-        {name,
-         case types[String.to_atom(type)] do
-           nil ->
-             attribute
-             |> Map.put(:type, "object_t")
-             |> Map.put(:object_type, type)
+        attribute =
+          case types[String.to_atom(type)] do
+            nil ->
+              attribute
+              |> Map.put(:type, "object_t")
+              |> Map.put(:object_type, type)
 
-           _type ->
-             attribute
-         end}
+            _type ->
+              attribute
+          end
+
+        {name, Map.put(attribute, :meta_type, :dictionary_attribute)}
       end)
     end)
   end
 
-  defp update_profiles(profiles, dictionary) do
+  defp update_profiles(profiles, dictionary_attributes) do
     Enum.into(profiles, %{}, fn {name, profile} ->
       {name,
        Map.update!(profile, :attributes, fn attributes ->
-         update_profile(name, attributes, dictionary)
+         update_profile(name, attributes, dictionary_attributes)
        end)}
     end)
   end
 
-  defp update_profile(profile, attributes, dictionary) do
+  defp update_profile(profile, attributes, dictionary_attributes) do
     Enum.into(attributes, %{}, fn {name, attribute} ->
       {name,
-       case find_attribute(dictionary, name, String.to_atom(profile)) do
+       case find_attribute(dictionary_attributes, name, String.to_atom(profile)) do
          nil ->
            Logger.warning("profile #{profile} uses #{name} that is not defined in the dictionary")
            attribute
@@ -948,6 +1022,7 @@ defmodule Schema.Cache do
     |> copy(from, :type_name)
     |> copy(from, :object_name)
     |> copy(from, :object_type)
+    |> copy(from, :meta_type)
   end
 
   defp copy(to, from, key) do

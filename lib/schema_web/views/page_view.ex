@@ -103,25 +103,97 @@ defmodule SchemaWeb.PageView do
     end
   end
 
-  @spec format_attribute_caption(any, nil | maybe_improper_list | map) :: any
-  def format_attribute_caption(name, field) do
-    name = field[:caption] || name
+  @spec format_attribute_caption(any, String.t() | atom, nil | maybe_improper_list | map) :: any
+  def format_attribute_caption(conn, entity_key, entity) do
+    {observable_type_id, observable_kind} = observable_type_id_and_kind(entity)
 
-    name =
-      case field[:observable] do
-        nil -> name
-        _ -> name <> " <sup>O</sup>"
+    caption = entity[:caption] || to_string(entity_key)
+
+    caption =
+      case observable_type_id do
+        nil ->
+          caption
+
+        type_id ->
+          type_id = to_string(type_id)
+
+          [
+            caption,
+            " <sup><a href=\"",
+            SchemaWeb.Router.Helpers.static_path(conn, "/objects/observable"),
+            "#type_id-",
+            type_id,
+            "\" data-toggle=\"tooltip\" title=\"Observable Type ID ",
+            type_id,
+            " (",
+            observable_kind,
+            ")\">O</a></sup>"
+          ]
       end
 
-    case field[:extension] do
-      nil -> name
-      extension -> name <> " <sup>#{extension}</sup>"
+    case entity[:extension] do
+      nil -> caption
+      extension -> [caption, " <sup>#{extension}</sup>"]
     end
   end
 
-  @spec format_attribute_name(binary()) :: any
+  def observable_type_id_and_kind(entity) do
+    case entity[:meta_type] do
+      :dictionary_type ->
+        {entity[:observable], "Type"}
+
+      :object ->
+        {entity[:observable], "Object"}
+
+      :dictionary_attribute ->
+        direct = entity[:observable]
+
+        if direct != nil do
+          {direct, "Attribute"}
+        else
+          # Could be an observable by type or object
+          by_type = observable_by_type(entity)
+
+          if by_type != nil do
+            {by_type, "Type"}
+          else
+            by_object = observable_by_object(entity)
+
+            if by_object != nil do
+              {by_object, "Object"}
+            else
+              {nil, nil}
+            end
+          end
+        end
+
+      # :class ->
+      #   {nil, nil}
+
+      meta_type ->
+        Logger.warning("Unexpected meta type #{inspect(meta_type)} in #{inspect(entity)}")
+        {nil, nil}
+    end
+  end
+
+  def observable_by_type(entity) do
+    Schema.dictionary()[:types][:attributes][Schema.Utils.to_uid(entity[:type])][:observable]
+  end
+
+  def observable_by_object(entity) do
+    entity_type = entity[:type]
+    entity_object_type = entity[:object_type]
+
+    if entity_type == "object_t" && entity_object_type != nil do
+      Schema.object(Schema.Utils.to_uid(entity_object_type))[:observable]
+    else
+      nil
+    end
+  end
+
+  @spec format_attribute_name(String.t() | atom()) :: any
   def format_attribute_name(name) do
-    Path.basename(name)
+    Path.basename(to_string(name))
   end
 
   @spec format_class_attribute_source(String.t(), map()) :: String.t()
@@ -363,8 +435,8 @@ defmodule SchemaWeb.PageView do
     end
   end
 
-  @spec format_desc(map) :: any
-  def format_desc(obj) do
+  @spec format_desc(String.t() | atom(), map()) :: any
+  def format_desc(key, obj) do
     description = description(obj)
 
     case Map.get(obj, :enum) do
@@ -393,13 +465,18 @@ defmodule SchemaWeb.PageView do
             sorted,
             [],
             fn {id, item}, acc ->
+              id = to_string(id)
               desc = Map.get(item, :description) || ""
 
               [
-                "<tr class='bg-transparent'><td style='width: 25px' class='text-right'><code>",
-                Atom.to_string(id),
+                "<tr class='bg-transparent'><td style='width: 25px' class='text-right' id='",
+                to_string(key),
+                "-",
+                id,
+                "'><code>",
+                id,
                 "</code></td><td class='textnowrap'>",
-                Map.get(item, :caption, Atom.to_string(id)),
+                Map.get(item, :caption, id),
                 "<div class='text-secondary'>",
                 desc,
                 "</div></td><tr>" | acc
@@ -458,6 +535,10 @@ defmodule SchemaWeb.PageView do
         link1[:group] >= link2[:group] and link1[:caption] >= link2[:caption]
       end
     )
+  end
+
+  defp to_css_selector(value) do
+    String.replace(to_string(value), "/", "-")
   end
 
   defp collapse_html(collapse_id, text, items) do
@@ -530,7 +611,7 @@ defmodule SchemaWeb.PageView do
   defp dictionary_links_class_to_html(conn, attribute_name, linked_classes) do
     classes = SchemaController.classes(conn.params())
     all_classes = Schema.all_classes()
-    attribute_key = Schema.Utils.to_uid(attribute_name)
+    attribute_key = Schema.Utils.descope_to_uid(attribute_name)
 
     html_list =
       reverse_sort_links(linked_classes)
@@ -607,7 +688,7 @@ defmodule SchemaWeb.PageView do
       noun_text = if length(html_list) == 1, do: " class", else: " classes"
 
       collapse_html(
-        ["class-links-", to_string(attribute_name)],
+        ["class-links-", to_css_selector(attribute_name)],
         ["Referenced by ", Integer.to_string(length(html_list)), noun_text],
         Enum.intersperse(html_list, "<br>")
       )
@@ -619,7 +700,7 @@ defmodule SchemaWeb.PageView do
   defp dictionary_links_class_updated_to_html(conn, attribute_name, linked_classes) do
     classes = SchemaController.classes(conn.params())
     all_classes = Schema.all_classes()
-    attribute_key = Schema.Utils.to_uid(attribute_name)
+    attribute_key = Schema.Utils.descope_to_uid(attribute_name)
 
     html_list =
       reverse_sort_links(linked_classes)
@@ -703,7 +784,7 @@ defmodule SchemaWeb.PageView do
       noun_text = if length(html_list) == 1, do: " class", else: " classes"
 
       collapse_html(
-        ["class-links-", to_string(attribute_name)],
+        ["class-links-", to_css_selector(attribute_name)],
         [
           "Updated in ",
           Integer.to_string(length(html_list)),
@@ -744,7 +825,7 @@ defmodule SchemaWeb.PageView do
         noun_text = if length(html_list) == 1, do: " object", else: " objects"
 
         collapse_html(
-          ["object-links-", to_string(name)],
+          ["object-links-", to_css_selector(name)],
           ["Referenced by ", Integer.to_string(length(html_list)), noun_text],
           Enum.intersperse(html_list, "<br>")
         )
@@ -884,7 +965,7 @@ defmodule SchemaWeb.PageView do
         noun_text = if length(html_list) == 1, do: " class", else: " classes"
 
         collapse_html(
-          ["class-links-", to_string(name)],
+          ["class-links-", to_css_selector(name)],
           ["Referenced by ", Integer.to_string(length(html_list)), noun_text],
           Enum.intersperse(html_list, "<br>")
         )
@@ -938,7 +1019,7 @@ defmodule SchemaWeb.PageView do
         noun_text = if length(html_list) == 1, do: " object", else: " objects"
 
         collapse_html(
-          ["object-links-", to_string(name)],
+          ["object-links-", to_css_selector(name)],
           ["Referenced by ", Integer.to_string(length(html_list)), noun_text],
           Enum.intersperse(html_list, "<br>")
         )
@@ -1017,7 +1098,7 @@ defmodule SchemaWeb.PageView do
         noun_text = if length(html_list) == 1, do: " class", else: " classes"
 
         collapse_html(
-          ["class-links-", to_string(profile_name)],
+          ["class-links-", to_css_selector(profile_name)],
           ["Referenced by ", Integer.to_string(length(html_list)), noun_text],
           Enum.intersperse(html_list, "<br>")
         )
