@@ -24,6 +24,16 @@
       "description": "The event activity name, as defined by the activity_id.",
       "type": "string_t"
     },
+    "alpha": {
+      "caption": "Alpha",
+      "description": "The alpha. It's the first. This is for testing.",
+      "type": "string_t"
+    },
+    "beta": {
+      "caption": "Beta",
+      "description": "The beta. Whatever that is. This is for testing. Sheesh.",
+      "type": "string_t"
+    },
     "category_name": {
       "caption": "Category",
       "description": "The event category name, as defined by category_uid value.",
@@ -76,6 +86,11 @@
       "caption": "Entity Thing",
       "description": "An entity's thingy. (From base dictionary attribute.)",
       "type": "entity_thing_t"
+    },
+    "hidden_thing": {
+      "caption": "Hidden Thing",
+      "description": "A hidden thing. Another attribute for testing.",
+      "type": "string_t"
     },
     "hostname": {
       "caption": "Hostname",

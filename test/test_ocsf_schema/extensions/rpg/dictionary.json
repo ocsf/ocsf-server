@@ -3,10 +3,25 @@
   "description": "The Attribute Dictionary for the RPG extension.",
   "name": "dictionary",
   "attributes": {
+    "alpha_extra": {
+      "caption": "Alpha Extra",
+      "description": "The alpha extra. Extra stuff for alpha. This is for testing.",
+      "type": "string_t"
+    },
     "damage": {
       "caption": "Damage",
       "description": "Damage taken.",
       "type": "integer_t"
+    },
+    "damage_range": {
+      "caption": "Damage Range",
+      "description": "The amount of damage an item can inflict, represented as a string.",
+      "type": "string_t"
+    },
+    "hammer": {
+      "caption": "Hammer",
+      "description": "A hammer.",
+      "type": "hammer"
     },
     "hp": {
       "caption": "Hit Points",

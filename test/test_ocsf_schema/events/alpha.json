@@ -1,0 +1,18 @@
+{
+  "caption": "Alpha",
+  "category": "other",
+  "description": "The Alpha example event class.",
+  "name": "alpha",
+  "extends": "hidden",
+  "uid": 2,
+  "profiles": [],
+  "attributes": {
+    "alpha": {
+      "requirement": "required"
+    }
+  },
+  "observables": {
+    "message": 6,
+    "alpha": 7
+  }
+}

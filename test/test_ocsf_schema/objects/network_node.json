@@ -2,6 +2,7 @@
   "caption": "Network Node",
   "description": "The Network Node object represents a computing device on a network. This is simplified view; the actual OCSF Schema uses far more elaborate model.",
   "name": "network_node",
+  "extends": "_entity",
   "observable": 100,
   "attributes": {
     "ip": {

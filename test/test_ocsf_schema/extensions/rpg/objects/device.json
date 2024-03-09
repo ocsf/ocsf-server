@@ -1,0 +1,11 @@
+{
+  "caption": "RPG Device",
+  "description": "Extends Device for the RPG extension.",
+  "extends": "device",
+  "attributes": {
+    "mana": {
+      "description": "The device's magical reserves.",
+      "requirement": "optional"
+    }
+  }
+}

@@ -3,7 +3,7 @@
   "category": "network",
   "description": "The Network event represents a network connection.",
   "name": "network",
-  "extends": "base_event",
+  "extends": "alpha",
   "uid": 1,
   "profiles": [
     "host"

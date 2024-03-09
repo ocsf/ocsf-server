@@ -1,0 +1,13 @@
+{
+  "caption": "Hidden",
+  "category": "other",
+  "description": "The Hidden example event class.",
+  "name": "hidden",
+  "extends": "base_event",
+  "profiles": [],
+  "attributes": {
+    "hidden_thing": {
+      "requirement": "required"
+    }
+  }
+}

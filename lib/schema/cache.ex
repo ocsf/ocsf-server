@@ -82,6 +82,8 @@ defmodule Schema.Cache do
       update_classes(classes, objects)
       |> final_check(attributes)
 
+    objects = update_observable_from_classes(classes, objects)
+
     base_event = final_check(:base_event, base_event, attributes)
 
     no_req_set = MapSet.new()
@@ -98,6 +100,19 @@ defmodule Schema.Cache do
           " a value of \"optional\" will be used: #{no_reqs}"
       )
     end
+
+    # Remove observable tracking properties (no longer needed)
+    classes =
+      Enum.into(classes, %{}, fn {class_key, class} ->
+        {class_key, Map.delete(class, :parent_observables)}
+      end)
+
+    base_event = Map.delete(base_event, :parent_observables)
+
+    objects =
+      Enum.into(objects, %{}, fn {object_key, object} ->
+        {object_key, Map.delete(object, :observable_inherited?)}
+      end)
 
     %__MODULE__{
       version: version,
@@ -331,18 +346,20 @@ defmodule Schema.Cache do
   defp read_classes(categories) do
     classes =
       JsonReader.read_classes()
-      |> Enum.into(%{}, fn class -> attribute_source(class) end)
-      |> extend_type()
       |> Enum.into(%{}, fn {class_key, class} ->
         {class_key, Map.put(class, :meta_type, :class)}
       end)
+      |> Enum.into(%{}, fn class -> attribute_source(class) end)
+      |> extend_type()
+
+    validate_classes(classes)
 
     resolved = resolve_extends(classes)
 
     classes =
       resolved
-      # remove intermediate classes
-      |> Stream.filter(fn {key, class} -> Map.has_key?(class, :uid) or key == :base_event end)
+      # remove intermediate hidden classes
+      |> Stream.filter(fn {class_key, class} -> !hidden_class?(class_key, class) end)
       |> Enum.into(%{}, fn class -> enrich_class(class, categories) end)
 
     # all_classes has just enough info to interrogate the complete class hierarchy,
@@ -351,10 +368,10 @@ defmodule Schema.Cache do
     all_classes =
       Enum.map(
         resolved,
-        fn {class_name, class_info} ->
-          {class_name,
-           Map.take(class_info, [:name, :caption, :extends])
-           |> Map.put(:hidden?, class_name != :base_event && !Map.has_key?(class_info, :uid))}
+        fn {class_key, class} ->
+          {class_key,
+           Map.take(class, [:name, :caption, :extends])
+           |> Map.put(:hidden?, hidden_class?(class_key, class))}
         end
       )
       |> Enum.into(%{})
@@ -362,8 +379,26 @@ defmodule Schema.Cache do
     {Map.get(classes, :base_event), classes, all_classes}
   end
 
+  defp validate_classes(classes) do
+    for {class_key, class} <- classes do
+      if Map.has_key?(class, :observables) and hidden_class?(class_key, class) do
+        Logger.error(
+          "Illegally defined \"observables\" in hidden class \"#{class_key}\". This" <>
+            " would cause colliding definitions of the same observable type_id values in all" <>
+            " extensions of this class." <>
+            " Instead define observables in non-hidden extensions of \"#{class_key}\"."
+        )
+
+        System.stop(1)
+      end
+    end
+  end
+
   defp read_objects() do
-    JsonReader.read_objects()
+    objects = JsonReader.read_objects()
+    validate_objects(objects)
+
+    objects
     |> Enum.into(%{}, fn {object_key, object} ->
       {object_key, Map.put(object, :meta_type, :object)}
     end)
@@ -374,6 +409,21 @@ defmodule Schema.Cache do
     |> extend_type()
   end
 
+  defp validate_objects(objects) do
+    for {object_key, object} <- objects do
+      if Map.has_key?(object, :observable) and hidden_object?(object[:name]) do
+        Logger.error(
+          "Illegally defined \"observable\" in hidden object \"#{object_key}\". This" <>
+            " would cause colliding definitions of the same observable type_id value in all" <>
+            " extensions of this object." <>
+            " Instead define observable in non-hidden extensions of \"#{object_key}\"."
+        )
+
+        System.stop(1)
+      end
+    end
+  end
+
   @spec hidden_object?(atom() | String.t()) :: boolean()
   def hidden_object?(object_name) when is_binary(object_name) do
     String.starts_with?(object_name, "_")
@@ -381,6 +431,16 @@ defmodule Schema.Cache do
 
   def hidden_object?(object_key) when is_atom(object_key) do
     hidden_object?(Atom.to_string(object_key))
+  end
+
+  @spec hidden_class?(atom(), map()) :: boolean()
+  def hidden_class?(class_key, class) do
+    class_key != :base_event and !Map.has_key?(class, :uid)
+  end
+
+  @spec hidden_class?(map()) :: boolean()
+  def hidden_class?(class) do
+    class[:name] != "base_event" and !Map.has_key?(class, :uid)
   end
 
   # Add category_uid, class_uid, and type_uid
@@ -575,13 +635,16 @@ defmodule Schema.Cache do
       name = item[:name] || item[:extends]
 
       if name == item[:extends] do
+        # This is an extension class or object with the same name its own base class
+        # (The name is not prefixed with the extension name, unlike a key / uid.)
+
         base_key = String.to_atom(name)
 
-        Logger.info("#{key} extends #{base_key}")
+        Logger.info("#{key} #{item[:meta_type]} extends #{base_key}")
 
         case Map.get(items, base_key) do
           nil ->
-            Logger.warning("#{key} extends invalid item: #{base_key}")
+            Logger.warning("#{key} #{item[:meta_type]} extends invalid item: #{base_key}")
             Map.put(acc, key, item)
 
           base ->
@@ -592,6 +655,18 @@ defmodule Schema.Cache do
               base
               |> Map.put(:profiles, profiles)
               |> Map.put(:attributes, attributes)
+
+            updated =
+              if updated[:meta_type] == :class and
+                   Map.has_key?(updated, :observables) and Map.has_key?(item, :observables) do
+                Map.put(
+                  updated,
+                  :observables,
+                  Utils.deep_merge(updated[:observables], item[:observables])
+                )
+              else
+                updated
+              end
 
             Map.put(acc, base_key, updated)
         end
@@ -619,12 +694,14 @@ defmodule Schema.Cache do
           base ->
             base = resolve_extends(items, base)
 
+            item = merge_class_observables(base, item)
+
             attributes =
               Utils.deep_merge(base[:attributes], item[:attributes])
               |> Enum.filter(fn {_name, attr} -> attr != nil end)
               |> Map.new()
 
-            item = fix_observable(base, item)
+            item = fix_object_observable(base, item)
 
             Map.merge(base, item, &merge_profiles/3)
             |> Map.put(:attributes, attributes)
@@ -632,22 +709,50 @@ defmodule Schema.Cache do
     end
   end
 
-  defp fix_observable(base, item) do
-    if Map.has_key?(item, :observable) do
-      Map.put(item, :observable_inherited?, false)
-    else
-      cond do
-        base[:meta_type] == :object && hidden_object?(base[:name]) ->
-          # Hidden objects are removed,
-          # so we never mark inherited object with :inherited_observable? true
+  defp merge_class_observables(base, item) do
+    if item[:meta_type] == :class do
+      item =
+        if Map.has_key?(base, :observables) do
+          Map.put(item, :parent_observables, base[:observables])
+        else
           item
+        end
 
-        Map.has_key?(base, :observable) ->
-          Map.put(item, :observable_inherited?, true)
+      cond do
+        Map.has_key?(base, :observables) and Map.has_key?(item, :observables) ->
+          Map.put(item, :observables, Utils.deep_merge(base[:observables], item[:observables]))
+
+        Map.has_key?(base, :observables) ->
+          Map.put(item, :observables, base[:observables])
 
         true ->
           item
       end
+    else
+      # Not a class
+      item
+    end
+  end
+
+  defp fix_object_observable(base, item) do
+    cond do
+      item[:meta_type] != :object ->
+        item
+
+      Map.has_key?(item, :observable) ->
+        # This object has assigned its own observable type_id,
+        # which is either the first one assigned (in inheritance tree if there is one),
+        # or this object is overriding a parent's observable type_id.
+        # In either case, this means the observable mark isn't inherited,
+        # thus we are clearing the flag (whether or not it is set).
+        Map.put(item, :observable_inherited?, false)
+
+      Map.has_key?(base, :observable) ->
+        # The item object is inheriting the observable mark from its parent.
+        Map.put(item, :observable_inherited?, true)
+
+      true ->
+        item
     end
   end
 
@@ -767,7 +872,7 @@ defmodule Schema.Cache do
         new_enum,
         fn type_id, v1, v2 ->
           Logger.error(
-            "Observable type_id collision on #{type_id}: \"#{v1[:caption]}\" and \"#{v2[:caption]}\" (detected while updating)"
+            "Collision of observable type_id #{type_id} between \"#{v1[:caption]}\" and \"#{v2[:caption]}\" (detected while updating)"
           )
 
           System.stop(1)
@@ -785,7 +890,7 @@ defmodule Schema.Cache do
 
       if Map.has_key?(acc, type_id) do
         Logger.error(
-          "Observable type_id collision on #{type_id}: \"#{acc[type_id][:caption]}\" and \"#{caption}\" (detected while generating)"
+          "Collision of observable type_id #{type_id} between \"#{acc[type_id][:caption]}\" and \"#{caption}\" (detected while generating)"
         )
 
         System.stop(1)
@@ -797,7 +902,75 @@ defmodule Schema.Cache do
 
   defp observables(list) do
     Enum.filter(list, fn {_key, value} ->
-      Map.has_key?(value, :observable) && !value[:observable_inherited?]
+      Map.has_key?(value, :observable) and !value[:observable_inherited?]
+    end)
+  end
+
+  defp update_observable_from_classes(classes, objects) do
+    if Map.has_key?(objects, :observable) do
+      observable =
+        Enum.reduce(
+          classes,
+          objects[:observable],
+          fn {_class_key, class}, observable ->
+            if Map.has_key?(class, :observables) do
+              update_observable_from_class(class, observable)
+            else
+              observable
+            end
+          end
+        )
+
+      Map.put(objects, :observable, observable)
+    else
+      objects
+    end
+  end
+
+  defp update_observable_from_class(class, observable) do
+    parent_observables = class[:parent_observables]
+
+    update_in(observable, [:attributes, :type_id, :enum], fn enum ->
+      new_enum =
+        Enum.reduce(
+          class[:observables],
+          %{},
+          fn {attribute_path, observable_type_id}, acc ->
+            if parent_observables == nil or
+                 parent_observables[attribute_path] != observable_type_id do
+              type_id = Integer.to_string(observable_type_id) |> String.to_atom()
+              caption = "#{class[:caption]} Class: #{attribute_path} (Class-Specific)"
+
+              description =
+                "Class-specific attribute on path \"#{attribute_path}\" for the #{class[:caption]} Class."
+
+              if Map.has_key?(acc, type_id) do
+                Logger.error(
+                  "Collision of observable type_id #{type_id} between #{inspect(acc[type_id][:caption])} and \"#{caption}\" (detected while generating from class)"
+                )
+
+                System.stop(1)
+              end
+
+              Map.put(acc, type_id, %{caption: caption, description: description})
+            else
+              acc
+            end
+          end
+        )
+
+      Map.merge(
+        enum,
+        new_enum,
+        fn type_id, v1, v2 ->
+          Logger.error(
+            "Collision of observable type_id #{type_id} between #{inspect(v1[:caption])} and #{inspect(v2[:caption])} (detected while updating from class)"
+          )
+
+          System.stop(1)
+          v1
+        end
+      )
     end)
   end
 

@@ -1,0 +1,17 @@
+{
+  "caption": "Beta",
+  "category": "other",
+  "description": "The Beta example event class.",
+  "name": "beta",
+  "extends": "hidden",
+  "uid": 2,
+  "profiles": [],
+  "attributes": {
+    "beta": {
+      "requirement": "required"
+    }
+  },
+  "observables": {
+    "beta": 9
+  }
+}

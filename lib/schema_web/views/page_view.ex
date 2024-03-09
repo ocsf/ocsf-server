@@ -137,7 +137,7 @@ defmodule SchemaWeb.PageView do
     end
   end
 
-  def observable_type_id_and_kind(entity) do
+  defp observable_type_id_and_kind(entity) do
     case entity[:meta_type] do
       :dictionary_type ->
         {entity[:observable], "Type"}
@@ -176,15 +176,15 @@ defmodule SchemaWeb.PageView do
     end
   end
 
-  def observable_by_type(entity) do
+  defp observable_by_type(entity) do
     Schema.dictionary()[:types][:attributes][Schema.Utils.to_uid(entity[:type])][:observable]
   end
 
-  def observable_by_object(entity) do
+  defp observable_by_object(entity) do
     entity_type = entity[:type]
     entity_object_type = entity[:object_type]
 
-    if entity_type == "object_t" && entity_object_type != nil do
+    if entity_type == "object_t" and entity_object_type != nil do
       Schema.object(Schema.Utils.to_uid(entity_object_type))[:observable]
     else
       nil

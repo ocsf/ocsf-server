@@ -1,0 +1,14 @@
+{
+  "caption": "RPG Alpha",
+  "description": "Extends the Alpha example event class.",
+  "extends": "alpha",
+  "profiles": [],
+  "attributes": {
+    "alpha_extra": {
+      "requirement": "required"
+    }
+  },
+  "observables": {
+    "alpha_extra": 10002
+  }
+}

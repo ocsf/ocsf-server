@@ -1,7 +1,7 @@
 {
   "caption": "Damage",
   "category": "battle",
-  "description": "The Network event represents a network connection.",
+  "description": "The Damage event represents an instance of damage taken.",
   "name": "damage",
   "extends": "base_event",
   "uid": 1,
@@ -22,6 +22,13 @@
     },
     "max_mana": {
       "requirement": "recommended"
+    },
+    "hammer": {
+      "requirement": "optional"
     }
+  },
+  "observables": {
+    "damage": 10000,
+    "hammer.damage_range": 10001
   }
 }
