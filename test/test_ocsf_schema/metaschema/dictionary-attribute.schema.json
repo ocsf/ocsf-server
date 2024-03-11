@@ -54,7 +54,6 @@
             "description": "A flag used when the attribute represents an array of values rather than a single value."
         },
         "observable": {
-            "TODO": "TODO: Add to oscf-schema/metaschema",
             "$ref": "observable.schema.json"
         }
     },

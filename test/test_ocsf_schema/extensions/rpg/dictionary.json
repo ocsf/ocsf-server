@@ -32,7 +32,7 @@
       "caption": "Mana",
       "description": "Current mana, a measure of magical reserves.",
       "type": "mana_t",
-      "observable": 1002
+      "observable": 1003
     },
     "max_hp": {
       "caption": "Max Hit Points",
@@ -43,6 +43,12 @@
       "caption": "Mana",
       "description": "Maximum mana, a measure of magical reserves.",
       "type": "mana_t"
+    },
+    "name": {
+      "caption": "RPG Name",
+      "description": "The name of the RPG entity. See specific usage.",
+      "type": "string_t",
+      "observable": 1004
     }
   },
   "types": {

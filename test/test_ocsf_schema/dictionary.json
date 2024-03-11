@@ -115,7 +115,8 @@
     "name": {
       "caption": "Name",
       "description": "The name of the entity. See specific usage.",
-      "type": "string_t"
+      "type": "string_t",
+      "observable": 1002
     },
     "observables": {
       "caption": "Observables",

@@ -40,7 +40,6 @@
                     "maximum": 999
                 },
                 "observables": {
-                    "TODO": "TODO: Add to oscf-schema/metaschema",
                     "type": "object",
                     "description": "Defines class-specific observables by attribute path.",
                     "patternProperties": {
