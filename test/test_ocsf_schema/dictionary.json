@@ -87,6 +87,13 @@
       "description": "An entity's thingy. (From base dictionary attribute.)",
       "type": "entity_thing_t"
     },
+    "gammas": {
+      "caption": "Gammas",
+      "description": "List of gamma values. A gamma is a gamma, which is a gamma, and so on.",
+      "is_array": true,
+      "type": "integer_t",
+      "observable": 10
+    },
     "hidden_thing": {
       "caption": "Hidden Thing",
       "description": "A hidden thing. Another attribute for testing.",

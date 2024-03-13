@@ -4,11 +4,14 @@
   "description": "The Beta example event class.",
   "name": "beta",
   "extends": "hidden",
-  "uid": 2,
+  "uid": 3,
   "profiles": [],
   "attributes": {
     "beta": {
       "requirement": "required"
+    },
+    "gammas": {
+      "requirement": "optional"
     }
   },
   "observables": {
