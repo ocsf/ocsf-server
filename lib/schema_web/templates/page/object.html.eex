@@ -102,11 +102,9 @@
 <%= if Enum.empty?(links) do %>
   <div></div>
 <% else %>
-  <div class="links">
-    <h5>Referenced By</h5>
-    <div class="extensions">
-      <%= raw links(@conn, @data[:caption], links) %>
-    </div>
+  <a class="h5 links dropdown-toggle" data-toggle="collapse" data-target="#object-links" aria-expanded="false" aria-controls="object-links">Referenced By</a>
+  <div class="extensions collapse" id="object-links">
+    <%= raw object_links(@conn, @data[:name], links) %>
   </div>
 <% end %>
 <% constraints = @data[:constraints] %>

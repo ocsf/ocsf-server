@@ -119,6 +119,11 @@ defmodule Schema.Repo do
     Agent.get(__MODULE__, fn schema -> Cache.classes(schema) |> filter(extensions) end)
   end
 
+  @spec all_classes() :: map()
+  def all_classes() do
+    Agent.get(__MODULE__, fn schema -> Cache.all_classes(schema) end)
+  end
+
   @spec export_classes() :: map()
   def export_classes() do
     Agent.get(__MODULE__, fn schema -> Cache.export_classes(schema) end)
@@ -248,8 +253,8 @@ defmodule Schema.Repo do
   defp remove_extension_links(nil, _extensions), do: []
 
   defp remove_extension_links(links, extensions) do
-    Enum.filter(links, fn {_, key, _} ->
-      [ext | rest] = String.split(key, "/")
+    Enum.filter(links, fn link ->
+      [ext | rest] = String.split(link[:type], "/")
       rest == [] or MapSet.member?(extensions, ext)
     end)
   end
