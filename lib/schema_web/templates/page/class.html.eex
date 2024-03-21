@@ -99,7 +99,7 @@ limitations under the License.
       <%= for {key, field} <- @data[:attributes] do %>
         <tr class="<%= field_classes(field)%>">
           <td class="name"><%= raw format_attribute_caption(@conn, key, field) %></td>
-          <td data-toggle="tooltip" title="<%= format_class_attribute_source(@data[:name], field) %>"><%= raw format_attribute_name(key) %></td>
+          <td data-toggle="tooltip" title="<%= format_class_attribute_source(@data[:key], field) %>"><%= raw format_attribute_name(key) %></td>
           <td class="capitalize"><%= field[:group] %></td>
           <td class="capitalize"><%= format_requirement(field) %></td>
           <td class="extensions"><%= raw format_type(@conn, field) %></td>

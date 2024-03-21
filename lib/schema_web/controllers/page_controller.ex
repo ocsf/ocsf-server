@@ -17,7 +17,10 @@ defmodule SchemaWeb.PageController do
 
   @spec guidelines(Plug.Conn.t(), any) :: Plug.Conn.t()
   def guidelines(conn, params) do
-    render(conn, "guidelines.html", extensions: Schema.extensions(), profiles: SchemaController.get_profiles(params))
+    render(conn, "guidelines.html",
+      extensions: Schema.extensions(),
+      profiles: SchemaController.get_profiles(params)
+    )
   end
 
   @spec class_graph(Plug.Conn.t(), any) :: Plug.Conn.t()
@@ -81,13 +84,15 @@ defmodule SchemaWeb.PageController do
   """
   @spec profiles(Plug.Conn.t(), map) :: Plug.Conn.t()
   def profiles(conn, %{"id" => id} = params) do
-    name = case params["extension"] do
-      nil -> id
-      extension -> "#{extension}/#{id}"
-    end
+    name =
+      case params["extension"] do
+        nil -> id
+        extension -> "#{extension}/#{id}"
+      end
 
     try do
       data = SchemaController.get_profiles(params)
+
       case Map.get(data, name) do
         nil ->
           send_resp(conn, 404, "Not Found: #{name}")
@@ -171,12 +176,15 @@ defmodule SchemaWeb.PageController do
   """
   @spec base_event(Plug.Conn.t(), any) :: Plug.Conn.t()
   def base_event(conn, params) do
-    data = Schema.class(:base_event)
+    data =
+      Schema.class(:base_event)
+      |> sort_attributes()
+      |> Map.put(:key, :base_event)
 
     render(conn, "class.html",
       extensions: Schema.extensions(),
       profiles: SchemaController.get_profiles(params),
-      data: sort_attributes(data)
+      data: data
     )
   end
 
@@ -193,13 +201,15 @@ defmodule SchemaWeb.PageController do
           send_resp(conn, 404, "Not Found: #{id}")
 
         data ->
-          #uid = data[:uid]
-          sorted = sort_attributes(data)
+          data =
+            data
+            |> sort_attributes()
+            |> Map.put(:key, Schema.Utils.to_uid(extension, id))
 
           render(conn, "class.html",
             extensions: Schema.extensions(),
             profiles: SchemaController.get_profiles(params),
-            data: sorted
+            data: data
           )
       end
     rescue
@@ -228,10 +238,15 @@ defmodule SchemaWeb.PageController do
           send_resp(conn, 404, "Not Found: #{id}")
 
         data ->
+          data =
+            data
+            |> sort_attributes()
+            |> Map.put(:key, Schema.Utils.to_uid(params["extension"], id))
+
           render(conn, "object.html",
             extensions: Schema.extensions(),
             profiles: SchemaController.get_profiles(params),
-            data: sort_attributes(data)
+            data: data
           )
       end
     rescue
@@ -272,5 +287,4 @@ defmodule SchemaWeb.PageController do
   defp sort_by(map, key) do
     Enum.sort(map, fn {_, v1}, {_, v2} -> v1[key] <= v2[key] end)
   end
-
 end

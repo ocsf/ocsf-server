@@ -18,6 +18,11 @@
       "description": "The amount of damage an item can inflict, represented as a string.",
       "type": "string_t"
     },
+    "epsilon": {
+      "caption": "Epsilon",
+      "description": "Epsilon is yet another Greek alphabet thing.",
+      "type": "string_t"
+    },
     "hammer": {
       "caption": "Hammer",
       "description": "A hammer.",
@@ -32,7 +37,7 @@
       "caption": "Mana",
       "description": "Current mana, a measure of magical reserves.",
       "type": "mana_t",
-      "observable": 1003
+      "observable": 42001
     },
     "max_hp": {
       "caption": "Max Hit Points",
@@ -48,7 +53,12 @@
       "caption": "RPG Name",
       "description": "The name of the RPG entity. See specific usage.",
       "type": "string_t",
-      "observable": 1004
+      "observable": 42002
+    },
+    "style": {
+      "caption": "Style",
+      "description": "The style of something.",
+      "type": "string_t"
     }
   },
   "types": {
@@ -58,14 +68,14 @@
       "entity_thing_t": {
         "caption": "Entity Thing",
         "description": "An entity's thingy that's made an observable by type in the RPG extension.",
-        "observable": 3,
+        "observable": 42003,
         "type": "string_t",
         "type_name": "String"
       },
       "hp_t": {
         "caption": "Hit points type",
         "description": "Hit points are a measure of the ability to take damage.",
-        "observable": 4,
+        "observable": 42004,
         "type": "integer_t",
         "type_name": "Integer"
       },

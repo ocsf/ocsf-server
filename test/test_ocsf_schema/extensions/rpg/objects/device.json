@@ -1,11 +1,16 @@
 {
   "caption": "RPG Device",
-  "description": "Extends Device for the RPG extension.",
+  "description": "Special extend (patch) of Device for the RPG extension.",
   "extends": "device",
   "attributes": {
     "mana": {
       "description": "The device's magical reserves.",
       "requirement": "optional"
+    },
+    "uid": {
+      "description": "The RPG Device's unique identifier.",
+      "requirement": "recommended",
+      "observable": 42200
     }
   }
 }

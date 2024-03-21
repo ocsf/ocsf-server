@@ -1,6 +1,6 @@
 {
   "caption": "Hidden",
-  "category": "other",
+  "category": "network",
   "description": "The Hidden example event class.",
   "name": "hidden",
   "extends": "base_event",

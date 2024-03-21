@@ -19,7 +19,7 @@ limitations under the License.
     <div class="text-secondary mt-2">
       <strong>Note:</strong> a superscript &quot;O&quot; after a caption indicates attribute is an observable,
       for example: <strong>Device <sup>O</sup></strong>.
-      (Class-specific attribute path observables are <em>not</em> shown on this page.)
+      (Class-specific and object-specific attribute observables are <em>not</em> shown on this page.)
     </div>
   </div>
   <div class="col-md-auto fixed-right mt-2">

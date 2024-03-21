@@ -28,7 +28,7 @@
     }
   },
   "observables": {
-    "damage": 10000,
-    "hammer.damage_range": 10001
+    "damage": 42102,
+    "hammer.damage_range": 42103
   }
 }

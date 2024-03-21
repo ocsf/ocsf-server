@@ -27,9 +27,10 @@ defmodule Schema.Cache do
     :base_event,
     :classes,
     :all_classes,
-    :objects
+    :objects,
+    :all_objects
   ]
-  defstruct ~w[version profiles dictionary base_event categories classes all_classes objects]a
+  defstruct ~w[version profiles dictionary base_event categories classes all_classes objects all_objects]a
 
   @type t() :: %__MODULE__{}
   @type class_t() :: map()
@@ -55,10 +56,14 @@ defmodule Schema.Cache do
     categories = JsonReader.read_categories() |> update_categories()
     dictionary = JsonReader.read_dictionary() |> update_dictionary()
 
-    {base_event, classes, all_classes} = read_classes(categories[:attributes])
-    objects = read_objects()
+    {base_event, classes, all_classes, observable_type_id_map} =
+      read_classes(categories[:attributes])
+
+    {objects, all_objects, observable_type_id_map} = read_objects(observable_type_id_map)
 
     dictionary = Utils.update_dictionary(dictionary, base_event, classes, objects)
+    observable_type_id_map = observables_from_dictionary(dictionary, observable_type_id_map)
+
     attributes = dictionary[:attributes]
 
     profiles = JsonReader.read_profiles() |> update_profiles(attributes)
@@ -72,7 +77,7 @@ defmodule Schema.Cache do
     objects =
       objects
       |> Utils.update_objects(attributes)
-      |> update_observables(dictionary)
+      |> update_observable(observable_type_id_map)
       |> update_objects()
       |> final_check(attributes)
 
@@ -82,15 +87,13 @@ defmodule Schema.Cache do
       update_classes(classes, objects)
       |> final_check(attributes)
 
-    objects = update_observable_from_classes(classes, objects)
-
     base_event = final_check(:base_event, base_event, attributes)
 
     no_req_set = MapSet.new()
-    {profiles, no_req_set} = fix_entities(profiles, no_req_set)
-    {base_event, no_req_set} = fix_entity(base_event, no_req_set)
-    {classes, no_req_set} = fix_entities(classes, no_req_set)
-    {objects, no_req_set} = fix_entities(objects, no_req_set)
+    {profiles, no_req_set} = fix_entities(profiles, no_req_set, "profile")
+    {base_event, no_req_set} = fix_entity(base_event, no_req_set, :base_event, "class")
+    {classes, no_req_set} = fix_entities(classes, no_req_set, "class")
+    {objects, no_req_set} = fix_entities(objects, no_req_set, "object")
 
     if MapSet.size(no_req_set) > 0 do
       no_reqs = no_req_set |> Enum.sort() |> Enum.join(", ")
@@ -101,19 +104,6 @@ defmodule Schema.Cache do
       )
     end
 
-    # Remove observable tracking properties (no longer needed)
-    classes =
-      Enum.into(classes, %{}, fn {class_key, class} ->
-        {class_key, Map.delete(class, :parent_observables)}
-      end)
-
-    base_event = Map.delete(base_event, :parent_observables)
-
-    objects =
-      Enum.into(objects, %{}, fn {object_key, object} ->
-        {object_key, Map.delete(object, :observable_inherited?)}
-      end)
-
     %__MODULE__{
       version: version,
       profiles: profiles,
@@ -122,7 +112,8 @@ defmodule Schema.Cache do
       base_event: base_event,
       classes: classes,
       all_classes: all_classes,
-      objects: objects
+      objects: objects,
+      all_objects: all_objects
     }
   end
 
@@ -163,6 +154,9 @@ defmodule Schema.Cache do
 
   @spec all_classes(__MODULE__.t()) :: map()
   def all_classes(%__MODULE__{all_classes: all_classes}), do: all_classes
+
+  @spec all_objects(__MODULE__.t()) :: map()
+  def all_objects(%__MODULE__{all_objects: all_objects}), do: all_objects
 
   @spec export_classes(__MODULE__.t()) :: map()
   def export_classes(%__MODULE__{classes: classes, dictionary: dictionary}) do
@@ -344,49 +338,129 @@ defmodule Schema.Cache do
   end
 
   defp read_classes(categories) do
-    classes =
-      JsonReader.read_classes()
-      |> Enum.into(%{}, fn {class_key, class} ->
-        {class_key, Map.put(class, :meta_type, :class)}
-      end)
-      |> Enum.into(%{}, fn class -> attribute_source(class) end)
-      |> extend_type()
+    classes = JsonReader.read_classes()
 
-    validate_classes(classes)
-
-    resolved = resolve_extends(classes)
+    observable_type_id_map = observables_from_classes(classes)
 
     classes =
-      resolved
-      # remove intermediate hidden classes
-      |> Stream.filter(fn {class_key, class} -> !hidden_class?(class_key, class) end)
-      |> Enum.into(%{}, fn class -> enrich_class(class, categories) end)
+      classes
+      |> Enum.into(%{}, fn class_tuple -> attribute_source(class_tuple) end)
+      |> extend_type("class")
+      |> resolve_extends()
 
     # all_classes has just enough info to interrogate the complete class hierarchy,
     # removing most details. It can be used to get the caption and parent (extends) of
-    # any class, including hidden ones (classes without a uid)
+    # any class, including hidden ones.
     all_classes =
       Enum.map(
-        resolved,
+        classes,
         fn {class_key, class} ->
-          {class_key,
-           Map.take(class, [:name, :caption, :extends])
-           |> Map.put(:hidden?, hidden_class?(class_key, class))}
+          class =
+            class
+            |> Map.take([:name, :caption, :extends, :extension])
+            |> Map.put(:hidden?, hidden_class?(class_key, class))
+
+          {class_key, class}
         end
       )
       |> Enum.into(%{})
 
-    {Map.get(classes, :base_event), classes, all_classes}
+    classes =
+      classes
+      # remove intermediate hidden classes
+      |> Stream.filter(fn {class_key, class} -> !hidden_class?(class_key, class) end)
+      |> Enum.into(%{}, fn class_tuple -> enrich_class(class_tuple, categories) end)
+
+    {Map.get(classes, :base_event), classes, all_classes, observable_type_id_map}
   end
 
-  defp validate_classes(classes) do
-    for {class_key, class} <- classes do
-      if Map.has_key?(class, :observables) and hidden_class?(class_key, class) do
+  defp read_objects(observable_type_id_map) do
+    objects = JsonReader.read_objects()
+
+    observable_type_id_map =
+      observables_from_objects(objects, observable_type_id_map)
+
+    objects =
+      objects
+      |> Enum.into(%{}, fn object_tuple -> attribute_source(object_tuple) end)
+      |> resolve_extends()
+      |> Enum.into(%{})
+      |> extend_type("object")
+
+    # all_objects has just enough info to interrogate the complete object hierarchy,
+    # removing most details. It can be used to get the caption and parent (extends) of
+    # any object, including hidden ones
+    all_objects =
+      Enum.map(
+        objects,
+        fn {object_key, object} ->
+          object =
+            object
+            |> Map.take([:name, :caption, :extends, :extension])
+            |> Map.put(:hidden?, hidden_object?(object_key))
+
+          {object_key, object}
+        end
+      )
+      |> Enum.into(%{})
+
+    objects =
+      objects
+      |> Stream.filter(fn {object_key, _object} -> !hidden_object?(object_key) end)
+      |> Enum.into(%{})
+
+    {objects, all_objects, observable_type_id_map}
+  end
+
+  defp observables_from_classes(classes) do
+    Enum.reduce(
+      classes,
+      %{},
+      fn {class_key, class}, observable_type_id_map ->
+        validate_class_observables(class_key, class)
+
+        observable_type_id_map
+        |> observables_from_item_attributes(class, "Class")
+        |> observables_from_item_observables(class, "Class")
+      end
+    )
+  end
+
+  defp validate_class_observables(class_key, class) do
+    if Map.has_key?(class, :observable) do
+      Logger.error(
+        "Illegally defined \"#{:observable}\" in class \"#{class_key}\"." <>
+          " Defining class-level observables is not supported (this would be redundant)." <>
+          " Instead use the \"class_uid\" attribute for querying, correlating, and reporting."
+      )
+
+      System.stop(1)
+    end
+
+    if not special_extends?(class) and hidden_class?(class_key, class) do
+      if Map.has_key?(class, :attributes) and
+           Enum.any?(
+             class[:attributes],
+             fn {_attribute_key, attribute} ->
+               Map.has_key?(attribute, :observable)
+             end
+           ) do
         Logger.error(
-          "Illegally defined \"observables\" in hidden class \"#{class_key}\". This" <>
-            " would cause colliding definitions of the same observable type_id values in all" <>
-            " extensions of this class." <>
-            " Instead define observables in non-hidden extensions of \"#{class_key}\"."
+          "Illegally defined attribute with \"#{:observable}\" in hidden class" <>
+            " \"#{class_key}\". This would cause colliding definitions of the same" <>
+            " observable type_id values in all extensions of this class. Instead define" <>
+            " observables (of any kind) in non-hidden extensions of \"#{class_key}\"."
+        )
+
+        System.stop(1)
+      end
+
+      if Map.has_key?(class, :observables) do
+        Logger.error(
+          "Illegally defined \"#{:observables}\" in hidden class \"#{class_key}\". This" <>
+            " would cause colliding definitions of the same observable type_id values in" <>
+            " all extensions of this class. Instead define observables (of any kind) in" <>
+            " non-hidden extensions of \"#{class_key}\"."
         )
 
         System.stop(1)
@@ -394,65 +468,246 @@ defmodule Schema.Cache do
     end
   end
 
-  defp read_objects() do
-    objects = JsonReader.read_objects()
-    validate_objects(objects)
+  defp observables_from_item_attributes(observable_type_id_map, item, kind) do
+    if Map.has_key?(item, :attributes) do
+      Enum.reduce(
+        item[:attributes],
+        observable_type_id_map,
+        fn {attribute_key, attribute}, observable_type_id_map ->
+          if Map.has_key?(attribute, :observable) do
+            observable_type_id = Utils.observable_type_id_to_atom(attribute[:observable])
 
-    objects
-    |> Enum.into(%{}, fn {object_key, object} ->
-      {object_key, Map.put(object, :meta_type, :object)}
-    end)
-    |> resolve_extends()
-    # removes abstract objects
-    |> Stream.filter(fn {key, _o} -> !hidden_object?(key) end)
-    |> Enum.into(%{}, fn obj -> attribute_source(obj) end)
-    |> extend_type()
+            if(Map.has_key?(observable_type_id_map, observable_type_id)) do
+              Logger.error(
+                "Collision of observable type_id #{observable_type_id} between" <>
+                  " \"#{item[:caption]}\" #{kind} attribute \"#{attribute_key}\" and" <>
+                  " \"#{observable_type_id_map[observable_type_id][:caption]}\""
+              )
+
+              System.stop(1)
+
+              observable_type_id_map
+            else
+              Map.put(
+                observable_type_id_map,
+                observable_type_id,
+                %{
+                  caption:
+                    "#{item[:caption]} #{kind}: #{attribute_key} (#{kind}-Specific Attribute)",
+                  description:
+                    "#{kind}-specific attribute \"#{attribute_key}\"" <>
+                      " for the #{item[:caption]} #{kind}."
+                }
+              )
+            end
+          else
+            observable_type_id_map
+          end
+        end
+      )
+    else
+      observable_type_id_map
+    end
   end
 
-  defp validate_objects(objects) do
-    for {object_key, object} <- objects do
-      if Map.has_key?(object, :observable) and hidden_object?(object[:name]) do
+  defp observables_from_item_observables(observable_type_id_map, item, kind) do
+    if Map.has_key?(item, :observables) do
+      Enum.reduce(
+        item[:observables],
+        observable_type_id_map,
+        fn {attribute_path, observable_type_id}, observable_type_id_map ->
+          observable_type_id = Utils.observable_type_id_to_atom(observable_type_id)
+
+          if(Map.has_key?(observable_type_id_map, observable_type_id)) do
+            Logger.error(
+              "Collision of observable type_id #{observable_type_id} between" <>
+                " \"#{item[:caption]}\" #{kind} attribute path \"#{attribute_path}\" and" <>
+                " \"#{observable_type_id_map[observable_type_id][:caption]}\""
+            )
+
+            System.stop(1)
+
+            observable_type_id_map
+          else
+            Map.put(
+              observable_type_id_map,
+              observable_type_id,
+              %{
+                caption:
+                  "#{item[:caption]} #{kind}: #{attribute_path}" <>
+                    " (#{kind}-Specific Attribute Path)",
+                description:
+                  "#{kind}-specific attribute on path \"#{attribute_path}\"" <>
+                    " for the #{item[:caption]} #{kind}."
+              }
+            )
+          end
+        end
+      )
+    else
+      observable_type_id_map
+    end
+  end
+
+  defp observables_from_objects(objects, observable_type_id_map) do
+    Enum.reduce(
+      objects,
+      observable_type_id_map,
+      fn {object_key, object}, observable_type_id_map ->
+        validate_object_observables(object_key, object)
+
+        observable_type_id_map
+        |> observable_from_object(object)
+        |> observables_from_item_attributes(object, "Object")
+
+        # Not supported: |> observables_from_item_observables(object, "Object")
+      end
+    )
+  end
+
+  defp validate_object_observables(object_key, object) do
+    if Map.has_key?(object, :observables) do
+      # Attribute-path observables would be tricky to implement as an machine-driven enrichment.
+      # It would require tracking the relative from the point of the object down that tree of an
+      # overall OCSF event.
+      Logger.error(
+        "Illegally defined \"#{:observables}\" in object \"#{object_key}\"." <>
+          " Object-specific attribute path observables are not supported." <>
+          " Please file an issue if you find this feature necessary."
+      )
+
+      System.stop(1)
+    end
+
+    if not special_extends?(object) and hidden_object?(object[:name]) do
+      if Map.has_key?(object, :attributes) and
+           Enum.any?(
+             object[:attributes],
+             fn {_attribute_key, attribute} ->
+               Map.has_key?(attribute, :observable)
+             end
+           ) do
         Logger.error(
-          "Illegally defined \"observable\" in hidden object \"#{object_key}\". This" <>
-            " would cause colliding definitions of the same observable type_id value in all" <>
-            " extensions of this object." <>
-            " Instead define observable in non-hidden extensions of \"#{object_key}\"."
+          "Illegally defined attribute with \"#{:observable}\" in hidden object" <>
+            " \"#{object_key}\". This would cause colliding definitions of the same" <>
+            " observable type_id values in all extensions of this object. Instead define" <>
+            " observables (of any kind) in non-hidden extensions of \"#{object_key}\"."
         )
 
         System.stop(1)
       end
+
+      if Map.has_key?(object, :observables) do
+        Logger.error(
+          "Illegally defined \"#{:observables}\" in hidden object \"#{object_key}\". This" <>
+            " would cause colliding definitions of the same observable type_id values in" <>
+            " all extensions of this object. Instead define observables (of any kind) in" <>
+            " non-hidden extensions of \"#{object_key}\"."
+        )
+
+        System.stop(1)
+      end
+    end
+  end
+
+  defp observable_from_object(observable_type_id_map, object) do
+    if Map.has_key?(object, :observable) do
+      observable_type_id = Utils.observable_type_id_to_atom(object[:observable])
+
+      if(Map.has_key?(observable_type_id_map, observable_type_id)) do
+        Logger.error(
+          "Collision of observable type_id #{observable_type_id} between" <>
+            " \"#{object[:caption]}\" Object \"#{:observable}\" and" <>
+            " \"#{observable_type_id_map[observable_type_id][:caption]}\""
+        )
+
+        System.stop(1)
+
+        observable_type_id_map
+      else
+        Map.put(
+          observable_type_id_map,
+          observable_type_id,
+          %{
+            caption: "#{object[:caption]} (Object)",
+            description: object[:description]
+          }
+        )
+      end
+    else
+      observable_type_id_map
+    end
+  end
+
+  defp observables_from_dictionary(dictionary, observable_type_id_map) do
+    observable_type_id_map
+    |> observables_from_items(dictionary[:types][:attributes], "Dictionary Type")
+    |> observables_from_items(dictionary[:attributes], "Dictionary Attribute")
+  end
+
+  defp observables_from_items(observable_type_id_map, items, kind) do
+    if items do
+      Enum.reduce(
+        items,
+        observable_type_id_map,
+        fn {_item_key, item}, observable_type_id_map ->
+          if Map.has_key?(item, :observable) do
+            observable_type_id = Utils.observable_type_id_to_atom(item[:observable])
+
+            if Map.has_key?(observable_type_id_map, observable_type_id) do
+              Logger.error(
+                "Collision of observable type_id #{observable_type_id} between #{kind}" <>
+                  " \"#{item[:caption]}\" and" <>
+                  " \"#{observable_type_id_map[observable_type_id][:caption]}\""
+              )
+
+              System.stop(1)
+
+              observable_type_id_map
+            else
+              Map.put(
+                observable_type_id_map,
+                observable_type_id,
+                %{
+                  caption: "#{item[:caption]} (#{kind})",
+                  description: item[:description]
+                }
+              )
+            end
+          else
+            observable_type_id_map
+          end
+        end
+      )
+    else
+      observable_type_id_map
     end
   end
 
   @spec hidden_object?(atom() | String.t()) :: boolean()
-  def hidden_object?(object_name) when is_binary(object_name) do
+  defp hidden_object?(object_name) when is_binary(object_name) do
     String.starts_with?(object_name, "_")
   end
 
-  def hidden_object?(object_key) when is_atom(object_key) do
+  defp hidden_object?(object_key) when is_atom(object_key) do
     hidden_object?(Atom.to_string(object_key))
   end
 
   @spec hidden_class?(atom(), map()) :: boolean()
-  def hidden_class?(class_key, class) do
+  defp hidden_class?(class_key, class) do
     class_key != :base_event and !Map.has_key?(class, :uid)
   end
 
-  @spec hidden_class?(map()) :: boolean()
-  def hidden_class?(class) do
-    class[:name] != "base_event" and !Map.has_key?(class, :uid)
-  end
-
   # Add category_uid, class_uid, and type_uid
-  defp enrich_class({name, class}, categories) do
-    data =
+  defp enrich_class({class_key, class}, categories) do
+    class =
       class
       |> update_class_uid(categories)
-      |> add_type_uid(name)
-      |> add_class_uid(name)
-      |> add_category_uid(name, categories)
+      |> add_type_uid(class_key)
+      |> add_class_uid(class_key)
+      |> add_category_uid(class_key, categories)
 
-    {name, data}
+    {class_key, class}
   end
 
   defp update_categories(categories) do
@@ -514,7 +769,7 @@ defmodule Schema.Cache do
 
     case event_id(attributes)[:enum] do
       nil ->
-        Logger.warning("class '#{name}' has no activity_id nor disposition_id")
+        Logger.warning("class \"#{name}\" has no activity_id nor disposition_id")
         %{}
 
       values ->
@@ -606,10 +861,10 @@ defmodule Schema.Cache do
     end
   end
 
-  defp attribute_source({name, map}) do
-    data =
+  defp attribute_source({item_key, item}) do
+    item =
       Map.update(
-        map,
+        item,
         :attributes,
         [],
         fn attributes ->
@@ -621,30 +876,45 @@ defmodule Schema.Cache do
                 {key, nil}
 
               {key, attribute} ->
-                {key, Map.put(attribute, :_source, name)}
+                attribute = Map.put(attribute, :_source, item_key)
+
+                attribute =
+                  if special_extends?(item) do
+                    # TODO: HACK. This is part of the code compensating for the weird
+                    #       Schema.Cache.extend_type processing. An attribute _source for an
+                    #       extension class or object that uses the "special" extends / patch
+                    #       mechanism keeps the form "<extension>/<name>" form, which doesn't refer
+                    #       to anything after the extend_type processing. This requires a deeper
+                    #       change to fix, so here we just keep an extra _source_special key.
+                    Map.put(attribute, :_source_special, String.to_atom(special_name(item)))
+                  else
+                    attribute
+                  end
+
+                {key, attribute}
             end
           )
         end
       )
 
-    {name, data}
+    {item_key, item}
   end
 
-  defp extend_type(items) do
+  defp extend_type(items, kind) do
     Enum.reduce(items, %{}, fn {key, item}, acc ->
-      name = item[:name] || item[:extends]
+      name = special_name(item)
 
-      if name == item[:extends] do
+      if special_extends?(item) do
         # This is an extension class or object with the same name its own base class
         # (The name is not prefixed with the extension name, unlike a key / uid.)
 
         base_key = String.to_atom(name)
 
-        Logger.info("#{key} #{item[:meta_type]} extends #{base_key}")
+        Logger.info("#{key} #{kind} extends #{base_key}")
 
         case Map.get(items, base_key) do
           nil ->
-            Logger.warning("#{key} #{item[:meta_type]} extends invalid item: #{base_key}")
+            Logger.warning("#{key} #{kind} extends invalid item: #{base_key}")
             Map.put(acc, key, item)
 
           base ->
@@ -657,8 +927,7 @@ defmodule Schema.Cache do
               |> Map.put(:attributes, attributes)
 
             updated =
-              if updated[:meta_type] == :class and
-                   Map.has_key?(updated, :observables) and Map.has_key?(item, :observables) do
+              if Map.has_key?(updated, :observables) and Map.has_key?(item, :observables) do
                 Map.put(
                   updated,
                   :observables,
@@ -676,8 +945,18 @@ defmodule Schema.Cache do
     end)
   end
 
+  defp special_name(item) do
+    item[:name] || item[:extends]
+  end
+
+  # A "special" extends is the weird reverse extends done by extend_type.
+  # It is triggered by a class or object that has no name or the name is the same as the extends.
+  defp special_extends?(item) do
+    special_name(item) == item[:extends]
+  end
+
   defp resolve_extends(items) do
-    Enum.map(items, fn {name, item} -> {name, resolve_extends(items, item)} end)
+    Enum.map(items, fn {item_key, item} -> {item_key, resolve_extends(items, item)} end)
   end
 
   defp resolve_extends(items, item) do
@@ -686,22 +965,20 @@ defmodule Schema.Cache do
         item
 
       extends ->
-        case find_super_class(items, item, extends) do
+        {_parent_key, parent_item} = Utils.find_parent(items, extends, item[:extension])
+
+        case parent_item do
           nil ->
-            Logger.error("#{item[:name]} extends undefined item: #{extends}")
+            Logger.error("#{inspect(item[:name])} extends undefined item: #{inspect(extends)}")
             System.stop(1)
 
           base ->
             base = resolve_extends(items, base)
 
-            item = merge_class_observables(base, item)
-
             attributes =
               Utils.deep_merge(base[:attributes], item[:attributes])
               |> Enum.filter(fn {_name, attr} -> attr != nil end)
               |> Map.new()
-
-            item = fix_object_observable(base, item)
 
             Map.merge(base, item, &merge_profiles/3)
             |> Map.put(:attributes, attributes)
@@ -709,125 +986,87 @@ defmodule Schema.Cache do
     end
   end
 
-  defp merge_class_observables(base, item) do
-    if item[:meta_type] == :class do
-      item =
-        if Map.has_key?(base, :observables) do
-          Map.put(item, :parent_observables, base[:observables])
-        else
-          item
-        end
-
-      cond do
-        Map.has_key?(base, :observables) and Map.has_key?(item, :observables) ->
-          Map.put(item, :observables, Utils.deep_merge(base[:observables], item[:observables]))
-
-        Map.has_key?(base, :observables) ->
-          Map.put(item, :observables, base[:observables])
-
-        true ->
-          item
-      end
-    else
-      # Not a class
-      item
-    end
-  end
-
-  defp fix_object_observable(base, item) do
-    cond do
-      item[:meta_type] != :object ->
-        item
-
-      Map.has_key?(item, :observable) ->
-        # This object has assigned its own observable type_id,
-        # which is either the first one assigned (in inheritance tree if there is one),
-        # or this object is overriding a parent's observable type_id.
-        # In either case, this means the observable mark isn't inherited,
-        # thus we are clearing the flag (whether or not it is set).
-        Map.put(item, :observable_inherited?, false)
-
-      Map.has_key?(base, :observable) ->
-        # The item object is inheriting the observable mark from its parent.
-        Map.put(item, :observable_inherited?, true)
-
-      true ->
-        item
-    end
-  end
-
   defp merge_profiles(:profiles, v1, nil), do: v1
   defp merge_profiles(:profiles, v1, v2), do: Enum.concat(v1, v2) |> Enum.uniq()
   defp merge_profiles(_profiles, _v1, v2), do: v2
 
-  defp find_super_class(classes, class, extends) do
-    case Map.get(classes, String.to_atom(extends)) do
-      nil ->
-        case class[:extension] do
-          nil ->
-            Map.get(classes, String.to_atom(extends))
+  # TODO
+  # defp find_super_class(classes, class, extends) do
+  #   case Map.get(classes, String.to_atom(extends)) do
+  #     nil ->
+  #       case class[:extension] do
+  #         nil ->
+  #           Map.get(classes, String.to_atom(extends))
 
-          extension ->
-            case Map.get(classes, Utils.to_uid(extension, extends)) do
-              nil -> Map.get(classes, String.to_atom(extends))
-              other -> other
-            end
-        end
+  #         extension ->
+  #           case Map.get(classes, Utils.to_uid(extension, extends)) do
+  #             nil -> Map.get(classes, String.to_atom(extends))
+  #             other -> other
+  #           end
+  #       end
 
-      base ->
-        base
-    end
-  end
+  #     base ->
+  #       base
+  #   end
+  # end
 
   # Final fix up a map of many name -> entity key-value pairs.
   # The term "entities" means to profiles, objects, or classes.
-  @spec fix_entities(map(), MapSet.t()) :: {map(), MapSet.t()}
-  defp fix_entities(entities, no_req_set) do
+  @spec fix_entities(map(), MapSet.t(), String.t()) :: {map(), MapSet.t()}
+  defp fix_entities(entities, no_req_set, kind) do
     Enum.reduce(
       entities,
       {Map.new(), no_req_set},
-      fn {entity_name, entity}, {entities, no_req_set} ->
-        {entity, no_req_set} = fix_entity(entity, no_req_set)
-        {Map.put(entities, entity_name, entity), no_req_set}
+      fn {entity_key, entity}, {entities, no_req_set} ->
+        {entity, no_req_set} = fix_entity(entity, no_req_set, entity_key, kind)
+        {Map.put(entities, entity_key, entity), no_req_set}
       end
     )
   end
 
   # Final fix up of an entity definition map.
   # The term "entity" mean a single profile, object, class, or base_event (a special class).
-  @spec fix_entity(map(), MapSet.t()) :: {map(), MapSet.t()}
-  defp fix_entity(entity, no_req_set) do
-    {attributes, no_req_set} = fix_attributes(entity[:attributes], no_req_set)
-    {Map.put(entity, :attributes, attributes), no_req_set}
+  @spec fix_entity(map(), MapSet.t(), atom(), String.t()) :: {map(), MapSet.t()}
+  defp fix_entity(entity, no_req_set, entity_key, kind) do
+    attributes = entity[:attributes]
+
+    if attributes do
+      {attributes, no_req_set} =
+        Enum.reduce(
+          attributes,
+          {%{}, no_req_set},
+          fn {attribute_name, attribute_details}, {attributes, no_req_set} ->
+            {
+              # The Map.put_new fixes the actual missing requirement problem
+              Map.put(
+                attributes,
+                attribute_name,
+                Map.put_new(attribute_details, :requirement, "optional")
+              ),
+              # This adds attributes with missing requirement to a set for later logging
+              track_missing_requirement(
+                attribute_name,
+                attribute_details,
+                no_req_set,
+                entity_key,
+                kind
+              )
+            }
+          end
+        )
+
+      {Map.put(entity, :attributes, attributes), no_req_set}
+    else
+      {entity, no_req_set}
+    end
   end
 
-  # Final fix up an attributes map.
-  @spec fix_attributes(map(), MapSet.t()) :: {map(), MapSet.t()}
-  defp fix_attributes(attributes, no_req_set) do
-    Enum.reduce(
-      attributes,
-      {Map.new(), no_req_set},
-      fn {attribute_name, attribute_details}, {attributes, no_req_set} ->
-        {
-          # The Map.put_new fixes the actual missing requirement problem
-          Map.put(
-            attributes,
-            attribute_name,
-            Map.put_new(attribute_details, :requirement, "optional")
-          ),
-          # This adds attributes with missing requirement to a set for later logging
-          track_missing_requirement(attribute_name, attribute_details, no_req_set)
-        }
-      end
-    )
-  end
-
-  @spec track_missing_requirement(String.t(), map(), MapSet.t()) :: MapSet.t()
-  defp track_missing_requirement(attribute_name, attribute_details, no_req_set) do
-    if Map.has_key?(attribute_details, :requirement) do
+  @spec track_missing_requirement(atom(), map(), MapSet.t(), atom(), String.t()) :: MapSet.t()
+  defp track_missing_requirement(attribute_key, attribute, no_req_set, entity_key, kind) do
+    if Map.has_key?(attribute, :requirement) do
       no_req_set
     else
-      context = "#{attribute_details[:_source]}.#{attribute_name}"
+      context = "#{entity_key}.#{attribute_key} (#{kind})"
 
       if MapSet.member?(no_req_set, context) do
         no_req_set
@@ -837,141 +1076,22 @@ defmodule Schema.Cache do
     end
   end
 
-  defp update_observables(objects, dictionary) do
+  defp update_observable(objects, observable_type_id_map) do
     if Map.has_key?(objects, :observable) do
-      observable_attribute_types = get_in(dictionary, [:types, :attributes]) |> observables()
-      observable_objects = observables(objects)
-      observable_attributes = observables(dictionary[:attributes])
+      update_in(objects, [:observable, :attributes, :type_id, :enum], fn enum_map ->
+        Map.merge(enum_map, observable_type_id_map, fn observable_type_id, enum1, enum2 ->
+          Logger.error(
+            "Collision of observable type_id #{observable_type_id} between" <>
+              " \"#{enum1[:caption]}\" and \"#{enum2[:caption]}\" (detected while merging)"
+          )
 
-      Map.update!(objects, :observable, fn observable ->
-        observable
-        |> update_observable_type_id_enum(
-          observable_attribute_types,
-          fn _name, attribute -> "#{attribute[:caption]} (Type)" end
-        )
-        |> update_observable_type_id_enum(
-          observable_objects,
-          fn _name, object -> "#{object[:caption]} (Object)" end
-        )
-        |> update_observable_type_id_enum(
-          observable_attributes,
-          fn _name, attribute -> "#{attribute[:caption]} (Attribute)" end
-        )
+          System.stop(1)
+          enum1
+        end)
       end)
     else
       objects
     end
-  end
-
-  defp update_observable_type_id_enum(observable, entities, caption_fn) do
-    update_in(observable, [:attributes, :type_id, :enum], fn enum ->
-      new_enum = generate_observable_type_id_enum(entities, caption_fn)
-
-      Map.merge(
-        enum,
-        new_enum,
-        fn type_id, v1, v2 ->
-          Logger.error(
-            "Collision of observable type_id #{type_id} between \"#{v1[:caption]}\" and \"#{v2[:caption]}\" (detected while updating)"
-          )
-
-          System.stop(1)
-          v1
-        end
-      )
-    end)
-  end
-
-  defp generate_observable_type_id_enum(entities, caption_fn) do
-    Enum.reduce(entities, %{}, fn {name, entity}, acc ->
-      type_id = Integer.to_string(entity[:observable]) |> String.to_atom()
-      caption = caption_fn.(name, entity)
-      description = entity[:description]
-
-      if Map.has_key?(acc, type_id) do
-        Logger.error(
-          "Collision of observable type_id #{type_id} between \"#{acc[type_id][:caption]}\" and \"#{caption}\" (detected while generating)"
-        )
-
-        System.stop(1)
-      end
-
-      Map.put(acc, type_id, %{caption: caption, description: description})
-    end)
-  end
-
-  defp observables(list) do
-    Enum.filter(list, fn {_key, value} ->
-      Map.has_key?(value, :observable) and !value[:observable_inherited?]
-    end)
-  end
-
-  defp update_observable_from_classes(classes, objects) do
-    if Map.has_key?(objects, :observable) do
-      observable =
-        Enum.reduce(
-          classes,
-          objects[:observable],
-          fn {_class_key, class}, observable ->
-            if Map.has_key?(class, :observables) do
-              update_observable_from_class(class, observable)
-            else
-              observable
-            end
-          end
-        )
-
-      Map.put(objects, :observable, observable)
-    else
-      objects
-    end
-  end
-
-  defp update_observable_from_class(class, observable) do
-    parent_observables = class[:parent_observables]
-
-    update_in(observable, [:attributes, :type_id, :enum], fn enum ->
-      new_enum =
-        Enum.reduce(
-          class[:observables],
-          %{},
-          fn {attribute_path, observable_type_id}, acc ->
-            if parent_observables == nil or
-                 parent_observables[attribute_path] != observable_type_id do
-              type_id = Integer.to_string(observable_type_id) |> String.to_atom()
-              caption = "#{class[:caption]} Class: #{attribute_path} (Class-Specific)"
-
-              description =
-                "Class-specific attribute on path \"#{attribute_path}\" for the #{class[:caption]} Class."
-
-              if Map.has_key?(acc, type_id) do
-                Logger.error(
-                  "Collision of observable type_id #{type_id} between #{inspect(acc[type_id][:caption])} and \"#{caption}\" (detected while generating from class)"
-                )
-
-                System.stop(1)
-              end
-
-              Map.put(acc, type_id, %{caption: caption, description: description})
-            else
-              acc
-            end
-          end
-        )
-
-      Map.merge(
-        enum,
-        new_enum,
-        fn type_id, v1, v2 ->
-          Logger.error(
-            "Collision of observable type_id #{type_id} between #{inspect(v1[:caption])} and #{inspect(v2[:caption])} (detected while updating from class)"
-          )
-
-          System.stop(1)
-          v1
-        end
-      )
-    end)
   end
 
   defp final_check(maps, dictionary) do
@@ -1130,15 +1250,6 @@ defmodule Schema.Cache do
   end
 
   defp update_dictionary(dictionary) do
-    dictionary =
-      Map.update!(dictionary, :types, fn types ->
-        Map.update!(types, :attributes, fn attributes ->
-          Enum.into(attributes, %{}, fn {type_key, type} ->
-            {type_key, Map.put(type, :meta_type, :dictionary_type)}
-          end)
-        end)
-      end)
-
     types = get_in(dictionary, [:types, :attributes])
 
     Map.update!(dictionary, :attributes, fn attributes ->
@@ -1156,7 +1267,7 @@ defmodule Schema.Cache do
               attribute
           end
 
-        {name, Map.put(attribute, :meta_type, :dictionary_attribute)}
+        {name, attribute}
       end)
     end)
   end
@@ -1195,7 +1306,6 @@ defmodule Schema.Cache do
     |> copy(from, :type_name)
     |> copy(from, :object_name)
     |> copy(from, :object_type)
-    |> copy(from, :meta_type)
   end
 
   defp copy(to, from, key) do

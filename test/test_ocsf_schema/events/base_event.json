@@ -65,8 +65,5 @@
     "type_uid": {
       "requirement": "required"
     }
-  },
-  "observables": {
-    "message": 5
   }
 }

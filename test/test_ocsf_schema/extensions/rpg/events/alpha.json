@@ -1,14 +1,18 @@
 {
   "caption": "RPG Alpha",
-  "description": "Extends the Alpha example event class.",
+  "description": "Special extends (patch) pf the Alpha example event class.",
   "extends": "alpha",
   "profiles": [],
   "attributes": {
     "alpha_extra": {
       "requirement": "required"
+    },
+    "epsilon": {
+      "requirement": "recommended",
+      "observable": 42100
     }
   },
   "observables": {
-    "alpha_extra": 10002
+    "alpha_extra": 42101
   }
 }

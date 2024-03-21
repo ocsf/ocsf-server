@@ -156,6 +156,9 @@ defmodule Schema do
   @spec all_classes() :: map()
   def all_classes(), do: Repo.all_classes()
 
+  @spec all_objects() :: map()
+  def all_objects(), do: Repo.all_objects()
+
   @doc """
     Returns a single event class.
   """

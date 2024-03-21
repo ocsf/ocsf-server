@@ -1,6 +1,6 @@
 {
   "caption": "Alpha",
-  "category": "other",
+  "category": "network",
   "description": "The Alpha example event class.",
   "name": "alpha",
   "extends": "hidden",
@@ -8,11 +8,15 @@
   "profiles": [],
   "attributes": {
     "alpha": {
-      "requirement": "required"
+      "requirement": "required",
+      "observable": 100
+    },
+    "delta": {
+      "requirement": "optional",
+      "observable": 101
     }
   },
   "observables": {
-    "message": 6,
-    "alpha": 7
+    "message": 102
   }
 }

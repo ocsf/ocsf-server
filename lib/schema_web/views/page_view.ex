@@ -125,9 +125,9 @@ defmodule SchemaWeb.PageView do
             type_id,
             "\" data-toggle=\"tooltip\" title=\"Observable Type ID ",
             type_id,
-            " (",
+            ": ",
             observable_kind,
-            ")\">O</a></sup>"
+            "\">O</a></sup>"
           ]
       end
 
@@ -138,56 +138,51 @@ defmodule SchemaWeb.PageView do
   end
 
   defp observable_type_id_and_kind(entity) do
-    case entity[:meta_type] do
-      :dictionary_type ->
-        {entity[:observable], "Type"}
+    observable_object = Schema.object(:observable)
 
-      :object ->
-        {entity[:observable], "Object"}
+    observable_type_id_map =
+      if observable_object do
+        observable_object[:attributes][:type_id][:enum]
+      else
+        nil
+      end
 
-      :dictionary_attribute ->
-        direct = entity[:observable]
+    cond do
+      observable_type_id_map == nil ->
+        {nil, nil}
 
-        if direct != nil do
-          {direct, "Attribute"}
-        else
-          # Could be an observable by type or object
-          by_type = observable_by_type(entity)
+      Map.has_key?(entity, :observable) ->
+        observable_type_id = Schema.Utils.observable_type_id_to_atom(entity[:observable])
+        {observable_type_id, observable_type_id_map[observable_type_id][:caption]}
 
-          if by_type != nil do
-            {by_type, "Type"}
-          else
-            by_object = observable_by_object(entity)
+      Map.has_key?(entity, :type) ->
+        # Check if this is a dictionary type
+        type = Schema.dictionary()[:types][:attributes][Schema.Utils.to_uid(entity[:type])]
+        type_observable = type[:observable]
 
-            if by_object != nil do
-              {by_object, "Object"}
+        cond do
+          type_observable ->
+            observable_type_id = Schema.Utils.observable_type_id_to_atom(type_observable)
+            {observable_type_id, observable_type_id_map[observable_type_id][:caption]}
+
+          Map.has_key?(entity, :object_type) ->
+            # Check if this object is an observable
+            object_key = Schema.Utils.to_uid(entity[:object_type])
+            object_observable = Schema.object(object_key)[:observable]
+
+            if object_observable do
+              observable_type_id = Schema.Utils.observable_type_id_to_atom(object_observable)
+              {observable_type_id, observable_type_id_map[observable_type_id][:caption]}
             else
               {nil, nil}
             end
-          end
+
+          true ->
+            {nil, nil}
         end
 
-      # :class ->
-      #   {nil, nil}
-
-      meta_type ->
-        Logger.warning("Unexpected meta type #{inspect(meta_type)} in #{inspect(entity)}")
+      true ->
         {nil, nil}
-    end
-  end
-
-  defp observable_by_type(entity) do
-    Schema.dictionary()[:types][:attributes][Schema.Utils.to_uid(entity[:type])][:observable]
-  end
-
-  defp observable_by_object(entity) do
-    entity_type = entity[:type]
-    entity_object_type = entity[:object_type]
-
-    if entity_type == "object_t" and entity_object_type != nil do
-      Schema.object(Schema.Utils.to_uid(entity_object_type))[:observable]
-    else
-      nil
     end
   end
 
@@ -196,55 +191,84 @@ defmodule SchemaWeb.PageView do
     Path.basename(to_string(name))
   end
 
-  @spec format_class_attribute_source(String.t(), map()) :: String.t()
-  def format_class_attribute_source(class_name, field) do
+  @spec format_class_attribute_source(atom(), map()) :: String.t()
+  def format_class_attribute_source(class_key, field) do
     all_classes = Schema.all_classes()
-    source = field[:_source]
-    {ok, path} = build_class_hierarchy(Schema.Utils.to_uid(class_name), source, all_classes)
+    source = get_hierarchy_source(field)
+    {ok, path} = build_hierarchy(Schema.Utils.to_uid(class_key), source, all_classes)
 
     if ok do
-      format_class_hierarchy(path, all_classes)
+      format_hierarchy(path, all_classes, "class")
     else
       to_string(source)
     end
   end
 
-  # Build a class hierarchy path from class to parent_class.
+  @spec format_object_attribute_source(atom(), map()) :: String.t()
+  def format_object_attribute_source(object_key, field) do
+    all_objects = Schema.all_objects()
+    source = get_hierarchy_source(field)
+    {ok, path} = build_hierarchy(Schema.Utils.to_uid(object_key), source, all_objects)
+
+    if ok do
+      format_hierarchy(path, all_objects, "object")
+    else
+      to_string(source)
+    end
+  end
+
+  # Build a class or object hierarchy path from item_key to target_parent_item_key.
   # Returns {true, path} when a path is found, and {false, []} otherwise.
-  @spec build_class_hierarchy(atom(), atom(), map(), list()) :: {boolean(), list()}
-  defp build_class_hierarchy(
-         class,
-         parent_class,
-         all_classes,
+  @spec build_hierarchy(atom(), atom(), map(), list()) :: {boolean(), list()}
+  defp build_hierarchy(
+         item_key,
+         target_parent_item_key,
+         all_items,
          path_result \\ []
        ) do
     cond do
-      class == nil ->
+      item_key == nil ->
         {false, []}
 
-      class == parent_class ->
-        {true, [class | path_result]}
+      item_key == target_parent_item_key ->
+        {true, [item_key | path_result]}
 
       true ->
-        build_class_hierarchy(
-          Schema.Utils.to_uid(all_classes[class][:extends]),
-          parent_class,
-          all_classes,
-          [class | path_result]
+        item = all_items[item_key]
+        extends = item[:extends]
+        extension = item[:extension]
+        {parent_item_key, _parent_time} = Schema.Utils.find_parent(all_items, extends, extension)
+
+        build_hierarchy(
+          parent_item_key,
+          target_parent_item_key,
+          all_items,
+          [item_key | path_result]
         )
     end
   end
 
-  defp format_class_hierarchy(path, all_classes) do
+  defp get_hierarchy_source(field) do
+    # TODO: HACK. This is part of the code compensating for the weird
+    #       Schema.Cache.extend_type processing. An attribute _source for an
+    #       extension class or object that uses the "special" extends / patch
+    #       mechanism keeps the form "<extension>/<name>" form, which doesn't refer
+    #       to anything after the extend_type processing. This requires a deeper
+    #       change to fix, so here we just keep an extra _source_special key.
+    # Use "fixed" :_source_special if available
+    field[:_source_special] || field[:_source]
+  end
+
+  defp format_hierarchy(path, all_items, kind) do
     Enum.map(
       path,
-      fn class ->
-        class_info = all_classes[class]
+      fn item_key ->
+        item_info = all_items[item_key]
 
-        if class_info[:hidden?] do
-          [all_classes[class][:caption], " (hidden class)"]
+        if item_info[:hidden?] do
+          [all_items[item_key][:caption], " (hidden #{kind})"]
         else
-          all_classes[class][:caption]
+          all_items[item_key][:caption]
         end
       end
     )
@@ -650,7 +674,7 @@ defmodule SchemaWeb.PageView do
 
             true ->
               # Any indirect situation, including through hidden classes
-              {ok, path} = build_class_hierarchy(class_key, source, all_classes)
+              {ok, path} = build_hierarchy(class_key, source, all_classes)
 
               if ok do
                 [
@@ -658,7 +682,7 @@ defmodule SchemaWeb.PageView do
                     "<a href=\"",
                     type_path,
                     "\" data-toggle=\"tooltip\" title=\"Indirectly referenced: ",
-                    format_class_hierarchy(path, all_classes),
+                    format_hierarchy(path, all_classes, "class"),
                     "\">",
                     link[:caption],
                     " Class</a>"
@@ -746,7 +770,7 @@ defmodule SchemaWeb.PageView do
 
             true ->
               # Any indirect situation, including through hidden classes
-              {ok, path} = build_class_hierarchy(class_key, source, all_classes)
+              {ok, path} = build_hierarchy(class_key, source, all_classes)
 
               if ok do
                 [
@@ -754,7 +778,7 @@ defmodule SchemaWeb.PageView do
                     "<a href=\"",
                     type_path,
                     "\" data-toggle=\"tooltip\" title=\"Indirectly updated: ",
-                    format_class_hierarchy(path, all_classes),
+                    format_hierarchy(path, all_classes, "class"),
                     "\">",
                     link[:caption],
                     " Class</a>"

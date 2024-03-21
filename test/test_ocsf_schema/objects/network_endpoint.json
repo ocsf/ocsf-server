@@ -6,6 +6,9 @@
   "attributes": {
     "port": {
       "requirement": "recommended"
+    },
+    "service": {
+      "requirement": "recommended"
     }
   }
 }
