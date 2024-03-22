@@ -1,8 +1,8 @@
 {
-  "caption": "Hidden",
+  "caption": "Ghost",
   "category": "network",
-  "description": "The Hidden example event class.",
-  "name": "hidden",
+  "description": "The hidden Ghost example event class.",
+  "name": "ghost",
   "extends": "base_event",
   "profiles": [],
   "attributes": {

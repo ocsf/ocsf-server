@@ -3,7 +3,7 @@
   "category": "network",
   "description": "The Alpha example event class.",
   "name": "alpha",
-  "extends": "hidden",
+  "extends": "ghost",
   "uid": 2,
   "profiles": [],
   "attributes": {

@@ -3,7 +3,7 @@
   "category": "system",
   "description": "The Beta example event class.",
   "name": "beta",
-  "extends": "hidden",
+  "extends": "ghost",
   "uid": 3,
   "profiles": [],
   "attributes": {

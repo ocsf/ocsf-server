@@ -431,9 +431,10 @@ defmodule Schema.Cache do
   defp validate_class_observables(class_key, class) do
     if Map.has_key?(class, :observable) do
       Logger.error(
-        "Illegally defined \"#{:observable}\" in class \"#{class_key}\"." <>
-          " Defining class-level observables is not supported (this would be redundant)." <>
-          " Instead use the \"class_uid\" attribute for querying, correlating, and reporting."
+        "Illegal definition of one or more attributes with \"#{:observable}\" in class" <>
+          "  \"#{class_key}\". Defining class-level observables is not supported (this would be" <>
+          " redundant). Instead use the \"class_uid\" attribute for querying, correlating, and" <>
+          " reporting."
       )
 
       System.stop(1)
@@ -448,10 +449,10 @@ defmodule Schema.Cache do
              end
            ) do
         Logger.error(
-          "Illegally defined attribute with \"#{:observable}\" in hidden class" <>
-            " \"#{class_key}\". This would cause colliding definitions of the same" <>
-            " observable type_id values in all extensions of this class. Instead define" <>
-            " observables (of any kind) in non-hidden extensions of \"#{class_key}\"."
+          "Illegal definition of one or more attributes with \"#{:observable}\" definition in" <>
+            " hidden class \"#{class_key}\". This would cause colliding definitions of the same" <>
+            " observable type_id values in all children of this class. Instead define" <>
+            " observables (of any kind) in non-hidden child classes of \"#{class_key}\"."
         )
 
         System.stop(1)
@@ -459,10 +460,38 @@ defmodule Schema.Cache do
 
       if Map.has_key?(class, :observables) do
         Logger.error(
-          "Illegally defined \"#{:observables}\" in hidden class \"#{class_key}\". This" <>
+          "Illegal \"#{:observables}\" definition in hidden class \"#{class_key}\". This" <>
             " would cause colliding definitions of the same observable type_id values in" <>
-            " all extensions of this class. Instead define observables (of any kind) in" <>
-            " non-hidden extensions of \"#{class_key}\"."
+            " all children of this class. Instead define observables (of any kind) in" <>
+            " non-hidden child classes of \"#{class_key}\"."
+        )
+
+        System.stop(1)
+      end
+    end
+
+    if patch_extends?(class) do
+      if Map.has_key?(class, :attributes) and
+           Enum.any?(
+             class[:attributes],
+             fn {_attribute_key, attribute} ->
+               Map.has_key?(attribute, :observable)
+             end
+           ) do
+        Logger.error(
+          "Illegal definition of one or more attributes with \"#{:observable}\" definition in" <>
+            " patch extends class \"#{class_key}\". Observable definitions in patch extends are" <>
+            " not supported. Please file an issue if you find this feature necessary."
+        )
+
+        System.stop(1)
+      end
+
+      if Map.has_key?(class, :observables) do
+        Logger.error(
+          "Illegal \"#{:observables}\" definition in patch extends class \"#{class_key}\"." <>
+            " Observable definitions in patch extends are not supported." <>
+            " Please file an issue if you find this feature necessary."
         )
 
         System.stop(1)
@@ -573,7 +602,7 @@ defmodule Schema.Cache do
       # It would require tracking the relative from the point of the object down that tree of an
       # overall OCSF event.
       Logger.error(
-        "Illegally defined \"#{:observables}\" in object \"#{object_key}\"." <>
+        "Illegal \"#{:observables}\" definition in object \"#{object_key}\"." <>
           " Object-specific attribute path observables are not supported." <>
           " Please file an issue if you find this feature necessary."
       )
@@ -590,21 +619,49 @@ defmodule Schema.Cache do
              end
            ) do
         Logger.error(
-          "Illegally defined attribute with \"#{:observable}\" in hidden object" <>
+          "Illegal definition of one or more attributes with \"#{:observable}\" in hidden object" <>
             " \"#{object_key}\". This would cause colliding definitions of the same" <>
-            " observable type_id values in all extensions of this object. Instead define" <>
-            " observables (of any kind) in non-hidden extensions of \"#{object_key}\"."
+            " observable type_id values in all children of this object. Instead define" <>
+            " observables (of any kind) in non-hidden child objects of \"#{object_key}\"."
         )
 
         System.stop(1)
       end
 
-      if Map.has_key?(object, :observables) do
+      if Map.has_key?(object, :observable) do
         Logger.error(
-          "Illegally defined \"#{:observables}\" in hidden object \"#{object_key}\". This" <>
+          "Illegal \"#{:observable}\" definition in hidden object \"#{object_key}\". This" <>
             " would cause colliding definitions of the same observable type_id values in" <>
-            " all extensions of this object. Instead define observables (of any kind) in" <>
-            " non-hidden extensions of \"#{object_key}\"."
+            " all children of this object. Instead define observables (of any kind) in" <>
+            " non-hidden child objects of \"#{object_key}\"."
+        )
+
+        System.stop(1)
+      end
+    end
+
+    if patch_extends?(object) do
+      if Map.has_key?(object, :attributes) and
+           Enum.any?(
+             object[:attributes],
+             fn {_attribute_key, attribute} ->
+               Map.has_key?(attribute, :observable)
+             end
+           ) do
+        Logger.error(
+          "Illegal definition of one or more attributes with \"#{:observable}\" in patch extends" <>
+            " object \"#{object_key}\". Observable definitions in patch extends are not" <>
+            " supported. Please file an issue if you find this feature necessary."
+        )
+
+        System.stop(1)
+      end
+
+      if Map.has_key?(object, :observable) do
+        Logger.error(
+          "Illegal \"#{:observable}\" definition in patch extends object \"#{object_key}\"." <>
+            " Observable definitions in patch extends are not supported." <>
+            " Please file an issue if you find this feature necessary."
         )
 
         System.stop(1)
@@ -904,11 +961,11 @@ defmodule Schema.Cache do
 
   defp patch_type(items, kind) do
     Enum.reduce(items, %{}, fn {key, item}, acc ->
-      name = patch_name(item)
-
       if patch_extends?(item) do
         # This is an extension class or object with the same name its own base class
         # (The name is not prefixed with the extension name, unlike a key / uid.)
+
+        name = patch_name(item)
 
         base_key = String.to_atom(name)
 
@@ -916,8 +973,9 @@ defmodule Schema.Cache do
 
         case Map.get(items, base_key) do
           nil ->
-            Logger.warning("#{key} #{kind} attempted to patch invalid item: #{base_key}")
-            Map.put(acc, key, item)
+            Logger.error("#{key} #{kind} attempted to patch invalid item: #{base_key}")
+            System.stop(1)
+            acc
 
           base ->
             profiles = merge_profiles(base[:profiles], item[:profiles])
@@ -928,35 +986,8 @@ defmodule Schema.Cache do
               |> Map.put(:profiles, profiles)
               |> Map.put(:attributes, attributes)
 
-            # TODO: The gathering of observables occurs before this patch_type processing. This
-            #       incorrectly creates observable type_ids from unpatched classes and objects,
-            #       specifically object's top-level observable, as well as attribute observables
-            #       that should _not_ exist after patching. These are more-or-less innocuous, so
-            #       we can address this later, if needed.
-
-            item_observable = item[:observable]
-
-            patched_base =
-              if item_observable do
-                # This is a single value, so no merging necessary. If the patching item defines a
-                # top-level observable, we simply copy it to the base item.
-                Map.put(patched_base, :observable, item_observable)
-              else
-                patched_base
-              end
-
-            item_observables = item[:observables]
-
-            patched_base =
-              if item_observables do
-                Map.put(
-                  patched_base,
-                  :observables,
-                  Utils.deep_merge(patched_base[:observables], item_observables)
-                )
-              else
-                patched_base
-              end
+            # Note: :observable, :observables, and :observable in attributes are not supported,
+            #       so this code does not attempt to patch (merge) them.
 
             Map.put(acc, base_key, patched_base)
         end
