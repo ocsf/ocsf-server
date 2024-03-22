@@ -311,9 +311,21 @@ defmodule Schema.Utils do
     )
   end
 
-  @spec deep_merge(map, map) :: map
-  def deep_merge(left, right) do
+  @spec deep_merge(map | nil, map | nil) :: map | nil
+  def deep_merge(left, right) when is_map(left) and is_map(right) do
     Map.merge(left, right, &deep_resolve/3)
+  end
+
+  def deep_merge(left, nil) when is_map(left) do
+    left
+  end
+
+  def deep_merge(nil, right) when is_map(right) do
+    right
+  end
+
+  def deep_merge(nil, nil) do
+    nil
   end
 
   # Key exists in both and both values are maps as well, then they can be merged recursively

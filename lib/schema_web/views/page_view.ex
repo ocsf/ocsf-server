@@ -249,14 +249,14 @@ defmodule SchemaWeb.PageView do
   end
 
   defp get_hierarchy_source(field) do
-    # TODO: HACK. This is part of the code compensating for the weird
-    #       Schema.Cache.extend_type processing. An attribute _source for an
-    #       extension class or object that uses the "special" extends / patch
-    #       mechanism keeps the form "<extension>/<name>" form, which doesn't refer
-    #       to anything after the extend_type processing. This requires a deeper
-    #       change to fix, so here we just keep an extra _source_special key.
-    # Use "fixed" :_source_special if available
-    field[:_source_special] || field[:_source]
+    # TODO: HACK. This is part of the code compensating for the
+    #       Schema.Cache.patch_type processing. An attribute _source for an
+    #       extension class or object that uses this patch mechanism
+    #       keeps the form "<extension>/<name>" form, which doesn't refer to
+    #       anything after the patch_type processing. This requires a deeper change
+    #       to fix, so here we just keep an extra _source_patched key.
+    # Use "fixed" :_source_patched if available
+    field[:_source_patched] || field[:_source]
   end
 
   defp format_hierarchy(path, all_items, kind) do

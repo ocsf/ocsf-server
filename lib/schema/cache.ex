@@ -30,7 +30,9 @@ defmodule Schema.Cache do
     :objects,
     :all_objects
   ]
-  defstruct ~w[version profiles dictionary base_event categories classes all_classes objects all_objects]a
+  defstruct ~w[
+    version profiles dictionary base_event categories classes all_classes objects all_objects
+  ]a
 
   @type t() :: %__MODULE__{}
   @type class_t() :: map()
@@ -345,7 +347,7 @@ defmodule Schema.Cache do
     classes =
       classes
       |> Enum.into(%{}, fn class_tuple -> attribute_source(class_tuple) end)
-      |> extend_type("class")
+      |> patch_type("class")
       |> resolve_extends()
 
     # all_classes has just enough info to interrogate the complete class hierarchy,
@@ -385,7 +387,7 @@ defmodule Schema.Cache do
       |> Enum.into(%{}, fn object_tuple -> attribute_source(object_tuple) end)
       |> resolve_extends()
       |> Enum.into(%{})
-      |> extend_type("object")
+      |> patch_type("object")
 
     # all_objects has just enough info to interrogate the complete object hierarchy,
     # removing most details. It can be used to get the caption and parent (extends) of
@@ -437,7 +439,7 @@ defmodule Schema.Cache do
       System.stop(1)
     end
 
-    if not special_extends?(class) and hidden_class?(class_key, class) do
+    if not patch_extends?(class) and hidden_class?(class_key, class) do
       if Map.has_key?(class, :attributes) and
            Enum.any?(
              class[:attributes],
@@ -579,7 +581,7 @@ defmodule Schema.Cache do
       System.stop(1)
     end
 
-    if not special_extends?(object) and hidden_object?(object[:name]) do
+    if not patch_extends?(object) and hidden_object?(object[:name]) do
       if Map.has_key?(object, :attributes) and
            Enum.any?(
              object[:attributes],
@@ -879,14 +881,14 @@ defmodule Schema.Cache do
                 attribute = Map.put(attribute, :_source, item_key)
 
                 attribute =
-                  if special_extends?(item) do
-                    # TODO: HACK. This is part of the code compensating for the weird
-                    #       Schema.Cache.extend_type processing. An attribute _source for an
-                    #       extension class or object that uses the "special" extends / patch
-                    #       mechanism keeps the form "<extension>/<name>" form, which doesn't refer
-                    #       to anything after the extend_type processing. This requires a deeper
-                    #       change to fix, so here we just keep an extra _source_special key.
-                    Map.put(attribute, :_source_special, String.to_atom(special_name(item)))
+                  if patch_extends?(item) do
+                    # TODO: HACK. This is part of the code compensating for the
+                    #       Schema.Cache.patch_type processing. An attribute _source for an
+                    #       extension class or object that uses this patch mechanism
+                    #       keeps the form "<extension>/<name>" form, which doesn't refer to
+                    #       anything after the patch_type processing. This requires a deeper change
+                    #       to fix, so here we just keep an extra _source_patched key.
+                    Map.put(attribute, :_source_patched, String.to_atom(patch_name(item)))
                   else
                     attribute
                   end
@@ -900,44 +902,63 @@ defmodule Schema.Cache do
     {item_key, item}
   end
 
-  defp extend_type(items, kind) do
+  defp patch_type(items, kind) do
     Enum.reduce(items, %{}, fn {key, item}, acc ->
-      name = special_name(item)
+      name = patch_name(item)
 
-      if special_extends?(item) do
+      if patch_extends?(item) do
         # This is an extension class or object with the same name its own base class
         # (The name is not prefixed with the extension name, unlike a key / uid.)
 
         base_key = String.to_atom(name)
 
-        Logger.info("#{key} #{kind} extends #{base_key}")
+        Logger.info("#{key} #{kind} is patching #{base_key}")
 
         case Map.get(items, base_key) do
           nil ->
-            Logger.warning("#{key} #{kind} extends invalid item: #{base_key}")
+            Logger.warning("#{key} #{kind} attempted to patch invalid item: #{base_key}")
             Map.put(acc, key, item)
 
           base ->
-            profiles = merge(base[:profiles], item[:profiles])
+            profiles = merge_profiles(base[:profiles], item[:profiles])
             attributes = Utils.deep_merge(base[:attributes], item[:attributes])
 
-            updated =
+            patched_base =
               base
               |> Map.put(:profiles, profiles)
               |> Map.put(:attributes, attributes)
 
-            updated =
-              if Map.has_key?(updated, :observables) and Map.has_key?(item, :observables) do
-                Map.put(
-                  updated,
-                  :observables,
-                  Utils.deep_merge(updated[:observables], item[:observables])
-                )
+            # TODO: The gathering of observables occurs before this patch_type processing. This
+            #       incorrectly creates observable type_ids from unpatched classes and objects,
+            #       specifically object's top-level observable, as well as attribute observables
+            #       that should _not_ exist after patching. These are more-or-less innocuous, so
+            #       we can address this later, if needed.
+
+            item_observable = item[:observable]
+
+            patched_base =
+              if item_observable do
+                # This is a single value, so no merging necessary. If the patching item defines a
+                # top-level observable, we simply copy it to the base item.
+                Map.put(patched_base, :observable, item_observable)
               else
-                updated
+                patched_base
               end
 
-            Map.put(acc, base_key, updated)
+            item_observables = item[:observables]
+
+            patched_base =
+              if item_observables do
+                Map.put(
+                  patched_base,
+                  :observables,
+                  Utils.deep_merge(patched_base[:observables], item_observables)
+                )
+              else
+                patched_base
+              end
+
+            Map.put(acc, base_key, patched_base)
         end
       else
         Map.put_new(acc, key, item)
@@ -945,14 +966,14 @@ defmodule Schema.Cache do
     end)
   end
 
-  defp special_name(item) do
+  defp patch_name(item) do
     item[:name] || item[:extends]
   end
 
-  # A "special" extends is the weird reverse extends done by extend_type.
+  # Is this item a special patch extends definition as done by patch_type.
   # It is triggered by a class or object that has no name or the name is the same as the extends.
-  defp special_extends?(item) do
-    special_name(item) == item[:extends]
+  defp patch_extends?(item) do
+    patch_name(item) == item[:extends]
   end
 
   defp resolve_extends(items) do
@@ -989,26 +1010,6 @@ defmodule Schema.Cache do
   defp merge_profiles(:profiles, v1, nil), do: v1
   defp merge_profiles(:profiles, v1, v2), do: Enum.concat(v1, v2) |> Enum.uniq()
   defp merge_profiles(_profiles, _v1, v2), do: v2
-
-  # TODO
-  # defp find_super_class(classes, class, extends) do
-  #   case Map.get(classes, String.to_atom(extends)) do
-  #     nil ->
-  #       case class[:extension] do
-  #         nil ->
-  #           Map.get(classes, String.to_atom(extends))
-
-  #         extension ->
-  #           case Map.get(classes, Utils.to_uid(extension, extends)) do
-  #             nil -> Map.get(classes, String.to_atom(extends))
-  #             other -> other
-  #           end
-  #       end
-
-  #     base ->
-  #       base
-  #   end
-  # end
 
   # Final fix up a map of many name -> entity key-value pairs.
   # The term "entities" means to profiles, objects, or classes.
@@ -1181,7 +1182,7 @@ defmodule Schema.Cache do
   defp update_profiles(list, map, profiles, attributes) do
     # add the synthetic datetime profile
     map
-    |> Map.put(:profiles, merge(profiles, ["datetime"]))
+    |> Map.put(:profiles, merge_profiles(profiles, ["datetime"]))
     |> Map.put(:attributes, Enum.into(list, attributes))
   end
 
@@ -1229,7 +1230,7 @@ defmodule Schema.Cache do
     Enum.reduce(links, classes, fn link, acc ->
       if link[:group] == group do
         Map.update!(acc, String.to_atom(link[:type]), fn class ->
-          Map.put(class, :profiles, merge(class[:profiles], object[:profiles]))
+          Map.put(class, :profiles, merge_profiles(class[:profiles], object[:profiles]))
         end)
       else
         acc
@@ -1237,15 +1238,15 @@ defmodule Schema.Cache do
     end)
   end
 
-  defp merge(nil, p2) do
+  defp merge_profiles(nil, p2) do
     p2
   end
 
-  defp merge(p1, nil) do
+  defp merge_profiles(p1, nil) do
     p1
   end
 
-  defp merge(p1, p2) do
+  defp merge_profiles(p1, p2) do
     Enum.concat(p1, p2) |> Enum.uniq()
   end
 
