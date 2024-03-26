@@ -103,76 +103,172 @@ defmodule SchemaWeb.PageView do
     end
   end
 
-  @spec format_attribute_caption(any, nil | maybe_improper_list | map) :: any
-  def format_attribute_caption(name, field) do
-    name = field[:caption] || name
+  @spec format_attribute_caption(any, String.t() | atom, nil | maybe_improper_list | map) :: any
+  def format_attribute_caption(conn, entity_key, entity) do
+    {observable_type_id, observable_kind} = observable_type_id_and_kind(entity)
 
-    name =
-      case field[:observable] do
-        nil -> name
-        _ -> name <> " <sup>O</sup>"
+    caption = entity[:caption] || to_string(entity_key)
+
+    caption =
+      case observable_type_id do
+        nil ->
+          caption
+
+        type_id ->
+          type_id = to_string(type_id)
+
+          [
+            caption,
+            " <sup><a href=\"",
+            SchemaWeb.Router.Helpers.static_path(conn, "/objects/observable"),
+            "#type_id-",
+            type_id,
+            "\" data-toggle=\"tooltip\" title=\"Observable Type ID ",
+            type_id,
+            ": ",
+            observable_kind,
+            "\">O</a></sup>"
+          ]
       end
 
-    case field[:extension] do
-      nil -> name
-      extension -> name <> " <sup>#{extension}</sup>"
+    case entity[:extension] do
+      nil -> caption
+      extension -> [caption, " <sup>#{extension}</sup>"]
     end
   end
 
-  @spec format_attribute_name(binary()) :: any
-  def format_attribute_name(name) do
-    Path.basename(name)
+  defp observable_type_id_and_kind(entity) do
+    observable_object = Schema.object(:observable)
+
+    observable_type_id_map =
+      if observable_object do
+        observable_object[:attributes][:type_id][:enum]
+      else
+        nil
+      end
+
+    cond do
+      observable_type_id_map == nil ->
+        {nil, nil}
+
+      Map.has_key?(entity, :observable) ->
+        observable_type_id = Schema.Utils.observable_type_id_to_atom(entity[:observable])
+        {observable_type_id, observable_type_id_map[observable_type_id][:caption]}
+
+      Map.has_key?(entity, :type) ->
+        # Check if this is a dictionary type
+        type = Schema.dictionary()[:types][:attributes][Schema.Utils.to_uid(entity[:type])]
+        type_observable = type[:observable]
+
+        cond do
+          type_observable ->
+            observable_type_id = Schema.Utils.observable_type_id_to_atom(type_observable)
+            {observable_type_id, observable_type_id_map[observable_type_id][:caption]}
+
+          Map.has_key?(entity, :object_type) ->
+            # Check if this object is an observable
+            object_key = Schema.Utils.to_uid(entity[:object_type])
+            object_observable = Schema.object(object_key)[:observable]
+
+            if object_observable do
+              observable_type_id = Schema.Utils.observable_type_id_to_atom(object_observable)
+              {observable_type_id, observable_type_id_map[observable_type_id][:caption]}
+            else
+              {nil, nil}
+            end
+
+          true ->
+            {nil, nil}
+        end
+
+      true ->
+        {nil, nil}
+    end
   end
 
-  @spec format_class_attribute_source(String.t(), map()) :: String.t()
-  def format_class_attribute_source(class_name, field) do
+  @spec format_attribute_name(String.t() | atom()) :: any
+  def format_attribute_name(name) do
+    Path.basename(to_string(name))
+  end
+
+  @spec format_class_attribute_source(atom(), map()) :: String.t()
+  def format_class_attribute_source(class_key, field) do
     all_classes = Schema.all_classes()
-    source = field[:_source]
-    {ok, path} = build_class_hierarchy(Schema.Utils.to_uid(class_name), source, all_classes)
+    source = get_hierarchy_source(field)
+    {ok, path} = build_hierarchy(Schema.Utils.to_uid(class_key), source, all_classes)
 
     if ok do
-      format_class_hierarchy(path, all_classes)
+      format_hierarchy(path, all_classes, "class")
     else
       to_string(source)
     end
   end
 
-  # Build a class hierarchy path from class to parent_class.
+  @spec format_object_attribute_source(atom(), map()) :: String.t()
+  def format_object_attribute_source(object_key, field) do
+    all_objects = Schema.all_objects()
+    source = get_hierarchy_source(field)
+    {ok, path} = build_hierarchy(Schema.Utils.to_uid(object_key), source, all_objects)
+
+    if ok do
+      format_hierarchy(path, all_objects, "object")
+    else
+      to_string(source)
+    end
+  end
+
+  # Build a class or object hierarchy path from item_key to target_parent_item_key.
   # Returns {true, path} when a path is found, and {false, []} otherwise.
-  @spec build_class_hierarchy(atom(), atom(), map(), list()) :: {boolean(), list()}
-  defp build_class_hierarchy(
-         class,
-         parent_class,
-         all_classes,
+  @spec build_hierarchy(atom(), atom(), map(), list()) :: {boolean(), list()}
+  defp build_hierarchy(
+         item_key,
+         target_parent_item_key,
+         all_items,
          path_result \\ []
        ) do
     cond do
-      class == nil ->
+      item_key == nil ->
         {false, []}
 
-      class == parent_class ->
-        {true, [class | path_result]}
+      item_key == target_parent_item_key ->
+        {true, [item_key | path_result]}
 
       true ->
-        build_class_hierarchy(
-          Schema.Utils.to_uid(all_classes[class][:extends]),
-          parent_class,
-          all_classes,
-          [class | path_result]
+        item = all_items[item_key]
+        extends = item[:extends]
+        extension = item[:extension]
+        {parent_item_key, _parent_time} = Schema.Utils.find_parent(all_items, extends, extension)
+
+        build_hierarchy(
+          parent_item_key,
+          target_parent_item_key,
+          all_items,
+          [item_key | path_result]
         )
     end
   end
 
-  defp format_class_hierarchy(path, all_classes) do
+  defp get_hierarchy_source(field) do
+    # TODO: HACK. This is part of the code compensating for the
+    #       Schema.Cache.patch_type processing. An attribute _source for an
+    #       extension class or object that uses this patch mechanism
+    #       keeps the form "<extension>/<name>" form, which doesn't refer to
+    #       anything after the patch_type processing. This requires a deeper change
+    #       to fix, so here we just keep an extra _source_patched key.
+    # Use "fixed" :_source_patched if available
+    field[:_source_patched] || field[:_source]
+  end
+
+  defp format_hierarchy(path, all_items, kind) do
     Enum.map(
       path,
-      fn class ->
-        class_info = all_classes[class]
+      fn item_key ->
+        item_info = all_items[item_key]
 
-        if class_info[:hidden?] do
-          [all_classes[class][:caption], " (hidden class)"]
+        if item_info[:hidden?] do
+          [all_items[item_key][:caption], " (hidden #{kind})"]
         else
-          all_classes[class][:caption]
+          all_items[item_key][:caption]
         end
       end
     )
@@ -363,8 +459,8 @@ defmodule SchemaWeb.PageView do
     end
   end
 
-  @spec format_desc(map) :: any
-  def format_desc(obj) do
+  @spec format_desc(String.t() | atom(), map()) :: any
+  def format_desc(key, obj) do
     description = description(obj)
 
     case Map.get(obj, :enum) do
@@ -393,13 +489,18 @@ defmodule SchemaWeb.PageView do
             sorted,
             [],
             fn {id, item}, acc ->
+              id = to_string(id)
               desc = Map.get(item, :description) || ""
 
               [
-                "<tr class='bg-transparent'><td style='width: 25px' class='text-right'><code>",
-                Atom.to_string(id),
+                "<tr class='bg-transparent'><td style='width: 25px' class='text-right' id='",
+                to_string(key),
+                "-",
+                id,
+                "'><code>",
+                id,
                 "</code></td><td class='textnowrap'>",
-                Map.get(item, :caption, Atom.to_string(id)),
+                Map.get(item, :caption, id),
                 "<div class='text-secondary'>",
                 desc,
                 "</div></td><tr>" | acc
@@ -458,6 +559,10 @@ defmodule SchemaWeb.PageView do
         link1[:group] >= link2[:group] and link1[:caption] >= link2[:caption]
       end
     )
+  end
+
+  defp to_css_selector(value) do
+    String.replace(to_string(value), "/", "-")
   end
 
   defp collapse_html(collapse_id, text, items) do
@@ -530,7 +635,7 @@ defmodule SchemaWeb.PageView do
   defp dictionary_links_class_to_html(conn, attribute_name, linked_classes) do
     classes = SchemaController.classes(conn.params())
     all_classes = Schema.all_classes()
-    attribute_key = Schema.Utils.to_uid(attribute_name)
+    attribute_key = Schema.Utils.descope_to_uid(attribute_name)
 
     html_list =
       reverse_sort_links(linked_classes)
@@ -569,7 +674,7 @@ defmodule SchemaWeb.PageView do
 
             true ->
               # Any indirect situation, including through hidden classes
-              {ok, path} = build_class_hierarchy(class_key, source, all_classes)
+              {ok, path} = build_hierarchy(class_key, source, all_classes)
 
               if ok do
                 [
@@ -577,7 +682,7 @@ defmodule SchemaWeb.PageView do
                     "<a href=\"",
                     type_path,
                     "\" data-toggle=\"tooltip\" title=\"Indirectly referenced: ",
-                    format_class_hierarchy(path, all_classes),
+                    format_hierarchy(path, all_classes, "class"),
                     "\">",
                     link[:caption],
                     " Class</a>"
@@ -607,7 +712,7 @@ defmodule SchemaWeb.PageView do
       noun_text = if length(html_list) == 1, do: " class", else: " classes"
 
       collapse_html(
-        ["class-links-", to_string(attribute_name)],
+        ["class-links-", to_css_selector(attribute_name)],
         ["Referenced by ", Integer.to_string(length(html_list)), noun_text],
         Enum.intersperse(html_list, "<br>")
       )
@@ -619,7 +724,7 @@ defmodule SchemaWeb.PageView do
   defp dictionary_links_class_updated_to_html(conn, attribute_name, linked_classes) do
     classes = SchemaController.classes(conn.params())
     all_classes = Schema.all_classes()
-    attribute_key = Schema.Utils.to_uid(attribute_name)
+    attribute_key = Schema.Utils.descope_to_uid(attribute_name)
 
     html_list =
       reverse_sort_links(linked_classes)
@@ -665,7 +770,7 @@ defmodule SchemaWeb.PageView do
 
             true ->
               # Any indirect situation, including through hidden classes
-              {ok, path} = build_class_hierarchy(class_key, source, all_classes)
+              {ok, path} = build_hierarchy(class_key, source, all_classes)
 
               if ok do
                 [
@@ -673,7 +778,7 @@ defmodule SchemaWeb.PageView do
                     "<a href=\"",
                     type_path,
                     "\" data-toggle=\"tooltip\" title=\"Indirectly updated: ",
-                    format_class_hierarchy(path, all_classes),
+                    format_hierarchy(path, all_classes, "class"),
                     "\">",
                     link[:caption],
                     " Class</a>"
@@ -703,7 +808,7 @@ defmodule SchemaWeb.PageView do
       noun_text = if length(html_list) == 1, do: " class", else: " classes"
 
       collapse_html(
-        ["class-links-", to_string(attribute_name)],
+        ["class-links-", to_css_selector(attribute_name)],
         [
           "Updated in ",
           Integer.to_string(length(html_list)),
@@ -744,7 +849,7 @@ defmodule SchemaWeb.PageView do
         noun_text = if length(html_list) == 1, do: " object", else: " objects"
 
         collapse_html(
-          ["object-links-", to_string(name)],
+          ["object-links-", to_css_selector(name)],
           ["Referenced by ", Integer.to_string(length(html_list)), noun_text],
           Enum.intersperse(html_list, "<br>")
         )
@@ -884,7 +989,7 @@ defmodule SchemaWeb.PageView do
         noun_text = if length(html_list) == 1, do: " class", else: " classes"
 
         collapse_html(
-          ["class-links-", to_string(name)],
+          ["class-links-", to_css_selector(name)],
           ["Referenced by ", Integer.to_string(length(html_list)), noun_text],
           Enum.intersperse(html_list, "<br>")
         )
@@ -938,7 +1043,7 @@ defmodule SchemaWeb.PageView do
         noun_text = if length(html_list) == 1, do: " object", else: " objects"
 
         collapse_html(
-          ["object-links-", to_string(name)],
+          ["object-links-", to_css_selector(name)],
           ["Referenced by ", Integer.to_string(length(html_list)), noun_text],
           Enum.intersperse(html_list, "<br>")
         )
@@ -1017,7 +1122,7 @@ defmodule SchemaWeb.PageView do
         noun_text = if length(html_list) == 1, do: " class", else: " classes"
 
         collapse_html(
-          ["class-links-", to_string(profile_name)],
+          ["class-links-", to_css_selector(profile_name)],
           ["Referenced by ", Integer.to_string(length(html_list)), noun_text],
           Enum.intersperse(html_list, "<br>")
         )

@@ -1,0 +1,12 @@
+{
+  "caption": "RPC Categories",
+  "name": "category",
+  "description": "The OCSF categories for the RPG extension.",
+  "attributes": {
+    "battle": {
+      "caption": "Battle",
+      "description": "Battle events.",
+      "uid": 1
+    }
+  }
+}

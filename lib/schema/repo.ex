@@ -124,6 +124,11 @@ defmodule Schema.Repo do
     Agent.get(__MODULE__, fn schema -> Cache.all_classes(schema) end)
   end
 
+  @spec all_objects() :: map()
+  def all_objects() do
+    Agent.get(__MODULE__, fn schema -> Cache.all_objects(schema) end)
+  end
+
   @spec export_classes() :: map()
   def export_classes() do
     Agent.get(__MODULE__, fn schema -> Cache.export_classes(schema) end)

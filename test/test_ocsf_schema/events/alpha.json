@@ -1,0 +1,22 @@
+{
+  "caption": "Alpha",
+  "category": "network",
+  "description": "The Alpha example event class.",
+  "name": "alpha",
+  "extends": "ghost",
+  "uid": 2,
+  "profiles": [],
+  "attributes": {
+    "alpha": {
+      "requirement": "required",
+      "observable": 100
+    },
+    "delta": {
+      "requirement": "optional",
+      "observable": 101
+    }
+  },
+  "observables": {
+    "message": 102
+  }
+}
