@@ -512,7 +512,7 @@ defmodule Schema do
   end
 
   defp reduce_data(object) do
-    delete_links(object) |> Map.delete(:_source)
+    delete_links(object) |> Map.drop([:_source, :_source_patched])
   end
 
   defp reduce_attributes(data) do
