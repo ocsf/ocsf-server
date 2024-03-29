@@ -10,6 +10,24 @@
     },
     "hostname": {
       "requirement": "recommended"
+    },
+    "ob_by_dict_type_1": {
+      "requirement": "optional",
+      "description": "Example 1 observable by dictionary type."
+    },
+    "ob_by_dict_type_2": {
+      "requirement": "optional",
+      "description": "Example 2 observable by dictionary type with object attribute observable.",
+      "observable": 20000
+    },
+    "ob_by_dict_attr_1": {
+      "requirement": "optional",
+      "description": "Example 1 observable by dictionary attribute."
+    },
+    "ob_by_dict_attr_2": {
+      "requirement": "optional",
+      "description": "Example 2 observable by dictionary attribute with object attribute observable.",
+      "observable": 20001
     }
   }
 }

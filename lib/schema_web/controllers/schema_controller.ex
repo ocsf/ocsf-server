@@ -24,6 +24,16 @@ defmodule SchemaWeb.SchemaController do
   @enum_text "_enum_text"
   @observables "_observables"
 
+  @extensions_param_description "When included in request, filters response to included only the" <>
+                                  " supplied extensions, or no extensions if this parameter has" <>
+                                  " no value. When not included, all extensions are returned in" <>
+                                  " the response."
+
+  @profiles_param_description "When included in request, filters response to include only the" <>
+                                " supplied profiles, or no profiles if this parameter has no" <>
+                                " value. When not included, all profiles are returned in" <>
+                                " the response."
+
   # -------------------
   # Event Schema API's
   # -------------------
@@ -118,7 +128,8 @@ defmodule SchemaWeb.SchemaController do
             %{
               caption: "File",
               description:
-                "The file object describes files, folders, links and mounts, including the reputation information, if applicable.",
+                "The file object describes files, folders, links and mounts," <>
+                  " including the reputation information, if applicable.",
               name: "file",
               observable: 24,
               profiles: [
@@ -287,7 +298,8 @@ defmodule SchemaWeb.SchemaController do
     summary("Profile")
 
     description(
-      "Get OCSF schema profile by name. The profile name may contain an extension name. For example, \"linux/linux_users\"."
+      "Get OCSF schema profile by name. The profile name may contain an extension name." <>
+        " For example, \"linux/linux_users\"."
     )
 
     produces("application/json")
@@ -346,7 +358,7 @@ defmodule SchemaWeb.SchemaController do
   end
 
   @doc """
-    Returns the list of categories.
+  Returns the list of categories.
   """
   @spec categories(Plug.Conn.t(), map) :: Plug.Conn.t()
   def categories(conn, params) do
@@ -366,7 +378,8 @@ defmodule SchemaWeb.SchemaController do
     summary("List category classes")
 
     description(
-      "Get OCSF schema classes defined in the named category. The category name may contain an extension name. For example, \"dev/policy\"."
+      "Get OCSF schema classes defined in the named category. The category name may contain an" <>
+        " extension name. For example, \"dev/policy\"."
     )
 
     produces("application/json")
@@ -475,7 +488,8 @@ defmodule SchemaWeb.SchemaController do
     summary("Event class")
 
     description(
-      "Get OCSF schema class by name. The class name may contain an extension name. For example, \"dev/cpu_usage\"."
+      "Get OCSF schema class by name. The class name may contain an extension name." <>
+        " For example, \"dev/cpu_usage\"."
     )
 
     produces("application/json")
@@ -546,7 +560,7 @@ defmodule SchemaWeb.SchemaController do
   end
 
   @doc """
-    Returns the list of classes.
+  Returns the list of classes.
   """
   @spec classes(map) :: map
   def classes(params) do
@@ -571,7 +585,8 @@ defmodule SchemaWeb.SchemaController do
     summary("Object")
 
     description(
-      "Get OCSF schema object by name. The object name may contain an extension name. For example, \"dev/os_service\"."
+      "Get OCSF schema object by name. The object name may contain an extension name." <>
+        " For example, \"dev/os_service\"."
     )
 
     produces("application/json")
@@ -661,16 +676,18 @@ defmodule SchemaWeb.SchemaController do
   swagger_path :export_schema do
     get("/export/schema")
     summary("Export schema")
-    description("Get OCSF schema definitions, including data types, objects, and classes.")
+
+    description(
+      "Get OCSF schema definitions, including data types, objects, classes," <>
+        " and the dictionary of attributes."
+    )
+
     produces("application/json")
     tag("Schema Export")
 
     parameters do
-      extensions(:query, :array, "Related extensions to include in response.",
-        items: [type: :string]
-      )
-
-      profiles(:query, :array, "Related profiles to include in response.", items: [type: :string])
+      extensions(:query, :array, @extensions_param_description, items: [type: :string])
+      profiles(:query, :array, @profiles_param_description, items: [type: :string])
     end
 
     response(200, "Success")
@@ -679,7 +696,8 @@ defmodule SchemaWeb.SchemaController do
   @spec export_schema(Plug.Conn.t(), any) :: Plug.Conn.t()
   def export_schema(conn, params) do
     profiles = parse_options(profiles(params))
-    data = parse_options(extensions(params)) |> Schema.export_schema(profiles)
+    extensions = parse_options(extensions(params))
+    data = Schema.export_schema(extensions, profiles)
     send_json_resp(conn, data)
   end
 
@@ -694,11 +712,8 @@ defmodule SchemaWeb.SchemaController do
     tag("Schema Export")
 
     parameters do
-      extensions(:query, :array, "Related extensions to include in response.",
-        items: [type: :string]
-      )
-
-      profiles(:query, :array, "Related profiles to include in response.", items: [type: :string])
+      extensions(:query, :array, @extensions_param_description, items: [type: :string])
+      profiles(:query, :array, @profiles_param_description, items: [type: :string])
     end
 
     response(200, "Success")
@@ -706,7 +721,8 @@ defmodule SchemaWeb.SchemaController do
 
   def export_classes(conn, params) do
     profiles = parse_options(profiles(params))
-    classes = parse_options(extensions(params)) |> Schema.export_classes(profiles)
+    extensions = parse_options(extensions(params))
+    classes = Schema.export_classes(extensions, profiles)
     send_json_resp(conn, classes)
   end
 
@@ -721,7 +737,7 @@ defmodule SchemaWeb.SchemaController do
     tag("Schema Export")
 
     parameters do
-      profiles(:query, :array, "Related profiles to include in response.", items: [type: :string])
+      profiles(:query, :array, @profiles_param_description, items: [type: :string])
     end
 
     response(200, "Success")
@@ -745,11 +761,8 @@ defmodule SchemaWeb.SchemaController do
     tag("Schema Export")
 
     parameters do
-      extensions(:query, :array, "Related extensions to include in response.",
-        items: [type: :string]
-      )
-
-      profiles(:query, :array, "Related profiles to include in response.", items: [type: :string])
+      extensions(:query, :array, @extensions_param_description, items: [type: :string])
+      profiles(:query, :array, @profiles_param_description, items: [type: :string])
     end
 
     response(200, "Success")
@@ -757,7 +770,8 @@ defmodule SchemaWeb.SchemaController do
 
   def export_objects(conn, params) do
     profiles = parse_options(profiles(params))
-    objects = parse_options(extensions(params)) |> Schema.export_objects(profiles)
+    extensions = parse_options(extensions(params))
+    objects = Schema.export_objects(extensions, profiles)
     send_json_resp(conn, objects)
   end
 
@@ -774,7 +788,9 @@ defmodule SchemaWeb.SchemaController do
     summary("Event class")
 
     description(
-      "Get OCSF schema class by name, using JSON schema Draft-07 format (see http://json-schema.org). The class name may contain an extension name. For example, \"dev/cpu_usage\"."
+      "Get OCSF schema class by name, using JSON schema Draft-07 format " <>
+        "(see http://json-schema.org). The class name may contain an extension name. " <>
+        "For example, \"dev/cpu_usage\"."
     )
 
     produces("application/json")
@@ -824,7 +840,8 @@ defmodule SchemaWeb.SchemaController do
     summary("Object")
 
     description(
-      "Get OCSF object by name, using JSON schema Draft-07 format (see http://json-schema.org). The object name may contain an extension name. For example, \"dev/printer\"."
+      "Get OCSF object by name, using JSON schema Draft-07 format (see http://json-schema.org)." <>
+        " The object name may contain an extension name. For example, \"dev/printer\"."
     )
 
     produces("application/json")
@@ -874,16 +891,18 @@ defmodule SchemaWeb.SchemaController do
 
   @doc """
   Enrich event data by adding type_uid, enumerated text, and observables.
-  A single event is encoded as a JSON object and multiple events are encoded as JSON array of objects.
+  A single event is encoded as a JSON object and multiple events are encoded as JSON array of
+  objects.
   """
   swagger_path :enrich do
     post("/api/enrich")
     summary("Enrich Event")
 
-    description("""
-    The purpose of this API is to enrich the provided event data with <code>type_uid</code>, enumerated text, and <code>observables</code> array.
-    Each event is represented as a JSON object, while multiple events are encoded as a JSON array of objects.
-    """)
+    description(
+      "The purpose of this API is to enrich the provided event data with <code>type_uid</code>," <>
+        " enumerated text, and <code>observables</code> array. Each event is represented as a" <>
+        " JSON object, while multiple events are encoded as a JSON array of objects."
+    )
 
     produces("application/json")
     tag("Tools")
@@ -905,9 +924,8 @@ defmodule SchemaWeb.SchemaController do
       _observables(
         :query,
         :boolean,
-        """
-        <strong>TODO</strong>: Enhance the event data by adding the observables associated with the event.
-        """,
+        "<strong>TODO</strong>: Enhance the event data by adding the observables associated with" <>
+          " the event.",
         default: false
       )
 
@@ -950,10 +968,11 @@ defmodule SchemaWeb.SchemaController do
     post("/api/translate")
     summary("Translate Event")
 
-    description("""
-    The purpose of this API is to translate the provided event data using the OCSF schema.
-    Each event is represented as a JSON object, while multiple events are encoded as a JSON array of objects.
-    """)
+    description(
+      "The purpose of this API is to translate the provided event data using the OCSF schema." <>
+        " Each event is represented as a JSON object, while multiple events are encoded as a" <>
+        "  JSON array of objects."
+    )
 
     produces("application/json")
     tag("Tools")
@@ -980,7 +999,9 @@ defmodule SchemaWeb.SchemaController do
         :string,
         """
           Controls how spaces in the translated attribute names are handled.<br/>
-          By default, the translated attribute names may contain spaces (for example, Event Time). You can remove the spaces or replace the spaces with another string. For example, if you want to forward to a database that does not support spaces.<br/>
+          By default, the translated attribute names may contain spaces (for example, Event Time).
+          You can remove the spaces or replace the spaces with another string. For example, if you
+          want to forward to a database that does not support spaces.<br/>
           The format is _spaces=[&lt;empty&gt;|string].
 
           |Value|Description|Example|
@@ -1024,18 +1045,20 @@ defmodule SchemaWeb.SchemaController do
   end
 
   @doc """
-    Validate event data.
-    A single event is encoded as a JSON object and multiple events are encoded as JSON array of object.
-    post /api/validate
+  Validate event data.
+  A single event is encoded as a JSON object and multiple events are encoded as JSON array of
+  object.
+  post /api/validate
   """
   swagger_path :validate do
     post("/api/validate")
     summary("Validate Event")
 
-    description("""
-    The primary objective of this API is to validate the provided event data against the OCSF schema.
-    Each event is represented as a JSON object, while multiple events are encoded as a JSON array of objects.
-    """)
+    description(
+      "The primary objective of this API is to validate the provided event data against the OCSF" <>
+        " schema. Each event is represented as a JSON object, while multiple events are encoded" <>
+        " as a JSON array of objects."
+    )
 
     produces("application/json")
     tag("Tools")
@@ -1106,7 +1129,8 @@ defmodule SchemaWeb.SchemaController do
     summary("Event sample data")
 
     description(
-      "This API returns randomly generated sample data for the given event class name. The class name may contain an extension name. For example, \"dev/cpu_usage\"."
+      "This API returns randomly generated sample data for the given event class name. The class" <>
+        " name may contain an extension name. For example, \"dev/cpu_usage\"."
     )
 
     produces("application/json")
@@ -1168,7 +1192,8 @@ defmodule SchemaWeb.SchemaController do
     summary("Object sample data")
 
     description(
-      "This API returns randomly generated sample data for the given object name. The object name may contain an extension name. For example, \"dev/os_service\"."
+      "This API returns randomly generated sample data for the given object name. The object" <>
+        " name may contain an extension name. For example, \"dev/os_service\"."
     )
 
     produces("application/json")

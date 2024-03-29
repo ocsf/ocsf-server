@@ -303,6 +303,38 @@ defmodule Schema do
   # Export Functions #
   # ------------------#
 
+  defp cleanup_dictionary_attributes(attributes) do
+    Enum.reduce(
+      attributes,
+      %{},
+      fn {attribute_key, attribute}, attributes ->
+        Map.put(
+          attributes,
+          attribute_key,
+          Enum.reduce(
+            attribute,
+            %{},
+            fn {k, v}, attribute ->
+              if Atom.to_string(k) |> String.starts_with?("_") do
+                attribute
+              else
+                Map.put(attribute, k, v)
+              end
+            end
+          )
+        )
+      end
+    )
+  end
+
+  defp export_dictionary_attributes() do
+    dictionary()[:attributes] |> cleanup_dictionary_attributes()
+  end
+
+  defp export_dictionary_attributes(extensions) do
+    dictionary(extensions)[:attributes] |> cleanup_dictionary_attributes()
+  end
+
   @doc """
     Exports the schema, including data types, objects, and classes.
   """
@@ -311,15 +343,17 @@ defmodule Schema do
           classes: map(),
           objects: map(),
           types: map(),
-          version: binary()
+          dictionary_attributes: map(),
+          version: String.t()
         }
   def export_schema() do
     %{
-      :base_event => Schema.export_base_event(),
-      :classes => Schema.export_classes(),
-      :objects => Schema.export_objects(),
-      :types => Schema.export_data_types(),
-      :version => Schema.version()
+      base_event: Schema.export_base_event(),
+      classes: Schema.export_classes(),
+      objects: Schema.export_objects(),
+      types: Schema.export_data_types(),
+      dictionary_attributes: export_dictionary_attributes(),
+      version: Schema.version()
     }
   end
 
@@ -328,15 +362,17 @@ defmodule Schema do
           classes: map(),
           objects: map(),
           types: map(),
-          version: binary()
+          dictionary_attributes: map(),
+          version: String.t()
         }
   def export_schema(extensions) do
     %{
-      :base_event => Schema.export_base_event(),
-      :classes => Schema.export_classes(extensions),
-      :objects => Schema.export_objects(extensions),
-      :types => Schema.export_data_types(),
-      :version => Schema.version()
+      base_event: Schema.export_base_event(),
+      classes: Schema.export_classes(extensions),
+      objects: Schema.export_objects(extensions),
+      types: Schema.export_data_types(),
+      dictionary_attributes: export_dictionary_attributes(extensions),
+      version: Schema.version()
     }
   end
 
@@ -345,7 +381,8 @@ defmodule Schema do
           classes: map(),
           objects: map(),
           types: map(),
-          version: binary()
+          dictionary_attributes: map(),
+          version: String.t()
         }
   def export_schema(extensions, nil) do
     export_schema(extensions)
@@ -353,11 +390,12 @@ defmodule Schema do
 
   def export_schema(extensions, profiles) do
     %{
-      :base_event => Schema.export_base_event(profiles),
-      :classes => Schema.export_classes(extensions, profiles),
-      :objects => Schema.export_objects(extensions, profiles),
-      :types => Schema.export_data_types(),
-      :version => Schema.version()
+      base_event: Schema.export_base_event(profiles),
+      classes: Schema.export_classes(extensions, profiles),
+      objects: Schema.export_objects(extensions, profiles),
+      types: Schema.export_data_types(),
+      dictionary_attributes: export_dictionary_attributes(extensions),
+      version: Schema.version()
     }
   end
 

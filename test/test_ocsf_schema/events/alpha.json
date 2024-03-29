@@ -14,6 +14,24 @@
     "delta": {
       "requirement": "optional",
       "observable": 101
+    },
+    "ob_by_dict_type_1": {
+      "requirement": "optional",
+      "description": "Example 1 observable by dictionary type."
+    },
+    "ob_by_dict_type_2": {
+      "requirement": "optional",
+      "description": "Example 2 observable by dictionary type with class attribute observable.",
+      "observable": 10000
+    },
+    "ob_by_dict_attr_1": {
+      "requirement": "optional",
+      "description": "Example 1 observable by dictionary attribute."
+    },
+    "ob_by_dict_attr_2": {
+      "requirement": "optional",
+      "description": "Example 2 observable by dictionary attribute with class attribute observable.",
+      "observable": 10001
     }
   },
   "observables": {

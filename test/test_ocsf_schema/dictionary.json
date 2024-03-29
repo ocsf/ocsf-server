@@ -134,6 +134,28 @@
       "description": "The name of the entity. See specific usage.",
       "type": "string_t"
     },
+    "ob_by_dict_type_1": {
+      "caption": "Ob By Dict Type 1",
+      "description": "Example 1 of attribute of an observable by dictionary type ob_by_type_t.",
+      "type": "ob_by_type_t"
+    },
+    "ob_by_dict_type_2": {
+      "caption": "Ob By Dict Type",
+      "description": "Example 2 of attribute of an observable by dictionary type ob_by_type_t.",
+      "type": "ob_by_type_t"
+    },
+    "ob_by_dict_attr_1": {
+      "caption": "Ob By Dict Attr 1",
+      "description": "Example 1 of attribute of an observable by dictionary attribute.",
+      "type": "string_t",
+      "observable": 1001
+    },
+    "ob_by_dict_attr_2": {
+      "caption": "Ob By Dict Attr 2",
+      "description": "Example 2 of attribute of an observable by dictionary attribute.",
+      "type": "string_t",
+      "observable": 1002
+    },
     "observables": {
       "caption": "Observables",
       "description": "The observables associated with the event or a finding.",
@@ -256,6 +278,13 @@
       "long_t": {
         "caption": "Long",
         "description": "Signed 64-bit integer value."
+      },
+      "ob_by_type_t": {
+        "caption": "Ob By Type T",
+        "description": "The type for an example observable by type.",
+        "type": "string_t",
+        "type_name": "String",
+        "observable": 1000
       },
       "port_t": {
         "caption": "Port",
