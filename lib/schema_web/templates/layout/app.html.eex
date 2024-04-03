@@ -169,13 +169,7 @@ limitations under the License.
         <span class="d-inline-block" tabindex="0"
          data-toggle="tooltip" data-delay='{"show": 1000}' title='<%= raw format_profile(map) %>' >
           <li class="extensions nav-item">
-            <a style="display: inline-block;">
-              <input
-               type="checkbox"
-               data-profile="<%= name %>"
-               id="<%= String.replace(name, "/", "-") %>" >
-               <label for="checkbox"><%= map[:caption] %><label>
-            </a>
+            <label><input type="checkbox" data-profile="<%= name %>" id="<%= String.replace(name, "/", "-") %>"> <%= map[:caption] %></label>
           </li>
         </span>
       <% end %>

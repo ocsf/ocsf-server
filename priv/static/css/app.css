@@ -291,7 +291,7 @@ tr th a {
   border: none;
 }
 
-.name, .observable {
+.name {
   background-color: #cccccc;
 }
 
