@@ -1,0 +1,18 @@
+{
+  "caption": "Beta",
+  "category": "system",
+  "description": "The Beta example event class.",
+  "name": "beta",
+  "extends": "ghost",
+  "uid": 3,
+  "profiles": [],
+  "attributes": {
+    "beta": {
+      "requirement": "required",
+      "observable": 103
+    },
+    "gammas": {
+      "requirement": "optional"
+    }
+  }
+}

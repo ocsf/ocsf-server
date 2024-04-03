@@ -39,6 +39,24 @@ defmodule Schema.Utils do
   def make_path(nil, name), do: name
   def make_path(extension, name), do: Path.join(extension, name)
 
+  @spec descope(atom() | String.t()) :: String.t()
+  def descope(name) when is_binary(name) do
+    Path.basename(name)
+  end
+
+  def descope(name) when is_atom(name) do
+    Path.basename(Atom.to_string(name))
+  end
+
+  @spec descope_to_uid(atom() | String.t()) :: atom()
+  def descope_to_uid(name) when is_binary(name) do
+    String.to_atom(Path.basename(name))
+  end
+
+  def descope_to_uid(name) when is_atom(name) do
+    String.to_atom(Path.basename(Atom.to_string(name)))
+  end
+
   def find_entity(map, entity, name) when is_binary(name) do
     find_entity(map, entity, String.to_atom(name))
   end
@@ -125,8 +143,10 @@ defmodule Schema.Utils do
   end
 
   defp update_data_types(dictionary, objects) do
+    types = dictionary[:types][:attributes]
+
     Map.update!(dictionary, :attributes, fn attributes ->
-      update_data_types(attributes, get_in(dictionary, [:types, :attributes]), objects)
+      update_data_types(attributes, types, objects)
     end)
   end
 
@@ -148,7 +168,7 @@ defmodule Schema.Utils do
 
     case find_entity(objects, value, key) do
       {key, nil} ->
-        Logger.warning("undefined object type: #{key}, for #{name}")
+        Logger.warning("Undefined object type: #{key}, for #{name}")
         Map.put(value, :object_name, "_undefined_")
 
       {key, object} ->
@@ -162,7 +182,7 @@ defmodule Schema.Utils do
     type =
       case value[:type] do
         nil ->
-          Logger.warning("missing data type for: #{name}, will use string_t type")
+          Logger.warning("Missing data type for: #{name}, will use string_t type")
           "string_t"
 
         t ->
@@ -171,7 +191,7 @@ defmodule Schema.Utils do
 
     case types[String.to_atom(type)] do
       nil ->
-        Logger.warning("undefined data type: #{name}: #{type}")
+        Logger.warning("Undefined data type: #{name}: #{type}")
         value
 
       type ->
@@ -193,93 +213,119 @@ defmodule Schema.Utils do
     end)
   end
 
-  defp add_class_links(dict, {name, class}) do
-    Map.update!(dict, :attributes, fn attributes ->
+  defp add_class_links(dictionary, {class_key, class}) do
+    Map.update!(dictionary, :attributes, fn dictionary_attributes ->
       type =
         case class[:name] do
           nil -> "base_event"
-          _ -> Atom.to_string(name)
+          _ -> Atom.to_string(class_key)
         end
 
       link = %{group: :class, type: type, caption: class[:caption] || "*No name*"}
 
       update_attributes(
         class,
-        attributes,
+        dictionary_attributes,
         link,
         &update_dictionary_links/2
       )
     end)
   end
 
-  defp update_dictionary_links(item, link) do
-    Map.update(item, :_links, [link], fn links ->
+  defp update_dictionary_links(attribute, link) do
+    Map.update(attribute, :_links, [link], fn links ->
       [link | links]
     end)
   end
 
-  defp add_object_links(dict, {name, obj}) do
-    Map.update!(dict, :attributes, fn dictionary ->
-      link = %{group: :object, type: Atom.to_string(name), caption: obj[:caption] || "*No name*"}
-      update_attributes(obj, dictionary, link, &update_object_links/2)
+  defp add_object_links(dictionary, {object_key, object}) do
+    Map.update!(dictionary, :attributes, fn dictionary_attributes ->
+      link = %{
+        group: :object,
+        type: Atom.to_string(object_key),
+        caption: object[:caption] || "*No name*"
+      }
+
+      update_attributes(object, dictionary_attributes, link, &update_object_links/2)
     end)
   end
 
-  defp update_object_links(item, link) do
-    Map.update(item, :_links, [link], fn links ->
+  defp update_object_links(attribute, link) do
+    Map.update(attribute, :_links, [link], fn links ->
       [link | links]
     end)
   end
 
-  defp update_attributes(item, dictionary, link, update_links) do
-    name = item[:caption]
-    attributes = item[:attributes]
+  defp update_attributes(item, dictionary_attributes, link, update_links_fn) do
+    item_attributes = item[:attributes]
 
-    Enum.reduce(attributes, dictionary, fn {attribute_key, attribute_map}, acc ->
-      link =
-        Map.update(
-          link,
-          :attribute_keys,
-          MapSet.new([attribute_key]),
-          fn attribute_keys ->
-            MapSet.put(attribute_keys, attribute_key)
-          end
-        )
+    Enum.reduce(
+      item_attributes,
+      dictionary_attributes,
+      fn {item_attribute_key, item_attribute}, dictionary_attributes ->
+        link =
+          Map.update(
+            link,
+            :attribute_keys,
+            MapSet.new([item_attribute_key]),
+            fn attribute_keys ->
+              MapSet.put(attribute_keys, item_attribute_key)
+            end
+          )
 
-      case find_entity(acc, item, attribute_key) do
-        {_, nil} ->
-          case String.split(Atom.to_string(attribute_map[:_source]), "/") do
-            [ext, _] ->
-              ext_key = String.to_atom("#{ext}/#{attribute_key}")
+        case find_entity(dictionary_attributes, item, item_attribute_key) do
+          {_, nil} ->
+            case String.split(Atom.to_string(item_attribute[:_source]), "/") do
+              [ext, _] ->
+                ext_key = String.to_atom("#{ext}/#{item_attribute_key}")
 
-              data =
-                case Map.get(acc, ext_key) do
-                  nil ->
-                    update_links.(attribute_map, link)
+                data =
+                  case Map.get(dictionary_attributes, ext_key) do
+                    nil ->
+                      update_links_fn.(item_attribute, link)
 
-                  attr ->
-                    deep_merge(attr, attribute_map) |> update_links.(link)
-                end
+                    dictionary_attribute ->
+                      # We do _not_ want to merge class / object attribute observable values
+                      # back to the dictionary
+                      clean_item_attribute = Map.delete(item_attribute, :observable)
 
-              Map.put(acc, ext_key, data)
+                      deep_merge(dictionary_attribute, clean_item_attribute)
+                      |> update_links_fn.(link)
+                  end
 
-            _ ->
-              Logger.warning(
-                "'#{name}' uses undefined attribute: #{attribute_key}: #{inspect(attribute_map)}"
-              )
+                Map.put(dictionary_attributes, ext_key, data)
 
-              acc
-          end
+              _ ->
+                Logger.warning(
+                  "\"#{item[:caption]}\" uses undefined attribute:" <>
+                    " #{item_attribute_key}: #{inspect(item_attribute)}"
+                )
 
-        {key, item} ->
-          Map.put(acc, key, update_links.(item, link))
+                dictionary_attributes
+            end
+
+          {key, item} ->
+            Map.put(dictionary_attributes, key, update_links_fn.(item, link))
+        end
       end
-    end)
+    )
   end
 
-  @spec deep_merge(map, map) :: map
-  def deep_merge(left, right) do
+  @spec deep_merge(map | nil, map | nil) :: map | nil
+  def deep_merge(left, right) when is_map(left) and is_map(right) do
     Map.merge(left, right, &deep_resolve/3)
+  end
+
+  def deep_merge(left, nil) when is_map(left) do
+    left
+  end
+
+  def deep_merge(nil, right) when is_map(right) do
+    right
+  end
+
+  def deep_merge(nil, nil) do
+    nil
   end
 
   # Key exists in both and both values are maps as well, then they can be merged recursively
@@ -366,5 +412,46 @@ defmodule Schema.Utils do
 
   def make_datetime(name) do
     (Atom.to_string(name) <> "_dt") |> String.to_atom()
+  end
+
+  @spec observable_type_id_to_atom(any()) :: atom()
+  def observable_type_id_to_atom(observable_type_id) when is_integer(observable_type_id) do
+    Integer.to_string(observable_type_id) |> String.to_atom()
+  end
+
+  def observable_type_id_to_atom(observable_type_id) do
+    Logger.error(
+      "Bad observable type_id - cannot convert non-integer to atom: #{inspect(observable_type_id)}"
+    )
+
+    System.stop(1)
+    -1
+  end
+
+  @spec find_parent(map(), String.t(), String.t()) :: {atom() | nil, map() | nil}
+  def find_parent(items, extends, extension) do
+    if extends do
+      extends_key = String.to_atom(extends)
+      parent_item = Map.get(items, extends_key)
+
+      if parent_item do
+        {extends_key, parent_item}
+      else
+        if extension do
+          extension_extends_key = to_uid(extension, extends)
+          extension_parent_item = Map.get(items, to_uid(extension, extends))
+
+          if extension_parent_item do
+            {extension_extends_key, extension_parent_item}
+          else
+            {extension_extends_key, nil}
+          end
+        else
+          {extends_key, nil}
+        end
+      end
+    else
+      {nil, nil}
+    end
   end
 end

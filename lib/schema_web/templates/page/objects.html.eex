@@ -15,6 +15,9 @@ limitations under the License.
     <div class="text-secondary">
       The OCSF objects. An object is a complex data type, which is a collection of other attributes. Some objects represent entities or artifacts, but not all.
     </div>
+    <div class="text-secondary mt-2">
+      <strong>Note:</strong> a superscript &quot;O&quot; after a caption indicates object is an observable, for example: <strong>File <sup>O</sup></strong>.
+    </div>
   </div>
   <div class="col-md-auto fixed-right mt-2">
     <div class="navbar-expand-md">
@@ -48,7 +51,7 @@ limitations under the License.
         <% name = Atom.to_string(key) %>
         <% path = Routes.static_path(@conn, "/objects/" <> name) %>
         <tr class="ocsf-class" <%= raw format_profiles(map[:profiles])%>>
-          <td class="name"><%= raw format_attribute_caption(name, map) %></td>
+          <td class="name"><%= raw format_attribute_caption(@conn, name, map) %></td>
           <td class="extensions"><a href="<%= path %>"><%= name %></a></td>
           <td class="extensions"><%= raw object_links(@conn, map[:name], map[:_links], :collapse) %></td>
           <td><%= raw description(map) %></td>
