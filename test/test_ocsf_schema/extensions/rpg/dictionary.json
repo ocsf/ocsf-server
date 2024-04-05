@@ -33,6 +33,11 @@
       "description": "Current hit points.",
       "type": "hp_t"
     },
+    "kind": {
+      "caption": "Kind",
+      "description": "A kind.",
+      "type": "string_t"
+    },
     "mana": {
       "caption": "Mana",
       "description": "Current mana, a measure of magical reserves.",

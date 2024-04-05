@@ -1,6 +1,6 @@
 {
   "caption": "Service",
-  "description": "A network service.",
+  "description": "A service.",
   "name": "service",
   "attributes": {
     "name": {

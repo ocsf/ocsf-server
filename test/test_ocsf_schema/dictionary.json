@@ -134,6 +134,11 @@
       "description": "The name of the entity. See specific usage.",
       "type": "string_t"
     },
+    "numeric_value": {
+      "caption": "Numeric Value",
+      "description": "A numeric value.",
+      "type": "float_t"
+    },
     "ob_by_dict_type_1": {
       "caption": "Ob By Dict Type 1",
       "description": "Example 1 of attribute of an observable by dictionary type ob_by_type_t.",
@@ -169,7 +174,7 @@
     },
     "service": {
       "caption": "Service",
-      "description": "A network service.",
+      "description": "A service.",
       "type": "service"
     },
     "source_node": {
@@ -253,6 +258,10 @@
         "description": "An entity's thingy. (From base dictionary attribute type.)",
         "type": "string_t",
         "type_name": "String"
+      },
+      "float_t": {
+        "caption": "Float",
+        "description": "Real floating-point value."
       },
       "integer_t": {
         "caption": "Integer",
