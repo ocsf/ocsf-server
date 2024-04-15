@@ -348,8 +348,17 @@ defmodule Schema.Utils do
     right
   end
 
+  @spec put_non_nil(map(), any(), any()) :: map()
+  def put_non_nil(map, _key, nil) when is_map(map) do
+    map
+  end
+
+  def put_non_nil(map, key, value) when is_map(map) do
+    Map.put(map, key, value)
+  end
+
   @doc """
-    Filter attributes based on the given profiles.
+  Filter attributes based on the given profiles.
   """
   @spec apply_profiles(Enum.t(), nil | list() | MapSet.t()) :: Enum.t()
   def apply_profiles(attributes, nil) do

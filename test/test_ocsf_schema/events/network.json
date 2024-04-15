@@ -4,7 +4,7 @@
   "description": "The Network event represents a network connection.",
   "name": "network",
   "extends": "alpha",
-  "uid": 1,
+  "uid": 4,
   "profiles": [
     "host"
   ],

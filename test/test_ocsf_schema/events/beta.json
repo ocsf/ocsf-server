@@ -4,7 +4,7 @@
   "description": "The Beta example event class.",
   "name": "beta",
   "extends": "ghost",
-  "uid": 3,
+  "uid": 2,
   "profiles": [],
   "attributes": {
     "beta": {

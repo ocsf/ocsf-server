@@ -379,8 +379,7 @@ defmodule Schema.Cache do
   defp read_objects(observable_type_id_map) do
     objects = JsonReader.read_objects()
 
-    observable_type_id_map =
-      observables_from_objects(objects, observable_type_id_map)
+    observable_type_id_map = observables_from_objects(observable_type_id_map, objects)
 
     objects =
       objects
@@ -414,6 +413,7 @@ defmodule Schema.Cache do
     {objects, all_objects, observable_type_id_map}
   end
 
+  @spec observables_from_classes(map()) :: map()
   defp observables_from_classes(classes) do
     Enum.reduce(
       classes,
@@ -422,8 +422,8 @@ defmodule Schema.Cache do
         validate_class_observables(class_key, class)
 
         observable_type_id_map
-        |> observables_from_item_attributes(class, "Class")
-        |> observables_from_item_observables(class, "Class")
+        |> observables_from_item_attributes(classes, class_key, class, "Class")
+        |> observables_from_item_observables(classes, class_key, class, "Class")
       end
     )
   end
@@ -469,37 +469,12 @@ defmodule Schema.Cache do
         System.stop(1)
       end
     end
-
-    if patch_extends?(class) do
-      if Map.has_key?(class, :attributes) and
-           Enum.any?(
-             class[:attributes],
-             fn {_attribute_key, attribute} ->
-               Map.has_key?(attribute, :observable)
-             end
-           ) do
-        Logger.error(
-          "Illegal definition of one or more attributes with \"#{:observable}\" definition in" <>
-            " patch extends class \"#{class_key}\". Observable definitions in patch extends are" <>
-            " not supported. Please file an issue if you find this feature necessary."
-        )
-
-        System.stop(1)
-      end
-
-      if Map.has_key?(class, :observables) do
-        Logger.error(
-          "Illegal \"#{:observables}\" definition in patch extends class \"#{class_key}\"." <>
-            " Observable definitions in patch extends are not supported." <>
-            " Please file an issue if you find this feature necessary."
-        )
-
-        System.stop(1)
-      end
-    end
   end
 
-  defp observables_from_item_attributes(observable_type_id_map, item, kind) do
+  @spec observables_from_item_attributes(map(), map(), atom(), map(), String.t()) :: map()
+  defp observables_from_item_attributes(observable_type_id_map, items, item_key, item, kind) do
+    {caption, _description} = find_item_caption_and_description(items, item_key, item)
+
     if Map.has_key?(item, :attributes) do
       Enum.reduce(
         item[:attributes],
@@ -508,10 +483,10 @@ defmodule Schema.Cache do
           if Map.has_key?(attribute, :observable) do
             observable_type_id = Utils.observable_type_id_to_atom(attribute[:observable])
 
-            if(Map.has_key?(observable_type_id_map, observable_type_id)) do
+            if Map.has_key?(observable_type_id_map, observable_type_id) do
               Logger.error(
                 "Collision of observable type_id #{observable_type_id} between" <>
-                  " \"#{item[:caption]}\" #{kind} attribute \"#{attribute_key}\" and" <>
+                  " \"#{caption}\" #{kind} attribute \"#{attribute_key}\" and" <>
                   " \"#{observable_type_id_map[observable_type_id][:caption]}\""
               )
 
@@ -523,11 +498,9 @@ defmodule Schema.Cache do
                 observable_type_id_map,
                 observable_type_id,
                 %{
-                  caption:
-                    "#{item[:caption]} #{kind}: #{attribute_key} (#{kind}-Specific Attribute)",
+                  caption: "#{caption} #{kind}: #{attribute_key} (#{kind}-Specific Attribute)",
                   description:
-                    "#{kind}-specific attribute \"#{attribute_key}\"" <>
-                      " for the #{item[:caption]} #{kind}."
+                    "#{kind}-specific attribute \"#{attribute_key}\" for the #{caption} #{kind}."
                 }
               )
             end
@@ -541,7 +514,10 @@ defmodule Schema.Cache do
     end
   end
 
-  defp observables_from_item_observables(observable_type_id_map, item, kind) do
+  @spec observables_from_item_observables(map(), map(), atom(), map(), String.t()) :: map()
+  defp observables_from_item_observables(observable_type_id_map, items, item_key, item, kind) do
+    {caption, _description} = find_item_caption_and_description(items, item_key, item)
+
     if Map.has_key?(item, :observables) do
       Enum.reduce(
         item[:observables],
@@ -552,7 +528,7 @@ defmodule Schema.Cache do
           if(Map.has_key?(observable_type_id_map, observable_type_id)) do
             Logger.error(
               "Collision of observable type_id #{observable_type_id} between" <>
-                " \"#{item[:caption]}\" #{kind} attribute path \"#{attribute_path}\" and" <>
+                " \"#{caption}\" #{kind} attribute path \"#{attribute_path}\" and" <>
                 " \"#{observable_type_id_map[observable_type_id][:caption]}\""
             )
 
@@ -565,11 +541,10 @@ defmodule Schema.Cache do
               observable_type_id,
               %{
                 caption:
-                  "#{item[:caption]} #{kind}: #{attribute_path}" <>
-                    " (#{kind}-Specific Attribute Path)",
+                  "#{caption} #{kind}: #{attribute_path} (#{kind}-Specific Attribute Path)",
                 description:
                   "#{kind}-specific attribute on path \"#{attribute_path}\"" <>
-                    " for the #{item[:caption]} #{kind}."
+                    " for the #{caption} #{kind}."
               }
             )
           end
@@ -580,7 +555,8 @@ defmodule Schema.Cache do
     end
   end
 
-  defp observables_from_objects(objects, observable_type_id_map) do
+  @spec observables_from_objects(map(), map()) :: map()
+  defp observables_from_objects(observable_type_id_map, objects) do
     Enum.reduce(
       objects,
       observable_type_id_map,
@@ -588,10 +564,10 @@ defmodule Schema.Cache do
         validate_object_observables(object_key, object)
 
         observable_type_id_map
-        |> observable_from_object(object)
-        |> observables_from_item_attributes(object, "Object")
+        |> observable_from_object(objects, object_key, object)
+        |> observables_from_item_attributes(objects, object_key, object, "Object")
 
-        # Not supported: |> observables_from_item_observables(object, "Object")
+        # Not supported: |> observables_from_item_observables(objects, object_key, object, "Object")
       end
     )
   end
@@ -639,44 +615,19 @@ defmodule Schema.Cache do
         System.stop(1)
       end
     end
-
-    if patch_extends?(object) do
-      if Map.has_key?(object, :attributes) and
-           Enum.any?(
-             object[:attributes],
-             fn {_attribute_key, attribute} ->
-               Map.has_key?(attribute, :observable)
-             end
-           ) do
-        Logger.error(
-          "Illegal definition of one or more attributes with \"#{:observable}\" in patch extends" <>
-            " object \"#{object_key}\". Observable definitions in patch extends are not" <>
-            " supported. Please file an issue if you find this feature necessary."
-        )
-
-        System.stop(1)
-      end
-
-      if Map.has_key?(object, :observable) do
-        Logger.error(
-          "Illegal \"#{:observable}\" definition in patch extends object \"#{object_key}\"." <>
-            " Observable definitions in patch extends are not supported." <>
-            " Please file an issue if you find this feature necessary."
-        )
-
-        System.stop(1)
-      end
-    end
   end
 
-  defp observable_from_object(observable_type_id_map, object) do
+  @spec observable_from_object(map(), map(), atom(), map()) :: map()
+  defp observable_from_object(observable_type_id_map, objects, object_key, object) do
+    {caption, description} = find_item_caption_and_description(objects, object_key, object)
+
     if Map.has_key?(object, :observable) do
       observable_type_id = Utils.observable_type_id_to_atom(object[:observable])
 
       if(Map.has_key?(observable_type_id_map, observable_type_id)) do
         Logger.error(
           "Collision of observable type_id #{observable_type_id} between" <>
-            " \"#{object[:caption]}\" Object \"#{:observable}\" and" <>
+            " \"#{caption}\" Object \"#{:observable}\" and" <>
             " \"#{observable_type_id_map[observable_type_id][:caption]}\""
         )
 
@@ -687,10 +638,7 @@ defmodule Schema.Cache do
         Map.put(
           observable_type_id_map,
           observable_type_id,
-          %{
-            caption: "#{object[:caption]} (Object)",
-            description: object[:description]
-          }
+          %{caption: "#{caption} (Object)", description: description}
         )
       end
     else
@@ -700,11 +648,11 @@ defmodule Schema.Cache do
 
   defp observables_from_dictionary(dictionary, observable_type_id_map) do
     observable_type_id_map
-    |> observables_from_items(dictionary[:types][:attributes], "Dictionary Type")
-    |> observables_from_items(dictionary[:attributes], "Dictionary Attribute")
+    |> observables_from_dictionary_items(dictionary[:types][:attributes], "Dictionary Type")
+    |> observables_from_dictionary_items(dictionary[:attributes], "Dictionary Attribute")
   end
 
-  defp observables_from_items(observable_type_id_map, items, kind) do
+  defp observables_from_dictionary_items(observable_type_id_map, items, kind) do
     if items do
       Enum.reduce(
         items,
@@ -740,6 +688,44 @@ defmodule Schema.Cache do
       )
     else
       observable_type_id_map
+    end
+  end
+
+  @spec find_item_caption_and_description(map(), atom(), map() | nil) :: {String.t(), String.t()}
+  defp find_item_caption_and_description(items, item_key, item)
+       when is_map(items) and is_atom(item_key) do
+    cond do
+      item == nil ->
+        caption = Atom.to_string(item_key)
+        {caption, caption}
+
+      patch_extends?(item) ->
+        find_item_parent_caption_and_description(items, item_key, item)
+
+      item[:caption] != nil ->
+        caption = item[:caption]
+        {caption, item[:description] || caption}
+
+      item[:extends] != nil ->
+        find_item_parent_caption_and_description(items, item_key, item)
+
+      true ->
+        caption = Atom.to_string(item_key)
+        {caption, caption}
+    end
+  end
+
+  @spec find_item_parent_caption_and_description(map(), atom(), map() | nil) ::
+          {String.t(), String.t()}
+  defp find_item_parent_caption_and_description(items, item_key, item)
+       when is_map(items) and is_atom(item_key) do
+    {parent_key, parent_item} = Utils.find_parent(items, item[:extends], item[:extension])
+
+    if parent_key do
+      find_item_caption_and_description(items, parent_key, parent_item)
+    else
+      caption = Atom.to_string(item_key)
+      {caption, caption}
     end
   end
 
@@ -986,8 +972,13 @@ defmodule Schema.Cache do
               |> Map.put(:profiles, profiles)
               |> Map.put(:attributes, attributes)
 
-            # Note: :observable, :observables, and :observable in attributes are not supported,
-            #       so this code does not attempt to patch (merge) them.
+            # Top-level observable.
+            # Only occurs in objects, but is safe to do for classes too.
+            patched_base = Utils.put_non_nil(patched_base, :observable, item[:observable])
+
+            # Top-level path-based observables.
+            # Only occurs in classes, but is safe to do for objects too.
+            patched_base = Utils.put_non_nil(patched_base, :observables, item[:observables])
 
             Map.put(acc, base_key, patched_base)
         end
