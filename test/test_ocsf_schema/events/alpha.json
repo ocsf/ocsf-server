@@ -4,7 +4,7 @@
   "description": "The Alpha example event class.",
   "name": "alpha",
   "extends": "ghost",
-  "uid": 2,
+  "uid": 1,
   "profiles": [],
   "attributes": {
     "alpha": {
