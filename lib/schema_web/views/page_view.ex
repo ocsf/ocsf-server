@@ -620,7 +620,7 @@ defmodule SchemaWeb.PageView do
         [
           [
             "<a href=\"",
-            SchemaWeb.Router.Helpers.static_path(conn, "/base_event"),
+            SchemaWeb.Router.Helpers.static_path(conn, "/classes/base_event"),
             "\" data-toggle=\"tooltip\ title=\"Directly referenced\">Base Event Class</a>"
           ]
           | acc
@@ -902,7 +902,7 @@ defmodule SchemaWeb.PageView do
         fn link, acc ->
           type_path =
             if link[:type] == "base_event" do
-              SchemaWeb.Router.Helpers.static_path(conn, "/base_event")
+              SchemaWeb.Router.Helpers.static_path(conn, "/classes/base_event")
             else
               SchemaWeb.Router.Helpers.static_path(conn, "/classes/" <> link[:type])
             end
@@ -1083,7 +1083,7 @@ defmodule SchemaWeb.PageView do
         [
           [
             "<a href=\"",
-            SchemaWeb.Router.Helpers.static_path(conn, "/base_event"),
+            SchemaWeb.Router.Helpers.static_path(conn, "/classes/base_event"),
             "\">Base Event Class</a>"
           ]
           | acc
