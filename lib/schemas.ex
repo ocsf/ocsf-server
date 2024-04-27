@@ -68,6 +68,8 @@ defmodule Schemas do
         {_er, _, _} -> false
       end)
       |> Enum.map(fn {_, version, path} -> {version, path} end)
+      # Simplistic lexical sort of versions - not perfect, but better than random
+      |> Enum.sort(fn {v1, _p1}, {v2, _p2} -> v1 <= v2 end)
     else
       {:error, reason} ->
         err_msg = :file.format_error(reason)

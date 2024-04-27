@@ -172,20 +172,11 @@ defmodule SchemaWeb.PageController do
   end
 
   @doc """
-  Renders the base event attributes.
+  Redirects from the older /base_event URL to /classes/base_event.
   """
   @spec base_event(Plug.Conn.t(), any) :: Plug.Conn.t()
-  def base_event(conn, params) do
-    data =
-      Schema.class(:base_event)
-      |> sort_attributes()
-      |> Map.put(:key, :base_event)
-
-    render(conn, "class.html",
-      extensions: Schema.extensions(),
-      profiles: SchemaController.get_profiles(params),
-      data: data
-    )
+  def base_event(conn, _params) do
+    redirect(conn, to: "/classes/base_event")
   end
 
   @doc """
