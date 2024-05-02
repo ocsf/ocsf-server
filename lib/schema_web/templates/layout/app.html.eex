@@ -91,7 +91,7 @@ limitations under the License.
         case '/classes':
           $('#classes_id').addClass("active");
           break;
-        case '/base_event':
+        case '/classes/base_event':
           $('#base_event_id').addClass("active");
           break;
         case '/dictionary':
@@ -187,7 +187,7 @@ limitations under the License.
         <a class="nav-link" href='<%= Routes.static_path(@conn, "/classes") %>'>Classes</a>
       </li>
       <li id="base_event_id" class="nav-item">
-        <a class="nav-link" href='<%= Routes.static_path(@conn, "/base_event") %>'>Base Event</a>
+        <a class="nav-link" href='<%= Routes.static_path(@conn, "/classes/base_event") %>'>Base Event</a>
       </li>
       <li id="dictionary_id" class="nav-item">
         <a class="nav-link" href='<%= Routes.static_path(@conn, "/dictionary") %>'>Dictionary</a>
