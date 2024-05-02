@@ -46,8 +46,6 @@ defmodule Schema.Cache do
           attribute_keys: nil | MapSet.t(String.t())
         }
 
-  @ocsf_deprecated :"@deprecated"
-
   @doc """
   Load the schema files and initialize the cache.
   """
@@ -1119,25 +1117,8 @@ defmodule Schema.Cache do
 
   defp final_check(maps, dictionary) do
     Enum.into(maps, %{}, fn {name, map} ->
-      deprecated_type(name, map, Map.get(map, @ocsf_deprecated))
-
       {name, final_check(name, map, dictionary)}
     end)
-  end
-
-  defp deprecated_type(_name, _map, nil) do
-  end
-
-  defp deprecated_type(name, map, deprecated) do
-    type =
-      if Map.has_key?(map, :category) do
-        "class"
-      else
-        "object"
-      end
-
-    message = Map.get(deprecated, :message)
-    Logger.warning("The #{name} #{type} has been deprecated. #{message}")
   end
 
   defp final_check(name, map, dictionary) do
@@ -1146,24 +1127,11 @@ defmodule Schema.Cache do
 
     list =
       Enum.reduce(attributes, [], fn {key, attribute}, acc ->
-        deprecated_warning(name, key, attribute)
         missing_desc_warning(attribute[:description], name, key, dictionary)
         add_datetime(Utils.find_entity(dictionary, map, key), key, attribute, acc)
       end)
 
     update_profiles(list, map, profiles, attributes)
-  end
-
-  defp deprecated_warning(name, key, attribute) do
-    case Map.get(attribute, @ocsf_deprecated) do
-      nil ->
-        :ok
-
-      deprecated ->
-        Logger.warning(
-          "The #{key} attribute in #{name} has been deprecated. #{Map.get(deprecated, :message)}"
-        )
-    end
   end
 
   defp missing_desc_warning(nil, name, key, dictionary) do
