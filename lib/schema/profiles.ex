@@ -70,7 +70,6 @@ defmodule Schema.Profiles do
           acc
 
         profile ->
-          check_profile(name, profile, map[:attributes])
           link = %{group: group, type: Atom.to_string(name), caption: map[:caption]}
           profile = Map.update(profile, :_links, [link], fn links -> [link | links] end)
           Map.put(acc, p, profile)
@@ -78,17 +77,4 @@ defmodule Schema.Profiles do
     end)
   end
 
-  defp check_profile(name, profile, attributes) do
-    Enum.each(profile[:attributes], fn {k, p} ->
-      if Map.has_key?(attributes, k) == false do
-        text = "#{name} uses '#{profile[:name]}' profile, but it does not define '#{k}' attribute"
-
-        if p[:requirement] == "required" do
-          Logger.warning(text)
-        else
-          Logger.info(text)
-        end
-      end
-    end)
-  end
 end
