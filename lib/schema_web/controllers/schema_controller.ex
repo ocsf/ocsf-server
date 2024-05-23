@@ -1063,6 +1063,7 @@ defmodule SchemaWeb.SchemaController do
     produces("application/json")
     tag("Tools")
 
+    # TODO: This doesn't include array of events.
     parameters do
       data(:body, PhoenixSwagger.Schema.ref(:Event), "The event data to be validated",
         required: true
@@ -1078,11 +1079,11 @@ defmodule SchemaWeb.SchemaController do
       case data["_json"] do
         # Validate a single events
         nil ->
-          Schema.Inspector.validate(data)
+          Schema.Validator.validate(data)
 
         # Validate a list of events
         list when is_list(list) ->
-          Enum.map(list, &Task.async(fn -> Schema.Inspector.validate(&1) end))
+          Enum.map(list, &Task.async(fn -> Schema.Validator.validate(&1) end))
           |> Enum.map(&Task.await/1)
 
         # some other json data
@@ -1091,6 +1092,73 @@ defmodule SchemaWeb.SchemaController do
       end
 
     send_json_resp(conn, result)
+  end
+
+  @doc """
+  Validate event data, version 2.
+  A single event is encoded as a JSON object and multiple events are encoded as JSON array of
+  object.
+  post /api/v2/validate
+  """
+  swagger_path :validate2 do
+    post("/api/v2/validate")
+    summary("Validate Event (version 2)")
+
+    # TODO:
+    description(
+      "The primary objective of this API is to validate the provided event data against the OCSF" <>
+        " schema. Each event is represented as a JSON object, while multiple events are encoded" <>
+        " as a JSON array of objects."
+    )
+
+    produces("application/json")
+    tag("Tools")
+
+    # TODO: This doesn't include array of events (same as v1 API)
+    parameters do
+      data(:body, PhoenixSwagger.Schema.ref(:Event), "The event data to be validated",
+        required: true
+      )
+    end
+
+    response(200, "Success")
+  end
+
+  @spec validate2(Plug.Conn.t(), map) :: Plug.Conn.t()
+  def validate2(conn, data) do
+    # Phoenix's Plug.Parsers.JSON puts JSON that isn't a map into a _json key
+    # (for its own technical reasons). See:
+    # https://hexdocs.pm/plug/Plug.Parsers.JSON.html
+    # https://stackoverflow.com/questions/74931653/phoenix-wraps-json-request-in-a-map-with-json-key
+    {status, result} =
+      case data["_json"] do
+        nil ->
+          # This means we have a map, so validate a single event
+          {200, Schema.Validator2.validate(data)}
+
+        list when is_list(list) ->
+          # Validate a list of events. First make sure we have a list of maps.
+          if Enum.all?(list, &is_map/1) do
+            {200, Schema.Validator2.validate(list)}
+          else
+            {400,
+             %{
+               error:
+                 "Unexpected array element type." <>
+                   " The request JSON must be an object or array of objects."
+             }}
+          end
+
+        # some other json data
+        _ ->
+          {400,
+           %{
+             error:
+               "Unexpected primitive type. The request JSON must be an object or array of objects."
+           }}
+      end
+
+    send_json_resp(conn, status, result)
   end
 
   # --------------------------
@@ -1151,6 +1219,8 @@ defmodule SchemaWeb.SchemaController do
   end
 
   defp sample_class(conn, id, options) do
+    # TODO: honor constraints
+
     extension = extension(options)
     profiles = profiles(options) |> parse_options()
 
@@ -1210,6 +1280,8 @@ defmodule SchemaWeb.SchemaController do
 
   @spec sample_object(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def sample_object(conn, %{"id" => id} = options) do
+    # TODO: honor constraints
+
     extension = extension(options)
     profiles = profiles(options) |> parse_options()
 
@@ -1228,13 +1300,13 @@ defmodule SchemaWeb.SchemaController do
     end
   end
 
-  defp send_json_resp(conn, error, data) do
+  defp send_json_resp(conn, status, data) do
     conn
     |> put_resp_content_type("application/json")
     |> put_resp_header("access-control-allow-origin", "*")
     |> put_resp_header("access-control-allow-headers", "content-type")
     |> put_resp_header("access-control-allow-methods", "POST, GET, OPTIONS")
-    |> send_resp(error, Jason.encode!(data))
+    |> send_resp(status, Jason.encode!(data))
   end
 
   defp send_json_resp(conn, data) do

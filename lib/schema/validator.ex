@@ -7,9 +7,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-defmodule Schema.Inspector do
+defmodule Schema.Validator do
   @moduledoc """
-  OCSF Event data inspector.
+  OCSF Event validator.
   """
 
   require Logger
