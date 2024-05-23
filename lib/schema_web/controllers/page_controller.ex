@@ -15,54 +15,57 @@ defmodule SchemaWeb.PageController do
 
   alias SchemaWeb.SchemaController
 
-  @spec guidelines(Plug.Conn.t(), any) :: Plug.Conn.t()
-  def guidelines(conn, params) do
-    render(conn, "guidelines.html",
-      extensions: Schema.extensions(),
-      profiles: SchemaController.get_profiles(params)
-    )
-  end
+  # TODO: guidelines.html is missing (route is also commented out)
+  # @spec guidelines(Plug.Conn.t(), any) :: Plug.Conn.t()
+  # def guidelines(conn, params) do
+  #   render(conn, "guidelines.html",
+  #     extensions: Schema.extensions(),
+  #     profiles: SchemaController.get_profiles(params)
+  #   )
+  # end
 
   @spec class_graph(Plug.Conn.t(), any) :: Plug.Conn.t()
   def class_graph(conn, %{"id" => id} = params) do
-    try do
-      case SchemaWeb.SchemaController.class_ex(id, params) do
-        nil ->
-          send_resp(conn, 404, "Not Found: #{id}")
+    # try do
+    #   case SchemaWeb.SchemaController.class_ex(id, params) do
+    #     nil ->
+    #       send_resp(conn, 404, "Not Found: #{id}")
 
-        class ->
-          data = Schema.Graph.build(class)
+    #     class ->
+    #       data = Schema.Graph.build(class)
 
-          render(conn, "class_graph.html",
-            extensions: Schema.extensions(),
-            profiles: SchemaController.get_profiles(params),
-            data: data
-          )
-      end
-    rescue
-      e -> send_resp(conn, 400, "Bad Request: #{inspect(e)}")
-    end
+    #       render(conn, "class_graph.html",
+    #         extensions: Schema.extensions(),
+    #         profiles: SchemaController.get_profiles(params),
+    #         data: data
+    #       )
+    #   end
+    # rescue
+    #   e -> send_resp(conn, 400, "Bad Request: #{inspect(e)}")
+    # end
+    send_resp(conn, 501, "The graph feature is temporarily disabled and will return soon.")
   end
 
   @spec object_graph(Plug.Conn.t(), any) :: Plug.Conn.t()
   def object_graph(conn, %{"id" => id} = params) do
-    try do
-      case SchemaWeb.SchemaController.object_ex(id, params) do
-        nil ->
-          send_resp(conn, 404, "Not Found: #{id}")
+    # try do
+    #   case SchemaWeb.SchemaController.object_ex(id, params) do
+    #     nil ->
+    #       send_resp(conn, 404, "Not Found: #{id}")
 
-        obj ->
-          data = Schema.Graph.build(obj)
+    #     obj ->
+    #       data = Schema.Graph.build(obj)
 
-          render(conn, "object_graph.html",
-            extensions: Schema.extensions(),
-            profiles: SchemaController.get_profiles(params),
-            data: data
-          )
-      end
-    rescue
-      e -> send_resp(conn, 400, "Bad Request: #{inspect(e)}")
-    end
+    #       render(conn, "object_graph.html",
+    #         extensions: Schema.extensions(),
+    #         profiles: SchemaController.get_profiles(params),
+    #         data: data
+    #       )
+    #   end
+    # rescue
+    #   e -> send_resp(conn, 400, "Bad Request: #{inspect(e)}")
+    # end
+    send_resp(conn, 501, "The graph feature is temporarily disabled and will return soon.")
   end
 
   @doc """
