@@ -134,7 +134,8 @@ defmodule SchemaWeb.Router do
       info: %{
         title: "The OCSF Schema API",
         description:
-          "The Open Cybersecurity Schema Framework (OCSF) server API allows to access the JSON schema definitions and to validate and translate events.",
+          "The Open Cybersecurity Schema Framework (OCSF) server API allows to access the JSON" <>
+            " schema definitions and to validate and translate events.",
         license: %{
           name: "Apache 2.0",
           url: "http://www.apache.org/licenses/LICENSE-2.0.html"
