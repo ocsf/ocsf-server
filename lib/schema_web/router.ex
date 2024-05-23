@@ -53,7 +53,8 @@ defmodule SchemaWeb.Router do
     get "/object/graph/:extension/:id", PageController, :object_graph
 
     get "/data_types", PageController, :data_types
-    get "/guidelines", PageController, :guidelines
+    # TODO: guidelines.html is missing (also commented out in PageController)
+    # get "/guidelines", PageController, :guidelines
   end
 
   # Other scopes may use custom stacks.
@@ -132,7 +133,8 @@ defmodule SchemaWeb.Router do
     %{
       info: %{
         title: "The OCSF Schema API",
-        description: "The Open Cybersecurity Schema Framework (OCSF) server API allows to access the JSON schema definitions and to validate and translate events.",
+        description:
+          "The Open Cybersecurity Schema Framework (OCSF) server API allows to access the JSON schema definitions and to validate and translate events.",
         license: %{
           name: "Apache 2.0",
           url: "http://www.apache.org/licenses/LICENSE-2.0.html"
