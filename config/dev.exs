@@ -29,8 +29,7 @@ config :schema_server, SchemaWeb.Endpoint,
 
 config :logger, :console,
   level: :debug,
-  format: "[$level] $message\n  $metadata\n",
-  # metadata: [:pid, :mfa, :line]
+  format: "[$level] $metadata $message\n",
   metadata: [:mfa, :line]
 
 # Set a higher stacktrace during development. Avoid configuring such

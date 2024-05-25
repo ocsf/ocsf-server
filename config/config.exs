@@ -14,7 +14,7 @@ config :schema_server, SchemaWeb.Endpoint,
 config :logger, :console,
   handle_otp_reports: true,
   handle_sasl_reports: true,
-  format: "$time $metadata[$level] $message\n",
+  format: "$date $time [$level] $metadata $message\n",
   metadata: [:request_id]
 
 # Use Jason for JSON parsing in Phoenix
