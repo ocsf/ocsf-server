@@ -53,8 +53,6 @@ defmodule SchemaWeb.Router do
     get "/object/graph/:extension/:id", PageController, :object_graph
 
     get "/data_types", PageController, :data_types
-    # TODO: guidelines.html is missing (also commented out in PageController)
-    # get "/guidelines", PageController, :guidelines
   end
 
   # Other scopes may use custom stacks.
