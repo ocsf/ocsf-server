@@ -15,53 +15,37 @@ defmodule SchemaWeb.PageController do
 
   alias SchemaWeb.SchemaController
 
-  @spec guidelines(Plug.Conn.t(), any) :: Plug.Conn.t()
-  def guidelines(conn, params) do
-    render(conn, "guidelines.html",
-      extensions: Schema.extensions(),
-      profiles: SchemaController.get_profiles(params)
-    )
-  end
-
   @spec class_graph(Plug.Conn.t(), any) :: Plug.Conn.t()
   def class_graph(conn, %{"id" => id} = params) do
-    try do
-      case SchemaWeb.SchemaController.class_ex(id, params) do
-        nil ->
-          send_resp(conn, 404, "Not Found: #{id}")
+    case SchemaWeb.SchemaController.class_ex(id, params) do
+      nil ->
+        send_resp(conn, 404, "Not Found: #{id}")
 
-        class ->
-          data = Schema.Graph.build(class)
+      class ->
+        data = Schema.Graph.build(class)
 
-          render(conn, "class_graph.html",
-            extensions: Schema.extensions(),
-            profiles: SchemaController.get_profiles(params),
-            data: data
-          )
-      end
-    rescue
-      e -> send_resp(conn, 400, "Bad Request: #{inspect(e)}")
+        render(conn, "class_graph.html",
+          extensions: Schema.extensions(),
+          profiles: SchemaController.get_profiles(params),
+          data: data
+        )
     end
   end
 
   @spec object_graph(Plug.Conn.t(), any) :: Plug.Conn.t()
   def object_graph(conn, %{"id" => id} = params) do
-    try do
-      case SchemaWeb.SchemaController.object_ex(id, params) do
-        nil ->
-          send_resp(conn, 404, "Not Found: #{id}")
+    case SchemaWeb.SchemaController.object_ex(id, params) do
+      nil ->
+        send_resp(conn, 404, "Not Found: #{id}")
 
-        obj ->
-          data = Schema.Graph.build(obj)
+      obj ->
+        data = Schema.Graph.build(obj)
 
-          render(conn, "object_graph.html",
-            extensions: Schema.extensions(),
-            profiles: SchemaController.get_profiles(params),
-            data: data
-          )
-      end
-    rescue
-      e -> send_resp(conn, 400, "Bad Request: #{inspect(e)}")
+        render(conn, "object_graph.html",
+          extensions: Schema.extensions(),
+          profiles: SchemaController.get_profiles(params),
+          data: data
+        )
     end
   end
 
@@ -90,22 +74,18 @@ defmodule SchemaWeb.PageController do
         extension -> "#{extension}/#{id}"
       end
 
-    try do
-      data = SchemaController.get_profiles(params)
+    data = SchemaController.get_profiles(params)
 
-      case Map.get(data, name) do
-        nil ->
-          send_resp(conn, 404, "Not Found: #{name}")
+    case Map.get(data, name) do
+      nil ->
+        send_resp(conn, 404, "Not Found: #{name}")
 
-        profile ->
-          render(conn, "profile.html",
-            extensions: Schema.extensions(),
-            profiles: data,
-            data: sort_attributes(profile)
-          )
-      end
-    rescue
-      e -> send_resp(conn, 400, "Bad Request: #{inspect(e)}")
+      profile ->
+        render(conn, "profile.html",
+          extensions: Schema.extensions(),
+          profiles: data,
+          data: sort_attributes(profile)
+        )
     end
   end
 
@@ -124,22 +104,18 @@ defmodule SchemaWeb.PageController do
   """
   @spec categories(Plug.Conn.t(), map) :: Plug.Conn.t()
   def categories(conn, %{"id" => id} = params) do
-    try do
-      case SchemaController.category_classes(params) do
-        nil ->
-          send_resp(conn, 404, "Not Found: #{id}")
+    case SchemaController.category_classes(params) do
+      nil ->
+        send_resp(conn, 404, "Not Found: #{id}")
 
-        data ->
-          classes = sort_by(data[:classes], :uid)
+      data ->
+        classes = sort_by(data[:classes], :uid)
 
-          render(conn, "category.html",
-            extensions: Schema.extensions(),
-            profiles: SchemaController.get_profiles(params),
-            data: Map.put(data, :classes, classes)
-          )
-      end
-    rescue
-      e -> send_resp(conn, 400, "Bad Request: #{inspect(e)}")
+        render(conn, "category.html",
+          extensions: Schema.extensions(),
+          profiles: SchemaController.get_profiles(params),
+          data: Map.put(data, :classes, classes)
+        )
     end
   end
 
@@ -186,25 +162,21 @@ defmodule SchemaWeb.PageController do
   def classes(conn, %{"id" => id} = params) do
     extension = params["extension"]
 
-    try do
-      case Schema.class(extension, id) do
-        nil ->
-          send_resp(conn, 404, "Not Found: #{id}")
+    case Schema.class(extension, id) do
+      nil ->
+        send_resp(conn, 404, "Not Found: #{id}")
 
-        data ->
-          data =
-            data
-            |> sort_attributes()
-            |> Map.put(:key, Schema.Utils.to_uid(extension, id))
+      data ->
+        data =
+          data
+          |> sort_attributes()
+          |> Map.put(:key, Schema.Utils.to_uid(extension, id))
 
-          render(conn, "class.html",
-            extensions: Schema.extensions(),
-            profiles: SchemaController.get_profiles(params),
-            data: data
-          )
-      end
-    rescue
-      e -> send_resp(conn, 400, "Bad Request: #{inspect(e)}")
+        render(conn, "class.html",
+          extensions: Schema.extensions(),
+          profiles: SchemaController.get_profiles(params),
+          data: data
+        )
     end
   end
 
@@ -223,25 +195,21 @@ defmodule SchemaWeb.PageController do
   """
   @spec objects(Plug.Conn.t(), map) :: Plug.Conn.t()
   def objects(conn, %{"id" => id} = params) do
-    try do
-      case SchemaController.object(params) do
-        nil ->
-          send_resp(conn, 404, "Not Found: #{id}")
+    case SchemaController.object(params) do
+      nil ->
+        send_resp(conn, 404, "Not Found: #{id}")
 
-        data ->
-          data =
-            data
-            |> sort_attributes()
-            |> Map.put(:key, Schema.Utils.to_uid(params["extension"], id))
+      data ->
+        data =
+          data
+          |> sort_attributes()
+          |> Map.put(:key, Schema.Utils.to_uid(params["extension"], id))
 
-          render(conn, "object.html",
-            extensions: Schema.extensions(),
-            profiles: SchemaController.get_profiles(params),
-            data: data
-          )
-      end
-    rescue
-      e -> send_resp(conn, 400, "Bad Request: #{inspect(e)}")
+        render(conn, "object.html",
+          extensions: Schema.extensions(),
+          profiles: SchemaController.get_profiles(params),
+          data: data
+        )
     end
   end
 
