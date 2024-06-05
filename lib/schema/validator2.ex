@@ -149,6 +149,10 @@ defmodule Schema.Validator2 do
     |> validate_version(event)
     |> validate_type_uid(event)
     |> validate_constraints(event, class)
+    |> validate_observables(event, class, profiles)
+
+    # TODO: Move observable type description out of observable enum caption. This allows existing
+    #       observable "type" fields to validate properly.
   end
 
   @spec validate_class_deprecated(map(), map()) :: map()
@@ -176,7 +180,7 @@ defmodule Schema.Validator2 do
             "version_incorrect",
             "Incorrect version at \"metadata.version\"; value of \"#{version}\"" <>
               " does not match schema version \"#{schema_version}\"." <>
-              " This can also result in incorrect and/or missing validation messages.",
+              " This can result in incorrect validation messages.",
             %{
               attribute_path: "metadata.version",
               attribute: "version",
@@ -304,7 +308,7 @@ defmodule Schema.Validator2 do
   end
 
   # Helper to return class or object description and extra map
-  @spec constraint_info(map(), String.t(), atom(), list[String.t()]) :: {String.t(), map()}
+  @spec constraint_info(map(), String.t(), atom(), list(String.t())) :: {String.t(), map()}
   defp constraint_info(schema_item, attribute_path, constraint_key, constraint_details) do
     if attribute_path do
       # attribute_path exists (is not nil) for objects
@@ -325,6 +329,94 @@ defmodule Schema.Validator2 do
           class_name: schema_item[:name]
         }
       }
+    end
+  end
+
+  @spec validate_observables(map(), map(), map(), list(String.t())) :: map()
+  defp validate_observables(response, event, class, profiles) do
+    # TODO: There is no check of the "type_id" values. This gets slightly tricky (but possible).
+
+    # TODO: There is no check to make sure the values of "name" refers to something actually in the
+    #       event and has same (stringified) value. This would be a tricky check due to navigation
+    #       through arrays (though possible with some effort).
+
+    observables = event["observables"]
+
+    if is_list(observables) do
+      {response, _} =
+        Enum.reduce(
+          observables,
+          {response, 0},
+          fn observable, {response, index} ->
+            if is_map(observable) do
+              name = observable["name"]
+
+              if is_binary(name) do
+                referenced_definition =
+                  get_referenced_definition(String.split(name, "."), class, profiles)
+
+                if referenced_definition do
+                  # At this point we could check the definition or dictionary to make sure
+                  # this observable is correctly defined, though that is tricky
+                  {response, index + 1}
+                else
+                  attribute_path =
+                    make_attribute_path_array_element("observables", index) <> ".name"
+
+                  {
+                    add_error(
+                      response,
+                      "observable_name_invalid_reference",
+                      "Observable index #{index} \"name\" value \"#{name}\" does not refer to" <>
+                        " an attribute defined in class \"#{class[:name]}\" uid #{class[:uid]}.",
+                      %{
+                        attribute_path: attribute_path,
+                        attribute: "name",
+                        name: name,
+                        class_uid: class[:uid],
+                        class_name: class[:name]
+                      }
+                    ),
+                    index + 1
+                  }
+                end
+              else
+                {response, index + 1}
+              end
+            else
+              {response, index + 1}
+            end
+          end
+        )
+
+      response
+    else
+      response
+    end
+  end
+
+  @spec get_referenced_definition(list(String.t()), map(), list(String.t())) :: any()
+  defp get_referenced_definition([key | remaining_keys], schema_item, profiles) do
+    schema_attributes = Schema.Utils.apply_profiles(schema_item[:attributes], profiles)
+    key_atom = String.to_atom(key)
+
+    attribute = Enum.find(schema_attributes, fn {a_name, _} -> key_atom == a_name end)
+
+    if attribute do
+      {_, attribute_details} = attribute
+
+      if Enum.empty?(remaining_keys) do
+        schema_item
+      else
+        if attribute_details[:type] == "object_t" do
+          object_type = String.to_atom(attribute_details[:object_type])
+          get_referenced_definition(remaining_keys, Schema.object(object_type), profiles)
+        else
+          nil
+        end
+      end
+    else
+      nil
     end
   end
 
@@ -356,7 +448,7 @@ defmodule Schema.Validator2 do
       profiles,
       dictionary
     )
-    |> validate_attributes_event_item_keys(
+    |> validate_attributes_unknown_keys(
       event_item,
       parent_attribute_path,
       schema_item,
@@ -404,61 +496,68 @@ defmodule Schema.Validator2 do
     )
   end
 
-  @spec validate_attributes_event_item_keys(
+  @spec validate_attributes_unknown_keys(
           map(),
           map(),
           nil | String.t(),
           map(),
           list(tuple())
         ) :: map()
-  defp validate_attributes_event_item_keys(
+  defp validate_attributes_unknown_keys(
          response,
          event_item,
          parent_attribute_path,
          schema_item,
          schema_attributes
        ) do
-    Enum.reduce(
-      Map.keys(event_item),
-      response,
-      fn key, response ->
-        if has_attribute?(schema_attributes, key) do
-          response
-        else
-          attribute_path = make_attribute_path(parent_attribute_path, key)
+    if Enum.empty?(schema_attributes) do
+      # This is class or object with no attributes defined. This is a special-case that means any
+      # attributes are allowed. The object type "object" is the current example of this, and is
+      # directly used by the "unmapped" and "xattributes" attributes as open-ended objects.
+      response
+    else
+      Enum.reduce(
+        Map.keys(event_item),
+        response,
+        fn key, response ->
+          if has_attribute?(schema_attributes, key) do
+            response
+          else
+            attribute_path = make_attribute_path(parent_attribute_path, key)
 
-          {struct_desc, extra} =
-            if Map.has_key?(schema_item, :uid) do
-              {
-                "class \"#{schema_item[:name]}\", uid #{schema_item[:uid]}",
-                %{
-                  attribute_path: attribute_path,
-                  attribute: key,
-                  class_uid: schema_item[:uid],
-                  class_name: schema_item[:name]
+            {struct_desc, extra} =
+              if Map.has_key?(schema_item, :uid) do
+                {
+                  "class \"#{schema_item[:name]}\" uid #{schema_item[:uid]}",
+                  %{
+                    attribute_path: attribute_path,
+                    attribute: key,
+                    class_uid: schema_item[:uid],
+                    class_name: schema_item[:name]
+                  }
                 }
-              }
-            else
-              {
-                "object \"#{schema_item[:name]}\"",
-                %{
-                  attribute_path: attribute_path,
-                  attribute: key,
-                  object_name: schema_item[:name]
+              else
+                {
+                  "object \"#{schema_item[:name]}\"",
+                  %{
+                    attribute_path: attribute_path,
+                    attribute: key,
+                    object_name: schema_item[:name]
+                  }
                 }
-              }
-            end
+              end
 
-          add_error(
-            response,
-            "attribute_unknown",
-            "Unknown attribute at \"#{attribute_path}\";" <>
-              " attribute \"#{key}\" is not defined in #{struct_desc}.",
-            extra
-          )
+            add_error(
+              response,
+              "attribute_unknown",
+              "Unknown attribute at \"#{attribute_path}\";" <>
+                " attribute \"#{key}\" is not defined in #{struct_desc}.",
+              extra
+            )
+          end
         end
-      end
-    )
+      )
+    end
   end
 
   @spec has_attribute?(list(tuple()), String.t()) :: boolean()
@@ -1463,7 +1562,7 @@ defmodule Schema.Validator2 do
     add_warning(
       response,
       "class_deprecated",
-      "Class #{class[:uid]} \"#{class[:name]}\" is deprecated. #{deprecated[:message]}",
+      "Class \"#{class[:name]}\" uid #{class[:uid]}, is deprecated. #{deprecated[:message]}",
       %{class_uid: class[:uid], class_name: class[:name], since: deprecated[:since]}
     )
   end
