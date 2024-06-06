@@ -1,4 +1,4 @@
-FROM elixir:1.16.2-alpine as builder
+FROM elixir:1.16.3-alpine as builder
 
 # prepare build dir
 WORKDIR /app
