@@ -89,6 +89,7 @@ defmodule SchemaWeb.Router do
     post "/translate", SchemaController, :translate
     post "/validate", SchemaController, :validate
     post "/v2/validate", SchemaController, :validate2
+    post "/v2/validate_bundle", SchemaController, :validate2_bundle
   end
 
   scope "/schema", SchemaWeb do

@@ -13,14 +13,121 @@ defmodule Schema.Validator2 do
   """
 
   # Implementation note:
-  # All of the validate_* and add_* functions take a response and return one, possibly updated.
+  # The validate_* and add_* functions (other than the top level validate/1 and validate_bundle/1
+  # functions) take a response and return one, possibly updated.
   # The overall flow is to examine the event or list of events, and return a validation response.
 
   require Logger
 
-  @spec validate(map() | list()) :: map() | list(map())
+  @spec validate(map()) :: map()
   def validate(data) when is_map(data), do: validate_event(data, Schema.dictionary())
-  def validate(data) when is_list(data), do: validate_events(data, Schema.dictionary())
+
+  @spec validate_bundle(map()) :: map()
+  def validate_bundle(bundle) when is_map(bundle) do
+    bundle_structure = get_bundle_structure()
+
+    # First validate the bundle itself
+    response =
+      Enum.reduce(
+        bundle_structure,
+        %{},
+        fn attribute_tuple, response ->
+          validate_bundle_attribute(response, bundle, attribute_tuple)
+        end
+      )
+
+    # Check that there are no extra keys in the bundle
+    response =
+      Enum.reduce(
+        bundle,
+        response,
+        fn {key, _}, response ->
+          if Map.has_key?(bundle_structure, key) do
+            response
+          else
+            add_error(
+              response,
+              "attribute_unknown",
+              "Unknown attribute \"#{key}\" in event bundle.",
+              %{attribute_path: key, attribute: key}
+            )
+          end
+        end
+      )
+
+    # TODO: validate the bundle times and count against events
+
+    # Next validate the events in the bundle
+    response = validate_bundle_events(response, bundle, Schema.dictionary())
+    finalize_response(response)
+  end
+
+  # Returns structure of an event bundle.
+  # See "Bundling" here: https://github.com/ocsf/examples/blob/main/encodings/json/README.md
+  @spec get_bundle_structure() :: map()
+  defp get_bundle_structure() do
+    %{
+      "events" => {:required, "array", &is_list/1},
+      "start_time" => {:optional, "timestamp_t (long_t)", &is_long_t/1},
+      "end_time" => {:optional, "timestamp_t (long_t)", &is_long_t/1},
+      "start_time_dt" => {:optional, "datetime_t (string_t)", &is_binary/1},
+      "end_time_dt" => {:optional, "datetime_t (string_t)", &is_binary/1},
+      "count" => {:optional, "integer_t", &is_integer_t/1}
+    }
+  end
+
+  @spec validate_bundle_attribute(map(), map(), tuple()) :: map()
+  defp validate_bundle_attribute(
+         response,
+         bundle,
+         {attribute_name, {requirement, type_name, is_type_fn}}
+       ) do
+    if Map.has_key?(bundle, attribute_name) do
+      value = bundle[attribute_name]
+
+      if is_type_fn.(value) do
+        response
+      else
+        add_error_wrong_type(response, attribute_name, attribute_name, value, type_name)
+      end
+    else
+      if requirement == :required do
+        add_error_required_attribute_missing(response, attribute_name, attribute_name)
+      else
+        response
+      end
+    end
+  end
+
+  @spec validate_bundle_events(map(), map(), map()) :: map()
+  defp validate_bundle_events(response, bundle, dictionary) do
+    events = bundle["events"]
+
+    if is_list(events) do
+      Map.put(
+        response,
+        :event_validations,
+        Enum.map(
+          events,
+          fn event ->
+            if is_map(event) do
+              validate_event(event, dictionary)
+            else
+              {type, type_extra} = type_of(event)
+
+              %{
+                error: "Event has wrong type; expected object, got #{type}#{type_extra}.",
+                type: type,
+                expected_type: "object"
+              }
+            end
+          end
+        )
+      )
+    else
+      response
+    end
+  end
 
   @spec validate_event(map(), map()) :: map()
   defp validate_event(event, dictionary) do
@@ -38,11 +145,6 @@ defmodule Schema.Validator2 do
       end
 
     finalize_response(response)
-  end
-
-  @spec validate_events(list(map()), map()) :: list(map())
-  defp validate_events(events, dictionary) do
-    Enum.map(events, fn event -> validate_event(event, dictionary) end)
   end
 
   @spec validate_class_uid_and_return_class(map(), map()) :: {map(), nil | map()}
@@ -150,9 +252,6 @@ defmodule Schema.Validator2 do
     |> validate_type_uid(event)
     |> validate_constraints(event, class)
     |> validate_observables(event, class, profiles)
-
-    # TODO: Move observable type description out of observable enum caption. This allows existing
-    #       observable "type" fields to validate properly.
   end
 
   @spec validate_class_deprecated(map(), map()) :: map()
