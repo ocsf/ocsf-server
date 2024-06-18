@@ -143,6 +143,112 @@ defmodule SchemaWeb.SchemaController do
           title("Event")
           description("An OCSF formatted event object.")
           type(:object)
+        end,
+      ValidationError:
+        swagger_schema do
+          title("Validation Error")
+          description("A validation error. Additional error-specific properties will exist.")
+
+          properties do
+            error(:string, "Error code")
+            message(:string, "Human readable error message")
+          end
+
+          additional_properties(true)
+        end,
+      ValidationWarning:
+        swagger_schema do
+          title("Validation Warning")
+          description("A validation warning. Additional warning-specific properties will exist.")
+
+          properties do
+            error(:string, "Warning code")
+            message(:string, "Human readable warning message")
+          end
+
+          additional_properties(true)
+        end,
+      EventValidation:
+        swagger_schema do
+          title("Event Validation")
+          description("The errors and and warnings found when validating an event.")
+
+          properties do
+            uid(:string, "The event's metadata.uid, if available")
+            error(:string, "Overall error message")
+
+            errors(
+              :array,
+              "Validation errors",
+              items: %PhoenixSwagger.Schema{"$ref": "#/definitions/ValidationError"}
+            )
+
+            warnings(
+              :array,
+              "Validation warnings",
+              items: %PhoenixSwagger.Schema{"$ref": "#/definitions/ValidationWarning"}
+            )
+
+            error_count(:integer, "Count of errors")
+            warning_count(:integer, "Count of warnings")
+          end
+
+          additional_properties(false)
+        end,
+      EventBundle:
+        swagger_schema do
+          title("Event Bundle")
+          description("A bundle of events.")
+
+          properties do
+            events(
+              :array,
+              "Array of events.",
+              items: %PhoenixSwagger.Schema{"$ref": "#/definitions/Event"},
+              required: true
+            )
+
+            start_time(:integer, "Earliest event time in Epoch milliseconds (OCSF timestamp_t)")
+            end_time(:integer, "Latest event time in Epoch milliseconds (OCSF timestamp_t)")
+            start_time_dt(:string, "Earliest event time in RFC 3339 format (OCSF datetime_t)")
+            end_time_dt(:string, "Latest event time in RFC 3339 format (OCSF datetime_t)")
+            count(:integer, "Count of events")
+          end
+
+          additional_properties(false)
+        end,
+      EventBundleValidation:
+        swagger_schema do
+          title("Event Bundle Validation")
+          description("The errors and and warnings found when validating an event bundle.")
+
+          properties do
+            error(:string, "Overall error message")
+
+            errors(
+              :array,
+              "Validation errors of the bundle itself",
+              items: %PhoenixSwagger.Schema{type: :object}
+            )
+
+            warnings(
+              :array,
+              "Validation warnings of the bundle itself",
+              items: %PhoenixSwagger.Schema{type: :object}
+            )
+
+            error_count(:integer, "Count of errors of the bundle itself")
+            warning_count(:integer, "Count of warnings of the bundle itself")
+
+            event_validations(
+              :array,
+              "Array of event validations",
+              items: %PhoenixSwagger.Schema{"$ref": "#/definitions/EventValidation"},
+              required: true
+            )
+          end
+
+          additional_properties(false)
         end
     }
   end
@@ -321,20 +427,14 @@ defmodule SchemaWeb.SchemaController do
         extension -> "#{extension}/#{id}"
       end
 
-    try do
-      data = Schema.profiles()
+    data = Schema.profiles()
 
-      case Map.get(data, name) do
-        nil ->
-          send_json_resp(conn, 404, %{error: "Profile #{name} not found"})
+    case Map.get(data, name) do
+      nil ->
+        send_json_resp(conn, 404, %{error: "Profile #{name} not found"})
 
-        profile ->
-          send_json_resp(conn, Schema.delete_links(profile))
-      end
-    rescue
-      e ->
-        Logger.error("Unable to get profile: #{id}. Error: #{inspect(e)}")
-        send_json_resp(conn, 500, %{error: "Error: #{e[:message]}"})
+      profile ->
+        send_json_resp(conn, Schema.delete_links(profile))
     end
   end
 
@@ -399,18 +499,12 @@ defmodule SchemaWeb.SchemaController do
 
   @spec category(Plug.Conn.t(), map) :: Plug.Conn.t()
   def category(conn, %{"id" => id} = params) do
-    try do
-      case category_classes(params) do
-        nil ->
-          send_json_resp(conn, 404, %{error: "Category #{id} not found"})
+    case category_classes(params) do
+      nil ->
+        send_json_resp(conn, 404, %{error: "Category #{id} not found"})
 
-        data ->
-          send_json_resp(conn, data)
-      end
-    rescue
-      e ->
-        Logger.error("Unable to load the classes for category: #{id}. Error: #{inspect(e)}")
-        send_json_resp(conn, 500, %{error: "Error: #{e[:message]}"})
+      data ->
+        send_json_resp(conn, data)
     end
   end
 
@@ -512,19 +606,13 @@ defmodule SchemaWeb.SchemaController do
   defp class(conn, id, params) do
     extension = extension(params)
 
-    try do
-      case Schema.class(extension, id, parse_options(profiles(params))) do
-        nil ->
-          send_json_resp(conn, 404, %{error: "Event class #{id} not found"})
+    case Schema.class(extension, id, parse_options(profiles(params))) do
+      nil ->
+        send_json_resp(conn, 404, %{error: "Event class #{id} not found"})
 
-        data ->
-          class = add_objects(data, params)
-          send_json_resp(conn, class)
-      end
-    rescue
-      e ->
-        Logger.error("Unable to get class: #{id}. Error: #{inspect(e)}")
-        send_json_resp(conn, 500, %{error: "Error: #{e[:message]}"})
+      data ->
+        class = add_objects(data, params)
+        send_json_resp(conn, class)
     end
   end
 
@@ -608,18 +696,12 @@ defmodule SchemaWeb.SchemaController do
 
   @spec object(Plug.Conn.t(), map) :: Plug.Conn.t()
   def object(conn, %{"id" => id} = params) do
-    try do
-      case object(params) do
-        nil ->
-          send_json_resp(conn, 404, %{error: "Object #{id} not found"})
+    case object(params) do
+      nil ->
+        send_json_resp(conn, 404, %{error: "Object #{id} not found"})
 
-        data ->
-          send_json_resp(conn, add_objects(data, params))
-      end
-    rescue
-      e ->
-        Logger.error("Unable to get object: #{id}. Error: #{inspect(e)}")
-        send_json_resp(conn, 500, %{error: "Error: #{e[:message]}"})
+      data ->
+        send_json_resp(conn, add_objects(data, params))
     end
   end
 
@@ -810,19 +892,13 @@ defmodule SchemaWeb.SchemaController do
   def json_class(conn, %{"id" => id} = params) do
     options = Map.get(params, "package_name") |> parse_java_package()
 
-    try do
-      case class_ex(id, params) do
-        nil ->
-          send_json_resp(conn, 404, %{error: "Event class #{id} not found"})
+    case class_ex(id, params) do
+      nil ->
+        send_json_resp(conn, 404, %{error: "Event class #{id} not found"})
 
-        data ->
-          class = Schema.JsonSchema.encode(data, options)
-          send_json_resp(conn, class)
-      end
-    rescue
-      e ->
-        Logger.error("Unable to get class: #{id}. Error: #{inspect(e)}")
-        send_json_resp(conn, 500, %{error: "Error: #{e[:message]}"})
+      data ->
+        class = Schema.JsonSchema.encode(data, options)
+        send_json_resp(conn, class)
     end
   end
 
@@ -861,19 +937,13 @@ defmodule SchemaWeb.SchemaController do
   def json_object(conn, %{"id" => id} = params) do
     options = Map.get(params, "package_name") |> parse_java_package()
 
-    try do
-      case object_ex(id, params) do
-        nil ->
-          send_json_resp(conn, 404, %{error: "Object #{id} not found"})
+    case object_ex(id, params) do
+      nil ->
+        send_json_resp(conn, 404, %{error: "Object #{id} not found"})
 
-        data ->
-          object = Schema.JsonSchema.encode(data, options)
-          send_json_resp(conn, object)
-      end
-    rescue
-      e ->
-        Logger.error("Unable to get object: #{id}. Error: #{inspect(e)}")
-        send_json_resp(conn, 500, %{error: "Error: #{e[:message]}"})
+      data ->
+        object = Schema.JsonSchema.encode(data, options)
+        send_json_resp(conn, object)
     end
   end
 
@@ -1078,11 +1148,11 @@ defmodule SchemaWeb.SchemaController do
       case data["_json"] do
         # Validate a single events
         nil ->
-          Schema.Inspector.validate(data)
+          Schema.Validator.validate(data)
 
         # Validate a list of events
         list when is_list(list) ->
-          Enum.map(list, &Task.async(fn -> Schema.Inspector.validate(&1) end))
+          Enum.map(list, &Task.async(fn -> Schema.Validator.validate(&1) end))
           |> Enum.map(&Task.await/1)
 
         # some other json data
@@ -1091,6 +1161,94 @@ defmodule SchemaWeb.SchemaController do
       end
 
     send_json_resp(conn, result)
+  end
+
+  @doc """
+  Validate event data, version 2. Validates a single event.
+  post /api/v2/validate
+  """
+  swagger_path :validate2 do
+    post("/api/v2/validate")
+    summary("Validate Event (version 2)")
+
+    description(
+      "This API validates the provided event data against the OCSF schema, returning a response" <>
+        " containing validation errors and warnings."
+    )
+
+    produces("application/json")
+    tag("Tools")
+
+    parameters do
+      data(:body, PhoenixSwagger.Schema.ref(:Event), "The event to be validated", required: true)
+    end
+
+    response(200, "Success", PhoenixSwagger.Schema.ref(:EventValidation))
+  end
+
+  @spec validate2(Plug.Conn.t(), map) :: Plug.Conn.t()
+  def validate2(conn, data) do
+    # Phoenix's Plug.Parsers.JSON puts JSON that isn't a map into a _json key
+    # (for its own technical reasons). See:
+    # https://hexdocs.pm/plug/Plug.Parsers.JSON.html
+    # https://stackoverflow.com/questions/74931653/phoenix-wraps-json-request-in-a-map-with-json-key
+    {status, result} =
+      case data["_json"] do
+        nil ->
+          # This means we have a map, so validate a single event
+          {200, Schema.Validator2.validate(data)}
+
+        # some other json data
+        _ ->
+          {400, %{error: "Unexpected JSON. Expected a JSON object."}}
+      end
+
+    send_json_resp(conn, status, result)
+  end
+
+  @doc """
+  Validate event data, version 2. Validates a single event.
+  post /api/v2/validate
+  """
+  swagger_path :validate2_bundle do
+    post("/api/v2/validate_bundle")
+    summary("Validate Event Bundle (version 2)")
+
+    description(
+      "This API validates the provided event bundle. The event bundle itself is validated, and" <>
+        " each event in the bundle's events attribute are validated."
+    )
+
+    produces("application/json")
+    tag("Tools")
+
+    parameters do
+      data(:body, PhoenixSwagger.Schema.ref(:EventBundle), "The event bundle to be validated",
+        required: true
+      )
+    end
+
+    response(200, "Success", PhoenixSwagger.Schema.ref(:EventBundleValidation))
+  end
+
+  @spec validate2_bundle(Plug.Conn.t(), map) :: Plug.Conn.t()
+  def validate2_bundle(conn, data) do
+    # Phoenix's Plug.Parsers.JSON puts JSON that isn't a map into a _json key
+    # (for its own technical reasons). See:
+    # https://hexdocs.pm/plug/Plug.Parsers.JSON.html
+    # https://stackoverflow.com/questions/74931653/phoenix-wraps-json-request-in-a-map-with-json-key
+    {status, result} =
+      case data["_json"] do
+        nil ->
+          # This means we have a map, so validate a single event
+          {200, Schema.Validator2.validate_bundle(data)}
+
+        # some other json data
+        _ ->
+          {400, %{error: "Unexpected JSON. Expected a JSON object."}}
+      end
+
+    send_json_resp(conn, status, result)
   end
 
   # --------------------------
@@ -1151,34 +1309,30 @@ defmodule SchemaWeb.SchemaController do
   end
 
   defp sample_class(conn, id, options) do
+    # TODO: honor constraints
+
     extension = extension(options)
     profiles = profiles(options) |> parse_options()
 
-    try do
-      case Schema.class(extension, id) do
-        nil ->
-          send_json_resp(conn, 404, %{error: "Event class #{id} not found"})
+    case Schema.class(extension, id) do
+      nil ->
+        send_json_resp(conn, 404, %{error: "Event class #{id} not found"})
 
-        class ->
-          event =
-            case Map.get(options, @verbose) do
-              nil ->
-                Schema.generate_event(class, profiles)
+      class ->
+        event =
+          case Map.get(options, @verbose) do
+            nil ->
+              Schema.generate_event(class, profiles)
 
-              verbose ->
-                Schema.generate_event(class, profiles)
-                |> Schema.Translator.translate(
-                  spaces: options[@spaces],
-                  verbose: verbose(verbose)
-                )
-            end
+            verbose ->
+              Schema.generate_event(class, profiles)
+              |> Schema.Translator.translate(
+                spaces: options[@spaces],
+                verbose: verbose(verbose)
+              )
+          end
 
-          send_json_resp(conn, event)
-      end
-    rescue
-      e ->
-        Logger.error("Unable to generate sample for class: #{id}. Error: #{inspect(e)}")
-        send_json_resp(conn, 500, %{error: "Error: #{e[:message]}"})
+        send_json_resp(conn, event)
     end
   end
 
@@ -1210,31 +1364,27 @@ defmodule SchemaWeb.SchemaController do
 
   @spec sample_object(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def sample_object(conn, %{"id" => id} = options) do
+    # TODO: honor constraints
+
     extension = extension(options)
     profiles = profiles(options) |> parse_options()
 
-    try do
-      case Schema.object(extension, id) do
-        nil ->
-          send_json_resp(conn, 404, %{error: "Object #{id} not found"})
+    case Schema.object(extension, id) do
+      nil ->
+        send_json_resp(conn, 404, %{error: "Object #{id} not found"})
 
-        data ->
-          send_json_resp(conn, Schema.generate_object(data, profiles))
-      end
-    rescue
-      e ->
-        Logger.error("Unable to generate sample for object: #{id}. Error: #{inspect(e)}")
-        send_json_resp(conn, 500, %{error: "Error: #{e[:message]}"})
+      data ->
+        send_json_resp(conn, Schema.generate_object(data, profiles))
     end
   end
 
-  defp send_json_resp(conn, error, data) do
+  defp send_json_resp(conn, status, data) do
     conn
     |> put_resp_content_type("application/json")
     |> put_resp_header("access-control-allow-origin", "*")
     |> put_resp_header("access-control-allow-headers", "content-type")
     |> put_resp_header("access-control-allow-methods", "POST, GET, OPTIONS")
-    |> send_resp(error, Jason.encode!(data))
+    |> send_resp(status, Jason.encode!(data))
   end
 
   defp send_json_resp(conn, data) do

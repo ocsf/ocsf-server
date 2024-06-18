@@ -492,14 +492,16 @@ defmodule Schema.Cache do
 
               observable_type_id_map
             else
+              observable_kind = "#{kind}-Specific Attribute"
+
               Map.put(
                 observable_type_id_map,
                 observable_type_id,
-                %{
-                  caption: "#{caption} #{kind}: #{attribute_key} (#{kind}-Specific Attribute)",
-                  description:
-                    "#{kind}-specific attribute \"#{attribute_key}\" for the #{caption} #{kind}."
-                }
+                make_observable_enum_entry(
+                  "#{caption} #{kind}: #{attribute_key}",
+                  "#{kind}-specific attribute \"#{attribute_key}\" for the #{caption} #{kind}.",
+                  observable_kind
+                )
               )
             end
           else
@@ -534,16 +536,16 @@ defmodule Schema.Cache do
 
             observable_type_id_map
           else
+            observable_kind = "#{kind}-Specific Attribute"
+
             Map.put(
               observable_type_id_map,
               observable_type_id,
-              %{
-                caption:
-                  "#{caption} #{kind}: #{attribute_path} (#{kind}-Specific Attribute Path)",
-                description:
-                  "#{kind}-specific attribute on path \"#{attribute_path}\"" <>
-                    " for the #{caption} #{kind}."
-              }
+              make_observable_enum_entry(
+                "#{caption} #{kind}: #{attribute_path}",
+                "#{kind}-specific attribute \"#{attribute_path}\" for the #{caption} #{kind}.",
+                observable_kind
+              )
             )
           end
         end
@@ -636,7 +638,7 @@ defmodule Schema.Cache do
         Map.put(
           observable_type_id_map,
           observable_type_id,
-          %{caption: "#{caption} (Object)", description: description}
+          make_observable_enum_entry(caption, description, "Object")
         )
       end
     else
@@ -673,10 +675,7 @@ defmodule Schema.Cache do
               Map.put(
                 observable_type_id_map,
                 observable_type_id,
-                %{
-                  caption: "#{item[:caption]} (#{kind})",
-                  description: item[:description]
-                }
+                make_observable_enum_entry(item[:caption], item[:description], kind)
               )
             end
           else
@@ -687,6 +686,16 @@ defmodule Schema.Cache do
     else
       observable_type_id_map
     end
+  end
+
+  # make an observable type_id enum entry
+  @spec make_observable_enum_entry(String.t(), String.t(), String.t()) :: map()
+  defp make_observable_enum_entry(caption, description, observable_kind) do
+    %{
+      caption: caption,
+      description: "Observable by #{observable_kind}.<br>#{description}",
+      _observable_kind: observable_kind
+    }
   end
 
   @spec find_item_caption_and_description(map(), atom(), map() | nil) :: {String.t(), String.t()}
