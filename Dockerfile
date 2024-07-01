@@ -1,4 +1,6 @@
-FROM elixir:1.16.2-alpine as builder
+ARG elixir_image=elixir:1.17.0-alpine
+
+FROM ${elixir_image} as builder
 
 # prepare build dir
 WORKDIR /app
@@ -38,7 +40,7 @@ RUN mix release
 
 # start a new build stage so that the final image will only contain
 # the compiled release and other runtime necessities
-FROM elixir:1.16.2-alpine
+FROM ${elixir_image}
 
 # Set the locale
 # RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen

@@ -556,10 +556,42 @@ defmodule Schema do
   defp reduce_attributes(data) do
     reduce_data(data)
     |> Map.update(:attributes, [], fn attributes ->
-      Enum.into(attributes, %{}, fn {name, attribute} ->
-        {name, reduce_data(attribute)}
+      Enum.into(attributes, %{}, fn {attribute_name, attribute_details} ->
+        {attribute_name, reduce_attribute(attribute_details)}
       end)
     end)
+  end
+
+  defp reduce_attribute(attribute_details) do
+    attribute_details
+    |> filter_internal()
+    |> reduce_enum()
+  end
+
+  defp filter_internal(m) do
+    Map.filter(m, fn {key, _} ->
+      s = Atom.to_string(key)
+      not String.starts_with?(s, "_")
+    end)
+  end
+
+  defp reduce_enum(attribute_details) do
+    if Map.has_key?(attribute_details, :enum) do
+      Map.update!(attribute_details, :enum, fn enum ->
+        Enum.map(
+          enum,
+          fn {enum_value_key, enum_value_details} ->
+            {
+              enum_value_key,
+              filter_internal(enum_value_details)
+            }
+          end
+        )
+        |> Enum.into(%{})
+      end)
+    else
+      attribute_details
+    end
   end
 
   @spec reduce_class(map) :: map

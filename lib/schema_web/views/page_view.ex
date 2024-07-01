@@ -2,8 +2,6 @@ defmodule SchemaWeb.PageView do
   alias SchemaWeb.SchemaController
   use SchemaWeb, :view
 
-  require Logger
-
   def class_graph_path(conn, data) do
     class_name = data[:name]
 
@@ -144,7 +142,7 @@ defmodule SchemaWeb.PageView do
       if observable_object do
         observable_object[:attributes][:type_id][:enum]
       else
-        nil
+        {nil, nil}
       end
 
     cond do
@@ -153,7 +151,12 @@ defmodule SchemaWeb.PageView do
 
       Map.has_key?(entity, :observable) ->
         observable_type_id = Schema.Utils.observable_type_id_to_atom(entity[:observable])
-        {observable_type_id, observable_type_id_map[observable_type_id][:caption]}
+        enum_details = observable_type_id_map[observable_type_id]
+
+        {
+          observable_type_id,
+          "#{enum_details[:caption]} (#{enum_details[:_observable_kind]})"
+        }
 
       Map.has_key?(entity, :type) ->
         # Check if this is a dictionary type
@@ -163,7 +166,12 @@ defmodule SchemaWeb.PageView do
         cond do
           type_observable ->
             observable_type_id = Schema.Utils.observable_type_id_to_atom(type_observable)
-            {observable_type_id, observable_type_id_map[observable_type_id][:caption]}
+            enum_details = observable_type_id_map[observable_type_id]
+
+            {
+              observable_type_id,
+              "#{enum_details[:caption]} (#{enum_details[:_observable_kind]})"
+            }
 
           Map.has_key?(entity, :object_type) ->
             # Check if this object is an observable
@@ -172,7 +180,12 @@ defmodule SchemaWeb.PageView do
 
             if object_observable do
               observable_type_id = Schema.Utils.observable_type_id_to_atom(object_observable)
-              {observable_type_id, observable_type_id_map[observable_type_id][:caption]}
+              enum_details = observable_type_id_map[observable_type_id]
+
+              {
+                observable_type_id,
+                "#{enum_details[:caption]} (#{enum_details[:_observable_kind]})"
+              }
             else
               {nil, nil}
             end

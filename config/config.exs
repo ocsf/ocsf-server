@@ -15,7 +15,7 @@ config :logger, :console,
   handle_otp_reports: true,
   handle_sasl_reports: true,
   format: "$date $time [$level] $metadata $message\n",
-  metadata: [:request_id]
+  metadata: [:request_id, :mfa, :line]
 
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
