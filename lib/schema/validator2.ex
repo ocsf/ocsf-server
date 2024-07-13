@@ -676,37 +676,87 @@ defmodule Schema.Validator2 do
         attribute_name = Atom.to_string(attribute_key)
 
         if Map.has_key?(event_item, attribute_name) do
-          # The enum values are always strings, so rather than use elaborate conversions,
-          # we just use Kernel.to_string/1. (The value is type checked elsewhere anyway.)
-          value = event_item[attribute_name]
-          value_str = to_string(value)
-          value_atom = String.to_atom(value_str)
+          if attribute_details[:is_array] == true do
+            {response, _} =
+              Enum.reduce(
+                event_item[attribute_name],
+                {response, 0},
+                fn value, {response, index} ->
+                  value_str = to_string(value)
+                  value_atom = String.to_atom(value_str)
 
-          if Map.has_key?(attribute_details[:enum], value_atom) do
-            # The enum value is good - check sibling
-            validate_enum_sibling(
-              response,
-              event_item,
-              parent_attribute_path,
-              value,
-              value_atom,
-              attribute_name,
-              attribute_details
-            )
+                  if Map.has_key?(attribute_details[:enum], value_atom) do
+                    # The enum array value is good - check sibling
+                    response =
+                      validate_enum_array_sibling(
+                        response,
+                        event_item,
+                        parent_attribute_path,
+                        index,
+                        value,
+                        value_atom,
+                        attribute_name,
+                        attribute_details
+                      )
+
+                    {response, index + 1}
+                  else
+                    attribute_path =
+                      make_attribute_path(parent_attribute_path, attribute_name)
+                      |> make_attribute_path_array_element(index)
+
+                    response =
+                      add_error(
+                        response,
+                        "attribute_enum_array_value_unknown",
+                        "Unknown enum array value at \"#{attribute_path}\"; array value" <>
+                          " #{inspect(value)} is not defined for enum \"#{attribute_name}\".",
+                        %{
+                          attribute_path: attribute_path,
+                          attribute: attribute_name,
+                          value: value
+                        }
+                      )
+
+                    {response, index + 1}
+                  end
+                end
+              )
+
+            response
           else
-            attribute_path = make_attribute_path(parent_attribute_path, attribute_name)
+            # The enum values are always strings, so rather than use elaborate conversions,
+            # we just use Kernel.to_string/1. (The value is type checked elsewhere anyway.)
+            value = event_item[attribute_name]
+            value_str = to_string(value)
+            value_atom = String.to_atom(value_str)
 
-            add_error(
-              response,
-              "attribute_enum_value_unknown",
-              "Unknown enum value at \"#{attribute_path}\";" <>
-                " value #{inspect(value)} is not defined for enum \"#{attribute_name}\".",
-              %{
-                attribute_path: attribute_path,
-                attribute: attribute_name,
-                value: value
-              }
-            )
+            if Map.has_key?(attribute_details[:enum], value_atom) do
+              # The enum value is good - check sibling
+              validate_enum_sibling(
+                response,
+                event_item,
+                parent_attribute_path,
+                value,
+                value_atom,
+                attribute_name,
+                attribute_details
+              )
+            else
+              attribute_path = make_attribute_path(parent_attribute_path, attribute_name)
+
+              add_error(
+                response,
+                "attribute_enum_value_unknown",
+                "Unknown enum value at \"#{attribute_path}\";" <>
+                  " value #{inspect(value)} is not defined for enum \"#{attribute_name}\".",
+                %{
+                  attribute_path: attribute_path,
+                  attribute: attribute_name,
+                  value: value
+                }
+              )
+            end
           end
         else
           response
@@ -765,6 +815,95 @@ defmodule Schema.Validator2 do
               expected_value: enum_caption
             }
           )
+        end
+      else
+        # Sibling not present, which is OK
+        response
+      end
+    end
+  end
+
+  @spec validate_enum_array_sibling(
+          map(),
+          map(),
+          nil | String.t(),
+          integer(),
+          any(),
+          atom(),
+          String.t(),
+          map()
+        ) :: map()
+  defp validate_enum_array_sibling(
+         response,
+         event_item,
+         parent_attribute_path,
+         index,
+         event_enum_value,
+         event_enum_value_atom,
+         attribute_name,
+         attribute_details
+       ) do
+    if event_enum_value == 99 do
+      # Enum value is the integer 99 (Other). The enum sibling, if present, can be anything.
+      response
+    else
+      sibling_name = attribute_details[:sibling]
+
+      if Map.has_key?(event_item, sibling_name) do
+        # Sibling array is present - make sure value exists and matches up
+        enum_caption = attribute_details[:enum][event_enum_value_atom][:caption]
+        sibling_array = event_item[sibling_name]
+        sibling_value = Enum.at(sibling_array, index)
+
+        if sibling_value == nil do
+          enum_attribute_path =
+            make_attribute_path(parent_attribute_path, attribute_name)
+            |> make_attribute_path_array_element(index)
+
+          sibling_attribute_path =
+            make_attribute_path(parent_attribute_path, sibling_name)
+            |> make_attribute_path_array_element(index)
+
+          add_error(
+            response,
+            "attribute_enum_array_sibling_missing",
+            "Attribute \"#{sibling_attribute_path}\" enum array sibling value" <>
+              " is missing (array is not long enough) for" <>
+              " enum array \"#{enum_attribute_path}\" value #{inspect(event_enum_value)}.",
+            %{
+              attribute_path: sibling_attribute_path,
+              attribute: sibling_name,
+              expected_value: enum_caption
+            }
+          )
+        else
+          if enum_caption == sibling_value do
+            # Sibling has correct value
+            response
+          else
+            enum_attribute_path =
+              make_attribute_path(parent_attribute_path, attribute_name)
+              |> make_attribute_path_array_element(index)
+
+            sibling_attribute_path =
+              make_attribute_path(parent_attribute_path, sibling_name)
+              |> make_attribute_path_array_element(index)
+
+            add_error(
+              response,
+              "attribute_enum_array_sibling_incorrect",
+              "Attribute \"#{sibling_attribute_path}\" enum array sibling value" <>
+                " #{inspect(sibling_value)} is incorrect for" <>
+                " enum array \"#{enum_attribute_path}\" value #{inspect(event_enum_value)};" <>
+                " expected \"#{enum_caption}\", got #{inspect(sibling_value)}.",
+              %{
+                attribute_path: sibling_attribute_path,
+                attribute: sibling_name,
+                value: sibling_value,
+                expected_value: enum_caption
+              }
+            )
+          end
         end
       else
         # Sibling not present, which is OK
