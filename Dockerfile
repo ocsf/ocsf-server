@@ -1,6 +1,6 @@
-ARG elixir_image=elixir:1.17.0-alpine
+ARG elixir_image=elixir:1.17.1-alpine
 
-FROM ${elixir_image} as builder
+FROM ${elixir_image} AS builder
 
 # prepare build dir
 WORKDIR /app
@@ -45,9 +45,9 @@ FROM ${elixir_image}
 # Set the locale
 # RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
 
-ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US:en
-ENV LC_ALL en_US.UTF-8
+ENV LANG=en_US.UTF-8
+ENV LANGUAGE=en_US:en
+ENV LC_ALL=en_US.UTF-8
 
 WORKDIR "/app"
 EXPOSE 8080
