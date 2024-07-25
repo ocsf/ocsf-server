@@ -594,24 +594,29 @@ defmodule Schema do
     end
   end
 
-  @spec reduce_class(map) :: map
+  @spec reduce_class(map()) :: map()
   def reduce_class(data) do
     delete_attributes(data) |> delete_associations()
   end
 
-  @spec delete_attributes(map) :: map
+  @spec delete_attributes(map()) :: map()
   def delete_attributes(data) do
     Map.delete(data, :attributes)
   end
 
-  @spec delete_associations(map) :: map
+  @spec delete_associations(map()) :: map()
   def delete_associations(data) do
     Map.delete(data, :associations)
   end
 
-  @spec delete_links(map) :: map
+  @spec delete_links(map()) :: map()
   def delete_links(data) do
     Map.delete(data, :_links)
+  end
+
+  @spec deep_clean(map()) :: map()
+  def deep_clean(data) do
+    reduce_attributes(data)
   end
 
   def apply_profiles(types, _profiles, 0) do

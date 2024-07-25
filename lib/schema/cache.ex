@@ -797,7 +797,8 @@ defmodule Schema.Cache do
       end
     rescue
       ArithmeticError ->
-        error("invalid class #{class[:name]}: #{inspect(Map.delete(class, :attributes))}")
+        Logger.error("invalid class #{class[:name]}: #{inspect(Map.delete(class, :attributes))}")
+        System.stop(1)
     end
   end
 
@@ -987,7 +988,14 @@ defmodule Schema.Cache do
             # Only occurs in classes, but is safe to do for objects too.
             patched_base = Utils.put_non_nil(patched_base, :observables, item[:observables])
 
-            patched_base = patch_constraints(patched_base, item, key, kind, base_key)
+            constraints = apply_constraints(patched_base, item, "#{key} #{kind}")
+
+            patched_base =
+              if constraints != nil and !Enum.empty?(constraints) do
+                Map.put(patched_base, :constraints, constraints)
+              else
+                Map.delete(patched_base, :constraints)
+              end
 
             Map.put(acc, base_key, patched_base)
         end
@@ -1001,141 +1009,20 @@ defmodule Schema.Cache do
     item[:name] || item[:extends]
   end
 
-  # Is this item a special patch extends definition as done by patch_types?
-  # It is triggered by a class or object that has no name or the name is the same as the extends.
+  # Check if this item is a special patch extends definition as done by patch_types.
+  # A patch extends occurs for a class or object that has no name and has an extends,
+  # or has a name and it is the same as the extends.
+  # Most commonly, the name is not present and extends is present.
   defp patch_extends?(item) do
-    patch_name(item) == item[:extends]
-  end
+    item_name = item[:name]
 
-  @spec patch_constraints(map(), map(), atom(), String.t(), atom()) :: map()
-  defp patch_constraints(base, item, key, kind, base_key) do
-    cond do
-      Map.has_key?(item, :constraints) ->
-        if Map.has_key?(item, :constraints_changes) do
-          Logger.error(
-            "#{key} #{kind} patch of #{base_key}" <>
-              " incorrectly has both \"constraints\" and \"constraints_changes\""
-          )
-
-          System.stop(1)
-        end
-
-        # Add or replace base constraints entirely
-        Map.put(base, :constraints, item[:constraints])
-
-      Map.has_key?(item, :constraints_changes) ->
-        base_constraints =
-          if Map.has_key?(base, :constraints) do
-            base[:constraints]
-          else
-            %{}
-          end
-
-        base_constraints =
-          Enum.reduce(
-            item[:constraints_changes],
-            base_constraints,
-            fn {action, attribute_names}, base_constraints ->
-              case action do
-                :add_at_least_one ->
-                  Map.put(
-                    base_constraints,
-                    :at_least_one,
-                    merge_unique(base_constraints[:at_least_one], attribute_names)
-                  )
-
-                :add_just_one ->
-                  Map.put(
-                    base_constraints,
-                    :just_one,
-                    merge_unique(base_constraints[:just_one], attribute_names)
-                  )
-
-                :remove_at_least_one ->
-                  Map.put(
-                    base_constraints,
-                    :at_least_one,
-                    remove_elements(base_constraints[:at_least_one], attribute_names)
-                  )
-
-                :remove_just_one ->
-                  Map.put(
-                    base_constraints,
-                    :just_one,
-                    remove_elements(base_constraints[:just_one], attribute_names)
-                  )
-
-                true ->
-                  Logger.error(
-                    "#{key} #{kind} patch of #{base_key}" <>
-                      " \"constraints_changes\" has unknown action: #{inspect(action)}"
-                  )
-
-                  System.stop(1)
-                  base_constraints
-              end
-            end
-          )
-
-        Map.put(base, :constraints, base_constraints)
-
-      true ->
-        base
+    if item_name == nil do
+      # When item's "name" is nil, we patching if extends exists.
+      Map.has_key?(item, :extends)
+    else
+      # Otherwise when name exists, this is a patch if the name patch extends
+      item_name == item[:extends]
     end
-  end
-
-  defp merge_unique(list1, list2) when is_list(list1) and is_list(list2) do
-    # This implementation assumes list1 has a small number of elements,
-    # and so we are not creating a MapSet from it.
-    Enum.reduce(
-      list2,
-      list1,
-      fn element, list1 ->
-        if Enum.member?(list1, element) do
-          list1
-        else
-          [element | list1]
-        end
-      end
-    )
-    |> Enum.sort()
-  end
-
-  defp merge_unique(list1, list2) when is_list(list1) and is_nil(list2) do
-    list1
-  end
-
-  defp merge_unique(list1, list2) when is_nil(list1) and is_list(list2) do
-    list2
-  end
-
-  defp merge_unique(_, _) do
-    # Merge when both lists are nil, or one or the other is an unexpected type.
-    # Note that the ocsf-validator and metaschema will catch incorrect types, so we can ignore here.
-    nil
-  end
-
-  defp remove_elements(list, remove_list) when is_list(list) and is_list(remove_list) do
-    remove_set = MapSet.new(remove_list)
-
-    Enum.filter(list, fn element -> !MapSet.member?(remove_set, element) end)
-    |> Enum.sort()
-  end
-
-  defp remove_elements(list, remove_list) when is_list(list) and is_nil(remove_list) do
-    # Nothing to remove from list
-    list
-  end
-
-  defp remove_elements(list, remove_list) when is_nil(list) and is_list(remove_list) do
-    # No list to remove elements from, so just return nil
-    nil
-  end
-
-  defp remove_elements(_, _) do
-    # Remove when both lists are both nil, or one or the other is an unexpected type.
-    # Note that the ocsf-validator and metaschema will catch incorrect types, so we can ignore here.
-    nil
   end
 
   defp resolve_extends(items) do
@@ -1143,29 +1030,48 @@ defmodule Schema.Cache do
   end
 
   defp resolve_extends(items, item) do
-    case item[:extends] do
-      nil ->
-        item
+    if patch_extends?(item) do
+      # No need to process patch extends items - they are handled by patch_types
+      item
+    else
+      case item[:extends] do
+        nil ->
+          item
 
-      extends ->
-        {_parent_key, parent_item} = Utils.find_parent(items, extends, item[:extension])
+        extends ->
+          {_parent_key, parent_item} = Utils.find_parent(items, extends, item[:extension])
 
-        case parent_item do
-          nil ->
-            Logger.error("#{inspect(item[:name])} extends undefined item: #{inspect(extends)}")
-            System.stop(1)
+          case parent_item do
+            nil ->
+              Logger.error("#{inspect(item[:name])} extends undefined item: #{inspect(extends)}")
+              System.stop(1)
 
-          base ->
-            base = resolve_extends(items, base)
+            base ->
+              base = resolve_extends(items, base)
 
-            attributes =
-              Utils.deep_merge(base[:attributes], item[:attributes])
-              |> Enum.filter(fn {_name, attr} -> attr != nil end)
-              |> Map.new()
+              # Need to apply constraints before merging so we properly see original constraints.
+              context = "#{inspect(item[:name])} extends #{inspect(base[:name])}"
+              constraints = apply_constraints(base, item, context)
 
-            Map.merge(base, item, &merge_profiles/3)
-            |> Map.put(:attributes, attributes)
-        end
+              attributes =
+                Utils.deep_merge(base[:attributes], item[:attributes])
+                |> Enum.filter(fn {_name, attr} -> attr != nil end)
+                |> Map.new()
+
+              item =
+                Map.merge(base, item, &merge_profiles/3)
+                |> Map.put(:attributes, attributes)
+
+              item =
+                if constraints != nil and not Enum.empty?(constraints) do
+                  Map.put(item, :constraints, constraints)
+                else
+                  Map.delete(item, :constraints)
+                end
+
+              Map.delete(item, :constraints_changes)
+          end
+      end
     end
   end
 
@@ -1448,8 +1354,88 @@ defmodule Schema.Cache do
     end
   end
 
-  defp error(message) do
-    Logger.error(message)
-    System.stop(1)
+  # Apply constraints or constraints_changes from a source to a target.
+  # The return is the resulting constraints.
+  #
+  # If source has "constraints", then that used as-is.
+  # If source has "constraints_changes" then those applied to the target's "constraints", or if
+  # target does not have "constraints", to a new map.
+  #
+  # A return value of nil or an empty map occurs when there are no constraints or the result of
+  # application results in no constraints.
+  @spec apply_constraints(map(), map(), String.t()) :: map()
+  defp apply_constraints(target, source, context) do
+    cond do
+      Map.has_key?(source, :constraints) ->
+        if Map.has_key?(source, :constraints_changes) do
+          Logger.error(
+            "#{context} - source incorrectly has" <>
+              " both \"constraints\" and \"constraints_changes\""
+          )
+
+          System.stop(1)
+        end
+
+        # The source's constraints replace the target's
+        source[:constraints]
+
+      Map.has_key?(source, :constraints_changes) ->
+        constraints =
+          if Map.has_key?(target, :constraints) do
+            target[:constraints]
+          else
+            %{}
+          end
+
+        Enum.reduce(
+          source[:constraints_changes],
+          constraints,
+          fn change, constraints ->
+            {mutation_fn, constraint_key} =
+              case change[:action] do
+                "add_at_least_one" ->
+                  {&Utils.merge_lists_unique/2, :at_least_one}
+
+                "add_add_just_one" ->
+                  {&Utils.merge_lists_unique/2, :add_just_one}
+
+                "remove_at_least_one" ->
+                  {&Utils.merge_lists_unique/2, :remove_at_least_one}
+
+                "remove_just_one" ->
+                  {&Utils.merge_lists_unique/2, :remove_just_one}
+
+                unknown ->
+                  Logger.error(
+                    "#{context} - source \"constraints_changes\" has change" <>
+                      " with unknown \"action\": #{inspect(unknown)}"
+                  )
+
+                  System.stop(1)
+                  {nil, nil}
+              end
+
+            if mutation_fn != nil do
+              changed_attributes =
+                mutation_fn.(constraints[constraint_key], change[:attributes])
+
+              if changed_attributes != nil and !Enum.empty?(changed_attributes) do
+                # Sort attributes just to be friendly
+                Map.put(constraints, constraint_key, Enum.sort(changed_attributes))
+              else
+                # After applying change, the attribute list is empty, so remove the constraint
+                Map.delete(constraints, constraint_key)
+              end
+            else
+              # Unknown action hit above, so leave constraints alone
+              constraints
+            end
+          end
+        )
+
+      true ->
+        # The source has no constraints, to return the target's constraints (if any)
+        target[:constraints]
+    end
   end
 end

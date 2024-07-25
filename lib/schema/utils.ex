@@ -463,4 +463,68 @@ defmodule Schema.Utils do
       {nil, nil}
     end
   end
+
+  @doc """
+  Merge two lists. Nil arguments are treated like an empty list.
+  For two nil lists or if either or both arguments are not lists, the result is nil.
+  """
+  def merge_lists_unique(list1, list2) when is_list(list1) and is_list(list2) do
+    # This implementation assumes list1 has a small number of elements,
+    # and so we are not creating a MapSet from it.
+    Enum.reduce(
+      list2,
+      list1,
+      fn element, list1 ->
+        if Enum.member?(list1, element) do
+          list1
+        else
+          [element | list1]
+        end
+      end
+    )
+    |> Enum.sort()
+  end
+
+  def merge_lists_unique(list1, list2) when is_list(list1) and is_nil(list2) do
+    list1
+  end
+
+  def merge_lists_unique(list1, list2) when is_nil(list1) and is_list(list2) do
+    list2
+  end
+
+  def merge_lists_unique(_, _) do
+    # Merge when both lists are nil, or one or the other is an unexpected type.
+    # Note that the ocsf-validator and metaschema will catch incorrect types, so we can ignore here.
+    nil
+  end
+
+  @doc """
+  Merge elements from remove_list argument from list argument.
+  If list is nil, the result is nil. If list argument is a list and remove_list is nil,
+  list is unmodified.
+  For two nil lists or if either or both arguments are not lists, the result is nil.
+  """
+  def remove_list_elements(list, remove_list) when is_list(list) and is_list(remove_list) do
+    remove_set = MapSet.new(remove_list)
+
+    Enum.filter(list, fn element -> !MapSet.member?(remove_set, element) end)
+    |> Enum.sort()
+  end
+
+  def remove_list_elements(list, remove_list) when is_list(list) and is_nil(remove_list) do
+    # Nothing to remove from list
+    list
+  end
+
+  def remove_list_elements(list, remove_list) when is_nil(list) and is_list(remove_list) do
+    # No list to remove elements from, so just return nil
+    nil
+  end
+
+  def remove_list_elements(_, _) do
+    # Remove when both lists are both nil, or one or the other is an unexpected type.
+    # Note that the ocsf-validator and metaschema will catch incorrect types, so we can ignore here.
+    nil
+  end
 end
