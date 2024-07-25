@@ -345,7 +345,7 @@ defmodule Schema.Cache do
     classes =
       classes
       |> Enum.into(%{}, fn class_tuple -> attribute_source(class_tuple) end)
-      |> patch_type("class")
+      |> patch_types("class")
       |> resolve_extends()
 
     # all_classes has just enough info to interrogate the complete class hierarchy,
@@ -384,7 +384,7 @@ defmodule Schema.Cache do
       |> Enum.into(%{}, fn object_tuple -> attribute_source(object_tuple) end)
       |> resolve_extends()
       |> Enum.into(%{})
-      |> patch_type("object")
+      |> patch_types("object")
 
     # all_objects has just enough info to interrogate the complete object hierarchy,
     # removing most details. It can be used to get the caption and parent (extends) of
@@ -933,10 +933,10 @@ defmodule Schema.Cache do
                 attribute =
                   if patch_extends?(item) do
                     # TODO: HACK. This is part of the code compensating for the
-                    #       Schema.Cache.patch_type processing. An attribute _source for an
+                    #       Schema.Cache.patch_types processing. An attribute _source for an
                     #       extension class or object that uses this patch mechanism
                     #       keeps the form "<extension>/<name>" form, which doesn't refer to
-                    #       anything after the patch_type processing. This requires a deeper change
+                    #       anything after the patch_types processing. This requires a deeper change
                     #       to fix, so here we just keep an extra _source_patched key.
                     Map.put(attribute, :_source_patched, String.to_atom(patch_name(item)))
                   else
@@ -952,7 +952,7 @@ defmodule Schema.Cache do
     {item_key, item}
   end
 
-  defp patch_type(items, kind) do
+  defp patch_types(items, kind) do
     Enum.reduce(items, %{}, fn {key, item}, acc ->
       if patch_extends?(item) do
         # This is an extension class or object with the same name its own base class
@@ -987,6 +987,8 @@ defmodule Schema.Cache do
             # Only occurs in classes, but is safe to do for objects too.
             patched_base = Utils.put_non_nil(patched_base, :observables, item[:observables])
 
+            patched_base = patch_constraints(patched_base, item, key, kind, base_key)
+
             Map.put(acc, base_key, patched_base)
         end
       else
@@ -999,10 +1001,141 @@ defmodule Schema.Cache do
     item[:name] || item[:extends]
   end
 
-  # Is this item a special patch extends definition as done by patch_type.
+  # Is this item a special patch extends definition as done by patch_types?
   # It is triggered by a class or object that has no name or the name is the same as the extends.
   defp patch_extends?(item) do
     patch_name(item) == item[:extends]
+  end
+
+  @spec patch_constraints(map(), map(), atom(), String.t(), atom()) :: map()
+  defp patch_constraints(base, item, key, kind, base_key) do
+    cond do
+      Map.has_key?(item, :constraints) ->
+        if Map.has_key?(item, :constraints_changes) do
+          Logger.error(
+            "#{key} #{kind} patch of #{base_key}" <>
+              " incorrectly has both \"constraints\" and \"constraints_changes\""
+          )
+
+          System.stop(1)
+        end
+
+        # Add or replace base constraints entirely
+        Map.put(base, :constraints, item[:constraints])
+
+      Map.has_key?(item, :constraints_changes) ->
+        base_constraints =
+          if Map.has_key?(base, :constraints) do
+            base[:constraints]
+          else
+            %{}
+          end
+
+        base_constraints =
+          Enum.reduce(
+            item[:constraints_changes],
+            base_constraints,
+            fn {action, attribute_names}, base_constraints ->
+              case action do
+                :add_at_least_one ->
+                  Map.put(
+                    base_constraints,
+                    :at_least_one,
+                    merge_unique(base_constraints[:at_least_one], attribute_names)
+                  )
+
+                :add_just_one ->
+                  Map.put(
+                    base_constraints,
+                    :just_one,
+                    merge_unique(base_constraints[:just_one], attribute_names)
+                  )
+
+                :remove_at_least_one ->
+                  Map.put(
+                    base_constraints,
+                    :at_least_one,
+                    remove_elements(base_constraints[:at_least_one], attribute_names)
+                  )
+
+                :remove_just_one ->
+                  Map.put(
+                    base_constraints,
+                    :just_one,
+                    remove_elements(base_constraints[:just_one], attribute_names)
+                  )
+
+                true ->
+                  Logger.error(
+                    "#{key} #{kind} patch of #{base_key}" <>
+                      " \"constraints_changes\" has unknown action: #{inspect(action)}"
+                  )
+
+                  System.stop(1)
+                  base_constraints
+              end
+            end
+          )
+
+        Map.put(base, :constraints, base_constraints)
+
+      true ->
+        base
+    end
+  end
+
+  defp merge_unique(list1, list2) when is_list(list1) and is_list(list2) do
+    # This implementation assumes list1 has a small number of elements,
+    # and so we are not creating a MapSet from it.
+    Enum.reduce(
+      list2,
+      list1,
+      fn element, list1 ->
+        if Enum.member?(list1, element) do
+          list1
+        else
+          [element | list1]
+        end
+      end
+    )
+    |> Enum.sort()
+  end
+
+  defp merge_unique(list1, list2) when is_list(list1) and is_nil(list2) do
+    list1
+  end
+
+  defp merge_unique(list1, list2) when is_nil(list1) and is_list(list2) do
+    list2
+  end
+
+  defp merge_unique(_, _) do
+    # Merge when both lists are nil, or one or the other is an unexpected type.
+    # Note that the ocsf-validator and metaschema will catch incorrect types, so we can ignore here.
+    nil
+  end
+
+  defp remove_elements(list, remove_list) when is_list(list) and is_list(remove_list) do
+    remove_set = MapSet.new(remove_list)
+
+    Enum.filter(list, fn element -> !MapSet.member?(remove_set, element) end)
+    |> Enum.sort()
+  end
+
+  defp remove_elements(list, remove_list) when is_list(list) and is_nil(remove_list) do
+    # Nothing to remove from list
+    list
+  end
+
+  defp remove_elements(list, remove_list) when is_nil(list) and is_list(remove_list) do
+    # No list to remove elements from, so just return nil
+    nil
+  end
+
+  defp remove_elements(_, _) do
+    # Remove when both lists are both nil, or one or the other is an unexpected type.
+    # Note that the ocsf-validator and metaschema will catch incorrect types, so we can ignore here.
+    nil
   end
 
   defp resolve_extends(items) do

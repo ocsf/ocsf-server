@@ -263,10 +263,10 @@ defmodule SchemaWeb.PageView do
 
   defp get_hierarchy_source(field) do
     # TODO: HACK. This is part of the code compensating for the
-    #       Schema.Cache.patch_type processing. An attribute _source for an
+    #       Schema.Cache.patch_types processing. An attribute _source for an
     #       extension class or object that uses this patch mechanism
     #       keeps the form "<extension>/<name>" form, which doesn't refer to
-    #       anything after the patch_type processing. This requires a deeper change
+    #       anything after the patch_types processing. This requires a deeper change
     #       to fix, so here we just keep an extra _source_patched key.
     # Use "fixed" :_source_patched if available
     field[:_source_patched] || field[:_source]
