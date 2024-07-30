@@ -1591,11 +1591,11 @@ defmodule Schema.Validator2 do
     cond do
       Map.has_key?(dictionary_type, :regex) ->
         # This is a primitive type or subtype with a range
-        pattern = dictionary_type[:regex]
+        regex = dictionary_type[:regex]
 
-        case Regex.compile(pattern) do
-          {:ok, regex} ->
-            if Regex.match?(regex, value) do
+        case Regex.compile(regex) do
+          {:ok, compiled_regex} ->
+            if Regex.match?(compiled_regex, value) do
               response
             else
               add_error(
@@ -1628,7 +1628,7 @@ defmodule Schema.Validator2 do
                 attribute_path: attribute_path,
                 attribute: attribute_name,
                 type: attribute_type_key,
-                regex: pattern,
+                regex: regex,
                 regex_error_message: to_string(message),
                 regex_error_position: position
               }
@@ -1641,11 +1641,11 @@ defmodule Schema.Validator2 do
         super_type = dictionary_types[super_type_key]
 
         if Map.has_key?(super_type, :regex) do
-          pattern = dictionary_type[:regex]
+          regex = dictionary_type[:regex]
 
-          case Regex.compile(pattern) do
-            {:ok, regex} ->
-              if Regex.match?(regex, value) do
+          case Regex.compile(regex) do
+            {:ok, compiled_regex} ->
+              if Regex.match?(compiled_regex, value) do
                 response
               else
                 add_error(
@@ -1658,7 +1658,7 @@ defmodule Schema.Validator2 do
                     attribute: attribute_name,
                     super_type: super_type_key,
                     type: attribute_type_key,
-                    regex: pattern,
+                    regex: regex,
                     value: value
                   }
                 )
@@ -1681,7 +1681,7 @@ defmodule Schema.Validator2 do
                   attribute_path: attribute_path,
                   attribute: attribute_name,
                   type: super_type_key,
-                  regex: pattern,
+                  regex: regex,
                   regex_error_message: to_string(message),
                   regex_error_position: position
                 }

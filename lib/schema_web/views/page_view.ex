@@ -646,7 +646,7 @@ defmodule SchemaWeb.PageView do
   defp dictionary_links_class_to_html(_, _, nil), do: []
 
   defp dictionary_links_class_to_html(conn, attribute_name, linked_classes) do
-    classes = SchemaController.classes(conn.params())
+    classes = SchemaController.classes(conn.params)
     all_classes = Schema.all_classes()
     attribute_key = Schema.Utils.descope_to_uid(attribute_name)
 
@@ -735,7 +735,7 @@ defmodule SchemaWeb.PageView do
   defp dictionary_links_class_updated_to_html(_, _, nil), do: []
 
   defp dictionary_links_class_updated_to_html(conn, attribute_name, linked_classes) do
-    classes = SchemaController.classes(conn.params())
+    classes = SchemaController.classes(conn.params)
     all_classes = Schema.all_classes()
     attribute_key = Schema.Utils.descope_to_uid(attribute_name)
 

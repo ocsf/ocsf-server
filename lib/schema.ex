@@ -614,6 +614,11 @@ defmodule Schema do
     Map.delete(data, :_links)
   end
 
+  @spec deep_clean(map()) :: map()
+  def deep_clean(data) do
+    reduce_attributes(data)
+  end
+
   def apply_profiles(types, _profiles, 0) do
     Enum.into(types, %{}, fn {name, type} ->
       remove_profiles(name, type)
