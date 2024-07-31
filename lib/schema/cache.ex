@@ -978,14 +978,13 @@ defmodule Schema.Cache do
               base
               |> Map.put(:profiles, profiles)
               |> Map.put(:attributes, attributes)
-
-            # Top-level observable.
-            # Only occurs in objects, but is safe to do for classes too.
-            patched_base = Utils.put_non_nil(patched_base, :observable, item[:observable])
-
-            # Top-level path-based observables.
-            # Only occurs in classes, but is safe to do for objects too.
-            patched_base = Utils.put_non_nil(patched_base, :observables, item[:observables])
+              # Top-level observable.
+              # Only occurs in objects, but is safe to do for classes too.
+              |> Utils.put_non_nil(:observable, item[:observable])
+              # Top-level path-based observables.
+              # Only occurs in classes, but is safe to do for objects too.
+              |> Utils.put_non_nil(:observables, item[:observables])
+              |> patch_constraints(item)
 
             Map.put(acc, base_key, patched_base)
         end
@@ -1003,6 +1002,20 @@ defmodule Schema.Cache do
   # It is triggered by a class or object that has no name or the name is the same as the extends.
   defp patch_extends?(item) do
     patch_name(item) == item[:extends]
+  end
+
+  defp patch_constraints(base, item) do
+    if Map.has_key?(item, :constraints) do
+      constraints = item[:constraints]
+
+      if constraints != nil and !Enum.empty?(constraints) do
+        Map.put(base, :constraints, constraints)
+      else
+        Map.delete(base, :constraints)
+      end
+    else
+      base
+    end
   end
 
   defp resolve_extends(items) do
