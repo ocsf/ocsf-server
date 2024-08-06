@@ -46,15 +46,13 @@ defmodule Schema.Profiles do
   end
 
   @doc """
-    Checks classes or objects if all profile attributes are defined.
+    Checks items (classes or objects), ensuring that each all profiles defined in each item are
+    defined in profiles. Adds each properly define profile to profile's _links.
   """
-  def sanity_check(group, maps, profiles) do
-    profiles =
-      Enum.reduce(maps, profiles, fn {name, map}, acc ->
-        check_profiles(group, name, map, map[:profiles], acc)
-      end)
-
-    {maps, profiles}
+  def sanity_check(group, items, profiles) do
+    Enum.reduce(items, profiles, fn {item_name, item}, acc ->
+      check_profiles(group, item_name, item, item[:profiles], acc)
+    end)
   end
 
   # Checks if all profile attributes are defined in the given attribute set.
@@ -62,19 +60,18 @@ defmodule Schema.Profiles do
     all_profiles
   end
 
-  defp check_profiles(group, name, map, profiles, all_profiles) do
-    Enum.reduce(profiles, all_profiles, fn p, acc ->
+  defp check_profiles(group, item_name, item, item_profiles, all_profiles) do
+    Enum.reduce(item_profiles, all_profiles, fn p, acc ->
       case acc[p] do
         nil ->
-          Logger.warning("#{name} uses undefined profile: #{p}")
+          Logger.warning("#{item_name} uses undefined profile: #{p}")
           acc
 
         profile ->
-          link = %{group: group, type: Atom.to_string(name), caption: map[:caption]}
+          link = %{group: group, type: Atom.to_string(item_name), caption: item[:caption]}
           profile = Map.update(profile, :_links, [link], fn links -> [link | links] end)
           Map.put(acc, p, profile)
       end
     end)
   end
-
 end

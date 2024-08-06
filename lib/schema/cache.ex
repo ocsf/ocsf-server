@@ -64,30 +64,31 @@ defmodule Schema.Cache do
     dictionary = Utils.update_dictionary(dictionary, base_event, classes, objects)
     observable_type_id_map = observables_from_dictionary(dictionary, observable_type_id_map)
 
-    attributes = dictionary[:attributes]
+    dictionary_attributes = dictionary[:attributes]
 
-    profiles = JsonReader.read_profiles() |> update_profiles(attributes)
+    profiles = JsonReader.read_profiles() |> update_profiles(dictionary_attributes)
 
     # clean up the cached files
     JsonReader.cleanup()
 
-    # Apply profiles to objects and classes
-    {objects, profiles} = Profiles.sanity_check(:object, objects, profiles)
+    # Check profiles used in objects, adding objects to profile's _links
+    profiles = Profiles.sanity_check(:object, objects, profiles)
 
     objects =
       objects
-      |> Utils.update_objects(attributes)
+      |> Utils.update_objects(dictionary_attributes)
       |> update_observable(observable_type_id_map)
       |> update_objects()
-      |> final_check(attributes)
+      |> final_check(dictionary_attributes)
 
-    {classes, profiles} = Profiles.sanity_check(:class, classes, profiles)
+    # Check profiles used in classes, adding classes to profile's _links
+    profiles = Profiles.sanity_check(:class, classes, profiles)
 
     classes =
       update_classes(classes, objects)
-      |> final_check(attributes)
+      |> final_check(dictionary_attributes)
 
-    base_event = final_check(:base_event, base_event, attributes)
+    base_event = final_check(:base_event, base_event, dictionary_attributes)
 
     no_req_set = MapSet.new()
     {profiles, no_req_set} = fix_entities(profiles, no_req_set, "profile")
@@ -781,8 +782,14 @@ defmodule Schema.Cache do
   defp update_class_uid(class, categories) do
     {key, category} = Utils.find_entity(categories, class, class[:category])
 
-    class = Map.put(class, :category, Atom.to_string(key))
-    class = Map.put(class, :category_name, category[:caption])
+    class =
+      if category != nil do
+        class
+        |> Map.put(:category, Atom.to_string(key))
+        |> Map.put(:category_name, category[:caption])
+      else
+        class
+      end
 
     cat_uid = category[:uid] || 0
     class_uid = class[:uid] || 0
@@ -881,36 +888,43 @@ defmodule Schema.Cache do
   end
 
   defp add_category_uid(class, name, categories) do
-    case class[:category] do
-      nil ->
-        Logger.warning("class '#{class[:name]}' has no category")
-        class
+    category_name = class[:category]
 
-      "other" ->
-        class
+    {_key, category} = Utils.find_entity(categories, class, class[:category])
 
-      cat_name ->
-        {_key, category} = Utils.find_entity(categories, class, cat_name)
+    if category == nil do
+      case category_name do
+        "other" ->
+          Logger.info("Class \"#{class[:name]}\" uses special undefined category \"other\"")
 
-        if category == nil do
-          Logger.warning("class '#{class[:name]}' has an invalid category: #{cat_name}")
-          class
-        else
-          update_in(
-            class,
-            [:attributes, :category_uid, :enum],
-            fn _enum ->
-              id = Integer.to_string(category[:uid]) |> String.to_atom()
-              %{id => category}
-            end
-          )
+        nil ->
+          Logger.warning("Class \"#{class[:name]}\" has no category")
+
+        undefined ->
+          Logger.warning("Class \"#{class[:name]}\" has undefined category: #{undefined}")
+      end
+
+      # Match update_class_uid and use 0 for undefined categories
+      Map.put(class, :category_uid, 0)
+    else
+      category_uid = category[:uid]
+
+      class
+      |> Map.put(:category_uid, category_uid)
+      |> update_in(
+        [:attributes, :category_uid, :enum],
+        fn _enum ->
+          id = Integer.to_string(category_uid) |> String.to_atom()
+          %{id => category}
         end
-        |> put_in([:attributes, :category_uid, :_source], name)
-        |> put_in(
-          [:attributes, :category_name, :description],
-          "The event category name, as defined by category_uid value: <code>#{category[:caption]}</code>."
-        )
+      )
+      |> put_in(
+        [:attributes, :category_name, :description],
+        "The event category name, as defined by category_uid value:" <>
+          " <code>#{category[:caption]}</code>."
+      )
     end
+    |> put_in([:attributes, :category_uid, :_source], name)
   end
 
   defp attribute_source({item_key, item}) do
@@ -1285,6 +1299,7 @@ defmodule Schema.Cache do
     end)
   end
 
+  # Flesh out profile attributes from dictionary attributes
   defp update_profiles(profiles, dictionary_attributes) do
     Enum.into(profiles, %{}, fn {name, profile} ->
       {name,
@@ -1294,34 +1309,35 @@ defmodule Schema.Cache do
     end)
   end
 
-  defp update_profile(profile, attributes, dictionary_attributes) do
-    Enum.into(attributes, %{}, fn {name, attribute} ->
+  defp update_profile(profile, profile_attributes, dictionary_attributes) do
+    Enum.into(profile_attributes, %{}, fn {name, attribute} ->
       {name,
        case find_attribute(dictionary_attributes, name, String.to_atom(profile)) do
          nil ->
            Logger.warning("profile #{profile} uses #{name} that is not defined in the dictionary")
            attribute
 
-         attr ->
-           copy(attribute, attr)
+         dictionary_attribute ->
+           update_profile_attribute(attribute, dictionary_attribute)
        end
        |> Map.delete(:profile)}
     end)
   end
 
-  defp copy(to, from) do
+  defp update_profile_attribute(to, from) do
     to
-    |> copy(from, :caption)
-    |> copy(from, :description)
-    |> copy(from, :is_array)
-    |> copy(from, :enum)
-    |> copy(from, :type)
-    |> copy(from, :type_name)
-    |> copy(from, :object_name)
-    |> copy(from, :object_type)
+    |> copy_new(from, :caption)
+    |> copy_new(from, :description)
+    |> copy_new(from, :is_array)
+    |> copy_new(from, :enum)
+    |> copy_new(from, :type)
+    |> copy_new(from, :type_name)
+    |> copy_new(from, :object_name)
+    |> copy_new(from, :object_type)
+    |> copy_new(from, :observable)
   end
 
-  defp copy(to, from, key) do
+  defp copy_new(to, from, key) do
     case from[key] do
       nil -> to
       val -> Map.put_new(to, key, val)
