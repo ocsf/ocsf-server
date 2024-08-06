@@ -81,7 +81,7 @@ defmodule Schema.Cache do
       |> update_objects()
       |> final_check(dictionary_attributes)
 
-    # Check profiles used in classes, adding objects to profile's _links
+    # Check profiles used in classes, adding classes to profile's _links
     profiles = Profiles.sanity_check(:class, classes, profiles)
 
     classes =
