@@ -111,7 +111,7 @@ defmodule Schema.JsonSchema do
   end
 
   defp put_required(map, required) do
-    Map.put(map, "required", required)
+    Map.put(map, "required", Enum.sort(required))
   end
 
   defp encode_objects(schema, nil) do
