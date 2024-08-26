@@ -978,7 +978,9 @@ defmodule Schema.Cache do
 
         Logger.info("#{key} #{kind} is patching #{base_key}")
 
-        case Map.get(items, base_key) do
+        # First check the accumulator in case the same object is extended by multiple extensions,
+        # that way the previous modifications are taken into account
+        case Map.get(acc, base_key, Map.get(items, base_key)) do
           nil ->
             Logger.error("#{key} #{kind} attempted to patch invalid item: #{base_key}")
             System.stop(1)
