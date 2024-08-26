@@ -146,7 +146,7 @@ defmodule SchemaWeb.PageView do
       end
 
     cond do
-      observable_type_id_map == nil ->
+      observable_type_id_map in [nil, {nil, nil}] ->
         {nil, nil}
 
       Map.has_key?(entity, :observable) ->
