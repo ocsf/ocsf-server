@@ -142,11 +142,11 @@ defmodule SchemaWeb.PageView do
       if observable_object do
         observable_object[:attributes][:type_id][:enum]
       else
-        {nil, nil}
+        nil
       end
 
     cond do
-      observable_type_id_map in [nil, {nil, nil}] ->
+      observable_type_id_map == nil ->
         {nil, nil}
 
       Map.has_key?(entity, :observable) ->
