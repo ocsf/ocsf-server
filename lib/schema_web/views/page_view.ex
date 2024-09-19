@@ -142,7 +142,7 @@ defmodule SchemaWeb.PageView do
       if observable_object do
         observable_object[:attributes][:type_id][:enum]
       else
-        {nil, nil}
+        nil
       end
 
     cond do
