@@ -927,6 +927,9 @@ defmodule Schema.Cache do
     |> put_in([:attributes, :category_uid, :_source], name)
   end
 
+  # Adds :_source key to each attribute of item. This must be done before processing (compiling)
+  # inheritance and patching (resolve_extends and patch_type) since after that processing the
+  # original source is lost.
   defp attribute_source({item_key, item}) do
     item =
       Map.update(
@@ -942,22 +945,19 @@ defmodule Schema.Cache do
                 {key, nil}
 
               {key, attribute} ->
-                attribute = Map.put(attribute, :_source, item_key)
-
-                attribute =
-                  if patch_extends?(item) do
-                    # TODO: HACK. This is part of the code compensating for the
-                    #       Schema.Cache.patch_type processing. An attribute _source for an
-                    #       extension class or object that uses this patch mechanism
-                    #       keeps the form "<extension>/<name>" form, which doesn't refer to
-                    #       anything after the patch_type processing. This requires a deeper change
-                    #       to fix, so here we just keep an extra _source_patched key.
-                    Map.put(attribute, :_source_patched, String.to_atom(patch_name(item)))
-                  else
+                if patch_extends?(item) do
+                  # Because attribute_source done before patching with patch_type, we need to
+                  # capture the final "patched" type for use by the UI when displaying the source.
+                  # Other uses of :_source require the original pre-patched source.
+                  {
+                    key,
                     attribute
-                  end
-
-                {key, attribute}
+                    |> Map.put(:_source, item_key)
+                    |> Map.put(:_source_patched, String.to_atom(item[:extends]))
+                  }
+                else
+                  {key, Map.put(attribute, :_source, item_key)}
+                end
             end
           )
         end
@@ -968,17 +968,32 @@ defmodule Schema.Cache do
 
   defp patch_type(items, kind) do
     Enum.reduce(items, %{}, fn {key, item}, acc ->
+      # Logger.debug(fn ->
+      #   patching? =
+      #     if patch_extends?(item) do
+      #       "    PATCHING:"
+      #     else
+      #       "not patching:"
+      #     end
+
+      #   "#{patching?} key #{inspect(key)}," <>
+      #     " name #{inspect(item[:name])}, extends #{inspect(item[:extends])}," <>
+      #     " caption #{inspect(item[:caption])}, extension #{inspect(item[:extension])}"
+      # end)
+
       if patch_extends?(item) do
         # This is an extension class or object with the same name its own base class
         # (The name is not prefixed with the extension name, unlike a key / uid.)
 
-        name = patch_name(item)
+        name = item[:extends]
 
         base_key = String.to_atom(name)
 
         Logger.info("#{key} #{kind} is patching #{base_key}")
 
-        case Map.get(items, base_key) do
+        # First check the accumulator in case the same object is extended by multiple extensions,
+        # that way the previous modifications are taken into account
+        case Map.get(acc, base_key, Map.get(items, base_key)) do
           nil ->
             Logger.error("#{key} #{kind} attempted to patch invalid item: #{base_key}")
             System.stop(1)
@@ -1008,14 +1023,30 @@ defmodule Schema.Cache do
     end)
   end
 
-  defp patch_name(item) do
-    item[:name] || item[:extends]
-  end
-
   # Is this item a special patch extends definition as done by patch_type.
   # It is triggered by a class or object that has no name or the name is the same as the extends.
   defp patch_extends?(item) do
-    patch_name(item) == item[:extends]
+    extends = item[:extends]
+
+    if extends do
+      name = item[:name]
+
+      if name do
+        if name == extends do
+          # name and extends are the same
+          true
+        else
+          # true if name matches extends without extension scope ("extension/name" -> "name")
+          # This when an item in one extension patches an item in another.
+          name == Utils.descope(extends)
+        end
+      else
+        # extends with no name
+        true
+      end
+    else
+      false
+    end
   end
 
   defp patch_constraints(base, item) do

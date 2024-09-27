@@ -142,7 +142,7 @@ defmodule SchemaWeb.PageView do
       if observable_object do
         observable_object[:attributes][:type_id][:enum]
       else
-        {nil, nil}
+        nil
       end
 
     cond do
@@ -230,6 +230,13 @@ defmodule SchemaWeb.PageView do
     end
   end
 
+  defp get_hierarchy_source(field) do
+    # In the case of an attribute from a patched class or object, we want to display the final
+    # compiled type, which is in :_source_patched and in this case :_source contains the name of
+    # the pre-patched item.
+    field[:_source_patched] || field[:_source]
+  end
+
   # Build a class or object hierarchy path from item_key to target_parent_item_key.
   # Returns {true, path} when a path is found, and {false, []} otherwise.
   @spec build_hierarchy(atom(), atom(), map(), list()) :: {boolean(), list()}
@@ -259,17 +266,6 @@ defmodule SchemaWeb.PageView do
           [item_key | path_result]
         )
     end
-  end
-
-  defp get_hierarchy_source(field) do
-    # TODO: HACK. This is part of the code compensating for the
-    #       Schema.Cache.patch_type processing. An attribute _source for an
-    #       extension class or object that uses this patch mechanism
-    #       keeps the form "<extension>/<name>" form, which doesn't refer to
-    #       anything after the patch_type processing. This requires a deeper change
-    #       to fix, so here we just keep an extra _source_patched key.
-    # Use "fixed" :_source_patched if available
-    field[:_source_patched] || field[:_source]
   end
 
   defp format_hierarchy(path, all_items, kind) do
