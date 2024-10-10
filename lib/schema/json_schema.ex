@@ -44,12 +44,13 @@ defmodule Schema.JsonSchema do
     else
       class_schema(make_class_ref(name, ext))
     end
-    |> empty_object(properties)
     |> Map.put("title", type[:caption])
     |> Map.put("type", "object")
     |> Map.put("properties", properties)
+    |> Map.put("additionalProperties", false)
     |> put_required(required)
     |> encode_objects(type[:objects])
+    |> empty_object(properties)
   end
 
   defp add_java_class(obj, name) do
@@ -78,7 +79,8 @@ defmodule Schema.JsonSchema do
   defp class_schema(id) do
     %{
       "$schema" => @schema_version,
-      "$id" => id
+      "$id" => id,
+      "additionalProperties" => false
     }
   end
 
@@ -185,7 +187,7 @@ defmodule Schema.JsonSchema do
       true -> type
     end
   end
-  
+
   defp encode_object(schema, _name, attr) do
     type = attr[:object_type]
     Map.put(schema, "$ref", make_object_ref(type))
