@@ -8,7 +8,13 @@
   },
   "attributes": {
     "device": {
-      "requirement": "recommended"
+      "requirement": "recommended",
+      "references": [
+        {
+          "url": "https://example.com/device?profile=host",
+          "description": "Device from host profile on example.com <profile>"
+        }
+      ]
     }
   }
 }

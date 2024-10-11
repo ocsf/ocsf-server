@@ -3,7 +3,7 @@
   "description": "The Attribute Dictionary defines attributes and includes references to the events and objects in which they are used.",
   "name": "dictionary",
   "attributes": {
-    "activity_id": {
+    "activity_id": {    
       "caption": "Activity ID",
       "description": "The normalized identifier of the activity that triggered the event.",
       "enum": {
@@ -17,12 +17,28 @@
         }
       },
       "sibling": "activity_name",
-      "type": "integer_t"
+      "type": "integer_t",
+      "references": [
+        {
+          "url": "https://example.com/activity_id",
+          "description": "Activity ID at example.com <dictionary attribute>"
+        }
+      ]
     },
     "activity_name": {
       "caption": "Activity",
       "description": "The event activity name, as defined by the activity_id.",
-      "type": "string_t"
+      "type": "string_t",
+      "references": [
+        {
+          "url": "https://example.com/activity_name?s=1",
+          "description": "Activity Name (1) at example.com <dictionary attribute>"
+        },
+        {
+          "url": "https://example.com/activity_name?s=2",
+          "description": "Activity Name (2) at example.com <dictionary attribute>"
+        }
+      ]
     },
     "alpha": {
       "caption": "Alpha",
@@ -32,7 +48,8 @@
     "beta": {
       "caption": "Beta",
       "description": "The beta. Whatever that is. This is for testing. Sheesh.",
-      "type": "string_t"
+      "type": "string_t",
+      "source": "Beta is from atomic decay (dictionary attribute)"
     },
     "category_name": {
       "caption": "Category",
@@ -85,7 +102,14 @@
     "device": {
       "caption": "Device",
       "description": "An addressable device, computer system or host.",
-      "type": "device"
+      "type": "device",
+      "source": "Devices are sourced from suppliers.",
+      "references": [
+        {
+          "url": "https://example.com/device",
+          "description": "Device at example.com <dictionary attribute>"
+        }
+      ]
     },
     "entity_thing": {
       "caption": "Entity Thing",
