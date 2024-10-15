@@ -1013,6 +1013,7 @@ defmodule Schema.Cache do
               # Top-level path-based observables.
               # Only occurs in classes, but is safe to do for objects too.
               |> Utils.put_non_nil(:observables, item[:observables])
+              |> Utils.put_non_nil(:references, item[:references])
               |> patch_constraints(item)
 
             Map.put(acc, base_key, patched_base)
@@ -1366,6 +1367,8 @@ defmodule Schema.Cache do
     |> copy_new(from, :object_name)
     |> copy_new(from, :object_type)
     |> copy_new(from, :observable)
+    |> copy_new(from, :source)
+    |> copy_new(from, :references)
   end
 
   defp copy_new(to, from, key) do

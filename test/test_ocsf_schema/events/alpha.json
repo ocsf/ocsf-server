@@ -6,6 +6,12 @@
   "extends": "ghost",
   "uid": 1,
   "profiles": [],
+  "references": [
+    {
+      "url": "https://example.com/alpha",
+      "description": "Alpha at example.com <class>"
+    }
+  ],
   "attributes": {
     "alpha": {
       "requirement": "required",
@@ -13,7 +19,14 @@
     },
     "delta": {
       "requirement": "optional",
-      "observable": 101
+      "observable": 101,
+      "source": "This is from <i>physics!</i> (class attribute)",
+      "references": [
+        {
+          "url": "https://example.com/delta",
+          "description": "Delta at example.com <class attribute>"
+        }
+      ]
     },
     "ob_by_dict_type_1": {
       "requirement": "optional",
