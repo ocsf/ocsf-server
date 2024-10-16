@@ -4,6 +4,12 @@
   "extends": "endpoint",
   "name": "device",
   "observable": 200,
+  "references": [
+    {
+      "url": "https://example.com/device",
+      "description": "Device at example.com <object>"
+    }
+  ],
   "attributes": {
     "desc": {
       "caption": "Description",
@@ -12,7 +18,13 @@
     },
     "hostname": {
       "description": "The device hostname.",
-      "requirement": "recommended"
+      "requirement": "recommended",
+      "references": [
+        {
+          "url": "https://example.com/device_hostname",
+          "description": "Device hostname at example.com <object attribute>"
+        }
+      ]
     },
     "ip": {
       "description": "The device IP address, in either IPv4 or IPv6 format.",

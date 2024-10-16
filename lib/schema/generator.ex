@@ -473,7 +473,7 @@ defmodule Schema.Generator do
   end
 
   defp generate_data(_name, "timestamp_t", _field),
-    do: DateTime.utc_now() |> DateTime.to_unix(:microsecond)
+    do: DateTime.utc_now() |> DateTime.to_unix(:millisecond)
 
   defp generate_data(_name, "datetime_t", _field),
     do: DateTime.utc_now() |> DateTime.to_iso8601()

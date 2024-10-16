@@ -470,11 +470,41 @@ defmodule SchemaWeb.PageView do
 
   @spec format_desc(String.t() | atom(), map()) :: any
   def format_desc(key, obj) do
+    source = obj[:source]
+    references = obj[:references]
+
+    source_html =
+      if source != nil do
+        # source can have embedded markup
+        ["<dt>Source<dd class=\"ml-3\">", source]
+      else
+        ""
+      end
+
+    refs_html =
+      if references != nil and !Enum.empty?(references) do
+        [
+          "<dt>References",
+          Enum.map(references, fn ref -> ["<dd class=\"ml-3\">", reference_anchor(ref)] end)
+        ]
+      else
+        ""
+      end
+
+    if source_html != "" or refs_html != "" do
+      [base_format_desc(key, obj), "<p><hr><dd>", source_html, refs_html, "</dd>"]
+    else
+      base_format_desc(key, obj)
+    end
+  end
+
+  @spec base_format_desc(String.t() | atom(), map()) :: any
+  defp base_format_desc(key, obj) do
     description = description(obj)
 
     case Map.get(obj, :enum) do
       nil ->
-        description
+        [description]
 
       values ->
         sorted =
@@ -1160,6 +1190,18 @@ defmodule SchemaWeb.PageView do
       Map.get(deprecated, :since),
       "</span></div>",
       Map.get(deprecated, :message)
+    ]
+  end
+
+  @spec reference_anchor(map()) :: any()
+  def reference_anchor(reference) do
+    # The url and description attributes of reference are not meant to have markup
+    [
+      "<a target=\"_blank\" href=\"",
+      URI.encode(reference[:url]),
+      "\">",
+      reference[:description] |> Phoenix.HTML.html_escape() |> Phoenix.HTML.safe_to_string(),
+      "</a>"
     ]
   end
 end

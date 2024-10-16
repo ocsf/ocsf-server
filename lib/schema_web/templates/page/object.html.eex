@@ -14,6 +14,8 @@
   show("#json-schema");
 </script>
 
+<% references = @data[:references] %>
+
 <div class="row">
   <div class="col-md move-up">
     <h3 class="extensions">
@@ -45,6 +47,12 @@
       <strong>Note:</strong> a superscript &quot;O&quot; after a caption indicates attribute is an observable,
       for example: <strong>Device <sup>O</sup></strong>.
     </div>
+    <%= if references != nil and !Enum.empty?(references) do %>
+    <dd>
+      <dt>References
+      <%= raw Enum.map(references, fn ref -> ["<dd class=\"ml-3\">", reference_anchor(ref)] end) %>
+    </dd>
+    <% end %>
   </div>
   <div class="col-md-auto fixed-right mt-2">
     <div class="navbar-expand-md">

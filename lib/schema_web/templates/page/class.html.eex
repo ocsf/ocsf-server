@@ -19,6 +19,7 @@ limitations under the License.
 <% category_name = @data[:category_name] %>
 <% extension = @data[:extension] %>
 <% observables = @data[:observables] %>
+<% references = @data[:references] %>
 
 <div class="row">
   <div class="col-md move-up">
@@ -45,6 +46,12 @@ limitations under the License.
       <%= if observables != nil and !Enum.empty?(observables) do %>Class-specific attribute path observables
       are <a href="#observables">at the bottom of this page</a>.<% end %>
     </div>
+    <%= if references != nil and !Enum.empty?(references) do %>
+    <dd>
+      <dt>References
+      <%= raw Enum.map(references, fn ref -> ["<dd class=\"ml-3\">", reference_anchor(ref)] end) %>
+    </dd>
+    <% end %>
   </div>
   <div class="col-md-auto fixed-right mt-2">
     <div class="navbar-expand-md">
