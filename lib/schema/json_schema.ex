@@ -128,10 +128,31 @@ defmodule Schema.JsonSchema do
     defs =
       Enum.into(objects, %{}, fn {name, object} ->
         key = Atom.to_string(name) |> String.replace("/", "_")
-        {key, encode(object)}
+        {key, encode(object) |> put_required_nested(object)}
       end)
 
     Map.put(schema, "$defs", defs)
+  end
+
+  defp put_required_nested(schema, object) do
+    case object[:attributes] do
+      nil ->
+        schema
+
+      attributes ->
+        required =
+          Enum.filter_map(attributes, fn {_, attr} ->
+            attr[:requirement] == "required"
+          end, fn {key, _} ->
+            Atom.to_string(key)
+          end)
+
+        if Enum.empty?(required) do
+          schema
+        else
+          Map.put(schema, "required", Enum.sort(required))
+        end
+    end
   end
 
   defp map_reduce(type_name, attributes) do
