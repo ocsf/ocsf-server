@@ -699,6 +699,8 @@ defmodule Schema.Validator2 do
                         attribute_details
                       )
 
+                    # TODO: Validate enum value deprecated
+
                     {response, index + 1}
                   else
                     attribute_path =
@@ -742,6 +744,8 @@ defmodule Schema.Validator2 do
                 attribute_name,
                 attribute_details
               )
+
+              # TODO: Validate enum value deprecated
             else
               attribute_path = make_attribute_path(parent_attribute_path, attribute_name)
 

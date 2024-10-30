@@ -529,7 +529,22 @@ defmodule SchemaWeb.PageView do
             [],
             fn {id, item}, acc ->
               id = to_string(id)
-              desc = Map.get(item, :description) || ""
+
+              references = item[:references]
+
+              refs_html =
+                if references != nil and !Enum.empty?(references) do
+                  [
+                    "<dd>",
+                    "<dt>References",
+                    Enum.map(references, fn ref ->
+                      ["<dd class=\"ml-3\">", reference_anchor(ref)]
+                    end),
+                    "</dd>"
+                  ]
+                else
+                  ""
+                end
 
               [
                 "<tr class='bg-transparent'><td style='width: 25px' class='text-right' id='",
@@ -541,7 +556,8 @@ defmodule SchemaWeb.PageView do
                 "</code></td><td class='textnowrap'>",
                 Map.get(item, :caption, id),
                 "<div class='text-secondary'>",
-                desc,
+                description(item),
+                refs_html,
                 "</div></td><tr>" | acc
               ]
             end
@@ -1180,12 +1196,12 @@ defmodule SchemaWeb.PageView do
   end
 
   defp deprecated(map, nil) do
-    Map.get(map, :description)
+    Map.get(map, :description) || ""
   end
 
   defp deprecated(map, deprecated) do
     [
-      Map.get(map, :description),
+      Map.get(map, :description) || "",
       "<div class='text-dark mt-2'><span class='bg-warning'>DEPRECATED since v",
       Map.get(deprecated, :since),
       "</span></div>",

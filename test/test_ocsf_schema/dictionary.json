@@ -14,6 +14,24 @@
         "0": {
           "caption": "Unknown",
           "description": "The event activity is unknown."
+        },
+        "-1": {
+          "@deprecated": {
+            "message": "Use 0 (Unknown) instead.",
+            "since": "0.1.0-test"
+          },
+          "caption": "Negative Unknown",
+          "description": "The event activity is not not unknown.",
+          "references": [
+            {
+              "url": "https://en.wikipedia.org/wiki/Double_negative",
+              "description": "Double negative on Wikipedia"
+            },
+            {
+              "url": "https://en.wikipedia.org/wiki/Deprecation",
+              "description": "Deprecation on Wikipedia"
+            }
+          ]
         }
       },
       "sibling": "activity_name",
