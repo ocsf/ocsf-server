@@ -470,32 +470,7 @@ defmodule SchemaWeb.PageView do
 
   @spec format_desc(String.t() | atom(), map()) :: any
   def format_desc(key, obj) do
-    source = obj[:source]
-    references = obj[:references]
-
-    source_html =
-      if source != nil do
-        # source can have embedded markup
-        ["<dt>Source<dd class=\"ml-3\">", source]
-      else
-        ""
-      end
-
-    refs_html =
-      if references != nil and !Enum.empty?(references) do
-        [
-          "<dt>References",
-          Enum.map(references, fn ref -> ["<dd class=\"ml-3\">", reference_anchor(ref)] end)
-        ]
-      else
-        ""
-      end
-
-    if source_html != "" or refs_html != "" do
-      [base_format_desc(key, obj), "<p><hr><dd>", source_html, refs_html, "</dd>"]
-    else
-      base_format_desc(key, obj)
-    end
+    append_source_references(base_format_desc(key, obj), "<p><hr>", obj)
   end
 
   @spec base_format_desc(String.t() | atom(), map()) :: any
@@ -530,22 +505,6 @@ defmodule SchemaWeb.PageView do
             fn {id, item}, acc ->
               id = to_string(id)
 
-              references = item[:references]
-
-              refs_html =
-                if references != nil and !Enum.empty?(references) do
-                  [
-                    "<dd>",
-                    "<dt>References",
-                    Enum.map(references, fn ref ->
-                      ["<dd class=\"ml-3\">", reference_anchor(ref)]
-                    end),
-                    "</dd>"
-                  ]
-                else
-                  ""
-                end
-
               [
                 "<tr class='bg-transparent'><td style='width: 25px' class='text-right' id='",
                 to_string(key),
@@ -556,14 +515,48 @@ defmodule SchemaWeb.PageView do
                 "</code></td><td class='textnowrap'>",
                 Map.get(item, :caption, id),
                 "<div class='text-secondary'>",
-                description(item),
-                refs_html,
+                append_source_references(description(item), item),
                 "</div></td><tr>" | acc
               ]
             end
           ),
           "</tbody></table>"
         ]
+    end
+  end
+
+  @spec append_source_references(any(), map()) :: any()
+  defp append_source_references(html, obj) do
+    append_source_references(html, "", obj)
+  end
+
+  @spec append_source_references(any(), any(), map()) :: any()
+  defp append_source_references(html, prefix_html, obj) do
+    source = obj[:source]
+    references = obj[:references]
+
+    source_html =
+      if source != nil do
+        # source can have embedded markup
+        ["<dt>Source<dd class=\"ml-3\">", source]
+      else
+        ""
+      end
+
+    refs_html =
+      if references != nil and !Enum.empty?(references) do
+        [
+          "<dt>References",
+          Enum.map(references, fn ref -> ["<dd class=\"ml-3\">", reference_anchor(ref)] end)
+        ]
+      else
+        ""
+      end
+
+    if source_html != "" or refs_html != "" do
+      [html, prefix_html, "<dd>", source_html, refs_html, "</dd>"]
+    else
+      html
     end
   end
 

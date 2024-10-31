@@ -81,7 +81,8 @@
         },
         "13": {
           "caption": "Bogus",
-          "description": "A botched thing.",
+          "description": "Like, it's no good.",
+          "source": "E_BOTCHED from RickNix",
           "references": [{"url": "https://example.com/bogus", "description": "Bogus on example.com"}]
         }
       },
