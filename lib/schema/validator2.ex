@@ -686,11 +686,19 @@ defmodule Schema.Validator2 do
                   value_atom = String.to_atom(value_str)
 
                   if Map.has_key?(attribute_details[:enum], value_atom) do
-                    # The enum array value is good - check sibling
+                    # The enum array value is good - check sibling and deprecation
                     response =
-                      validate_enum_array_sibling(
-                        response,
+                      response
+                      |> validate_enum_array_sibling(
                         event_item,
+                        parent_attribute_path,
+                        index,
+                        value,
+                        value_atom,
+                        attribute_name,
+                        attribute_details
+                      )
+                      |> validate_enum_array_value_deprecated(
                         parent_attribute_path,
                         index,
                         value,
@@ -709,7 +717,7 @@ defmodule Schema.Validator2 do
                       add_error(
                         response,
                         "attribute_enum_array_value_unknown",
-                        "Unknown enum array value at \"#{attribute_path}\"; array value" <>
+                        "Unknown enum array value at \"#{attribute_path}\"; value" <>
                           " #{inspect(value)} is not defined for enum \"#{attribute_name}\".",
                         %{
                           attribute_path: attribute_path,
@@ -732,10 +740,17 @@ defmodule Schema.Validator2 do
             value_atom = String.to_atom(value_str)
 
             if Map.has_key?(attribute_details[:enum], value_atom) do
-              # The enum value is good - check sibling
-              validate_enum_sibling(
-                response,
+              # The enum value is good - check sibling and deprecation
+              response
+              |> validate_enum_sibling(
                 event_item,
+                parent_attribute_path,
+                value,
+                value_atom,
+                attribute_name,
+                attribute_details
+              )
+              |> validate_enum_value_deprecated(
                 parent_attribute_path,
                 value,
                 value_atom,
@@ -909,6 +924,85 @@ defmodule Schema.Validator2 do
         # Sibling not present, which is OK
         response
       end
+    end
+  end
+
+  @spec validate_enum_value_deprecated(
+          map(),
+          nil | String.t(),
+          any(),
+          atom(),
+          String.t(),
+          map()
+        ) :: map()
+  defp validate_enum_value_deprecated(
+         response,
+         parent_attribute_path,
+         event_enum_value,
+         event_enum_value_atom,
+         attribute_name,
+         attribute_details
+       ) do
+    if Map.has_key?(attribute_details[:enum][event_enum_value_atom], :"@deprecated") do
+      attribute_path = make_attribute_path(parent_attribute_path, attribute_name)
+      deprecated = attribute_details[:enum][event_enum_value_atom][:"@deprecated"]
+
+      add_warning(
+        response,
+        "attribute_enum_value_deprecated",
+        "Deprecated enum value at \"#{attribute_path}\";" <>
+          " value #{inspect(event_enum_value)} is deprecated. #{deprecated[:message]}",
+        %{
+          attribute_path: attribute_path,
+          attribute: attribute_name,
+          value: event_enum_value,
+          since: deprecated[:since]
+        }
+      )
+    else
+      response
+    end
+  end
+
+  @spec validate_enum_array_value_deprecated(
+          map(),
+          nil | String.t(),
+          integer(),
+          any(),
+          atom(),
+          String.t(),
+          map()
+        ) :: map()
+  defp validate_enum_array_value_deprecated(
+         response,
+         parent_attribute_path,
+         index,
+         event_enum_value,
+         event_enum_value_atom,
+         attribute_name,
+         attribute_details
+       ) do
+    if Map.has_key?(attribute_details[:enum][event_enum_value_atom], :"@deprecated") do
+      attribute_path =
+        make_attribute_path(parent_attribute_path, attribute_name)
+        |> make_attribute_path_array_element(index)
+
+      deprecated = attribute_details[:enum][event_enum_value_atom][:"@deprecated"]
+
+      add_warning(
+        response,
+        "attribute_enum_array_value_deprecated",
+        "Deprecated enum array value at \"#{attribute_path}\";" <>
+          " value #{inspect(event_enum_value)} is deprecated. #{deprecated[:message]}",
+        %{
+          attribute_path: attribute_path,
+          attribute: attribute_name,
+          value: event_enum_value,
+          since: deprecated[:since]
+        }
+      )
+    else
+      response
     end
   end
 
@@ -1800,7 +1894,7 @@ defmodule Schema.Validator2 do
     add_warning(
       response,
       "class_deprecated",
-      "Class \"#{class[:name]}\" uid #{class[:uid]}, is deprecated. #{deprecated[:message]}",
+      "Class \"#{class[:name]}\" uid #{class[:uid]} is deprecated. #{deprecated[:message]}",
       %{class_uid: class[:uid], class_name: class[:name], since: deprecated[:since]}
     )
   end

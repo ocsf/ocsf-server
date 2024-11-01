@@ -14,6 +14,24 @@
         "0": {
           "caption": "Unknown",
           "description": "The event activity is unknown."
+        },
+        "-1": {
+          "@deprecated": {
+            "message": "Use 0 (Unknown) instead.",
+            "since": "0.1.0-test"
+          },
+          "caption": "Negative Unknown",
+          "description": "The event activity is not not unknown.",
+          "references": [
+            {
+              "url": "https://en.wikipedia.org/wiki/Double_negative",
+              "description": "Double negative on Wikipedia"
+            },
+            {
+              "url": "https://en.wikipedia.org/wiki/Deprecation",
+              "description": "Deprecation on Wikipedia"
+            }
+          ]
         }
       },
       "sibling": "activity_name",
@@ -50,6 +68,11 @@
       "description": "The beta. Whatever that is. This is for testing. Sheesh.",
       "type": "string_t",
       "source": "Beta is from atomic decay (dictionary attribute)"
+    },
+    "car_number": {
+      "caption": "Car Number",
+      "description": "The car's number.",
+      "type": "integer_t"
     },
     "category_name": {
       "caption": "Category",
@@ -116,10 +139,28 @@
       "description": "An entity's thingy. (From base dictionary attribute.)",
       "type": "entity_thing_t"
     },
-    "gamma": {
-      "caption": "Gammas",
-      "description": "A gamma is a gamma, which is a gamma, and so on.",
-      "type": "integer_t"
+    "flag_ids": {
+      "caption": "Flag IDs",
+      "description": "The list of normalized flag IDs. See specific usage.",
+      "sibling": "flags",
+      "type": "integer_t",
+      "enum": {
+        "0": {
+          "caption": "Unknown",
+          "description": "The flag is unknown."
+        },
+        "99": {
+          "caption": "Other",
+          "description": "The flag is not mapped. See the <code>flags</code> attribute, which contains a data source specific value."
+        }
+      },
+      "is_array": true
+    },
+    "flags": {
+      "caption": "Flags",
+      "description": "The list of flags, normalized to the captions of the flag_ids values. In the case of 'Other', they are defined by the event source.",
+      "type": "string_t",
+      "is_array": true
     },
     "gammas": {
       "caption": "Gammas",
