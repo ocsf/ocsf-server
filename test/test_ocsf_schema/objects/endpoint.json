@@ -69,6 +69,21 @@
         "11": {
           "caption": "Hub",
           "description": "A <a target='_blank' href='https://en.wikipedia.org/wiki/Ethernet_hub'>networking hub</a>."
+        },
+        "12": {
+          "caption": "Bogart",
+          "description": "A botched thing.",
+          "references": [{"url": "https://example.com/bogart", "description": "Bogart on example.com"}],
+          "@deprecated": {
+            "message": "Use 13 (Bogus) instead.",
+            "since": "0.1.0-test"
+          }
+        },
+        "13": {
+          "caption": "Bogus",
+          "description": "Like, it's no good.",
+          "source": "E_BOTCHED from RickNix",
+          "references": [{"url": "https://example.com/bogus", "description": "Bogus on example.com"}]
         }
       },
       "requirement": "recommended",
