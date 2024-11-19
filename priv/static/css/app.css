@@ -3,10 +3,6 @@
 body {
   font-family: 'Bai Jamjuree', sans-serif;
   font-size: .8rem;
-
-/*
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' height='200px' width='200px'><text transform='translate(32, 200) rotate(-45)' fill='rgb(240, 240, 240)' font-size='120'>draft</text></svg>");
-*/
 }
 
 .navbar-toggler-icon {
@@ -16,11 +12,6 @@ body {
 
 @media only screen and (max-width: 768px) {
   .navbar-text {
-    display: none;
-    visibility: hidden;
-  }
-
-  .github-ribbon {
     display: none;
     visibility: hidden;
   }
@@ -134,32 +125,6 @@ body {
     border: 0;
     border-top: 4px solid rgba(0, 0, 0, 0.5);
   }
-
-  .github-ribbon {
-    position: fixed;
-    width: 150px;
-    height: 150px;
-    overflow: hidden;
-    z-index: 1;
-    right: 0px;
-    bottom: 0px;
-  }
-  .github-ribbon a {
-    display: inline-block;
-    width: 200px;
-    overflow: hidden;
-    padding: 6px 0px;
-    text-align: center;
-    transform: rotate(-45deg);
-    text-decoration: none;
-    color: rgb(255, 255, 255);
-    position: inherit;
-    box-shadow: rgba(0, 0, 0, 0.5) 0px 2px 3px 0px;
-    background-color: rgb(160, 0, 0);
-    right: -40px;
-    background-image: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.5));
-    bottom: 60px;
-  }
 }
 
 hr {
@@ -216,11 +181,11 @@ strong {
 }
 
 a {
-  color: #5959a6;
+  color: rgb(89, 89, 166);
 }
 
 a:hover, a:focus, a:active {
-  color: #1c73e3;
+  color: rgb(28, 115, 227);
 }
 
 #profiles {
@@ -244,14 +209,19 @@ li {
   z-index: 2;
   position: fixed;
   bottom: 0;
-  width: 100%;
-  padding-top: 3px;
-  padding-bottom: 3px;
+  padding: 3px;
   font-size: .7rem;
-  text-align: center;
   color: rgb(0, 0, 72);
   background-color: lightgray;
   background-image: linear-gradient(snow, gray);
+}
+
+.footer a {
+  color: rgb(40, 40, 166);
+}
+
+.footer a:hover, a:focus, a:active {
+  color: rgba(30, 50, 227);
 }
 
 .active {
