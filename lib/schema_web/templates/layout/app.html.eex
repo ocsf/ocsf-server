@@ -205,7 +205,7 @@ limitations under the License.
             <a class="nav-link" target="_blank" href="https://github.com/ocsf/ocsf-docs/blob/main/Understanding%20OCSF.pdf">Understanding OCSF</a>
             <a class="nav-link" target="_blank" href="https://github.com/ocsf/examples/tree/main">Example Mappings</a>
             <a class="nav-link" target="_blank" href="https://github.com/ocsf/ocsf-schema/blob/main/CONTRIBUTING.md">Contributing to OCSF</a>
-            <a class="nav-link" target="_blank" href="https://github.com/ocsf/ocsf-schema">Fork me on GitHub</a>
+            <a class="nav-link" target="_blank" href="https://github.com/ocsf/ocsf-schema">Fork Me on GitHub</a>
             <a class="nav-link" href='<%= Routes.static_path(@conn, "/data_types") %>'>OCSF Data Types</a>
             <a class="nav-link" target="_blank" href='<%= Routes.static_path(@conn, "/doc") %>'>API Documentation</a>
           </div>
