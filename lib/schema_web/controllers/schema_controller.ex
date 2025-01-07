@@ -1008,27 +1008,28 @@ defmodule SchemaWeb.SchemaController do
   end
 
   @spec enrich(Plug.Conn.t(), map) :: Plug.Conn.t()
-  def enrich(conn, data) do
-    {enum_text, data} = Map.pop(data, @enum_text)
-    {observables, data} = Map.pop(data, @observables)
+  def enrich(conn, params) do
+    enum_text = conn.query_params[@enum_text]
+    observables = conn.query_params[@observables]
 
-    result =
-      case data["_json"] do
-        # Enrich a single events
-        nil ->
-          Schema.enrich(data, enum_text, observables)
+    {status, result} =
+      case params["_json"] do
+        # Enrich a single event
+        event when is_map(event) ->
+          {200, Schema.enrich(event, enum_text, observables)}
 
         # Enrich a list of events
         list when is_list(list) ->
-          Enum.map(list, &Task.async(fn -> Schema.enrich(&1, enum_text, observables) end))
-          |> Enum.map(&Task.await/1)
+          {200,
+           Enum.map(list, &Task.async(fn -> Schema.enrich(&1, enum_text, observables) end))
+           |> Enum.map(&Task.await/1)}
 
         # something other than json data
-        other ->
-          %{:error => "The data does not look like an event", :data => other}
+        _ ->
+          {400, %{error: "Unexpected body. Expected a JSON object or array."}}
       end
 
-    send_json_resp(conn, result)
+    send_json_resp(conn, status, result)
   end
 
   @doc """
@@ -1091,27 +1092,25 @@ defmodule SchemaWeb.SchemaController do
   end
 
   @spec translate(Plug.Conn.t(), map) :: Plug.Conn.t()
-  def translate(conn, data) do
-    options = [spaces: data[@spaces], verbose: verbose(data[@verbose])]
+  def translate(conn, params) do
+    options = [spaces: conn.query_params[@spaces], verbose: verbose(conn.query_params[@verbose])]
 
-    result =
-      case data["_json"] do
+    {status, result} =
+      case params["_json"] do
         # Translate a single events
-        nil ->
-          Map.delete(data, @verbose)
-          |> Map.delete(@spaces)
-          |> Schema.Translator.translate(options)
+        event when is_map(event) ->
+          {200, Schema.Translator.translate(event, options)}
 
         # Translate a list of events
         list when is_list(list) ->
-          Enum.map(list, fn data -> Schema.Translator.translate(data, options) end)
+          {200, Enum.map(list, fn event -> Schema.Translator.translate(event, options) end)}
 
         # some other json data
-        other ->
-          %{:error => "The data does not look like an event", "data" => other}
+        _ ->
+          {400, %{error: "Unexpected body. Expected a JSON object or array."}}
       end
 
-    send_json_resp(conn, result)
+    send_json_resp(conn, status, result)
   end
 
   @doc """
@@ -1143,24 +1142,25 @@ defmodule SchemaWeb.SchemaController do
   end
 
   @spec validate(Plug.Conn.t(), map) :: Plug.Conn.t()
-  def validate(conn, data) do
-    result =
-      case data["_json"] do
+  def validate(conn, params) do
+    {status, result} =
+      case params["_json"] do
         # Validate a single events
-        nil ->
-          Schema.Validator.validate(data)
+        event when is_map(event) ->
+          {200, Schema.Validator.validate(event)}
 
         # Validate a list of events
         list when is_list(list) ->
-          Enum.map(list, &Task.async(fn -> Schema.Validator.validate(&1) end))
-          |> Enum.map(&Task.await/1)
+          {200,
+           Enum.map(list, &Task.async(fn -> Schema.Validator.validate(&1) end))
+           |> Enum.map(&Task.await/1)}
 
         # some other json data
-        other ->
-          %{:error => "The data does not look like an event", "data" => other}
+        _ ->
+          {400, %{error: "Unexpected body. Expected a JSON object or array."}}
       end
 
-    send_json_resp(conn, result)
+    send_json_resp(conn, status, result)
   end
 
   @doc """
@@ -1180,30 +1180,42 @@ defmodule SchemaWeb.SchemaController do
     tag("Tools")
 
     parameters do
+      missing_recommended(
+        :query,
+        :boolean,
+        """
+        When true, warnings are created for missing recommended attributes, otherwise recommended attributes are treated the same as optional.
+        """,
+        default: false
+      )
+
       data(:body, PhoenixSwagger.Schema.ref(:Event), "The event to be validated", required: true)
     end
 
     response(200, "Success", PhoenixSwagger.Schema.ref(:EventValidation))
   end
 
-  @spec validate2(Plug.Conn.t(), map) :: Plug.Conn.t()
-  def validate2(conn, data) do
-    # Phoenix's Plug.Parsers.JSON puts JSON that isn't a map into a _json key
-    # (for its own technical reasons). See:
-    # https://hexdocs.pm/plug/Plug.Parsers.JSON.html
-    # https://stackoverflow.com/questions/74931653/phoenix-wraps-json-request-in-a-map-with-json-key
-    {status, result} =
-      case data["_json"] do
-        nil ->
-          # This means we have a map, so validate a single event
-          {200, Schema.Validator2.validate(data)}
-
-        # some other json data
-        _ ->
-          {400, %{error: "Unexpected JSON. Expected a JSON object."}}
+  @spec validate2(Plug.Conn.t(), map()) :: Plug.Conn.t()
+  def validate2(conn, params) do
+    warn_on_missing_recommended =
+      case conn.query_params["missing_recommended"] do
+        "true" -> true
+        _ -> false
       end
 
+    # We've configured Plug.Parsers / Plug.Parsers.JSON to always nest JSON in the _json key in
+    # endpoint.ex.
+    {status, result} = validate2_actual(params["_json"], warn_on_missing_recommended)
+
     send_json_resp(conn, status, result)
+  end
+
+  defp validate2_actual(event, warn_on_missing_recommended) when is_map(event) do
+    {200, Schema.Validator2.validate(event, warn_on_missing_recommended)}
+  end
+
+  defp validate2_actual(_, _) do
+    {400, %{error: "Unexpected body. Expected a JSON object."}}
   end
 
   @doc """
@@ -1223,6 +1235,15 @@ defmodule SchemaWeb.SchemaController do
     tag("Tools")
 
     parameters do
+      missing_recommended(
+        :query,
+        :boolean,
+        """
+        When true, warnings are created for missing recommended attributes, otherwise recommended attributes are treated the same as optional.
+        """,
+        default: false
+      )
+
       data(:body, PhoenixSwagger.Schema.ref(:EventBundle), "The event bundle to be validated",
         required: true
       )
@@ -1232,23 +1253,26 @@ defmodule SchemaWeb.SchemaController do
   end
 
   @spec validate2_bundle(Plug.Conn.t(), map) :: Plug.Conn.t()
-  def validate2_bundle(conn, data) do
-    # Phoenix's Plug.Parsers.JSON puts JSON that isn't a map into a _json key
-    # (for its own technical reasons). See:
-    # https://hexdocs.pm/plug/Plug.Parsers.JSON.html
-    # https://stackoverflow.com/questions/74931653/phoenix-wraps-json-request-in-a-map-with-json-key
-    {status, result} =
-      case data["_json"] do
-        nil ->
-          # This means we have a map, so validate a single event
-          {200, Schema.Validator2.validate_bundle(data)}
-
-        # some other json data
-        _ ->
-          {400, %{error: "Unexpected JSON. Expected a JSON object."}}
+  def validate2_bundle(conn, params) do
+    warn_on_missing_recommended =
+      case conn.query_params["missing_recommended"] do
+        "true" -> true
+        _ -> false
       end
 
+    # We've configured Plug.Parsers / Plug.Parsers.JSON to always nest JSON in the _json key in
+    # endpoint.ex.
+    {status, result} = validate2_bundle_actual(params["_json"], warn_on_missing_recommended)
+
     send_json_resp(conn, status, result)
+  end
+
+  defp validate2_bundle_actual(bundle, warn_on_missing_recommended) when is_map(bundle) do
+    {200, Schema.Validator2.validate_bundle(bundle, warn_on_missing_recommended)}
+  end
+
+  defp validate2_bundle_actual(_, _) do
+    {400, %{error: "Unexpected body. Expected a JSON object."}}
   end
 
   # --------------------------
