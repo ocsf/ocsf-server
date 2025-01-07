@@ -38,7 +38,7 @@ defmodule Schema.MixProject do
   def application do
     [
       mod: {Schema.Application, []},
-      extra_applications: [:logger, :crypto, :runtime_tools, :earmark, :html_entities]
+      extra_applications: [:logger, :crypto, :runtime_tools]
     ]
   end
 
@@ -61,7 +61,7 @@ defmodule Schema.MixProject do
       {:elixir_uuid, "~> 1.6", hex: :uuid_utils},
       {:phoenix_swagger, "~> 0.8"},
       {:ex_json_schema, "~> 0.7"},
-      {:phoenix_markdown, "~> 1.0"},
+      # {:phoenix_markdown, "~> 1.0"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false}
     ]
