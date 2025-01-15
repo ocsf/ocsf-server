@@ -38,7 +38,8 @@ defmodule SchemaWeb.Endpoint do
   plug Plug.Parsers,
     parsers: [:urlencoded, :multipart, :json],
     pass: ["*/*"],
-    json_decoder: Phoenix.json_library()
+    json_decoder: Phoenix.json_library(),
+    nest_all_json: true
 
   plug Plug.MethodOverride
   plug Plug.Head

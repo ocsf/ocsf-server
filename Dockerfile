@@ -1,4 +1,4 @@
-ARG elixir_image=elixir:1.17.3-alpine
+ARG elixir_image=elixir:1.18.1-alpine
 
 FROM ${elixir_image} AS builder
 

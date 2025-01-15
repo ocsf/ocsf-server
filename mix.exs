@@ -10,7 +10,7 @@
 defmodule Schema.MixProject do
   use Mix.Project
 
-  @version "2.76.1"
+  @version "2.77.0"
 
   def project do
     build = System.get_env("GITHUB_RUN_NUMBER") || "SNAPSHOT"
@@ -38,7 +38,7 @@ defmodule Schema.MixProject do
   def application do
     [
       mod: {Schema.Application, []},
-      extra_applications: [:logger, :crypto, :runtime_tools, :earmark, :html_entities]
+      extra_applications: [:logger, :crypto, :runtime_tools]
     ]
   end
 
@@ -54,14 +54,13 @@ defmodule Schema.MixProject do
       {:phoenix, "~> 1.7.0"},
       {:phoenix_view, "~> 2.0"},
       {:phoenix_html, "~> 4.0"},
-      {:phoenix_live_reload, "~> 1.4", only: :dev},
+      {:phoenix_live_reload, "~> 1.5", only: :dev},
       {:jason, "~> 1.4"},
       {:plug_cowboy, "~> 2.7"},
       {:number, "~> 1.0"},
       {:elixir_uuid, "~> 1.6", hex: :uuid_utils},
       {:phoenix_swagger, "~> 0.8"},
       {:ex_json_schema, "~> 0.7"},
-      {:phoenix_markdown, "~> 1.0"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false}
     ]

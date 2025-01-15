@@ -20,17 +20,6 @@ config :logger, :console,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
-# Add Markdown Template Engine for Phoenix
-config :phoenix, :template_engines, md: PhoenixMarkdown.Engine
-config :phoenix_markdown, :server_tags, :all
-
-config :phoenix_markdown, :earmark, %{
-  gfm: true,
-  breaks: true,
-  compact_output: false,
-  smartypants: false
-}
-
 config :schema_server, :phoenix_swagger,
   swagger_files: %{
     "priv/static/swagger.json" => [

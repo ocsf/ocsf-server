@@ -19,11 +19,13 @@ defmodule Schema.Validator2 do
 
   require Logger
 
-  @spec validate(map()) :: map()
-  def validate(data) when is_map(data), do: validate_event(data, Schema.dictionary())
+  @spec validate(map(), boolean()) :: map()
+  def validate(data, warn_on_missing_recommended) when is_map(data) do
+    validate_event(data, warn_on_missing_recommended, Schema.dictionary())
+  end
 
-  @spec validate_bundle(map()) :: map()
-  def validate_bundle(bundle) when is_map(bundle) do
+  @spec validate_bundle(map(), boolean()) :: map()
+  def validate_bundle(bundle, warn_on_missing_recommended) when is_map(bundle) do
     bundle_structure = get_bundle_structure()
 
     # First validate the bundle itself
@@ -58,7 +60,9 @@ defmodule Schema.Validator2 do
     # TODO: validate the bundle times and count against events
 
     # Next validate the events in the bundle
-    response = validate_bundle_events(response, bundle, Schema.dictionary())
+    response =
+      validate_bundle_events(response, bundle, warn_on_missing_recommended, Schema.dictionary())
+
     finalize_response(response)
   end
 
@@ -99,8 +103,8 @@ defmodule Schema.Validator2 do
     end
   end
 
-  @spec validate_bundle_events(map(), map(), map()) :: map()
-  defp validate_bundle_events(response, bundle, dictionary) do
+  @spec validate_bundle_events(map(), map(), boolean(), map()) :: map()
+  defp validate_bundle_events(response, bundle, warn_on_missing_recommended, dictionary) do
     events = bundle["events"]
 
     if is_list(events) do
@@ -111,7 +115,7 @@ defmodule Schema.Validator2 do
           events,
           fn event ->
             if is_map(event) do
-              validate_event(event, dictionary)
+              validate_event(event, warn_on_missing_recommended, dictionary)
             else
               {type, type_extra} = type_of(event)
 
@@ -129,8 +133,8 @@ defmodule Schema.Validator2 do
     end
   end
 
-  @spec validate_event(map(), map()) :: map()
-  defp validate_event(event, dictionary) do
+  @spec validate_event(map(), boolean(), map()) :: map()
+  defp validate_event(event, warn_on_missing_recommended, dictionary) do
     response = new_response(event)
 
     {response, class} = validate_class_uid_and_return_class(response, event)
@@ -138,7 +142,15 @@ defmodule Schema.Validator2 do
     response =
       if class do
         {response, profiles} = validate_and_return_profiles(response, event)
-        validate_event_against_class(response, event, class, profiles, dictionary)
+
+        validate_event_against_class(
+          response,
+          event,
+          class,
+          profiles,
+          warn_on_missing_recommended,
+          dictionary
+        )
       else
         # Can't continue if we can't find the class
         response
@@ -183,12 +195,6 @@ defmodule Schema.Validator2 do
     end
   end
 
-  # This _must_ return no profiles as an empty list,
-  # otherwise Schema.Utils.apply_profiles will return the wrong result (grrr).
-  # This is because the API profile parameter acts as follows:
-  #   * Missing parameter means "include all profiles".
-  #   * Parameter with list of profiles, including no profiles (empty list) means include only
-  #     these specific profiles.
   @spec validate_and_return_profiles(map(), map()) :: {map(), list(String.t())}
   defp validate_and_return_profiles(response, event) do
     metadata = event["metadata"]
@@ -230,24 +236,52 @@ defmodule Schema.Validator2 do
           {response, profiles}
 
         profiles == nil ->
-          # profiles are missing or null, so return []
-          {response, []}
+          # profiles are missing or null, so return nil
+          {response, nil}
 
         true ->
-          # profiles are the wrong type, this will be caught later, so for now just return []
-          {response, []}
+          # profiles are the wrong type, this will be caught later, so for now just return nil
+          {response, nil}
       end
     else
-      # metadata is missing or not a map (this will become an error), so return []
-      {response, []}
+      # metadata is missing or not a map (this will become an error), so return nil
+      {response, nil}
     end
   end
 
-  @spec validate_event_against_class(map(), map(), map(), list(String.t()), map()) :: map()
-  defp validate_event_against_class(response, event, class, profiles, dictionary) do
+  # This is similar to Schema.Utils.apply_profiles however this gives a result appropriate for
+  # validation rather than for display in the web UI. Specifically, the Schema.Utils variation
+  # returns _all_ attributes when the profiles parameter is nil, whereas for an event we want to
+  # _always_ filter profile-specific attributes.
+  @spec filter_with_profiles(Enum.t(), nil | list()) :: list()
+  def filter_with_profiles(attributes, nil) do
+    filter_with_profiles(attributes, [])
+  end
+
+  def filter_with_profiles(attributes, profiles) when is_list(profiles) do
+    profile_set = MapSet.new(profiles)
+
+    Enum.filter(attributes, fn {_k, v} ->
+      case v[:profile] do
+        nil -> true
+        profile -> MapSet.member?(profile_set, profile)
+      end
+    end)
+  end
+
+  @spec validate_event_against_class(map(), map(), map(), list(String.t()), boolean(), map()) ::
+          map()
+  defp validate_event_against_class(
+         response,
+         event,
+         class,
+         profiles,
+         warn_on_missing_recommended,
+         dictionary
+       ) do
     response
     |> validate_class_deprecated(class)
-    |> validate_attributes(event, nil, class, profiles, dictionary)
+    |> validate_attributes(event, nil, class, profiles, warn_on_missing_recommended, dictionary)
     |> validate_version(event)
     |> validate_type_uid(event)
     |> validate_constraints(event, class)
@@ -496,7 +530,7 @@ defmodule Schema.Validator2 do
 
   @spec get_referenced_definition(list(String.t()), map(), list(String.t())) :: any()
   defp get_referenced_definition([key | remaining_keys], schema_item, profiles) do
-    schema_attributes = Schema.Utils.apply_profiles(schema_item[:attributes], profiles)
+    schema_attributes = filter_with_profiles(schema_item[:attributes], profiles)
     key_atom = String.to_atom(key)
 
     attribute = Enum.find(schema_attributes, fn {a_name, _} -> key_atom == a_name end)
@@ -527,6 +561,7 @@ defmodule Schema.Validator2 do
           nil | String.t(),
           map(),
           list(String.t()),
+          boolean(),
           map()
         ) :: map()
   defp validate_attributes(
@@ -535,9 +570,10 @@ defmodule Schema.Validator2 do
          parent_attribute_path,
          schema_item,
          profiles,
+         warn_on_missing_recommended,
          dictionary
        ) do
-    schema_attributes = Schema.Utils.apply_profiles(schema_item[:attributes], profiles)
+    schema_attributes = filter_with_profiles(schema_item[:attributes], profiles)
 
     response
     |> validate_attributes_types(
@@ -545,6 +581,7 @@ defmodule Schema.Validator2 do
       parent_attribute_path,
       schema_attributes,
       profiles,
+      warn_on_missing_recommended,
       dictionary
     )
     |> validate_attributes_unknown_keys(
@@ -564,6 +601,7 @@ defmodule Schema.Validator2 do
           nil | String.t(),
           list(tuple()),
           list(String.t()),
+          boolean(),
           map()
         ) :: map()
   defp validate_attributes_types(
@@ -572,6 +610,7 @@ defmodule Schema.Validator2 do
          parent_attribute_path,
          schema_attributes,
          profiles,
+         warn_on_missing_recommended,
          dictionary
        ) do
     Enum.reduce(
@@ -589,6 +628,7 @@ defmodule Schema.Validator2 do
           attribute_name,
           attribute_details,
           profiles,
+          warn_on_missing_recommended,
           dictionary
         )
       end
@@ -1013,6 +1053,7 @@ defmodule Schema.Validator2 do
           String.t(),
           map(),
           list(String.t()),
+          boolean(),
           map()
         ) :: map()
   defp validate_attribute(
@@ -1022,10 +1063,17 @@ defmodule Schema.Validator2 do
          attribute_name,
          attribute_details,
          profiles,
+         warn_on_missing_recommended,
          dictionary
        ) do
     if value == nil do
-      validate_requirement(response, attribute_path, attribute_name, attribute_details)
+      validate_requirement(
+        response,
+        attribute_path,
+        attribute_name,
+        attribute_details,
+        warn_on_missing_recommended
+      )
     else
       response =
         validate_attribute_deprecated(
@@ -1048,6 +1096,7 @@ defmodule Schema.Validator2 do
             attribute_name,
             attribute_details,
             profiles,
+            warn_on_missing_recommended,
             dictionary
           )
         else
@@ -1058,6 +1107,7 @@ defmodule Schema.Validator2 do
             attribute_name,
             attribute_details,
             profiles,
+            warn_on_missing_recommended,
             dictionary
           )
         end
@@ -1085,13 +1135,23 @@ defmodule Schema.Validator2 do
     end
   end
 
-  defp validate_requirement(response, attribute_path, attribute_name, attribute_details) do
+  defp validate_requirement(
+         response,
+         attribute_path,
+         attribute_name,
+         attribute_details,
+         warn_on_missing_recommended
+       ) do
     case attribute_details[:requirement] do
       "required" ->
         add_error_required_attribute_missing(response, attribute_path, attribute_name)
 
       "recommended" ->
-        add_warning_recommended_attribute_missing(response, attribute_path, attribute_name)
+        if warn_on_missing_recommended do
+          add_warning_recommended_attribute_missing(response, attribute_path, attribute_name)
+        else
+          response
+        end
 
       _ ->
         response
@@ -1099,8 +1159,16 @@ defmodule Schema.Validator2 do
   end
 
   # validate an attribute whose value should be an array (is_array: true)
-  @spec validate_array(map(), any(), String.t(), String.t(), map(), list(String.t()), map()) ::
+  @spec validate_array(
+          map(),
+          any(),
+          String.t(),
+          String.t(),
+          map(),
+          list(String.t()),
+          boolean(),
           map()
+        ) :: map()
   defp validate_array(
          response,
          value,
@@ -1108,6 +1176,7 @@ defmodule Schema.Validator2 do
          attribute_name,
          attribute_details,
          profiles,
+         warn_on_missing_recommended,
          dictionary
        ) do
     if is_list(value) do
@@ -1124,6 +1193,7 @@ defmodule Schema.Validator2 do
                 attribute_name,
                 attribute_details,
                 profiles,
+                warn_on_missing_recommended,
                 dictionary
               ),
               index + 1
@@ -1151,6 +1221,7 @@ defmodule Schema.Validator2 do
           String.t(),
           map(),
           list(String.t()),
+          boolean(),
           map()
         ) :: map()
   defp validate_value(
@@ -1160,6 +1231,7 @@ defmodule Schema.Validator2 do
          attribute_name,
          attribute_details,
          profiles,
+         warn_on_missing_recommended,
          dictionary
        ) do
     attribute_type = attribute_details[:type]
@@ -1179,6 +1251,7 @@ defmodule Schema.Validator2 do
           attribute_name,
           Schema.object(object_type),
           profiles,
+          warn_on_missing_recommended,
           dictionary
         )
       else
@@ -1209,6 +1282,7 @@ defmodule Schema.Validator2 do
           String.t(),
           map(),
           list(String.t()),
+          boolean(),
           map()
         ) :: map()
   defp validate_map_against_object(
@@ -1218,11 +1292,19 @@ defmodule Schema.Validator2 do
          attribute_name,
          schema_object,
          profiles,
+         warn_on_missing_recommended,
          dictionary
        ) do
     response
     |> validate_object_deprecated(attribute_path, attribute_name, schema_object)
-    |> validate_attributes(event_object, attribute_path, schema_object, profiles, dictionary)
+    |> validate_attributes(
+      event_object,
+      attribute_path,
+      schema_object,
+      profiles,
+      warn_on_missing_recommended,
+      dictionary
+    )
     |> validate_constraints(event_object, schema_object, attribute_path)
   end
 
@@ -1692,7 +1774,7 @@ defmodule Schema.Validator2 do
             if Regex.match?(compiled_regex, value) do
               response
             else
-              add_error(
+              add_warning(
                 response,
                 "attribute_value_regex_not_matched",
                 "Attribute \"#{attribute_path}\" value" <>
@@ -1742,7 +1824,7 @@ defmodule Schema.Validator2 do
               if Regex.match?(compiled_regex, value) do
                 response
               else
-                add_error(
+                add_warning(
                   response,
                   "attribute_value_super_type_regex_not_matched",
                   "Attribute \"#{attribute_path}\", type \"#{attribute_type_key}\"," <>
@@ -1796,7 +1878,7 @@ defmodule Schema.Validator2 do
         response,
         attribute_path,
         attribute_name,
-        attribute_details[:"@deprecated"]
+        attribute_details
       )
     else
       response
@@ -1911,7 +1993,7 @@ defmodule Schema.Validator2 do
     add_warning(
       response,
       "attribute_deprecated",
-      "Dictionary attribute \"#{attribute_name}\" is deprecated. #{deprecated[:message]}",
+      "Attribute \"#{attribute_name}\" is deprecated. #{deprecated[:message]}",
       %{attribute_path: attribute_path, attribute: attribute_name, since: deprecated[:since]}
     )
   end
