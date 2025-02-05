@@ -78,7 +78,7 @@
         <td class="name"><%= raw format_attribute_caption(@conn, key, field) %></td>
         <td data-toggle="tooltip" title="<%= field[:_source] %>"><%= key %></td>
         <td class="capitalize"><%= field[:group] %></td>
-        <td class="capitalize"><%= format_requirement(field) %></td>
+        <td><%= raw format_requirement(nil, key, field) %></td>
         <td><%= raw format_type(@conn, field) %></td>
         <td><%= raw format_desc(key, field) %></td>
       </tr>

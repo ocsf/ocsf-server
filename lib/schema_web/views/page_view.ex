@@ -2,6 +2,10 @@ defmodule SchemaWeb.PageView do
   alias SchemaWeb.SchemaController
   use SchemaWeb, :view
 
+  @at_least_one_symbol "†"
+  @just_one_symbol "‡"
+  @unknown_constraint_symbol "*"
+
   def class_graph_path(conn, data) do
     class_name = data[:name]
 
@@ -289,9 +293,58 @@ defmodule SchemaWeb.PageView do
     format_number(min) <> "-" <> format_number(max)
   end
 
-  @spec format_requirement(nil | map) :: binary
-  def format_requirement(field) do
-    Map.get(field, :requirement) || "optional"
+  @spec format_requirement(nil | map, atom, nil | map) :: binary
+  def format_requirement(constraints, attribute_key, attribute) do
+    requirement =
+      case attribute[:requirement] do
+        nil ->
+          "Optional"
+
+        req ->
+          String.capitalize(req)
+      end
+
+    if constraints do
+      # field is an atom while constraint attributes are strings, so convert field
+      key_str = to_string(attribute_key)
+
+      [
+        requirement,
+        Enum.reduce(constraints, [], fn {constraint_type, constraint_attributes}, acc ->
+          if Enum.member?(constraint_attributes, key_str) do
+            constraint_type_str = to_string(constraint_type)
+
+            {marker, tip} =
+              case constraint_type do
+                :at_least_one ->
+                  {@at_least_one_symbol, "Part of an &quot;at least one&quot; constraint"}
+
+                :just_one ->
+                  {@just_one_symbol, "Part of a &quot;just one&quot; constraint"}
+
+                _ ->
+                  {@unknown_constraint_symbol,
+                   "Part of a &quot;#{constraint_type_str}&quot; constraint"}
+              end
+
+            [
+              " <a href=\"#",
+              constraint_type_str,
+              "\" data-toggle=\"tooltip\" title=\"",
+              tip,
+              "\">(",
+              marker,
+              ")</a>"
+              | acc
+            ]
+          else
+            acc
+          end
+        end)
+      ]
+    else
+      requirement
+    end
   end
 
   @spec field_classes(map) :: nonempty_binary
@@ -576,18 +629,34 @@ defmodule SchemaWeb.PageView do
 
   def constraints(:at_least_one, list, acc) do
     [
-      "At least one attribute must be present: <strong>",
-      Enum.join(list, ", "),
-      "</strong><br>" | acc
+      "<span id=\"at_least_one\">",
+      @at_least_one_symbol,
+      " At least one of these attributes must be present: <strong>",
+      Enum.sort(list) |> Enum.join(", "),
+      "</strong></span><br>" | acc
     ]
   end
 
   def constraints(:just_one, list, acc) do
-    ["Only one attribute can be present: <strong>", Enum.join(list, ", "), "</strong><br>" | acc]
+    [
+      "<span id=\"just_one\">",
+      @just_one_symbol,
+      " Just one of these mutually exclusive attributes must be present: <strong>",
+      Enum.sort(list) |> Enum.join(", "),
+      "</strong></span><br>" | acc
+    ]
   end
 
   def constraints(name, list, acc) do
-    [Atom.to_string(name), ": <strong>", Enum.join(list, ", "), "</strong><br>" | acc]
+    [
+      "<span id=\"#{name}\">",
+      @unknown_constraint_symbol,
+      " ",
+      to_string(name),
+      ": <strong>",
+      Enum.sort(list) |> Enum.join(", "),
+      "</strong></span><br>" | acc
+    ]
   end
 
   def associations(rules) do
@@ -692,7 +761,8 @@ defmodule SchemaWeb.PageView do
         fn link, acc ->
           type_path = SchemaWeb.Router.Helpers.static_path(conn, "/classes/" <> link[:type])
           class_key = Schema.Utils.to_uid(link[:type])
-          source = classes[class_key][:attributes][attribute_key][:_source]
+          attribute = classes[class_key][:attributes][attribute_key]
+          source = attribute[:_source_patched] || attribute[:_source]
 
           cond do
             source == nil ->
@@ -782,7 +852,8 @@ defmodule SchemaWeb.PageView do
           class_key = Schema.Utils.to_uid(link[:type])
 
           type_path = SchemaWeb.Router.Helpers.static_path(conn, "/classes/" <> link[:type])
-          source = classes[class_key][:attributes][attribute_key][:_source]
+          attribute = classes[class_key][:attributes][attribute_key]
+          source = attribute[:_source_patched] || attribute[:_source]
 
           cond do
             source == nil ->

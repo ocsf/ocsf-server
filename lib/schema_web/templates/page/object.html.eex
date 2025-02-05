@@ -15,6 +15,7 @@
 </script>
 
 <% references = @data[:references] %>
+<% constraints = @data[:constraints] %>
 
 <div class="row">
   <div class="col-md move-up">
@@ -98,7 +99,7 @@
       <tr class="<%= field_classes(field)%>">
         <td class="name"><%= raw format_attribute_caption(@conn, key, field) %></td>
         <td data-toggle="tooltip" title="<%= format_object_attribute_source(@data[:key], field) %>"><%= raw format_attribute_name(key) %></td>
-        <td class="capitalize"><%= format_requirement(field) %></td>
+        <td><%= raw format_requirement(constraints, key, field) %></td>
         <td class="extensions"><%= raw format_type(@conn, field) %></td>
         <td><%= raw format_desc(key, field) %></td>
       </tr>
@@ -116,7 +117,6 @@
     <%= raw object_links(@conn, @data[:name], links) %>
   </div>
 <% end %>
-<% constraints = @data[:constraints] %>
 <%= if constraints != nil and map_size(constraints) > 0 do %>
   <h5 class="mt-3">Constraints</h5>
   <div>
