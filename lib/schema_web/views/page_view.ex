@@ -89,6 +89,23 @@ defmodule SchemaWeb.PageView do
     ["data-profiles='", Enum.join(profiles, ","), "'"]
   end
 
+  @spec format_linked_class_caption(String.t(), String.t(), map()) :: any()
+  def format_linked_class_caption(path, class_name, class) do
+    name = format_caption(class_name, class)
+
+    if Map.has_key?(class, :"@deprecated") do
+      [
+        "<a href=\"",
+        path,
+        "\">",
+        name,
+        " <sup class=\"bg-warning\" data-toggle=\"tooltip\" title=\"Deprecated\">D</sup></a>"
+      ]
+    else
+      ["<a href=\"", path, "\">", name, "</a>"]
+    end
+  end
+
   @spec format_caption(any, nil | maybe_improper_list | map) :: any
   def format_caption(name, field) do
     name = field[:caption] || name
@@ -330,7 +347,7 @@ defmodule SchemaWeb.PageView do
             [
               " <a href=\"#",
               constraint_type_str,
-              "\" data-toggle=\"tooltip\" title=\"",
+              "\" title=\"",
               tip,
               "\">(",
               marker,
@@ -699,7 +716,7 @@ defmodule SchemaWeb.PageView do
     ]
   end
 
-  @spec dictionary_links(any(), String.t(), list(Schema.Cache.link_t())) :: <<>> | list()
+  @spec dictionary_links(any(), String.t(), list(Schema.Utils.link_t())) :: <<>> | list()
   def dictionary_links(_, _, nil), do: ""
   def dictionary_links(_, _, []), do: ""
 
@@ -747,6 +764,14 @@ defmodule SchemaWeb.PageView do
     |> Enum.intersperse("<br>")
   end
 
+  defp link_deprecated(link) do
+    if link[:deprecated?] == true do
+      " <sup class=\"bg-warning\" data-toggle=\"tooltip\" title=\"Deprecated\">D</sup>"
+    else
+      ""
+    end
+  end
+
   defp dictionary_links_class_to_html(_, _, nil), do: []
 
   defp dictionary_links_class_to_html(conn, attribute_name, linked_classes) do
@@ -773,7 +798,9 @@ defmodule SchemaWeb.PageView do
                   type_path,
                   "\" data-toggle=\"tooltip\" title=\"No source\">",
                   link[:caption],
-                  " Class</a> <span class=\"bg-warning\">No source</span>"
+                  " Class</a>",
+                  link_deprecated(link),
+                  " <span class=\"bg-warning\">No source</span>"
                 ]
                 | acc
               ]
@@ -785,7 +812,8 @@ defmodule SchemaWeb.PageView do
                   type_path,
                   "\" data-toggle=\"tooltip\" title=\"Directly referenced\">",
                   link[:caption],
-                  " Class</a>"
+                  " Class</a>",
+                  link_deprecated(link)
                 ]
                 | acc
               ]
@@ -803,7 +831,8 @@ defmodule SchemaWeb.PageView do
                     format_hierarchy(path, all_classes, "class"),
                     "\">",
                     link[:caption],
-                    " Class</a>"
+                    " Class</a>",
+                    link_deprecated(link)
                   ]
                   | acc
                 ]
@@ -815,7 +844,9 @@ defmodule SchemaWeb.PageView do
                     type_path,
                     "\" data-toggle=\"tooltip\" title=\"Referenced via unknown parent\">",
                     link[:caption],
-                    " Class</a> <span class=\"bg-warning\">Unknown parent</span>"
+                    " Class</a>",
+                    link_deprecated(link),
+                    " <span class=\"bg-warning\">Unknown parent</span>"
                   ]
                   | acc
                 ]
@@ -864,7 +895,9 @@ defmodule SchemaWeb.PageView do
                   type_path,
                   "\" data-toggle=\"tooltip\" title=\"No source\">",
                   link[:caption],
-                  " Class</a> <span class=\"bg-warning\">No source</span>"
+                  " Class</a>",
+                  link_deprecated(link),
+                  " <span class=\"bg-warning\">No source</span>"
                 ]
                 | acc
               ]
@@ -882,7 +915,8 @@ defmodule SchemaWeb.PageView do
                   type_path,
                   "\" data-toggle=\"tooltip\" title=\"Directly updated\">",
                   link[:caption],
-                  " Class</a>"
+                  " Class</a>",
+                  link_deprecated(link)
                 ]
                 | acc
               ]
@@ -900,7 +934,8 @@ defmodule SchemaWeb.PageView do
                     format_hierarchy(path, all_classes, "class"),
                     "\">",
                     link[:caption],
-                    " Class</a>"
+                    " Class</a>",
+                    link_deprecated(link)
                   ]
                   | acc
                 ]
@@ -912,7 +947,9 @@ defmodule SchemaWeb.PageView do
                     type_path,
                     "\" data-toggle=\"tooltip\" title=\"Updated via unknown parent\">",
                     link[:caption],
-                    " Class</a> <span class=\"bg-warning\">Unknown parent</span>"
+                    " Class</a>",
+                    link_deprecated(link),
+                    " <span class=\"bg-warning\">Unknown parent</span>"
                   ]
                   | acc
                 ]
@@ -953,7 +990,8 @@ defmodule SchemaWeb.PageView do
               SchemaWeb.Router.Helpers.static_path(conn, "/objects/" <> link[:type]),
               "\">",
               link[:caption],
-              " Object</a>"
+              " Object</a>",
+              link_deprecated(link)
             ]
             | acc
           ]
@@ -978,7 +1016,7 @@ defmodule SchemaWeb.PageView do
     end
   end
 
-  @spec object_links(any(), String.t(), list(Schema.Cache.link_t()), nil | :collapse) ::
+  @spec object_links(any(), String.t(), list(Schema.Utils.link_t()), nil | :collapse) ::
           <<>> | list()
   def object_links(conn, name, links, list_presentation \\ nil)
   def object_links(_, _, nil, _), do: ""
@@ -1035,7 +1073,8 @@ defmodule SchemaWeb.PageView do
                 link_attributes(link),
                 "\">",
                 link[:caption],
-                " Class</a>"
+                " Class</a>",
+                link_deprecated(link)
               ]
             else
               [
@@ -1043,7 +1082,9 @@ defmodule SchemaWeb.PageView do
                 type_path,
                 "\">",
                 link[:caption],
-                " Class</a><dd class=\"ml-3\">",
+                " Class</a>",
+                link_deprecated(link),
+                "<dd class=\"ml-3\">",
                 link_attributes(link)
               ]
             end
@@ -1083,7 +1124,8 @@ defmodule SchemaWeb.PageView do
                 link_attributes(link),
                 "\">",
                 link[:caption],
-                " Class</a>"
+                " Class</a>",
+                link_deprecated(link)
               ]
             else
               [
@@ -1091,7 +1133,9 @@ defmodule SchemaWeb.PageView do
                 type_path,
                 "\">",
                 link[:caption],
-                " Class</a><dd class=\"ml-3\">",
+                " Class</a>",
+                link_deprecated(link),
+                "<dd class=\"ml-3\">",
                 link_attributes(link)
               ]
             end
@@ -1137,7 +1181,8 @@ defmodule SchemaWeb.PageView do
                 link_attributes(link),
                 "\">",
                 link[:caption],
-                " Object</a>"
+                " Object</a>",
+                link_deprecated(link)
               ]
             else
               [
@@ -1145,7 +1190,9 @@ defmodule SchemaWeb.PageView do
                 type_path,
                 "\">",
                 link[:caption],
-                " Object</a><dd class=\"ml-3\">",
+                " Object</a>",
+                link_deprecated(link),
+                "<dd class=\"ml-3\">",
                 link_attributes(link)
               ]
             end
@@ -1172,7 +1219,7 @@ defmodule SchemaWeb.PageView do
     end
   end
 
-  @spec profile_links(any(), String.t(), list(Schema.Cache.link_t()), nil | :collapse) ::
+  @spec profile_links(any(), String.t(), list(Schema.Utils.link_t()), nil | :collapse) ::
           <<>> | list()
   def profile_links(conn, profile_name, links, list_presentation \\ nil)
   def profile_links(_, _, nil, _), do: ""
@@ -1226,7 +1273,8 @@ defmodule SchemaWeb.PageView do
               SchemaWeb.Router.Helpers.static_path(conn, "/classes/" <> link[:type]),
               "\">",
               link[:caption],
-              " Class</a>"
+              " Class</a>",
+              link_deprecated(link)
             ]
             | acc
           ]

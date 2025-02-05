@@ -39,12 +39,6 @@ defmodule Schema.Cache do
   @type object_t() :: map()
   @type category_t() :: map()
   @type dictionary_t() :: map()
-  @type link_t() :: %{
-          group: :common | :class | :object,
-          type: String.t(),
-          caption: String.t(),
-          attribute_keys: nil | MapSet.t(String.t())
-        }
 
   @doc """
   Load the schema files and initialize the cache.

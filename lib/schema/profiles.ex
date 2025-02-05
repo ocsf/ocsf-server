@@ -68,7 +68,7 @@ defmodule Schema.Profiles do
           acc
 
         profile ->
-          link = %{group: group, type: Atom.to_string(item_name), caption: item[:caption]}
+          link = Schema.Utils.make_link(group, item_name, item)
           profile = Map.update(profile, :_links, [link], fn links -> [link | links] end)
           Map.put(acc, p, profile)
       end
