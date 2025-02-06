@@ -45,8 +45,7 @@
       <%= raw description(@data) %>
     </div>
     <div class="text-secondary mt-2">
-      <strong>Note:</strong> a superscript &quot;O&quot; after a caption indicates attribute is an observable,
-      for example: <strong>Device <sup>O</sup></strong>.
+      <strong>Note:</strong> a superscript &quot;O&quot; after a caption indicates attribute is an observable.
     </div>
     <%= if references != nil and !Enum.empty?(references) do %>
     <dd>

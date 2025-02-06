@@ -18,7 +18,7 @@ limitations under the License.
       <%= raw @data[:description] %>
     </div>
     <div class="text-secondary mt-2">
-      <strong>Note:</strong> a superscript &quot;O&quot; after a caption indicates type is an observable, for example: <strong>Hostname <sup>O</sup></strong>.
+      <strong>Note:</strong> a superscript &quot;O&quot; after a caption indicates type is an observable.
     </div>
   </div>
 </div>

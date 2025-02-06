@@ -42,8 +42,7 @@ limitations under the License.
       <%= raw description(@data) %>
     </div>
     <div class="text-secondary mt-2">
-      <strong>Note:</strong> a superscript &quot;O&quot; after a caption indicates attribute is an observable,
-      for example: <strong>Device <sup>O</sup></strong>.
+      <strong>Note:</strong> a superscript &quot;O&quot; after a caption indicates attribute is an observable.
       <%= if observables != nil and !Enum.empty?(observables) do %>Class-specific attribute path observables
       are <a href="#observables">at the bottom of this page</a>.<% end %>
     </div>
