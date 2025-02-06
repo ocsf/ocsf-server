@@ -55,7 +55,7 @@ limitations under the License.
               <% path = Routes.static_path(@conn, "/classes/" <> name) %>
               <tr class="ocsf-class" <%= raw format_profiles(class[:profiles])%>>
                 <td class='align-middle" style="height: 36px; overflow:auto;'>
-                  <a href='<%= path %>'><%= raw format_caption(name, class) %></a>
+                  <%= raw format_linked_class_caption(path, name, class) %>
                 </td>
               </tr>
             <% end %>

@@ -20,6 +20,7 @@ limitations under the License.
 <% extension = @data[:extension] %>
 <% observables = @data[:observables] %>
 <% references = @data[:references] %>
+<% constraints = @data[:constraints] %>
 
 <div class="row">
   <div class="col-md move-up">
@@ -41,8 +42,7 @@ limitations under the License.
       <%= raw description(@data) %>
     </div>
     <div class="text-secondary mt-2">
-      <strong>Note:</strong> a superscript &quot;O&quot; after a caption indicates attribute is an observable,
-      for example: <strong>Device <sup>O</sup></strong>.
+      <strong>Note:</strong> a superscript &quot;O&quot; after a caption indicates attribute is an observable.
       <%= if observables != nil and !Enum.empty?(observables) do %>Class-specific attribute path observables
       are <a href="#observables">at the bottom of this page</a>.<% end %>
     </div>
@@ -108,7 +108,7 @@ limitations under the License.
           <td class="name"><%= raw format_attribute_caption(@conn, key, field) %></td>
           <td data-toggle="tooltip" title="<%= format_class_attribute_source(@data[:key], field) %>"><%= raw format_attribute_name(key) %></td>
           <td class="capitalize"><%= field[:group] %></td>
-          <td class="capitalize"><%= format_requirement(field) %></td>
+          <td><%= raw format_requirement(constraints, key, field) %></td>
           <td class="extensions"><%= raw format_type(@conn, field) %></td>
           <td><%= raw format_desc(key, field) %></td>
         </tr>
@@ -117,7 +117,6 @@ limitations under the License.
   </table>
 </div>
 
-<% constraints = @data[:constraints] %>
 <%= if constraints != nil and map_size(constraints) > 0 do %>
   <h5>Constraints</h5>
   <div>

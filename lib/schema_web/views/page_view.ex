@@ -2,6 +2,10 @@ defmodule SchemaWeb.PageView do
   alias SchemaWeb.SchemaController
   use SchemaWeb, :view
 
+  @at_least_one_symbol "†"
+  @just_one_symbol "‡"
+  @unknown_constraint_symbol "*"
+
   def class_graph_path(conn, data) do
     class_name = data[:name]
 
@@ -83,6 +87,23 @@ defmodule SchemaWeb.PageView do
 
   def format_profiles(profiles) do
     ["data-profiles='", Enum.join(profiles, ","), "'"]
+  end
+
+  @spec format_linked_class_caption(String.t(), String.t(), map()) :: any()
+  def format_linked_class_caption(path, class_name, class) do
+    name = format_caption(class_name, class)
+
+    if Map.has_key?(class, :"@deprecated") do
+      [
+        "<a href=\"",
+        path,
+        "\">",
+        name,
+        " <sup class=\"bg-warning\" data-toggle=\"tooltip\" title=\"Deprecated\">D</sup></a>"
+      ]
+    else
+      ["<a href=\"", path, "\">", name, "</a>"]
+    end
   end
 
   @spec format_caption(any, nil | maybe_improper_list | map) :: any
@@ -289,9 +310,58 @@ defmodule SchemaWeb.PageView do
     format_number(min) <> "-" <> format_number(max)
   end
 
-  @spec format_requirement(nil | map) :: binary
-  def format_requirement(field) do
-    Map.get(field, :requirement) || "optional"
+  @spec format_requirement(nil | map, atom, nil | map) :: binary
+  def format_requirement(constraints, attribute_key, attribute) do
+    requirement =
+      case attribute[:requirement] do
+        nil ->
+          "Optional"
+
+        req ->
+          String.capitalize(req)
+      end
+
+    if constraints do
+      # field is an atom while constraint attributes are strings, so convert field
+      key_str = to_string(attribute_key)
+
+      [
+        requirement,
+        Enum.reduce(constraints, [], fn {constraint_type, constraint_attributes}, acc ->
+          if Enum.member?(constraint_attributes, key_str) do
+            constraint_type_str = to_string(constraint_type)
+
+            {marker, tip} =
+              case constraint_type do
+                :at_least_one ->
+                  {@at_least_one_symbol, "Part of an &quot;at least one&quot; constraint"}
+
+                :just_one ->
+                  {@just_one_symbol, "Part of a &quot;just one&quot; constraint"}
+
+                _ ->
+                  {@unknown_constraint_symbol,
+                   "Part of a &quot;#{constraint_type_str}&quot; constraint"}
+              end
+
+            [
+              " <a href=\"#",
+              constraint_type_str,
+              "\" title=\"",
+              tip,
+              "\">(",
+              marker,
+              ")</a>"
+              | acc
+            ]
+          else
+            acc
+          end
+        end)
+      ]
+    else
+      requirement
+    end
   end
 
   @spec field_classes(map) :: nonempty_binary
@@ -576,18 +646,34 @@ defmodule SchemaWeb.PageView do
 
   def constraints(:at_least_one, list, acc) do
     [
-      "At least one attribute must be present: <strong>",
-      Enum.join(list, ", "),
-      "</strong><br>" | acc
+      "<span id=\"at_least_one\">",
+      @at_least_one_symbol,
+      " At least one of these attributes must be present: <strong>",
+      Enum.sort(list) |> Enum.join(", "),
+      "</strong></span><br>" | acc
     ]
   end
 
   def constraints(:just_one, list, acc) do
-    ["Only one attribute can be present: <strong>", Enum.join(list, ", "), "</strong><br>" | acc]
+    [
+      "<span id=\"just_one\">",
+      @just_one_symbol,
+      " Just one of these mutually exclusive attributes must be present: <strong>",
+      Enum.sort(list) |> Enum.join(", "),
+      "</strong></span><br>" | acc
+    ]
   end
 
   def constraints(name, list, acc) do
-    [Atom.to_string(name), ": <strong>", Enum.join(list, ", "), "</strong><br>" | acc]
+    [
+      "<span id=\"#{name}\">",
+      @unknown_constraint_symbol,
+      " ",
+      to_string(name),
+      ": <strong>",
+      Enum.sort(list) |> Enum.join(", "),
+      "</strong></span><br>" | acc
+    ]
   end
 
   def associations(rules) do
@@ -630,7 +716,7 @@ defmodule SchemaWeb.PageView do
     ]
   end
 
-  @spec dictionary_links(any(), String.t(), list(Schema.Cache.link_t())) :: <<>> | list()
+  @spec dictionary_links(any(), String.t(), list(Schema.Utils.link_t())) :: <<>> | list()
   def dictionary_links(_, _, nil), do: ""
   def dictionary_links(_, _, []), do: ""
 
@@ -678,6 +764,14 @@ defmodule SchemaWeb.PageView do
     |> Enum.intersperse("<br>")
   end
 
+  defp link_deprecated(link) do
+    if link[:deprecated?] == true do
+      " <sup class=\"bg-warning\" data-toggle=\"tooltip\" title=\"Deprecated\">D</sup>"
+    else
+      ""
+    end
+  end
+
   defp dictionary_links_class_to_html(_, _, nil), do: []
 
   defp dictionary_links_class_to_html(conn, attribute_name, linked_classes) do
@@ -692,7 +786,8 @@ defmodule SchemaWeb.PageView do
         fn link, acc ->
           type_path = SchemaWeb.Router.Helpers.static_path(conn, "/classes/" <> link[:type])
           class_key = Schema.Utils.to_uid(link[:type])
-          source = classes[class_key][:attributes][attribute_key][:_source]
+          attribute = classes[class_key][:attributes][attribute_key]
+          source = attribute[:_source_patched] || attribute[:_source]
 
           cond do
             source == nil ->
@@ -703,7 +798,9 @@ defmodule SchemaWeb.PageView do
                   type_path,
                   "\" data-toggle=\"tooltip\" title=\"No source\">",
                   link[:caption],
-                  " Class</a> <span class=\"bg-warning\">No source</span>"
+                  " Class</a>",
+                  link_deprecated(link),
+                  " <span class=\"bg-warning\">No source</span>"
                 ]
                 | acc
               ]
@@ -715,7 +812,8 @@ defmodule SchemaWeb.PageView do
                   type_path,
                   "\" data-toggle=\"tooltip\" title=\"Directly referenced\">",
                   link[:caption],
-                  " Class</a>"
+                  " Class</a>",
+                  link_deprecated(link)
                 ]
                 | acc
               ]
@@ -733,7 +831,8 @@ defmodule SchemaWeb.PageView do
                     format_hierarchy(path, all_classes, "class"),
                     "\">",
                     link[:caption],
-                    " Class</a>"
+                    " Class</a>",
+                    link_deprecated(link)
                   ]
                   | acc
                 ]
@@ -745,7 +844,9 @@ defmodule SchemaWeb.PageView do
                     type_path,
                     "\" data-toggle=\"tooltip\" title=\"Referenced via unknown parent\">",
                     link[:caption],
-                    " Class</a> <span class=\"bg-warning\">Unknown parent</span>"
+                    " Class</a>",
+                    link_deprecated(link),
+                    " <span class=\"bg-warning\">Unknown parent</span>"
                   ]
                   | acc
                 ]
@@ -782,7 +883,8 @@ defmodule SchemaWeb.PageView do
           class_key = Schema.Utils.to_uid(link[:type])
 
           type_path = SchemaWeb.Router.Helpers.static_path(conn, "/classes/" <> link[:type])
-          source = classes[class_key][:attributes][attribute_key][:_source]
+          attribute = classes[class_key][:attributes][attribute_key]
+          source = attribute[:_source_patched] || attribute[:_source]
 
           cond do
             source == nil ->
@@ -793,7 +895,9 @@ defmodule SchemaWeb.PageView do
                   type_path,
                   "\" data-toggle=\"tooltip\" title=\"No source\">",
                   link[:caption],
-                  " Class</a> <span class=\"bg-warning\">No source</span>"
+                  " Class</a>",
+                  link_deprecated(link),
+                  " <span class=\"bg-warning\">No source</span>"
                 ]
                 | acc
               ]
@@ -811,7 +915,8 @@ defmodule SchemaWeb.PageView do
                   type_path,
                   "\" data-toggle=\"tooltip\" title=\"Directly updated\">",
                   link[:caption],
-                  " Class</a>"
+                  " Class</a>",
+                  link_deprecated(link)
                 ]
                 | acc
               ]
@@ -829,7 +934,8 @@ defmodule SchemaWeb.PageView do
                     format_hierarchy(path, all_classes, "class"),
                     "\">",
                     link[:caption],
-                    " Class</a>"
+                    " Class</a>",
+                    link_deprecated(link)
                   ]
                   | acc
                 ]
@@ -841,7 +947,9 @@ defmodule SchemaWeb.PageView do
                     type_path,
                     "\" data-toggle=\"tooltip\" title=\"Updated via unknown parent\">",
                     link[:caption],
-                    " Class</a> <span class=\"bg-warning\">Unknown parent</span>"
+                    " Class</a>",
+                    link_deprecated(link),
+                    " <span class=\"bg-warning\">Unknown parent</span>"
                   ]
                   | acc
                 ]
@@ -882,7 +990,8 @@ defmodule SchemaWeb.PageView do
               SchemaWeb.Router.Helpers.static_path(conn, "/objects/" <> link[:type]),
               "\">",
               link[:caption],
-              " Object</a>"
+              " Object</a>",
+              link_deprecated(link)
             ]
             | acc
           ]
@@ -907,7 +1016,7 @@ defmodule SchemaWeb.PageView do
     end
   end
 
-  @spec object_links(any(), String.t(), list(Schema.Cache.link_t()), nil | :collapse) ::
+  @spec object_links(any(), String.t(), list(Schema.Utils.link_t()), nil | :collapse) ::
           <<>> | list()
   def object_links(conn, name, links, list_presentation \\ nil)
   def object_links(_, _, nil, _), do: ""
@@ -964,7 +1073,8 @@ defmodule SchemaWeb.PageView do
                 link_attributes(link),
                 "\">",
                 link[:caption],
-                " Class</a>"
+                " Class</a>",
+                link_deprecated(link)
               ]
             else
               [
@@ -972,7 +1082,9 @@ defmodule SchemaWeb.PageView do
                 type_path,
                 "\">",
                 link[:caption],
-                " Class</a><dd class=\"ml-3\">",
+                " Class</a>",
+                link_deprecated(link),
+                "<dd class=\"ml-3\">",
                 link_attributes(link)
               ]
             end
@@ -1012,7 +1124,8 @@ defmodule SchemaWeb.PageView do
                 link_attributes(link),
                 "\">",
                 link[:caption],
-                " Class</a>"
+                " Class</a>",
+                link_deprecated(link)
               ]
             else
               [
@@ -1020,7 +1133,9 @@ defmodule SchemaWeb.PageView do
                 type_path,
                 "\">",
                 link[:caption],
-                " Class</a><dd class=\"ml-3\">",
+                " Class</a>",
+                link_deprecated(link),
+                "<dd class=\"ml-3\">",
                 link_attributes(link)
               ]
             end
@@ -1066,7 +1181,8 @@ defmodule SchemaWeb.PageView do
                 link_attributes(link),
                 "\">",
                 link[:caption],
-                " Object</a>"
+                " Object</a>",
+                link_deprecated(link)
               ]
             else
               [
@@ -1074,7 +1190,9 @@ defmodule SchemaWeb.PageView do
                 type_path,
                 "\">",
                 link[:caption],
-                " Object</a><dd class=\"ml-3\">",
+                " Object</a>",
+                link_deprecated(link),
+                "<dd class=\"ml-3\">",
                 link_attributes(link)
               ]
             end
@@ -1101,7 +1219,7 @@ defmodule SchemaWeb.PageView do
     end
   end
 
-  @spec profile_links(any(), String.t(), list(Schema.Cache.link_t()), nil | :collapse) ::
+  @spec profile_links(any(), String.t(), list(Schema.Utils.link_t()), nil | :collapse) ::
           <<>> | list()
   def profile_links(conn, profile_name, links, list_presentation \\ nil)
   def profile_links(_, _, nil, _), do: ""
@@ -1155,7 +1273,8 @@ defmodule SchemaWeb.PageView do
               SchemaWeb.Router.Helpers.static_path(conn, "/classes/" <> link[:type]),
               "\">",
               link[:caption],
-              " Class</a>"
+              " Class</a>",
+              link_deprecated(link)
             ]
             | acc
           ]

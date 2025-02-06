@@ -11,6 +11,14 @@ defmodule Schema.Utils do
   @moduledoc """
   Defines map helper functions.
   """
+  @type link_t() :: %{
+          :group => :common | :class | :object,
+          :type => String.t(),
+          :caption => String.t(),
+          optional(:deprecated?) => boolean(),
+          optional(:attribute_keys) => nil | MapSet.t(String.t())
+        }
+
   require Logger
 
   @spec to_uid(binary() | atom()) :: atom
@@ -199,10 +207,24 @@ defmodule Schema.Utils do
     end
   end
 
+  @spec make_link(:common | :class | :object, atom() | String.t(), map()) :: link_t()
+  def make_link(group, type, item) do
+    if Map.has_key?(item, :"@deprecated") do
+      %{
+        group: group,
+        type: to_string(type),
+        caption: item[:caption] || "*No name*",
+        deprecated?: true
+      }
+    else
+      %{group: group, type: to_string(type), caption: item[:caption] || "*No name*"}
+    end
+  end
+
   # Adds attribute's used-by links to the dictionary.
   defp add_common_links(dict, class) do
     Map.update!(dict, :attributes, fn attributes ->
-      link = %{group: :common, type: class[:name], caption: class[:caption]}
+      link = make_link(:common, class[:name], class)
 
       update_attributes(
         class,
@@ -218,10 +240,10 @@ defmodule Schema.Utils do
       type =
         case class[:name] do
           nil -> "base_event"
-          _ -> Atom.to_string(class_key)
+          _ -> class_key
         end
 
-      link = %{group: :class, type: type, caption: class[:caption] || "*No name*"}
+      link = make_link(:class, type, class)
 
       update_attributes(
         class,
@@ -240,12 +262,7 @@ defmodule Schema.Utils do
 
   defp add_object_links(dictionary, {object_key, object}) do
     Map.update!(dictionary, :attributes, fn dictionary_attributes ->
-      link = %{
-        group: :object,
-        type: Atom.to_string(object_key),
-        caption: object[:caption] || "*No name*"
-      }
-
+      link = make_link(:object, object_key, object)
       update_attributes(object, dictionary_attributes, link, &update_object_links/2)
     end)
   end
