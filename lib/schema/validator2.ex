@@ -384,7 +384,7 @@ defmodule Schema.Validator2 do
                   response,
                   "constraint_failed",
                   "Constraint failed: #{description};" <>
-                    " expected at least one constraint attribute, bot got none.",
+                    " expected at least one constraint attribute, but got none.",
                   extra
                 )
               end
