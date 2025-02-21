@@ -54,7 +54,7 @@ defmodule SchemaWeb.PageController do
   """
   @spec data_types(Plug.Conn.t(), any) :: Plug.Conn.t()
   def data_types(conn, params) do
-    data = Schema.data_types() |> sort_attributes()
+    data = Schema.data_types() |> sort_attributes_by_key()
 
     render(conn, "data_types.html",
       extensions: Schema.extensions(),
@@ -84,18 +84,19 @@ defmodule SchemaWeb.PageController do
         render(conn, "profile.html",
           extensions: Schema.extensions(),
           profiles: data,
-          data: sort_attributes(profile)
+          data: sort_attributes_by_key(profile)
         )
     end
   end
 
   def profiles(conn, params) do
-    data = SchemaController.get_profiles(params)
+    profiles = SchemaController.get_profiles(params)
+    sorted_profiles = sort_by_key(profiles)
 
     render(conn, "profiles.html",
       extensions: Schema.extensions(),
-      profiles: data,
-      data: data
+      profiles: profiles,
+      data: sorted_profiles
     )
   end
 
@@ -138,7 +139,7 @@ defmodule SchemaWeb.PageController do
   """
   @spec dictionary(Plug.Conn.t(), any) :: Plug.Conn.t()
   def dictionary(conn, params) do
-    data = SchemaController.dictionary(params) |> sort_attributes()
+    data = SchemaController.dictionary(params) |> sort_attributes_by_key()
 
     render(conn, "dictionary.html",
       extensions: Schema.extensions(),
@@ -169,7 +170,7 @@ defmodule SchemaWeb.PageController do
       data ->
         data =
           data
-          |> sort_attributes()
+          |> sort_attributes_by_key()
           |> Map.put(:key, Schema.Utils.to_uid(extension, id))
 
         render(conn, "class.html",
@@ -202,7 +203,7 @@ defmodule SchemaWeb.PageController do
       data ->
         data =
           data
-          |> sort_attributes()
+          |> sort_attributes_by_key()
           |> Map.put(:key, Schema.Utils.to_uid(params["extension"], id))
 
         render(conn, "object.html",
@@ -214,7 +215,7 @@ defmodule SchemaWeb.PageController do
   end
 
   def objects(conn, params) do
-    data = SchemaController.objects(params) |> sort_by_name()
+    data = SchemaController.objects(params) |> sort_by_key()
 
     render(conn, "objects.html",
       extensions: Schema.extensions(),
@@ -231,19 +232,19 @@ defmodule SchemaWeb.PageController do
     end)
   end
 
-  defp sort_attributes(map) do
-    sort_attributes(map, :caption)
-  end
-
   defp sort_attributes(map, key) do
     Map.update!(map, :attributes, &sort_by(&1, key))
   end
 
-  defp sort_by_name(map) do
-    sort_by(map, :caption)
+  defp sort_by_key(map) do
+    Enum.sort(map)
   end
 
   defp sort_by(map, key) do
     Enum.sort(map, fn {_, v1}, {_, v2} -> v1[key] <= v2[key] end)
+  end
+
+  defp sort_attributes_by_key(map) do
+    Map.update!(map, :attributes, &Enum.sort/1)
   end
 end

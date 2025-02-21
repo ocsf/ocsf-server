@@ -1306,8 +1306,19 @@ defmodule Schema.Cache do
   defp update_dictionary(dictionary) do
     types = get_in(dictionary, [:types, :attributes])
 
+    # Enum attributes point to their enum sibling through the :sibling attribute,
+    # however the siblings do _not_ refer back to the related enum attribute, so let's build that.
+    sibling_of_map =
+      Enum.reduce(dictionary[:attributes], %{}, fn {attribute_key, attribute}, acc ->
+        if Map.has_key?(attribute, :sibling) do
+          Map.put(acc, String.to_atom(attribute[:sibling]), attribute_key)
+        else
+          acc
+        end
+      end)
+
     Map.update!(dictionary, :attributes, fn attributes ->
-      Enum.into(attributes, %{}, fn {name, attribute} ->
+      Enum.into(attributes, %{}, fn {attribute_key, attribute} ->
         type = attribute[:type] || "object_t"
 
         attribute =
@@ -1321,7 +1332,16 @@ defmodule Schema.Cache do
               attribute
           end
 
-        {name, attribute}
+        attribute =
+          case sibling_of_map[attribute_key] do
+            nil ->
+              attribute
+
+            enum_attribute_key ->
+              Map.put(attribute, :_sibling_of, enum_attribute_key)
+          end
+
+        {attribute_key, attribute}
       end)
     end)
   end

@@ -838,17 +838,39 @@ defmodule Schema.Validator2 do
          attribute_name,
          attribute_details
        ) do
-    if event_enum_value == 99 do
-      # Enum value is the integer 99 (Other). The enum sibling, if present, can be anything.
-      response
-    else
-      sibling_name = attribute_details[:sibling]
+    sibling_name = attribute_details[:sibling]
 
-      if Map.has_key?(event_item, sibling_name) do
-        # Sibling is present - make sure the string value matches up
-        enum_caption = attribute_details[:enum][event_enum_value_atom][:caption]
-        sibling_value = event_item[sibling_name]
+    if Map.has_key?(event_item, sibling_name) do
+      # Sibling is present - make sure the string value matches up
+      enum_caption = attribute_details[:enum][event_enum_value_atom][:caption]
+      sibling_value = event_item[sibling_name]
 
+      if event_enum_value == 99 do
+        # Enum value is the integer 99 (Other). The enum sibling should _not_ match the
+        if enum_caption == sibling_value do
+          enum_attribute_path = make_attribute_path(parent_attribute_path, attribute_name)
+          sibling_attribute_path = make_attribute_path(parent_attribute_path, sibling_name)
+
+          add_warning(
+            response,
+            "attribute_enum_sibling_suspicous_other",
+            "Attribute \"#{sibling_attribute_path}\" enum sibling value" <>
+              " #{inspect(sibling_value)} suspiciously matches the caption of" <>
+              " enum \"#{enum_attribute_path}\" value 99 (#{inspect(enum_caption)})." <>
+              " Note: the recommendation is to use the original source value for" <>
+              " 99 (#{inspect(enum_caption)}), so this should only match in the edge case" <>
+              " where #{inspect(sibling_value)} is actually the original source value.",
+            %{
+              attribute_path: sibling_attribute_path,
+              attribute: sibling_name,
+              value: sibling_value
+            }
+          )
+        else
+          # The 99 (Other) sibling value looks good
+          response
+        end
+      else
         if enum_caption == sibling_value do
           # Sibling has correct value
           response
@@ -856,13 +878,14 @@ defmodule Schema.Validator2 do
           enum_attribute_path = make_attribute_path(parent_attribute_path, attribute_name)
           sibling_attribute_path = make_attribute_path(parent_attribute_path, sibling_name)
 
-          add_error(
+          add_warning(
             response,
             "attribute_enum_sibling_incorrect",
             "Attribute \"#{sibling_attribute_path}\" enum sibling value" <>
-              " #{inspect(sibling_value)} is incorrect for" <>
+              " #{inspect(sibling_value)} does not match the caption of" <>
               " enum \"#{enum_attribute_path}\" value #{inspect(event_enum_value)};" <>
-              " expected \"#{enum_caption}\", got #{inspect(sibling_value)}.",
+              " expected \"#{enum_caption}\", got #{inspect(sibling_value)}." <>
+              " Note: matching is recommended but not required.",
             %{
               attribute_path: sibling_attribute_path,
               attribute: sibling_name,
@@ -871,10 +894,10 @@ defmodule Schema.Validator2 do
             }
           )
         end
-      else
-        # Sibling not present, which is OK
-        response
       end
+    else
+      # Sibling not present, which is OK
+      response
     end
   end
 
