@@ -5,6 +5,7 @@ defmodule SchemaWeb.PageView do
   @at_least_one_symbol "†"
   @just_one_symbol "‡"
   @unknown_constraint_symbol "*"
+  @enum_attributes_doc_url "https://github.com/ocsf/ocsf-docs/blob/main/Understanding%20OCSF.md#enum-attributes"
 
   def class_graph_path(conn, data) do
     class_name = data[:name]
@@ -474,16 +475,20 @@ defmodule SchemaWeb.PageView do
 
     case Map.get(field, :regex) do
       nil ->
-        case max_len do
-          "" ->
-            format_values(Map.get(field, :values))
-
-          len ->
-            len
+        if max_len == "" do
+          format_values(Map.get(field, :values))
+        else
+          max_len
         end
 
       r ->
-        max_len <> "<br>" <> r
+        safe_r = r |> html_escape() |> safe_to_string()
+
+        if max_len == "" do
+          safe_r
+        else
+          max_len <> "<br>" <> safe_r
+        end
     end
   end
 
@@ -547,21 +552,20 @@ defmodule SchemaWeb.PageView do
   defp base_format_desc(key, obj) do
     description = description(obj)
 
-    case Map.get(obj, :enum) do
-      nil ->
-        [description]
+    cond do
+      Map.has_key?(obj, :enum) ->
+        enum_values = obj[:enum]
 
-      values ->
         sorted =
           if Map.get(obj, :type) == "integer_t" do
             Enum.sort(
-              values,
+              enum_values,
               fn {k1, _}, {k2, _} ->
                 String.to_integer(Atom.to_string(k1)) >= String.to_integer(Atom.to_string(k2))
               end
             )
           else
-            Enum.sort(values, fn {k1, _}, {k2, _} -> k1 >= k2 end)
+            Enum.sort(enum_values, fn {k1, _}, {k2, _} -> k1 >= k2 end)
           end
 
         [
@@ -590,8 +594,43 @@ defmodule SchemaWeb.PageView do
               ]
             end
           ),
-          "</tbody></table>"
+          "</tbody></table>",
+          enumeration_note(obj)
         ]
+
+      Map.has_key?(obj, :_sibling_of) ->
+        [
+          description,
+          "<div class=\"mt-2\">ℹ️ This is the string sibling of <a target=\"_blank\"\" href=\"",
+          @enum_attributes_doc_url,
+          "\">enum attribute</a> <code>",
+          to_string(obj[:_sibling_of]),
+          "</code>.</div>"
+        ]
+
+      true ->
+        description
+    end
+  end
+
+  defp enumeration_note(attribute) do
+    if Map.has_key?(attribute, :sibling) do
+      [
+        "<div class=\"mt-2\">ℹ️ This is an <a target=\"_blank\"\" href=\"",
+        @enum_attributes_doc_url,
+        "\">enum attribute</a>; its string sibling is <code>",
+        to_string(attribute[:sibling]),
+        "</code>.</div>"
+      ]
+    else
+      [
+        "<div class=\"mt-2\">ℹ️ ",
+        "This is an ",
+        " <a target=\"_blank\"\" href=\"",
+        @enum_attributes_doc_url,
+        "\">",
+        "enum attribute</a>.</div>"
+      ]
     end
   end
 

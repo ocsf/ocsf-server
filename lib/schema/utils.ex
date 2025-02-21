@@ -159,38 +159,38 @@ defmodule Schema.Utils do
   end
 
   defp update_data_types(attributes, types, objects) do
-    Enum.into(attributes, %{}, fn {name, value} ->
-      data =
-        if value[:type] == "object_t" do
-          update_object_type(name, value, objects)
+    Enum.into(attributes, %{}, fn {attribute_key, attribute} ->
+      attribute_update =
+        if attribute[:type] == "object_t" do
+          update_object_type(attribute_key, attribute, objects)
         else
-          update_data_type(name, value, types)
+          update_data_type(attribute_key, attribute, types)
         end
 
-      {name, data}
+      {attribute_key, attribute_update}
     end)
   end
 
-  defp update_object_type(name, value, objects) do
-    key = value[:object_type]
+  defp update_object_type(attribute_key, attribute, objects) do
+    object_key = attribute[:object_type]
 
-    case find_entity(objects, value, key) do
-      {key, nil} ->
-        Logger.warning("Undefined object type: #{key}, for #{name}")
-        Map.put(value, :object_name, "_undefined_")
+    case find_entity(objects, attribute, object_key) do
+      {object_key, nil} ->
+        Logger.warning("Undefined object type: #{object_key}, for #{attribute_key}")
+        Map.put(attribute, :object_name, "_undefined_")
 
-      {key, object} ->
-        value
+      {object_key, object} ->
+        attribute
         |> Map.put(:object_name, object[:caption])
-        |> Map.put(:object_type, Atom.to_string(key))
+        |> Map.put(:object_type, Atom.to_string(object_key))
     end
   end
 
-  defp update_data_type(name, value, types) do
+  defp update_data_type(attribute_key, attribute, types) do
     type =
-      case value[:type] do
+      case attribute[:type] do
         nil ->
-          Logger.warning("Missing data type for: #{name}, will use string_t type")
+          Logger.warning("Missing data type for: #{attribute_key}, will use string_t type")
           "string_t"
 
         t ->
@@ -199,11 +199,11 @@ defmodule Schema.Utils do
 
     case types[String.to_atom(type)] do
       nil ->
-        Logger.warning("Undefined data type: #{name}: #{type}")
-        value
+        Logger.warning("Undefined data type: #{attribute_key}: #{type}")
+        attribute
 
       type ->
-        Map.put(value, :type_name, type[:caption])
+        Map.put(attribute, :type_name, type[:caption])
     end
   end
 
@@ -292,6 +292,9 @@ defmodule Schema.Utils do
 
         case find_entity(dictionary_attributes, item, item_attribute_key) do
           {_, nil} ->
+            # Special fix-up is needed for attributes from extension classes and objects.
+            # In this special-case, the dictionary ends up missing important details.
+            # TODO: Figure out where this happens and why.
             case String.split(Atom.to_string(item_attribute[:_source]), "/") do
               [ext, _] ->
                 ext_key = String.to_atom("#{ext}/#{item_attribute_key}")
@@ -306,7 +309,8 @@ defmodule Schema.Utils do
                       # back to the dictionary
                       clean_item_attribute = Map.delete(item_attribute, :observable)
 
-                      deep_merge(dictionary_attribute, clean_item_attribute)
+                      # Merge attribute from extension class or object to the dictionary attribute
+                      deep_merge(clean_item_attribute, dictionary_attribute)
                       |> update_links_fn.(link)
                   end
 
