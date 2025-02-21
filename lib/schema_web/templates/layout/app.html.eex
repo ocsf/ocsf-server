@@ -99,6 +99,9 @@ limitations under the License.
         case '/objects':
           $('#objects_id').addClass("active");
           break;
+        case '/objects/observable':
+          $('#observable_id').addClass("active");
+          break;
       }
     });
   </script>
@@ -191,8 +194,11 @@ limitations under the License.
       <li id="dictionary_id" class="nav-item">
         <a class="nav-link" href='<%= Routes.static_path(@conn, "/dictionary") %>'>Dictionary</a>
       </li>
-      <li id="objects_id"  class="nav-item">
+      <li id="objects_id" class="nav-item">
         <a class="nav-link" href='<%= Routes.static_path(@conn, "/objects") %>'>Objects</a>
+      </li>
+      <li id="observable_id" class="nav-item">
+        <a class="nav-link" href='<%= Routes.static_path(@conn, "/objects/observable") %>'>Observable</a>
       </li>
 
       <div class="navbar-text">|</div>
