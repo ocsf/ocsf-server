@@ -91,7 +91,7 @@ defmodule SchemaWeb.PageController do
 
   def profiles(conn, params) do
     profiles = SchemaController.get_profiles(params)
-    sorted_profiles = sort_by_key(profiles)
+    sorted_profiles = sort_by_descoped_key(profiles)
 
     render(conn, "profiles.html",
       extensions: Schema.extensions(),
@@ -215,7 +215,7 @@ defmodule SchemaWeb.PageController do
   end
 
   def objects(conn, params) do
-    data = SchemaController.objects(params) |> sort_by_key()
+    data = SchemaController.objects(params) |> sort_by_descoped_key()
 
     render(conn, "objects.html",
       extensions: Schema.extensions(),
@@ -236,15 +236,17 @@ defmodule SchemaWeb.PageController do
     Map.update!(map, :attributes, &sort_by(&1, key))
   end
 
-  defp sort_by_key(map) do
-    Enum.sort(map)
-  end
-
   defp sort_by(map, key) do
     Enum.sort(map, fn {_, v1}, {_, v2} -> v1[key] <= v2[key] end)
   end
 
   defp sort_attributes_by_key(map) do
-    Map.update!(map, :attributes, &Enum.sort/1)
+    Map.update!(map, :attributes, &sort_by_descoped_key/1)
+  end
+
+  defp sort_by_descoped_key(map) do
+    Enum.sort(map, fn {k1, _}, {k2, _} ->
+      Schema.Utils.descope(k1) <= Schema.Utils.descope(k2)
+    end)
   end
 end
