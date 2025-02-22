@@ -853,7 +853,7 @@ defmodule Schema.Validator2 do
 
           add_warning(
             response,
-            "attribute_enum_sibling_suspicous_other",
+            "attribute_enum_sibling_suspicious_other",
             "Attribute \"#{sibling_attribute_path}\" enum sibling value" <>
               " #{inspect(sibling_value)} suspiciously matches the caption of" <>
               " enum \"#{enum_attribute_path}\" value 99 (#{inspect(enum_caption)})." <>
