@@ -44,7 +44,15 @@ To access the schema server, open [`localhost:8080`](http://localhost:8080) or [
 docker run -it --rm --volume /path/to/ocsf-schema:/app/schema --volume /path/to/ocsf-schema:/app/extension -e SCHEMA_EXTENSION="/app/extension" -p 8080:8080 -p 8443:8443 ocsf-server
 ```
 
+## Running against multiple versions of the schema
+The OCSF Server does not directly support hosting multiple versions. To present multiple version, each version is hosted by a different instance of the server, with support from a small amount of code to enable finding alternate versions and switching to other instances. The public OCSF Server does this by fronting the web site with Nginx and running each server instance in separate Docker containers.
+
+The following answer in this repo's discussions area covers the gory details:
+* [How can you run this server with more than one schema version? #131](https://github.com/ocsf/ocsf-server/discussions/131).
+
 ## Development with docker-compose
+
+**NOTE:** The `docker-compose` approach is not currently being actively maintained. It is left in the repo since it may work and may be helpful for some people.
 
 The `docker-compose` environment enables development without needing to install any dependencies (apart from Docker/Podman and docker-compose) on the development machine.
 
