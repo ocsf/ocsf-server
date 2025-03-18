@@ -80,7 +80,7 @@
         <td class="capitalize"><%= field[:group] %></td>
         <td><%= raw format_requirement(nil, key, field) %></td>
         <td><%= raw format_type(@conn, field) %></td>
-        <td><%= raw format_desc(key, field) %></td>
+        <td><%= raw format_attribute_desc(key, field) %></td>
       </tr>
       <% end %>
     </tbody>

@@ -16,8 +16,6 @@ defmodule SchemaWeb.SchemaController do
 
   import PhoenixSwagger
 
-  require Logger
-
   @verbose "_mode"
   @spaces "_spaces"
 

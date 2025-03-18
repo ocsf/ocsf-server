@@ -52,6 +52,16 @@ defmodule Schema do
     Repo.profiles(extensions)
   end
 
+  def profile(profiles, name) do
+    case profiles[name] do
+      nil ->
+        nil
+
+      profile ->
+        Map.update!(profile, :attributes, &Schema.Utils.add_sibling_of_to_attributes/1)
+    end
+  end
+
   @doc """
     Reloads the event schema without the extensions.
   """
@@ -104,7 +114,10 @@ defmodule Schema do
     Returns the attribute dictionary including the extension.
   """
   @spec dictionary(Repo.extensions_t()) :: Cache.dictionary_t()
-  def dictionary(extensions), do: Repo.dictionary(extensions)
+  def dictionary(extensions) do
+    Repo.dictionary(extensions)
+    |> Map.update!(:attributes, &Schema.Utils.add_sibling_of_to_attributes/1)
+  end
 
   @doc """
     Returns the data types defined in dictionary.
