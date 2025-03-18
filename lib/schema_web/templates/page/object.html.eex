@@ -100,7 +100,7 @@
         <td><%= raw format_attribute_caption(@conn, key, field) %></td>
         <td><%= raw format_requirement(constraints, key, field) %></td>
         <td class="extensions"><%= raw format_type(@conn, field) %></td>
-        <td><%= raw format_desc(key, field) %></td>
+        <td><%= raw format_attribute_desc(key, field) %></td>
       </tr>
       <% end %>
     </tbody>

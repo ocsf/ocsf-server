@@ -543,21 +543,47 @@ defmodule SchemaWeb.PageView do
     end
   end
 
-  @spec format_desc(String.t() | atom(), map()) :: any
-  def format_desc(key, obj) do
-    append_source_references(base_format_desc(key, obj), "<p><hr>", obj)
+  @spec format_attribute_desc(String.t() | atom(), map()) :: any
+  def format_attribute_desc(attribute_key, attribute) do
+    append_source_references(
+      base_format_attribute_desc(attribute_key, attribute, false),
+      "<p><hr>",
+      attribute
+    )
   end
 
-  @spec base_format_desc(String.t() | atom(), map()) :: any
-  defp base_format_desc(key, obj) do
-    description = description(obj)
+  @spec format_dictionary_attribute_desc(String.t() | atom(), map()) :: any
+  def format_dictionary_attribute_desc(attribute_key, attribute) do
+    append_source_references(
+      base_format_attribute_desc(attribute_key, attribute, true),
+      "<p><hr>",
+      attribute
+    )
+  end
+
+  @spec base_format_attribute_desc(String.t() | atom(), map(), boolean()) :: any
+  defp base_format_attribute_desc(attribute_key, attribute, is_dictionary_view) do
+    description = description(attribute)
 
     cond do
-      Map.has_key?(obj, :enum) ->
-        enum_values = obj[:enum]
+      Map.has_key?(attribute, :enum) or Map.has_key?(attribute, :sibling) ->
+        enum_description(description, attribute_key, attribute)
+
+      Map.has_key?(attribute, :_sibling_of) ->
+        enum_sibling_description(description, attribute, is_dictionary_view)
+
+      true ->
+        description
+    end
+  end
+
+  defp enum_description(description, attribute_key, attribute) do
+    enum_values_table =
+      if Map.has_key?(attribute, :enum) do
+        enum_values = attribute[:enum]
 
         sorted =
-          if Map.get(obj, :type) == "integer_t" do
+          if Map.get(attribute, :type) == "integer_t" do
             Enum.sort(
               enum_values,
               fn {k1, _}, {k2, _} ->
@@ -569,10 +595,7 @@ defmodule SchemaWeb.PageView do
           end
 
         [
-          description,
-          """
-          <table class="mt-1 table-borderless"><tbody>
-          """,
+          "<table class=\"mt-1 table-borderless\"><tbody>",
           Enum.reduce(
             sorted,
             [],
@@ -580,56 +603,68 @@ defmodule SchemaWeb.PageView do
               id = to_string(id)
 
               [
-                "<tr class='bg-transparent'><td style='width: 25px' class='text-right' id='",
-                to_string(key),
+                "<tr class=\"bg-transparent\"><td style=\"width: 25px\" class=\"text-right\" id=\"",
+                to_string(attribute_key),
                 "-",
                 id,
-                "'><code>",
+                "\"><code>",
                 id,
-                "</code></td><td class='textnowrap'>",
+                "</code></td><td class=\"textnowrap\">",
                 Map.get(item, :caption, id),
-                "<div class='text-secondary'>",
+                "<div class=\"text-secondary\">",
                 append_source_references(description(item), item),
                 "</div></td><tr>" | acc
               ]
             end
           ),
-          "</tbody></table>",
-          enumeration_note(obj)
+          "</tbody></table>"
         ]
+      else
+        ""
+      end
 
-      Map.has_key?(obj, :_sibling_of) ->
+    [
+      description,
+      enum_values_table,
+      if Map.has_key?(attribute, :sibling) do
         [
-          description,
-          "<div class=\"mt-2\">ℹ️ This is the string sibling of <a target=\"_blank\"\" href=\"",
+          "<div class=\"mt-2\">ℹ️ This is an <a target=\"_blank\"\" href=\"",
           @enum_attributes_doc_url,
-          "\">enum attribute</a> <code>",
-          to_string(obj[:_sibling_of]),
+          "\">enum attribute</a>; its string sibling is <code>",
+          to_string(attribute[:sibling]),
           "</code>.</div>"
         ]
-
-      true ->
-        description
-    end
+      else
+        [
+          "<div class=\"mt-2\">ℹ️ ",
+          "This is an ",
+          " <a target=\"_blank\"\" href=\"",
+          @enum_attributes_doc_url,
+          "\">",
+          "enum attribute</a>.</div>"
+        ]
+      end
+    ]
   end
 
-  defp enumeration_note(attribute) do
-    if Map.has_key?(attribute, :sibling) do
+  defp enum_sibling_description(description, attribute, is_dictionary_view) do
+    if is_dictionary_view do
       [
-        "<div class=\"mt-2\">ℹ️ This is an <a target=\"_blank\"\" href=\"",
+        description,
+        "<div class=\"mt-2\">ℹ️ This is the string sibling of <a target=\"_blank\"\" href=\"",
         @enum_attributes_doc_url,
-        "\">enum attribute</a>; its string sibling is <code>",
-        to_string(attribute[:sibling]),
-        "</code>.</div>"
+        "\">enum attribute</a> <code>",
+        to_string(attribute[:_sibling_of]),
+        "</code> but can also be used independently. See specific usage.</div>"
       ]
     else
       [
-        "<div class=\"mt-2\">ℹ️ ",
-        "This is an ",
-        " <a target=\"_blank\"\" href=\"",
+        description,
+        "<div class=\"mt-2\">ℹ️ This is the string sibling of <a target=\"_blank\"\" href=\"",
         @enum_attributes_doc_url,
-        "\">",
-        "enum attribute</a>.</div>"
+        "\">enum attribute</a> <code>",
+        to_string(attribute[:_sibling_of]),
+        "</code>.</div>"
       ]
     end
   end
