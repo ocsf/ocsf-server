@@ -82,6 +82,15 @@ defmodule SchemaWeb.PageView do
     "<a href='#{path}'>#{caption}</a>"
   end
 
+  @spec show_deprecated_css_classes(map(), String.t()) :: String.t()
+  def show_deprecated_css_classes(class, initial) do
+    if class[:"@deprecated"] != nil do
+      initial <> " collapse deprecated"
+    else
+      initial
+    end
+  end
+
   def format_profiles(nil) do
     ""
   end
