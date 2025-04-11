@@ -34,43 +34,19 @@ limitations under the License.
   </div>
 </div>
 
-<div class="mt-4">
-  <table class="table table-bordered">
-    <thead class="extensions">
-      <tr class="thead-color">
-        <%= for {key, category} <- @data[:attributes] do %>
-          <% name = Atom.to_string(key) %>
-          <% path = Routes.static_path(@conn, "/categories/" <> name) %>
-          <th>
-            <a href="<%= path %>"><%= raw format_caption(name, category) %></a>
-          </th>
-        <% end %>
-      </tr>
-    </thead>
-    <tbody class="extensions">
-      <tr>
-        <%= for {_key, category} <- @data[:attributes] do %>
-        <td>
-        <table class="table table-striped table-borderless category-class-table">
-          <tbody class="searchable">
-            <td>
-            <%= for {id, class} <- category[:classes] do %>
-              <% name = Atom.to_string(id) %>
-              <% path = Routes.static_path(@conn, "/classes/" <> name) %>
-              <tr class="<%= show_deprecated_css_classes(class, "ocsf-class") %>" <%= raw format_profiles(class[:profiles])%> >
-                <td class="align-middle" style="height: 36px; overflow:auto;">
-                  <%= raw format_linked_class_caption(path, name, class) %>
-                </td>
-              </tr>
-            <% end %>
-            </td>
-          </tbody>
-        </table>
-      </td>
-      <% end %>
-    </tr>
-  </tbody>
-  </table>
+<div class="mt-4 multi-col">
+  <%= for {category_key, category} <- @data[:attributes] do %>
+  <% category_name = Atom.to_string(category_key) %>
+  <% category_path = Routes.static_path(@conn, "/categories/" <> category_name) %>
+  <section class="category">
+    <header><a href="<%= category_path %>"><%= raw format_caption(category_name, category) %></a></header>
+    <%= for {class_key, class} <- category[:classes] do %>
+    <% class_name = Atom.to_string(class_key) %>
+    <% class_path = Routes.static_path(@conn, "/classes/" <> class_name) %>
+    <div class="<%= show_deprecated_css_classes(class, "ocsf-class") %>" <%= raw format_profiles(class[:profiles])%>><%= raw format_linked_class_caption(class_path, class_name, class) %></div>
+    <% end %>
+  </section>
+  <% end %>
 </div>
 
 <script>

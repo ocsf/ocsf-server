@@ -354,3 +354,35 @@ input[type=checkbox]:hover {
 
 /* Show the dropdown menu on hover */
 .dropdown:hover .dropdown-content {display: block;}
+
+.multi-col {
+  -webkit-columns: 4 18rem;
+     -moz-columns: 4 18rem;
+          columns: 4 18rem;
+}
+
+section.category {
+  border: 1px solid;
+  border-color: rgb(222, 226, 230);
+  padding: 1em;
+  margin-bottom: 1em;
+  -webkit-break-inside: avoid;
+     -moz-break-inside: avoid;
+          break-inside: avoid;
+}
+
+section.category header {
+  background-color: #224F8B;
+  color: lightgrey;
+  font-weight: bold;
+  padding: 0.4rem;
+  margin-bottom: 0.2rem;
+}
+
+section.category header a {
+  color: lightgrey;
+}
+
+section.category div.ocsf-class {
+  margin-left: 1em;
+}
