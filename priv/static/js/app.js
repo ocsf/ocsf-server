@@ -37,8 +37,8 @@ function set_selected_extensions(extensions) {
   localStorage.setItem("schema_extensions", JSON.stringify(extensions));
 }
 
-const defaultSelectedValues = ["base-event", "deprecated", "optional", "recommended", "classification", "context", "occurrence", "primary"];
-const storageKey = "selected-attributes"
+const selectedAttributesDefaultValues = ["base-event", "deprecated", "optional", "recommended", "classification", "context", "occurrence", "primary"];
+const selectedAttributesStorageKey = "selected-attributes"
 
 function hide(name) {
   $(name).addClass('d-none');
@@ -52,18 +52,18 @@ function enable_option(name) {
   $(name).removeAttr('disabled');
 }
 
-function init_select() {
+function init_selected_attributes() {
   let selected = refresh_selected_profiles();
-  init_select_picker($("#attributes-select"), selected);
+  init_attributes_select_picker($("#attributes-select"), selected);
 }
 
 function refresh_selected_profiles() {
-  const data = window.localStorage.getItem(storageKey);
+  const data = window.localStorage.getItem(selectedAttributesStorageKey);
   let selected;
 
   if (data == null) {
-    selected = defaultSelectedValues;
-    window.localStorage.setItem(storageKey, selected);
+    selected = selectedAttributesDefaultValues;
+    window.localStorage.setItem(selectedAttributesStorageKey, selected);
   } else {
     if (data.length > 0)
       selected = data.split(",");
@@ -75,7 +75,7 @@ function refresh_selected_profiles() {
   return selected;
 }
 
-function init_select_picker(selection, selected) {
+function init_attributes_select_picker(selection, selected) {
   selection.selectpicker();
   selection.selectpicker('val', selected);
 
@@ -88,8 +88,8 @@ function init_select_picker(selection, selected) {
       else
         hideAll = true;
     }
-    window.localStorage.setItem(storageKey, values);
-    display_attributes(new Set(values));
+    window.localStorage.setItem(selectedAttributesStorageKey, values);
+    display_attributes(array_to_set(values));
   });
 }
 
@@ -97,7 +97,7 @@ function display_attributes(options) {
   const table = document.getElementById('data-table');
 
   if (table != null) {
-    // add classes that are always shown
+    // add CSS classes that are always shown
     options.add("event");
     options.add("not-deprecated")
     options.add("required");
@@ -188,4 +188,30 @@ function init_schema_buttons() {
     const url = '/api' + window.location.pathname + "?profiles=" + get_selected_profiles().toString();
     window.open(url,'_blank');
   });
+}
+
+const showDeprecatedStorageKey = "show-deprecated";
+
+function init_show_deprecated() {
+  $(document).ready(function () {
+    let checked = window.localStorage.getItem(showDeprecatedStorageKey);
+    if (checked == null || checked == "false") {
+      // Handling this case is needed in case where the prior state was checked _and_ local storage was
+      // cleared _and_ the user agent (browser) comes back to this page with the back button. The browser
+      // (at least Firefox) would keep the checkbox checked since that was the state of the UI.
+      document.getElementById("show-deprecated").checked = false;
+      $(".deprecated").collapse('hide')
+    } else if (checked == "true") {
+      document.getElementById("show-deprecated").checked = true;
+      $(".deprecated").collapse('show')
+    }
+  });
+}
+
+function on_click_show_deprecated(checkbox) {
+  if (checkbox.checked) {
+    window.localStorage.setItem(showDeprecatedStorageKey, "true");
+  } else {
+    window.localStorage.setItem(showDeprecatedStorageKey, "false");
+  }
 }

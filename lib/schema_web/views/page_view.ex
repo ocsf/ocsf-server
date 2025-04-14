@@ -1406,4 +1406,13 @@ defmodule SchemaWeb.PageView do
       "</a>"
     ]
   end
+
+  @spec show_deprecated_css_classes(map(), String.t()) :: String.t()
+  def show_deprecated_css_classes(item, initial) do
+    if item[:"@deprecated"] != nil do
+      initial <> " collapse deprecated"
+    else
+      initial
+    end
+  end
 end
