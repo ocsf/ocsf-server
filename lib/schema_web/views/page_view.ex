@@ -838,9 +838,9 @@ defmodule SchemaWeb.PageView do
 
   defp link_css_classes(link) do
     if link[:deprecated?] == true do
-      "m-0 collapse deprecated"
+      "reference m-0 collapse deprecated"
     else
-      "m-0"
+      "reference m-0"
     end
   end
 
