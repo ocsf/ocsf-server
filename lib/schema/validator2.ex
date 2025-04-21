@@ -307,7 +307,7 @@ defmodule Schema.Validator2 do
       if is_binary(version) do
         schema_version = Schema.version()
 
-        # Check if version matches OCSF's versioning format (x.y.z or x.y.z-dev)
+        # Check if version matches OCSF's versioning format (x.y.z, x.y.z-dev, x.y.z-rc.n)
         # Allows: 1.0.0, 1.5.0-dev, 1.0.0-rc.2 etc.
         case String.match?(version, ~r/^\d+\.\d+\.\d+(?:-dev|-rc\.\d+)?$/) do
           true ->
