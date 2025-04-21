@@ -312,13 +312,13 @@ defmodule Schema.Validator2 do
         case String.match?(version, ~r/^\d+\.\d+\.\d+(?:-dev|-rc\.\d+)?$/) do
           true ->
             cond do
-              version > schema_version ->
+              version < "1.0.0" or version > schema_version ->
                 add_error(
                   response,
                   "version_incompatible",
                   "Incompatible OCSF version at \"metadata.version\": \"#{version}\"" <>
-                    " Cannot validate against a future schema version." <>
-                    " Latest schema version on this server is \"#{schema_version}\".",
+                    " Cannot validate against an unreleased schema version." <>
+                    " Latest schema version available on this server is \"#{schema_version}\".",
                   %{
                     attribute_path: "metadata.version",
                     attribute: "version",
@@ -352,7 +352,7 @@ defmodule Schema.Validator2 do
               "version_invalid_format",
               "Invalid version format at \"metadata.version\": \"#{version}\"" <>
                 " Version must be in semantic versioning format." <>
-                " Latest schema version on this server is \"#{schema_version}\".",
+                " Latest schema version available on this server is \"#{schema_version}\".",
               %{
                 attribute_path: "metadata.version",
                 attribute: "version",
