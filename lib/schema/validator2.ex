@@ -307,22 +307,59 @@ defmodule Schema.Validator2 do
       if is_binary(version) do
         schema_version = Schema.version()
 
-        if version != schema_version do
-          add_warning(
-            response,
-            "version_incorrect",
-            "Incorrect version at \"metadata.version\"; value of \"#{version}\"" <>
-              " does not match schema version \"#{schema_version}\"." <>
-              " This can result in incorrect validation messages.",
-            %{
-              attribute_path: "metadata.version",
-              attribute: "version",
-              value: version,
-              expected_value: schema_version
-            }
-          )
-        else
-          response
+        # Check if version matches OCSF's versioning format (x.y.z or x.y.z-dev)
+        # Allows: 1.0.0, 1.5.0-dev, 1.0.0-rc.2 etc.
+        case String.match?(version, ~r/^\d+\.\d+\.\d+(?:-dev|-rc\.\d+)?$/) do
+          true ->
+            cond do
+              version > schema_version ->
+                add_error(
+                  response,
+                  "version_incompatible",
+                  "Incompatible OCSF version at \"metadata.version\": \"#{version}\"" <>
+                    " Cannot validate against a future schema version." <>
+                    " Latest schema version on this server is \"#{schema_version}\".",
+                  %{
+                    attribute_path: "metadata.version",
+                    attribute: "version",
+                    value: version,
+                    expected_value: schema_version
+                  }
+                )
+
+              version != schema_version ->
+                add_warning(
+                  response,
+                  "version_incorrect",
+                  "Incorrect version at \"metadata.version\": \"#{version}\"" <>
+                    " does not match schema version deployed on this server - \"#{schema_version}\"." <>
+                    " This may result in incorrect validation messages.",
+                  %{
+                    attribute_path: "metadata.version",
+                    attribute: "version",
+                    value: version,
+                    expected_value: schema_version
+                  }
+                )
+
+              true ->
+                response
+            end
+
+          false ->
+            add_error(
+              response,
+              "version_invalid_format",
+              "Invalid version format at \"metadata.version\": \"#{version}\"" <>
+                " Version must be in semantic versioning format." <>
+                " Latest schema version on this server is \"#{schema_version}\".",
+              %{
+                attribute_path: "metadata.version",
+                attribute: "version",
+                value: version,
+                expected_value: schema_version
+              }
+            )
         end
       else
         response
@@ -331,6 +368,7 @@ defmodule Schema.Validator2 do
       response
     end
   end
+
 
   @spec validate_type_uid(map(), map()) :: map()
   defp validate_type_uid(response, event) do
