@@ -308,7 +308,7 @@ defmodule Schema.Validator2 do
         schema_version = Schema.version()
 
         if version != schema_version do
-          add_error(
+          add_warning(
             response,
             "version_incorrect",
             "Incorrect version at \"metadata.version\"; value of \"#{version}\"" <>
