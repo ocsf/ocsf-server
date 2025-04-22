@@ -22,7 +22,7 @@ limitations under the License.
 
 
   <link rel="stylesheet" href='<%= Routes.static_path(@conn, "/css/bootstrap-4.6.2.min.css") %>'/>
-  <link rel="stylesheet" href='<%= Routes.static_path(@conn, "/css/bootstrap-1.13.18.select.min.css") %>'/>
+  <link rel="stylesheet" href='<%= Routes.static_path(@conn, "/css/bootstrap.select-1.13.18.min.css") %>'/>
   <link rel="stylesheet" href='<%= Routes.static_path(@conn, "/css/app.css") %>'/>
 
 
@@ -242,7 +242,7 @@ limitations under the License.
 
 <script type="text/javascript" src='<%= Routes.static_path(@conn, "/js/popper.min.js") %>'></script>
 <script type="text/javascript" src='<%= Routes.static_path(@conn, "/js/bootstrap-4.6.2.bundle.min.js") %>'></script>
-<script type="text/javascript" src='<%= Routes.static_path(@conn, "/js/bootstrap-1.13.18.select.min.js") %>'></script>
+<script type="text/javascript" src='<%= Routes.static_path(@conn, "/js/bootstrap.select-1.13.18.min.js") %>'></script>
 <script type="text/javascript" src='<%= Routes.static_path(@conn, "/js/sorttable.js") %>'></script>
 
 
