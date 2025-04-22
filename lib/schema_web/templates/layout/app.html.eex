@@ -19,12 +19,10 @@ limitations under the License.
   <meta name="description" content="Open Cybersecurity Schema Framework">
   <title>Open Cybersecurity Schema Framework</title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href='<%= Routes.static_path(@conn, "/css/bootstrap.min.css") %>'/>
-  <link rel="stylesheet" href='<%= Routes.static_path(@conn, "/css/bootstrap-select.min.css") %>'/>
+
+  <link rel="stylesheet" href='<%= Routes.static_path(@conn, "/css/bootstrap-4.6.2.min.css") %>'/>
+  <link rel="stylesheet" href='<%= Routes.static_path(@conn, "/css/bootstrap-1.13.18.select.min.css") %>'/>
   <link rel="stylesheet" href='<%= Routes.static_path(@conn, "/css/app.css") %>'/>
 
 
@@ -243,8 +241,8 @@ limitations under the License.
 </div>
 
 <script type="text/javascript" src='<%= Routes.static_path(@conn, "/js/popper.min.js") %>'></script>
-<script type="text/javascript" src='<%= Routes.static_path(@conn, "/js/bootstrap.bundle.min.js") %>'></script>
-<script type="text/javascript" src='<%= Routes.static_path(@conn, "/js/bootstrap-select.min.js") %>'></script>
+<script type="text/javascript" src='<%= Routes.static_path(@conn, "/js/bootstrap-4.6.2.bundle.min.js") %>'></script>
+<script type="text/javascript" src='<%= Routes.static_path(@conn, "/js/bootstrap-1.13.18.select.min.js") %>'></script>
 <script type="text/javascript" src='<%= Routes.static_path(@conn, "/js/sorttable.js") %>'></script>
 
 
