@@ -301,74 +301,105 @@ defmodule Schema.Validator2 do
   defp validate_version(response, event) do
     metadata = event["metadata"]
 
-    if is_map(metadata) do
+    # Only validate if we have a valid metadata object, and it has a version key
+    # No need to validate that version exists - the require attribute check does that
+    # Also no need to validate that version is a string - the attribute type check does that
+    if is_map(metadata) and Map.has_key?(metadata, "version") and is_binary(metadata["version"]) do
       version = metadata["version"]
 
-      if is_binary(version) do
-        schema_version = Schema.version()
+      case Schema.Utils.parse_version(version) do
+        {:error, error_message, _original} ->
+          add_error(
+            response,
+            "version_invalid_format",
+            "Event version #{inspect(version)} at \"metadata.version\" has invalid format:" <>
+              " #{error_message}. Version must be in semantic versioning format.",
+            %{
+              attribute_path: "metadata.version",
+              attribute: "version",
+              value: version,
+              expected_regex: Schema.Utils.version_regex_string()
+            }
+          )
 
-        # Check if version matches OCSF's versioning format (x.y.z, x.y.z-dev, x.y.z-rc.n)
-        # Allows: 1.0.0, 1.5.0-dev, 1.0.0-rc.2 etc.
-        case String.match?(version, ~r/^\d+\.\d+\.\d+(?:-dev|-rc\.\d+)?$/) do
-          true ->
-            cond do
-              version < "1.0.0" or version > schema_version ->
-                add_error(
-                  response,
-                  "version_incompatible",
-                  "Incompatible OCSF version at \"metadata.version\": \"#{version}\"" <>
-                    " Cannot validate against an unreleased schema version." <>
-                    " Latest schema version available on this server is \"#{schema_version}\".",
-                  %{
-                    attribute_path: "metadata.version",
-                    attribute: "version",
-                    value: version,
-                    expected_value: schema_version
-                  }
-                )
+        parsed_version ->
+          schema_version = Schema.version()
 
-              version != schema_version ->
-                add_warning(
-                  response,
-                  "version_incorrect",
-                  "Incorrect version at \"metadata.version\": \"#{version}\"" <>
-                    " does not match schema version deployed on this server - \"#{schema_version}\"." <>
-                    " This may result in incorrect validation messages.",
-                  %{
-                    attribute_path: "metadata.version",
-                    attribute: "version",
-                    value: version,
-                    expected_value: schema_version
-                  }
-                )
+          case Schema.parsed_version() do
+            {:error, error_message, _} ->
+              # comparing against invalid schema version - this is an OCSF schema bug
+              add_error(
+                response,
+                "server_version_invalid_format",
+                "Server's schema version #{inspect(schema_version)} has invalid format:" <>
+                  " #{error_message}. Please fix the schema version.",
+                %{
+                  value: schema_version,
+                  expected_regex: Schema.Utils.version_regex_string()
+                }
+              )
 
-              true ->
-                response
-            end
+            parsed_schema_version ->
+              cond do
+                parsed_version == parsed_schema_version ->
+                  response
 
-          false ->
-            add_error(
-              response,
-              "version_invalid_format",
-              "Invalid version format at \"metadata.version\": \"#{version}\"" <>
-                " Version must be in semantic versioning format." <>
-                " Latest schema version available on this server is \"#{schema_version}\".",
-              %{
-                attribute_path: "metadata.version",
-                attribute: "version",
-                value: version,
-                expected_value: schema_version
-              }
-            )
-        end
-      else
-        response
+                Schema.Utils.version_sorter(parsed_version, parsed_schema_version) ->
+                  # Event version is before the schema version (equal is covered above).
+                  if Schema.Utils.version_is_prerelease?(parsed_version) do
+                    # In general, earlier prerelease versions are incompatible with later versions.
+                    add_error(
+                      response,
+                      "version_incompatible_prerelease",
+                      "Event version \"#{version}\" at \"metadata.version\" is prerelease and" <>
+                        " incompatible with schema version \"#{schema_version}\"." <>
+                        " Prerelease schemas are generally not compatible with released" <>
+                        " and future versions. This can result in incorrect validation messages.",
+                      %{
+                        attribute_path: "metadata.version",
+                        attribute: "version",
+                        value: version
+                      }
+                    )
+                  else
+                    # event version is simply before - this might be OK so issue warning
+                    add_warning(
+                      response,
+                      "version_earlier",
+                      "Event version \"#{version}\" at \"metadata.version\" is earlier than" <>
+                        " schema version \"#{schema_version}\"." <>
+                        " While earlier released schema versions are backwards compatible," <>
+                        " validating against a later schema version can result in missing or" <>
+                        " incorrect validation messages. Try validating against the same version.",
+                      %{
+                        attribute_path: "metadata.version",
+                        attribute: "version",
+                        value: version
+                      }
+                    )
+                  end
+
+                true ->
+                  # Fallback... event event version is after (later/newer) than schema version
+                  add_error(
+                    response,
+                    "version_invalid_later",
+                    "Event version \"#{version}\" at \"metadata.version\" is invalid;" <>
+                      " it is later than schema version \"#{schema_version}\"." <>
+                      " This can result in incorrect validation messages.",
+                    %{
+                      attribute_path: "metadata.version",
+                      attribute: "version",
+                      value: version
+                    }
+                  )
+              end
+          end
       end
     else
       response
     end
   end
-
 
   @spec validate_type_uid(map(), map()) :: map()
   defp validate_type_uid(response, event) do
