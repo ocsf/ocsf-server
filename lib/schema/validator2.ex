@@ -353,7 +353,7 @@ defmodule Schema.Validator2 do
                       "version_incompatible_prerelease",
                       "Event version \"#{version}\" at \"metadata.version\" is prerelease and" <>
                         " incompatible with schema version \"#{schema_version}\"." <>
-                        " Prerelease schemas are generally not compatible with released" <>
+                        " Prerelease schemas are generally incompatible with released" <>
                         " and future versions. This can result in incorrect validation messages.",
                       %{
                         attribute_path: "metadata.version",
