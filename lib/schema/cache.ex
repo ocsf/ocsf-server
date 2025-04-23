@@ -32,7 +32,16 @@ defmodule Schema.Cache do
     :all_objects
   ]
   defstruct ~w[
-    version parsed_version profiles dictionary base_event categories classes all_classes objects all_objects
+    version
+    parsed_version
+    profiles
+    dictionary
+    base_event
+    categories
+    classes
+    all_classes
+    objects
+    all_objects
   ]a
 
   @type t() :: %__MODULE__{}

@@ -537,10 +537,8 @@ defmodule Schema.Utils do
 
   @version_regex ~r/^(?<major>0|[1-9]\d*)\.(?<minor>0|[1-9]\d*)\.(?<patch>0|[1-9]\d*)(?:-(?<prerelease>.+))?$/
 
-  @spec version_regex_string() :: String.t()
-  def version_regex_string() do
-    Regex.source(@version_regex)
-  end
+  @spec version_regex_source() :: String.t()
+  def version_regex_source(), do: @version_regex.source
 
   @spec parse_version(any()) :: version_or_error_t()
   def parse_version(s) when is_binary(s) do
@@ -578,15 +576,17 @@ defmodule Schema.Utils do
     end
   end
 
+  @spec version_is_initial_development?(version_or_error_t()) :: boolean()
+  def version_is_initial_development?(v) when is_map(v) do
+    v[:major] == 0
+  end
+
+  def version_is_initial_development?(v) when is_tuple(v), do: false
+
   @spec version_is_prerelease?(version_or_error_t()) :: boolean()
   def version_is_prerelease?(v) when is_map(v) do
     prerelease = v[:prerelease]
-
-    if prerelease && prerelease != "" do
-      true
-    else
-      false
-    end
+    is_binary(prerelease) and prerelease != ""
   end
 
   def version_is_prerelease?(v) when is_tuple(v), do: false
