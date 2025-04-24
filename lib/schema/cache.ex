@@ -21,6 +21,7 @@ defmodule Schema.Cache do
 
   @enforce_keys [
     :version,
+    :parsed_version,
     :profiles,
     :categories,
     :dictionary,
@@ -31,7 +32,16 @@ defmodule Schema.Cache do
     :all_objects
   ]
   defstruct ~w[
-    version profiles dictionary base_event categories classes all_classes objects all_objects
+    version
+    parsed_version
+    profiles
+    dictionary
+    base_event
+    categories
+    classes
+    all_classes
+    objects
+    all_objects
   ]a
 
   @type t() :: %__MODULE__{}
@@ -46,6 +56,12 @@ defmodule Schema.Cache do
   @spec init() :: __MODULE__.t()
   def init() do
     version = JsonReader.read_version()
+    parsed_version = Utils.parse_version(version[:version])
+
+    if not is_map(parsed_version) do
+      {:error, error_message, original_version} = parsed_version
+      error("Schema version #{inspect(original_version)} is invalid: #{error_message}")
+    end
 
     categories = JsonReader.read_categories() |> update_categories()
     dictionary = JsonReader.read_dictionary() |> update_dictionary()
@@ -102,6 +118,7 @@ defmodule Schema.Cache do
 
     %__MODULE__{
       version: version,
+      parsed_version: parsed_version,
       profiles: profiles,
       categories: categories,
       dictionary: dictionary,
@@ -127,6 +144,9 @@ defmodule Schema.Cache do
 
   @spec version(__MODULE__.t()) :: String.t()
   def version(%__MODULE__{version: version}), do: version[:version]
+
+  @spec parsed_version(__MODULE__.t()) :: Utils.version_or_error_t()
+  def parsed_version(%__MODULE__{parsed_version: parsed_version}), do: parsed_version
 
   @spec profiles(__MODULE__.t()) :: map()
   def profiles(%__MODULE__{profiles: profiles}), do: profiles
@@ -425,14 +445,12 @@ defmodule Schema.Cache do
 
   defp validate_class_observables(class_key, class) do
     if Map.has_key?(class, :observable) do
-      Logger.error(
+      error(
         "Illegal definition of one or more attributes with \"#{:observable}\" in class" <>
           "  \"#{class_key}\". Defining class-level observables is not supported (this would be" <>
           " redundant). Instead use the \"class_uid\" attribute for querying, correlating, and" <>
           " reporting."
       )
-
-      System.stop(1)
     end
 
     if not patch_extends?(class) and hidden_class?(class_key, class) do
@@ -443,25 +461,21 @@ defmodule Schema.Cache do
                Map.has_key?(attribute, :observable)
              end
            ) do
-        Logger.error(
+        error(
           "Illegal definition of one or more attributes with \"#{:observable}\" definition in" <>
             " hidden class \"#{class_key}\". This would cause colliding definitions of the same" <>
             " observable type_id values in all children of this class. Instead define" <>
             " observables (of any kind) in non-hidden child classes of \"#{class_key}\"."
         )
-
-        System.stop(1)
       end
 
       if Map.has_key?(class, :observables) do
-        Logger.error(
+        error(
           "Illegal \"#{:observables}\" definition in hidden class \"#{class_key}\". This" <>
             " would cause colliding definitions of the same observable type_id values in" <>
             " all children of this class. Instead define observables (of any kind) in" <>
             " non-hidden child classes of \"#{class_key}\"."
         )
-
-        System.stop(1)
       end
     end
   end
@@ -479,13 +493,11 @@ defmodule Schema.Cache do
             observable_type_id = Utils.observable_type_id_to_atom(attribute[:observable])
 
             if Map.has_key?(observable_type_id_map, observable_type_id) do
-              Logger.error(
+              error(
                 "Collision of observable type_id #{observable_type_id} between" <>
                   " \"#{caption}\" #{kind} attribute \"#{attribute_key}\" and" <>
                   " \"#{observable_type_id_map[observable_type_id][:caption]}\""
               )
-
-              System.stop(1)
 
               observable_type_id_map
             else
@@ -523,13 +535,11 @@ defmodule Schema.Cache do
           observable_type_id = Utils.observable_type_id_to_atom(observable_type_id)
 
           if(Map.has_key?(observable_type_id_map, observable_type_id)) do
-            Logger.error(
+            error(
               "Collision of observable type_id #{observable_type_id} between" <>
                 " \"#{caption}\" #{kind} attribute path \"#{attribute_path}\" and" <>
                 " \"#{observable_type_id_map[observable_type_id][:caption]}\""
             )
-
-            System.stop(1)
 
             observable_type_id_map
           else
@@ -574,13 +584,11 @@ defmodule Schema.Cache do
       # Attribute-path observables would be tricky to implement as an machine-driven enrichment.
       # It would require tracking the relative from the point of the object down that tree of an
       # overall OCSF event.
-      Logger.error(
+      error(
         "Illegal \"#{:observables}\" definition in object \"#{object_key}\"." <>
           " Object-specific attribute path observables are not supported." <>
           " Please file an issue if you find this feature necessary."
       )
-
-      System.stop(1)
     end
 
     if not patch_extends?(object) and hidden_object?(object[:name]) do
@@ -591,25 +599,21 @@ defmodule Schema.Cache do
                Map.has_key?(attribute, :observable)
              end
            ) do
-        Logger.error(
+        error(
           "Illegal definition of one or more attributes with \"#{:observable}\" in hidden object" <>
             " \"#{object_key}\". This would cause colliding definitions of the same" <>
             " observable type_id values in all children of this object. Instead define" <>
             " observables (of any kind) in non-hidden child objects of \"#{object_key}\"."
         )
-
-        System.stop(1)
       end
 
       if Map.has_key?(object, :observable) do
-        Logger.error(
+        error(
           "Illegal \"#{:observable}\" definition in hidden object \"#{object_key}\". This" <>
             " would cause colliding definitions of the same observable type_id values in" <>
             " all children of this object. Instead define observables (of any kind) in" <>
             " non-hidden child objects of \"#{object_key}\"."
         )
-
-        System.stop(1)
       end
     end
   end
@@ -622,13 +626,11 @@ defmodule Schema.Cache do
       observable_type_id = Utils.observable_type_id_to_atom(object[:observable])
 
       if(Map.has_key?(observable_type_id_map, observable_type_id)) do
-        Logger.error(
+        error(
           "Collision of observable type_id #{observable_type_id} between" <>
             " \"#{caption}\" Object \"#{:observable}\" and" <>
             " \"#{observable_type_id_map[observable_type_id][:caption]}\""
         )
-
-        System.stop(1)
 
         observable_type_id_map
       else
@@ -659,13 +661,11 @@ defmodule Schema.Cache do
             observable_type_id = Utils.observable_type_id_to_atom(item[:observable])
 
             if Map.has_key?(observable_type_id_map, observable_type_id) do
-              Logger.error(
+              error(
                 "Collision of observable type_id #{observable_type_id} between #{kind}" <>
                   " \"#{item[:caption]}\" and" <>
                   " \"#{observable_type_id_map[observable_type_id][:caption]}\""
               )
-
-              System.stop(1)
 
               observable_type_id_map
             else
@@ -991,8 +991,7 @@ defmodule Schema.Cache do
         # that way the previous modifications are taken into account
         case Map.get(acc, base_key, Map.get(items, base_key)) do
           nil ->
-            Logger.error("#{key} #{kind} attempted to patch invalid item: #{base_key}")
-            System.stop(1)
+            error("#{key} #{kind} attempted to patch invalid item: #{base_key}")
             acc
 
           base ->
@@ -1074,8 +1073,7 @@ defmodule Schema.Cache do
 
         case parent_item do
           nil ->
-            Logger.error("#{inspect(item[:name])} extends undefined item: #{inspect(extends)}")
-            System.stop(1)
+            error("#{inspect(item[:name])} extends undefined item: #{inspect(extends)}")
 
           base ->
             base = resolve_extends(items, base)
@@ -1167,12 +1165,11 @@ defmodule Schema.Cache do
     if Map.has_key?(objects, :observable) do
       update_in(objects, [:observable, :attributes, :type_id, :enum], fn enum_map ->
         Map.merge(enum_map, observable_type_id_map, fn observable_type_id, enum1, enum2 ->
-          Logger.error(
+          error(
             "Collision of observable type_id #{observable_type_id} between" <>
               " \"#{enum1[:caption]}\" and \"#{enum2[:caption]}\" (detected while merging)"
           )
 
-          System.stop(1)
           enum1
         end)
       end)
