@@ -60,7 +60,7 @@ defmodule Schema.MixProject do
       {:number, "~> 1.0"},
       {:elixir_uuid, "~> 1.6", hex: :uuid_utils},
       {:phoenix_swagger, "~> 0.8"},
-      {:ex_json_schema, "~> 0.7"},
+      {:ex_json_schema, "~> 0.7", override: true},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false}
     ]
