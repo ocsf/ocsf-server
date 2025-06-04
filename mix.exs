@@ -10,7 +10,7 @@
 defmodule Schema.MixProject do
   use Mix.Project
 
-  @version "2.79.3"
+  @version "2.79.4"
 
   def project do
     build = System.get_env("GITHUB_RUN_NUMBER") || "SNAPSHOT"
@@ -60,7 +60,6 @@ defmodule Schema.MixProject do
       {:number, "~> 1.0"},
       {:elixir_uuid, "~> 1.6", hex: :uuid_utils},
       {:phoenix_swagger, "~> 0.8"},
-      {:ex_json_schema, "~> 0.7"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false}
     ]
