@@ -187,7 +187,8 @@ defmodule Schema.Utils do
 
     case find_entity(objects, attribute, object_key) do
       {object_key, nil} ->
-        Logger.warning("Undefined object type: #{object_key}, for #{attribute_key}")
+        Logger.error("Undefined object type: #{object_key}, for #{attribute_key}")
+        System.stop(1)
         Map.put(attribute, :object_name, "_undefined_")
 
       {object_key, object} ->
@@ -210,7 +211,8 @@ defmodule Schema.Utils do
 
     case types[String.to_atom(type)] do
       nil ->
-        Logger.warning("Undefined data type: #{attribute_key}: #{type}")
+        Logger.error("Undefined data type: #{attribute_key}: #{type}")
+        System.stop(1)
         attribute
 
       type ->
@@ -328,10 +330,11 @@ defmodule Schema.Utils do
                 Map.put(dictionary_attributes, ext_key, data)
 
               _ ->
-                Logger.warning(
+                Logger.error(
                   "\"#{item[:caption]}\" uses undefined attribute:" <>
                     " #{item_attribute_key}: #{inspect(item_attribute)}"
                 )
+                System.stop(1)
 
                 dictionary_attributes
             end

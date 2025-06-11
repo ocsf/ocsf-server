@@ -6,5 +6,11 @@ config :schema_server, SchemaWeb.Endpoint,
   http: [port: System.get_env("PORT") || 8000],
   server: false
 
-# Print only warnings and errors during test
-config :logger, level: :warning
+# Configure the logger to write to a file in test mode
+config :logger,
+  level: :warning,
+  backends: [{LoggerFileBackend, :test_log}]
+
+config :logger, :test_log,
+  path: "log/test.log",
+  level: :debug
