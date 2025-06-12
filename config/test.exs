@@ -12,5 +12,7 @@ config :logger,
   backends: [{LoggerFileBackend, :test_log}]
 
 config :logger, :test_log,
-  path: "log/test.log",
-  level: :debug
+  path: "log/test_#{System.system_time(:millisecond)}.log",
+  level: :debug,
+  format: "$time $metadata[$level] $message\n",
+  metadata: [:request_id]
