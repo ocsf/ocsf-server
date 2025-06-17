@@ -93,6 +93,9 @@ limitations under the License.
         case '/objects/observable':
           $('#observable_id').addClass("active");
           break;
+        case '/data_types':
+          $('#data_type_id').addClass("active");
+          break;
       }
     });
   </script>
@@ -191,6 +194,9 @@ limitations under the License.
       <li id="observable_id" class="nav-item">
         <a class="nav-link" href='<%= Routes.static_path(@conn, "/objects/observable") %>'>Observable</a>
       </li>
+      <li id="data_type_id" class="nav-item">
+      <a class="nav-link" href='<%= Routes.static_path(@conn, "/data_types") %>'>Data Types</a>
+      </li>
 
       <div class="navbar-text">|</div>
 
@@ -198,12 +204,12 @@ limitations under the License.
         <div class="dropdown">
           Resources
           <div class="dropdown-content">
-            <a class="nav-link" target="_blank" href="https://github.com/ocsf/ocsf-docs/blob/main/Understanding%20OCSF.pdf">Understanding OCSF</a>
-            <a class="nav-link" target="_blank" href="https://github.com/ocsf/examples/tree/main">Example Mappings</a>
-            <a class="nav-link" target="_blank" href="https://github.com/ocsf/ocsf-schema/blob/main/CONTRIBUTING.md">Contributing to OCSF</a>
-            <a class="nav-link" target="_blank" href="https://github.com/ocsf/ocsf-schema">Fork Me on GitHub</a>
-            <a class="nav-link" href='<%= Routes.static_path(@conn, "/data_types") %>'>OCSF Data Types</a>
             <a class="nav-link" target="_blank" href='<%= Routes.static_path(@conn, "/doc") %>'>API Documentation</a>
+            <a class="nav-link" target="_blank" href="https://github.com/ocsf/ocsf-docs/blob/main/overview/understanding-ocsf.md">Understanding OCSF</a>
+            <a class="nav-link" target="_blank" href="https://github.com/ocsf/ocsf-docs/tree/main/faqs">FAQ</a>
+            <a class="nav-link" target="_blank" href="https://github.com/ocsf/examples/tree/main">Example Mappings</a>
+            <a class="nav-link" target="_blank" href="https://github.com/ocsf/ocsf-schema">Fork Me on GitHub</a>
+            <a class="nav-link" target="_blank" href="https://github.com/ocsf/ocsf-schema/blob/main/CONTRIBUTING.md">Contributing to OCSF</a>
           </div>
         </div>
       </li>
