@@ -314,7 +314,7 @@ button:hover,
   .sidebar-toggle {
     position: fixed;
     top: 8px;
-    left: 220px;
+    left: 205px;
     width: 36px;
     height: 36px;
     background: var(--primary-color);

@@ -105,7 +105,7 @@ limitations under the License.
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse">
     <span class="navbar-toggler-icon"></span>
   </button>
-  <a class="navbar-brand" href="#" style="margin-left: 60px;">OCSF Schema</a>
+  <h1 class="navbar-brand" style="margin-left: 50px;">OCSF Schema</h1>
 
   <nav class="navbar navbar-bg collapse navbar-collapse navbar-expand-md navbar-light fixed-left">
     <div class="ocsf-logo">
