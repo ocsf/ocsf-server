@@ -5,7 +5,7 @@ defmodule SchemaWeb.PageView do
   @at_least_one_symbol "†"
   @just_one_symbol "‡"
   @unknown_constraint_symbol "*"
-  @enum_attributes_doc_url "https://github.com/ocsf/ocsf-docs/blob/main/Understanding%20OCSF.md#enum-attributes"
+  @enum_attributes_doc_url "https://github.com/ocsf/ocsf-docs/blob/main/overview/understanding-ocsf.md#enum-attributes"
 
   def class_graph_path(conn, data) do
     class_name = data[:name]
