@@ -82,8 +82,12 @@ limitations under the License.
         <li class="nav-item">
           <input type="text" id="tableSearch" onkeyup="searchInTable()" class="form-control border-dark" placeholder="Search" autofocus>
           <div class="mt-1">
-            <input type="checkbox" id="show-deprecated" data-toggle="collapse" data-target=".deprecated" onclick="on_click_show_deprecated(this)">
-            <label for="show-deprecated">Show deprecated</label>
+            <div class="show-deprecated-container">
+              <input type="checkbox" id="show-deprecated" class="show-deprecated-checkbox" data-toggle="collapse" data-target=".deprecated" onclick="on_click_show_deprecated(this)">
+              <label for="show-deprecated" class="show-deprecated-label">
+                <span class="show-deprecated-text">Show deprecated</span>
+              </label>
+            </div>
           </div>
         </li>
       </ul>

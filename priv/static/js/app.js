@@ -139,12 +139,20 @@ function display_row(set, classList) {
     classList.add('d-none');
 }
 
-/* Table search function */
+/* Search function that works for both tables and categories */
 function searchInTable() {
   const input = document.getElementById("tableSearch");
   const filter = input.value.toUpperCase();
+  
+  // Check if we're on the categories page (has section.category elements)
+  const categories = document.querySelectorAll('section.category');
+  if (categories.length > 0) {
+    searchInCategories(filter);
+    return;
+  }
+  
+  // Otherwise, search in tables
   const tbody = document.getElementsByClassName("searchable");
-
   for (let t = 0; t < tbody.length; t++) {
     let tr = tbody[t].children;
 
@@ -170,6 +178,45 @@ function searchInTable() {
         row.style.display = "";
     }
   }
+}
+
+/* Search function for categories page */
+function searchInCategories(filter) {
+  const categories = document.querySelectorAll('section.category');
+  
+  categories.forEach(category => {
+    let categoryHasMatch = false;
+    const categoryHeader = category.querySelector('header');
+    const categoryName = categoryHeader ? categoryHeader.innerText.toUpperCase() : '';
+    
+    // Check if category name matches
+    if (categoryName.indexOf(filter) >= 0) {
+      categoryHasMatch = true;
+    }
+    
+    // Check classes within the category
+    const classes = category.querySelectorAll('div.ocsf-class');
+    let visibleClassCount = 0;
+    
+    classes.forEach(classDiv => {
+      const className = classDiv.innerText.toUpperCase();
+      const classMatches = className.indexOf(filter) >= 0;
+      
+      if (filter === '' || classMatches || categoryHasMatch) {
+        classDiv.style.display = '';
+        visibleClassCount++;
+      } else {
+        classDiv.style.display = 'none';
+      }
+    });
+    
+    // Show/hide the entire category based on matches
+    if (filter === '' || categoryHasMatch || visibleClassCount > 0) {
+      category.style.display = '';
+    } else {
+      category.style.display = 'none';
+    }
+  });
 }
 
 function init_schema_buttons() {
@@ -199,18 +246,158 @@ function init_show_deprecated() {
       // cleared _and_ the user agent (browser) comes back to this page with the back button. The browser
       // (at least Firefox) would keep the checkbox checked since that was the state of the UI.
       document.getElementById("show-deprecated").checked = false;
-      $(".deprecated").collapse('hide')
+      $(".deprecated").collapse('hide');
     } else if (checked == "true") {
       document.getElementById("show-deprecated").checked = true;
-      $(".deprecated").collapse('show')
+      $(".deprecated").collapse('show');
     }
+    
+    // Update container state
+    updateShowDeprecatedState(checked == "true");
   });
 }
 
 function on_click_show_deprecated(checkbox) {
   if (checkbox.checked) {
     window.localStorage.setItem(showDeprecatedStorageKey, "true");
+    $(".deprecated").collapse('show');
   } else {
     window.localStorage.setItem(showDeprecatedStorageKey, "false");
+    $(".deprecated").collapse('hide');
+  }
+  
+  // Update container active state
+  updateShowDeprecatedState(checkbox.checked);
+}
+
+function updateShowDeprecatedState(isActive) {
+  const container = document.querySelector('.show-deprecated-container');
+  if (container) {
+    if (isActive) {
+      container.classList.add('active');
+    } else {
+      container.classList.remove('active');
+    }
   }
 }
+
+
+// Dark Mode Management
+function initTheme() {
+  const savedTheme = localStorage.getItem('ocsf-theme');
+  const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  
+  let theme = savedTheme;
+  if (!savedTheme) {
+    theme = systemPrefersDark ? 'dark' : 'light';
+  }
+  
+  setTheme(theme);
+  updateThemeToggle(theme);
+}
+
+function setTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('ocsf-theme', theme);
+}
+
+function toggleTheme() {
+  const currentTheme = document.documentElement.getAttribute('data-theme');
+  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  
+  setTheme(newTheme);
+  updateThemeToggle(newTheme);
+}
+
+function updateThemeToggle(theme) {
+  const themeIcon = document.getElementById('theme-icon');
+  const themeText = document.getElementById('theme-text');
+  
+  if (themeIcon && themeText) {
+    if (theme === 'dark') {
+      themeIcon.className = 'fas fa-sun';
+      themeText.textContent = 'Light Mode';
+    } else {
+      themeIcon.className = 'fas fa-moon';
+      themeText.textContent = 'Dark Mode';
+    }
+  }
+}
+
+// Listen for system theme changes
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+  if (!localStorage.getItem('ocsf-theme')) {
+    const theme = e.matches ? 'dark' : 'light';
+    setTheme(theme);
+    updateThemeToggle(theme);
+  }
+});
+
+// Sidebar collapse functionality
+function initSidebarToggle() {
+  const sidebarToggle = document.getElementById('sidebar-toggle');
+  const sidebar = document.querySelector('.navbar.fixed-left');
+  const body = document.body;
+  
+  if (!sidebarToggle || !sidebar) return;
+  
+  // Get saved state from localStorage
+  const isCollapsed = localStorage.getItem('sidebar-collapsed') === 'true';
+  
+  // Apply saved state
+  if (isCollapsed) {
+    sidebar.classList.add('collapsed');
+    body.classList.add('sidebar-collapsed');
+  }
+  
+  // Toggle sidebar on button click
+  sidebarToggle.addEventListener('click', function() {
+    const isCurrentlyCollapsed = sidebar.classList.contains('collapsed');
+    
+    if (isCurrentlyCollapsed) {
+      sidebar.classList.remove('collapsed');
+      body.classList.remove('sidebar-collapsed');
+      localStorage.setItem('sidebar-collapsed', 'false');
+    } else {
+      sidebar.classList.add('collapsed');
+      body.classList.add('sidebar-collapsed');
+      localStorage.setItem('sidebar-collapsed', 'true');
+    }
+  });
+}
+
+// Modern enhancements
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize theme
+  initTheme();
+  
+  // Initialize sidebar toggle
+  initSidebarToggle();
+  
+  
+  // Enhance search input with focus styling
+  const searchInput = document.getElementById('tableSearch');
+  if (searchInput) {
+    searchInput.addEventListener('focus', function() {
+      this.style.borderColor = 'var(--accent-color)';
+      this.style.boxShadow = '0 0 0 3px rgba(0, 164, 183, 0.1)';
+    });
+    
+    searchInput.addEventListener('blur', function() {
+      this.style.borderColor = 'var(--border-color)';
+      this.style.boxShadow = 'none';
+    });
+  }
+  
+  // Add hover effects to category cards
+  const categories = document.querySelectorAll('section.category');
+  categories.forEach(category => {
+    category.addEventListener('mouseenter', function() {
+      this.style.transform = 'translateY(-2px)';
+    });
+    
+    category.addEventListener('mouseleave', function() {
+      this.style.transform = 'translateY(0)';
+    });
+  });
+});

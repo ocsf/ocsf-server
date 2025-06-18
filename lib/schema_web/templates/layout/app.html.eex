@@ -25,6 +25,9 @@ limitations under the License.
   <link rel="stylesheet" href='<%= Routes.static_path(@conn, "/css/bootstrap.select-1.13.18.min.css") %>'/>
   <link rel="stylesheet" href='<%= Routes.static_path(@conn, "/css/app.css") %>'/>
 
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
 
   <script type="text/javascript" src='<%= Routes.static_path(@conn, "/js/jquery-3.5.1.slim.min.js") %>'></script>
   <script type="text/javascript" src='<%= Routes.static_path(@conn, "/js/app.js") %>'></script>
@@ -107,12 +110,14 @@ limitations under the License.
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse">
     <span class="navbar-toggler-icon"></span>
   </button>
-  <a class="navbar-brand" href="#">OCSF Schema</a>
+  <a class="navbar-brand" href="#" style="margin-left: 60px;">OCSF Schema</a>
 
   <nav class="navbar navbar-bg collapse navbar-collapse navbar-expand-md navbar-light fixed-left">
-    <a href="<%= Routes.static_path(@conn, "/?extensions=") %>" onclick="reset_home_page()" class="navbar-brand ocsf-logo">
-      <img src='<%= Routes.static_path(@conn, "/images/ocsf-logo.png") %>' alt="OCSF"/>
-    </a>
+    <div class="ocsf-logo">
+      <a href="<%= Routes.static_path(@conn, "/?extensions=") %>" onclick="reset_home_page()">
+        <img src='<%= Routes.static_path(@conn, "/images/ocsf-logo.png") %>' alt="OCSF"/>
+      </a>
+    </div>
     <h6 class="container-fluid version">
     <form autocomplete="off">
       <select
@@ -172,6 +177,14 @@ limitations under the License.
       </ul>
     </div>
     <% end %>
+
+    <!-- Dark Mode Toggle at Bottom -->
+    <div class="navbar-brand" style="margin-top: auto; padding-top: var(--spacing-lg);">
+      <button id="theme-toggle" class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle dark mode">
+        <i class="fas fa-moon" id="theme-icon"></i>
+        <span id="theme-text">Dark Mode</span>
+      </button>
+    </div>
   </nav>
 
   <div class="collapse navbar-collapse" id="navbarCollapse">
@@ -232,6 +245,11 @@ limitations under the License.
     </ul>
   </div>
 </nav>
+
+<!-- Sidebar Toggle Button - positioned in top-left corner -->
+<button id="sidebar-toggle" class="sidebar-toggle" title="Toggle sidebar">
+  <i class="fas fa-bars"></i>
+</button>
 
 <div class="main-page">
   <main role="main" class="container-fluid">
