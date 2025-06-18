@@ -475,6 +475,47 @@ button:hover,
   margin-bottom: var(--spacing-xs);
 }
 
+/* Reduce spacing for extension and profile lists */
+.navbar.fixed-left .navbar-nav .nav-item {
+  margin-bottom: 0.5rem;
+}
+
+/* Extensions styling - checkbox and label are separate */
+#checkbox-extensions .nav-item a {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+#checkbox-extensions .nav-item input[type="checkbox"] {
+  margin-right: 0.25rem;
+  margin-bottom: 0;
+  flex-shrink: 0;
+}
+
+#checkbox-extensions .nav-item label {
+  margin-bottom: 0;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+/* Profiles styling - checkbox and text are inside label */
+#checkbox-profiles .nav-item label {
+  margin-bottom: 0;
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+#checkbox-profiles .nav-item input[type="checkbox"] {
+  margin-right: 0.5rem;
+  margin-bottom: 0;
+  flex-shrink: 0;
+}
+
 .navbar-nav .nav-link:hover {
   background: var(--background-secondary);
   color: var(--accent-color);
