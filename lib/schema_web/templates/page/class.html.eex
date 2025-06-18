@@ -12,7 +12,6 @@ limitations under the License.
 <script>
   show("#sample-data");
   show("#json-schema");
-  show("#schema");
 </script>
 
 <% category = @data[:category] %>
