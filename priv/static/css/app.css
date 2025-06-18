@@ -20,7 +20,7 @@
   
   /* Text Colors - Light Mode */
   --text-primary: #1E293B;
-  --text-secondary: #64748B;
+  --text-secondary: #a6b0be;
   --text-muted: #94A3B8;
   --text-inverse: #FFFFFF;
   
@@ -374,9 +374,11 @@ button:hover,
     vertical-align: baseline;
   }
 
-  /* OCSF Logo */
+  /* OCSF Logo - Frosty Transparent Look */
   .ocsf-logo {
-    background: var(--primary-color);
+    background: #0F1B5C;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border-radius: var(--radius-lg);
     padding: var(--spacing-md);
     margin-bottom: var(--spacing-lg);
@@ -386,7 +388,27 @@ button:hover,
     text-align: center;
     width: 100%;
     box-sizing: border-box;
-    box-shadow: var(--shadow-sm);
+    box-shadow: 0 8px 32px rgba(15, 27, 92, 0.2);
+    transition: var(--transition-normal);
+  }
+
+  .ocsf-logo:hover {
+    background: #0F1B5C;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(15, 27, 92, 0.3);
+  }
+
+  /* Dark mode adjustments for frosty logo */
+  [data-theme="dark"] .ocsf-logo {
+    background: rgba(192, 132, 161, 0.15);
+    border-color: rgba(192, 132, 161, 0.25);
+    box-shadow: 0 8px 32px rgba(192, 132, 161, 0.1);
+  }
+
+  [data-theme="dark"] .ocsf-logo:hover {
+    background: rgba(192, 132, 161, 0.2);
+    border-color: rgba(192, 132, 161, 0.35);
+    box-shadow: 0 12px 40px rgba(192, 132, 161, 0.15);
   }
 
   .ocsf-logo img {
