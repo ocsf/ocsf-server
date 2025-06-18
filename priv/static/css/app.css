@@ -412,10 +412,11 @@ button:hover,
   }
 
   .ocsf-logo img {
-    height: 60px;
+    height: auto;
     width: auto;
     display: block;
     max-width: 100%;
+    transform: scale(1.2);
   }
 
   /* Version selector */
