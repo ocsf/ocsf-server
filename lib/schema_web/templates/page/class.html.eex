@@ -29,6 +29,7 @@ limitations under the License.
       <span class="text-secondary">[<a href="<%= class_graph_path(@conn, @data)  %>"><%= @data[:uid] %></a>]<sup><%= extension || "" %></sup>
         Class
       </span>
+      <%= raw profile_badges(@conn, @data, @profiles) %>
     </h3>
 
     <%= if category_name != nil do %>
@@ -127,10 +128,6 @@ limitations under the License.
     <%= raw constraints(constraints) %>
   </div>
 <% end %>
-
-<div class="extensions">
-  <%= raw class_profiles(@conn, @data, @profiles) %>
-</div>
 
 <% associations = @data[:associations] %>
 <%= if associations != nil and !Enum.empty?(associations) do %>

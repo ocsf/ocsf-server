@@ -39,6 +39,7 @@
           </span>
         <% end %>
       </span>
+      <%= raw profile_badges(@conn, @data, @profiles) %>
     </h3>
 
     <div class="text-secondary">
@@ -127,9 +128,6 @@
     <%= raw constraints(constraints) %>
   </div>
 <% end %>
-<div class="extensions">
-  <%= raw class_profiles(@conn, @data, @profiles) %>
-<div>
 
 <script>
   init_schema_buttons();

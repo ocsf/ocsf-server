@@ -73,6 +73,34 @@ defmodule SchemaWeb.PageView do
     end
   end
 
+  def profile_badges(conn, class, profiles) do
+    case class[:profiles] || [] do
+      [] ->
+        ""
+
+      list ->
+        applicable_profiles = Stream.filter(list, fn profile -> Map.has_key?(profiles, profile) end)
+
+        if Enum.empty?(applicable_profiles) do
+          ""
+        else
+          badges = Enum.map(applicable_profiles, fn name ->
+            caption = get_in(profiles, [name, :caption]) || name
+            path = Routes.static_path(conn, "/profiles/" <> name)
+            [
+              "<span class='profile-badge'>",
+              "<a href='", path, "' title='Profile: ", caption, "'>",
+              "<i class='fas fa-tag'></i> ", caption,
+              "</a>",
+              "</span>"
+            ]
+          end)
+
+          ["<div class='profile-badges'><span class='profile-label'>Applicable Profiles:</span> ", Enum.intersperse(badges, " "), "</div>"]
+        end
+    end
+  end
+
   defp profile_link(_conn, nil, name) do
     name
   end

@@ -20,7 +20,7 @@
   
   /* Text Colors - Light Mode */
   --text-primary: #1E293B;
-  --text-secondary: #a6b0be;
+  --text-secondary: #55585e;
   --text-muted: #94A3B8;
   --text-inverse: #FFFFFF;
   
@@ -1355,6 +1355,88 @@ dd {
   #btn-schema::before,
   #btn-sample-data::before {
     display: none;
+  }
+}
+
+/* Profile Badges */
+.profile-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  margin: var(--spacing-sm) 0;
+  align-items: center;
+}
+
+.profile-label {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-right: var(--spacing-xs);
+}
+
+.profile-badge {
+  display: inline-flex;
+  align-items: center;
+  background: var(--primary-color);
+  color: var(--text-inverse);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-md);
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: var(--transition-normal);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid transparent;
+}
+
+.profile-badge a {
+  color: var(--text-inverse);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.profile-badge:hover {
+  background: var(--accent-color);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.profile-badge:hover a {
+  color: var(--text-inverse);
+  text-decoration: none;
+}
+
+.profile-badge i {
+  font-size: 0.7rem;
+  opacity: 0.8;
+}
+
+/* Dark mode adjustments for profile badges */
+[data-theme="dark"] .profile-badge {
+  background: var(--primary-color);
+  border-color: rgba(192, 132, 161, 0.3);
+}
+
+[data-theme="dark"] .profile-badge:hover {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+}
+
+/* Responsive profile badges */
+@media (max-width: 768px) {
+  .profile-badges {
+    gap: var(--spacing-xs);
+  }
+  
+  .profile-badge {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+  }
+  
+  .profile-badge i {
+    font-size: 0.6rem;
   }
 }
 
