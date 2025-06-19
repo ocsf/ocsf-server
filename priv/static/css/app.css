@@ -297,10 +297,11 @@ button:hover,
     width: 200px;
     flex-flow: column nowrap;
     align-items: flex-start;
-    padding: var(--spacing-lg);
+    padding: 0;
     z-index: 1000;
     transition: var(--transition-normal);
     overflow: hidden;
+    display: flex;
   }
 
   .navbar.fixed-left.collapsed {
@@ -308,6 +309,69 @@ button:hover,
     padding: 0;
     border-right: none;
     overflow: hidden;
+  }
+
+  /* Sidebar header (logo and version) - static */
+  .sidebar-header {
+    flex-shrink: 0;
+    width: 100%;
+    padding: var(--spacing-lg);
+    padding-bottom: var(--spacing-xs);
+    background: var(--surface-color);
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  /* Sidebar content - scrollable */
+  .sidebar-content {
+    flex: 1;
+    width: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: var(--spacing-md) var(--spacing-lg);
+    padding-top: var(--spacing-lg);
+  }
+
+  /* Sidebar footer (theme toggle) - static */
+  .sidebar-footer {
+    flex-shrink: 0;
+    width: 100%;
+    padding: var(--spacing-lg);
+    padding-top: var(--spacing-lg);
+    background: var(--surface-color);
+    border-top: 1px solid var(--border-light);
+  }
+
+  /* Custom scrollbar for sidebar */
+  .sidebar-content::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .sidebar-content::-webkit-scrollbar-track {
+    background: var(--background-secondary);
+    border-radius: var(--radius-sm);
+  }
+
+  .sidebar-content::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: var(--radius-sm);
+    transition: var(--transition-fast);
+  }
+
+  .sidebar-content::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+  }
+
+  /* Dark mode scrollbar adjustments */
+  [data-theme="dark"] .sidebar-content::-webkit-scrollbar-track {
+    background: var(--background-primary);
+  }
+
+  [data-theme="dark"] .sidebar-content::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+  }
+
+  [data-theme="dark"] .sidebar-content::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
   }
 
   /* Sidebar toggle button */
@@ -463,6 +527,17 @@ button:hover,
     margin-bottom: 0.2rem;
     border: 0;
     border-top: 2px solid rgba(0, 0, 0, 0.5);
+  }
+
+  /* Reduce font size for Extensions and Profiles headings in sidebar */
+  .sidebar-content .navbar-brand {
+    font-size: 1.015rem;
+    font-weight: 500;
+  }
+
+  .sidebar-content .navbar-brand a {
+    font-size: 1.05rem;
+    font-weight: 500;
   }
 }
 

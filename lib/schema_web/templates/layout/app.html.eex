@@ -105,76 +105,81 @@ limitations under the License.
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse">
     <span class="navbar-toggler-icon"></span>
   </button>
-  <h1 class="navbar-brand" style="margin-left: 50px;">OCSF Schema</h1>
 
   <nav class="navbar navbar-bg collapse navbar-collapse navbar-expand-md navbar-light fixed-left">
-    <div class="ocsf-logo">
-      <a href="<%= Routes.static_path(@conn, "/?extensions=") %>" onclick="reset_home_page()">
-        <img src='<%= Routes.static_path(@conn, "/images/ocsf-logo.png") %>' alt="OCSF"/>
-      </a>
-    </div>
-    <h6 class="container-fluid version">
-    <form autocomplete="off">
-      <select
-        class="select-version"
-        id="select_version"
-        onchange="selectVersionFun()">
-        <%= raw select_versions(@conn) %>
-      </select>
-      </form>
-    </h6>
+    <!-- Sidebar Header (Logo and Version) - Static -->
+    <div class="sidebar-header">
+      <div class="ocsf-logo">
+        <a href="<%= Routes.static_path(@conn, "/?extensions=") %>" onclick="reset_home_page()">
+          <img src='<%= Routes.static_path(@conn, "/images/ocsf-logo.png") %>' alt="OCSF"/>
+        </a>
+      </div>
+      <h6 class="container-fluid version">
+      <form autocomplete="off">
+        <select
+          class="select-version"
+          id="select_version"
+          onchange="selectVersionFun()">
+          <%= raw select_versions(@conn) %>
+        </select>
+        </form>
+      </h6>
 
-    <script>
-    function selectVersionFun() {
-      let x = document.getElementById("select_version").value;
-      reset_home_page();
-      window.open(x, "_self");
-    }
-    </script>
-
-    <div class="navbar-brand">
-      <a target="_blank" href=https://github.com/ocsf/ocsf-schema/blob/main/extensions.md><i class="fas fa-plus-square"></i> Extensions</a>
-      <hr class="divider"/>
-    </div>
-    <div class="collapse navbar-collapse" id="checkbox-extensions">
-      <ul class="navbar-nav">
-        <%= for {_key, map} <- @extensions do %>
-        <% name = map[:name] %>
-        <li class="nav-item">
-          <a style="display: inline-block;">
-            <input
-              type="checkbox"
-              id="<%= name %>">
-              <label for="checkbox"><%= raw format_extension(map) %><label>
-          </a>
-        </li>
-      <% end %>
-      </ul>
+      <script>
+      function selectVersionFun() {
+        let x = document.getElementById("select_version").value;
+        reset_home_page();
+        window.open(x, "_self");
+      }
+      </script>
     </div>
 
-    <%= if map_size(@profiles) > 0 do %>
-    <div class="container-fluid"></div>
-    <span class="extensions">
-      <a id="profiles" class="navbar-brand" href='<%= Routes.static_path(@conn, "/profiles") %>'><i class="fas fa-tag"></i> Profiles
+    <!-- Sidebar Content - Scrollable -->
+    <div class="sidebar-content">
+      <div class="navbar-brand">
+        <a target="_blank" href=https://github.com/ocsf/ocsf-schema/blob/main/extensions.md><i class="fas fa-plus-square"></i> Extensions</a>
         <hr class="divider"/>
-      </a>
-    </span>
-    <div class="collapse navbar-collapse" id="checkbox-profiles">
-      <ul class="navbar-nav">
-        <%= for {name, map} <- @profiles do %>
-        <span class="d-inline-block" tabindex="0"
-         data-toggle="tooltip" data-delay='{"show": 1000}' title='<%= raw format_profile(map) %>' >
-          <li class="extensions nav-item">
-            <label><input type="checkbox" data-profile="<%= name %>" id="<%= String.replace(name, "/", "-") %>"> <%= map[:caption] %></label>
+      </div>
+      <div class="collapse navbar-collapse" id="checkbox-extensions">
+        <ul class="navbar-nav">
+          <%= for {_key, map} <- @extensions do %>
+          <% name = map[:name] %>
+          <li class="nav-item">
+            <a style="display: inline-block;">
+              <input
+                type="checkbox"
+                id="<%= name %>">
+                <label for="checkbox"><%= raw format_extension(map) %><label>
+            </a>
           </li>
-        </span>
-      <% end %>
-      </ul>
-    </div>
-    <% end %>
+        <% end %>
+        </ul>
+      </div>
 
-    <!-- Dark Mode Toggle at Bottom -->
-    <div class="navbar-brand" style="margin-top: auto; padding-top: var(--spacing-lg);">
+      <%= if map_size(@profiles) > 0 do %>
+      <div class="container-fluid"></div>
+      <span class="extensions">
+        <a id="profiles" class="navbar-brand" href='<%= Routes.static_path(@conn, "/profiles") %>'><i class="fas fa-tag"></i> Profiles
+          <hr class="divider"/>
+        </a>
+      </span>
+      <div class="collapse navbar-collapse" id="checkbox-profiles">
+        <ul class="navbar-nav">
+          <%= for {name, map} <- @profiles do %>
+          <span class="d-inline-block" tabindex="0"
+           data-toggle="tooltip" data-delay='{"show": 1000}' title='<%= raw format_profile(map) %>' >
+            <li class="extensions nav-item">
+              <label><input type="checkbox" data-profile="<%= name %>" id="<%= String.replace(name, "/", "-") %>"> <%= map[:caption] %></label>
+            </li>
+          </span>
+        <% end %>
+        </ul>
+      </div>
+      <% end %>
+    </div>
+
+    <!-- Sidebar Footer (Theme Toggle) - Static -->
+    <div class="sidebar-footer">
       <button id="theme-toggle" class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle dark mode">
         <i class="fas fa-moon" id="theme-icon"></i>
         <span id="theme-text">Dark Mode</span>
