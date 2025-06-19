@@ -462,7 +462,7 @@ button:hover,
     margin-top: 0rem;
     margin-bottom: 0.2rem;
     border: 0;
-    border-top: 4px solid rgba(0, 0, 0, 0.5);
+    border-top: 2px solid rgba(0, 0, 0, 0.5);
   }
 }
 
@@ -1027,6 +1027,13 @@ hr {
   margin-top: 0.1rem;
   margin-bottom: 0.3rem;
   background-color: #68558e80;
+  border: none;
+  height: 1px;
+}
+
+/* Dark mode adjustments for hr */
+[data-theme="dark"] hr {
+  background-color: rgba(192, 132, 161, 0.5);
 }
 
 .active {
