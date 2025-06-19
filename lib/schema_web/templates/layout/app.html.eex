@@ -133,7 +133,7 @@ limitations under the License.
     </script>
 
     <div class="navbar-brand">
-      <a target="_blank" href=https://github.com/ocsf/ocsf-schema/blob/main/extensions.md>Extensions</a>
+      <a target="_blank" href=https://github.com/ocsf/ocsf-schema/blob/main/extensions.md><i class="fas fa-plus-square"></i> Extensions</a>
       <hr class="divider"/>
     </div>
     <div class="collapse navbar-collapse" id="checkbox-extensions">
@@ -155,7 +155,7 @@ limitations under the License.
     <%= if map_size(@profiles) > 0 do %>
     <div class="container-fluid"></div>
     <span class="extensions">
-      <a id="profiles" class="navbar-brand" href='<%= Routes.static_path(@conn, "/profiles") %>'>Profiles
+      <a id="profiles" class="navbar-brand" href='<%= Routes.static_path(@conn, "/profiles") %>'><i class="fas fa-tag"></i> Profiles
         <hr class="divider"/>
       </a>
     </span>
