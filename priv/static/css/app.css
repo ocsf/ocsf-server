@@ -240,12 +240,6 @@ button:hover,
   border-color: var(--accent-color);
 }
 
-/* Navigation - Mobile First */
-.navbar-toggler-icon {
-  background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(255,102,203, 0.5)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 8h24M4 16h24M4 24h24'/%3E%3C/svg%3E");
-  margin-bottom: 0rem;
-}
-
 @media only screen and (max-width: 768px) {
   .navbar-text {
     display: none;
@@ -253,8 +247,138 @@ button:hover,
   }
 
   body {
-    min-width: 1024px;
-    margin: 0 auto;
+    margin-left: 0;
+    min-width: auto;
+  }
+
+  .sidebar-toggle {
+    display: none !important;
+  }
+
+  /* Mobile navbar brand styling - match desktop sidebar logo styling */
+  .navbar-brand.d-md-none {
+    background: #0F1B5C;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-xs);
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    box-shadow: 0 8px 32px rgba(15, 27, 92, 0.2);
+    transition: var(--transition-normal);
+  }
+
+  .navbar-brand.d-md-none:hover {
+    background: #0F1B5C;
+    text-decoration: none;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(15, 27, 92, 0.3);
+  }
+
+  .navbar-brand.d-md-none img {
+    height: 32px;
+    width: auto;
+    display: block;
+    max-width: 100%;
+    transform: scale(1.1);
+  }
+
+  /* Dark mode adjustments for mobile navbar brand */
+  [data-theme="dark"] .navbar-brand.d-md-none {
+    background: rgba(192, 132, 161, 0.15);
+    box-shadow: 0 8px 32px rgba(192, 132, 161, 0.1);
+  }
+
+  [data-theme="dark"] .navbar-brand.d-md-none:hover {
+    background: rgba(192, 132, 161, 0.2);
+    box-shadow: 0 12px 40px rgba(192, 132, 161, 0.15);
+  }
+
+  /* Top navbar styling for mobile */
+  .navbar.navbar-light {
+    background: var(--surface-color) !important;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  /* Dark mode adjustments */
+  [data-theme="dark"] .navbar.navbar-light {
+    background: var(--surface-color) !important;
+  }
+
+  /* Mobile navbar toggle button */
+  .navbar-toggler {
+    background: var(--primary-color);
+    border: none;
+    border-radius: var(--radius-md);
+    width: 36px;
+    height: 36px;
+    color: var(--text-inverse);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    transition: var(--transition-normal);
+    box-shadow: var(--shadow-md);
+  }
+
+  .navbar-toggler i {
+    color: var(--text-inverse) !important;
+  }
+
+  .navbar-toggler:hover {
+    background: var(--accent-color);
+    transform: scale(1.05);
+  }
+
+  .navbar-toggler:hover i {
+    color: var(--text-inverse) !important;
+  }
+
+  .navbar-toggler:focus {
+    outline: none;
+    box-shadow: var(--shadow-lg), 0 0 0 3px rgba(30, 64, 175, 0.2);
+  }
+
+  /* Mobile navigation menu improvements */
+  .navbar-collapse {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    margin-top: var(--spacing-sm);
+    padding: var(--spacing-md);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .navbar-nav .nav-link {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--spacing-xs);
+    color: var(--text-primary);
+    transition: var(--transition-fast);
+  }
+
+  .navbar-nav .nav-link:hover {
+    background: var(--background-secondary);
+    color: var(--accent-color);
+  }
+
+  /* Mobile dropdown improvements */
+  .dropdown-content {
+    position: static;
+    display: block;
+    background: var(--background-secondary);
+    border: none;
+    border-radius: var(--radius-sm);
+    margin-top: var(--spacing-xs);
+    box-shadow: none;
+  }
+
+  .dropdown-content a {
+    padding: var(--spacing-xs) var(--spacing-md);
+    font-size: 0.875rem;
+    margin: 0;
   }
 }
 
@@ -377,7 +501,7 @@ button:hover,
   /* Sidebar toggle button */
   .sidebar-toggle {
     position: fixed;
-    top: 8px;
+    top: 10px;
     left: 205px;
     width: 36px;
     height: 36px;
@@ -391,7 +515,7 @@ button:hover,
     justify-content: center;
     font-size: 0.875rem;
     transition: var(--transition-normal);
-    z-index: 1002;
+    z-index: 1000;
     box-shadow: var(--shadow-md);
   }
 

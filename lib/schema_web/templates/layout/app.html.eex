@@ -102,8 +102,12 @@ limitations under the License.
 <body class="bg-light">
 
 <nav class="navbar navbar-light navbar-expand-md">
-  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse">
-    <span class="navbar-toggler-icon"></span>
+  <a class="navbar-brand d-md-none" href="<%= Routes.static_path(@conn, "/?extensions=") %>" onclick="reset_home_page()">
+    <img src='<%= Routes.static_path(@conn, "/images/ocsf-logo.png") %>' alt="OCSF" height="32" class="d-inline-block align-top">
+  </a>
+
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+    <i class="fas fa-bars"></i>
   </button>
 
   <nav class="navbar navbar-bg collapse navbar-collapse navbar-expand-md navbar-light fixed-left">
