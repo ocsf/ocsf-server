@@ -53,7 +53,8 @@
 }
 
 /* Dark Mode Variables - Consolidated */
-[data-theme="dark"] {
+[data-theme="dark"],
+:root:not([data-theme="light"]):is([data-theme="dark"], :has(*)) {
   /* Neutral Colors - Dark Mode - Subtle pink-tinted backgrounds */
   --background-primary: #141018;
   --background-secondary: #1F1A24;
@@ -155,7 +156,22 @@ code {
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-size: 0.875em;
   font-weight: 500;
-  white-space: nowrap;
+  white-space: normal;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Code elements in table description columns should wrap */
+table td code,
+.col-description code,
+td:last-child code {
+  white-space: normal;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  display: inline-block;
+  max-width: 100%;
 }
 
 [data-theme="dark"] code {
@@ -306,7 +322,7 @@ button:hover,
     background: var(--surface-color) !important;
   }
 
-  /* Mobile navbar toggle button */
+  /* Mobile navigation toggle button */
   .navbar-toggler {
     background: var(--primary-color);
     border: none;
@@ -825,6 +841,13 @@ button:hover,
   min-height: calc(100vh - 80px);
 }
 
+/* Page Description */
+.page-description {
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: var(--spacing-xl);
+}
+
 /* Categories and Multi-column Layout */
 .multi-col {
   -webkit-columns: 4 18rem;
@@ -954,6 +977,64 @@ table tbody tr:hover td {
   background: var(--surface-elevated);
 }
 
+/* Table column widths and styling */
+.col-name { width: 10%; }
+.col-caption { width: 10%; }
+.col-group { width: 10%; }
+.col-requirement { width: 10%; }
+.col-type { width: 8%; }
+.col-id { width: 5%; }
+.col-constraints { width: 15%; }
+.col-references { width: 25%; }
+.col-description { 
+  width: 40%;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  max-width: 300px;
+  white-space: normal;
+}
+
+/* Name column styling - make it stand out */
+table td.name {
+  background: rgba(15, 27, 92, 0.05);
+  font-weight: 600;
+}
+
+table td.name a {
+  color: var(--primary-color);
+  font-weight: 600;
+  text-decoration: none;
+  transition: var(--transition-fast);
+}
+
+table td.name a:hover {
+  color: var(--accent-color);
+  text-decoration: underline;
+}
+
+/* Dark mode adjustments for name column */
+[data-theme="dark"] table td.name {
+  background: rgba(192, 132, 161, 0.1);
+}
+
+[data-theme="dark"] table td.name a {
+  color: var(--primary-color);
+}
+
+[data-theme="dark"] table td.name a:hover {
+  color: var(--accent-color);
+}
+
+/* Hover effect for name column rows */
+table tbody tr:hover td.name {
+  background: rgba(15, 27, 92, 0.1);
+}
+
+[data-theme="dark"] table tbody tr:hover td.name {
+  background: rgba(192, 132, 161, 0.15);
+}
+
 /* Description column word wrapping */
 table td:nth-child(3),
 table th:nth-child(3),
@@ -1013,11 +1094,11 @@ table.table-borderless th {
 [data-theme="dark"] table td,
 [data-theme="dark"] table thead th,
 [data-theme="dark"] table th {
-  border-color: #2D3748;
+  border-color: var(--border-color);
 }
 
 [data-theme="dark"] table tbody tr:hover td {
-  background: var(--border-color);
+  background: var(--surface-elevated);
 }
 
 /* Theme Toggle Button */
@@ -1280,28 +1361,14 @@ hr {
   background-color: rgba(192, 132, 161, 0.5);
 }
 
+/* Legacy and utility classes */
 .active {
-  border-bottom: 2px solid #00A4B7;
-}
-
-.rights {
-  position: fixed;
-  width: 100%;
-  bottom: 50px;
-}
-
-.links {
-  padding-top: 20px;
+  border-bottom: 2px solid var(--accent-color);
 }
 
 .btn-link {
   padding-top: 0.42rem;
   font-size: 0.8rem;
-}
-
-/* Additional utility classes */
-.glyphicon {
-  line-height: 1;
 }
 
 label {
@@ -1317,13 +1384,6 @@ label {
 #profiles a:focus, 
 #profiles a:active {
   color: var(--accent-color) !important;
-}
-
-.ui-slider-handle:focus, 
-.navbar-toggle, 
-input:focus, 
-button:focus {
-  outline: 0 !important;
 }
 
 li {

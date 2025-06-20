@@ -33,10 +33,10 @@ limitations under the License.
   <table class="table table-bordered sortable">
     <thead>
       <tr class="thead-color">
-        <th style="width: 20%">Name</th>
-        <th style="width: 20%">Caption</th>
-        <th style="width: 10%">ID</th>
-        <th>Description</th>
+        <th class="col-name">Name</th>
+        <th class="col-caption">Caption</th>
+        <th class="col-id">ID</th>
+        <th class="col-description">Description</th>
       </tr>
     </thead>
     <tbody class="searchable">

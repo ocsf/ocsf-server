@@ -99,12 +99,12 @@ limitations under the License.
   <table id="data-table" class="table table-bordered sortable">
     <thead >
     <tr class="thead-color">
-      <th style="width: 10%">Name</th>
-      <th style="width: 10%">Caption</th>
-      <th style="width: 10%">Group</th>
-      <th style="width: 10%">Requirement</th>
-      <th style="width: 10%">Type</th>
-      <th style="width: 50%">Description</th>
+      <th class="col-name">Name</th>
+      <th class="col-caption">Caption</th>
+      <th class="col-group">Group</th>
+      <th class="col-requirement">Requirement</th>
+      <th class="col-type">Type</th>
+      <th class="col-description">Description</th>
     </tr>
     </thead>
     <tbody class="searchable">

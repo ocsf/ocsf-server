@@ -49,11 +49,11 @@ limitations under the License.
   <table class="table table-bordered sortable">
     <thead>
       <tr class="thead-color">
-        <th style="width: 15%">Name</th>
-        <th style="width: 15%">Caption</th>
-        <th style="width: 10%">Type</th>
-        <th style="width: 30%">Referenced By</th>
-        <th style="width: 30%">Description</th>
+        <th class="col-name">Name</th>
+        <th class="col-caption">Caption</th>
+        <th class="col-type">Type</th>
+        <th class="col-references">Referenced By</th>
+        <th class="col-description">Description</th>
       </tr>
     </thead>
     <tbody class="searchable">

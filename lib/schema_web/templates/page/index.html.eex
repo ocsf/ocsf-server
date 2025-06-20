@@ -13,7 +13,7 @@ limitations under the License.
 <div class="row fade-in">
   <div class="col-md move-up">
     <h3><%= @data[:caption] %></h3>
-    <div style=" color: var(--text-secondary); line-height: 1.6; margin-bottom: var(--spacing-xl);">
+    <div class="page-description">
       <%= raw @data[:description] %>
     </div>
   </div>
