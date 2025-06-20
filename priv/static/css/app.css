@@ -351,21 +351,35 @@ button:hover,
     box-shadow: var(--shadow-lg);
   }
 
-  .navbar-nav .nav-link {
+  /* Mobile navbar navigation links */
+  .navbar-collapse .navbar-nav .nav-link {
     padding: var(--spacing-sm) var(--spacing-md);
     border-radius: var(--radius-sm);
     margin-bottom: var(--spacing-xs);
-    color: var(--text-primary);
+    color: var(--text-primary) !important;
     transition: var(--transition-fast);
+    text-decoration: none;
   }
 
-  .navbar-nav .nav-link:hover {
+  .navbar-collapse .navbar-nav .nav-link:hover,
+  .navbar-collapse .navbar-nav .nav-link:focus,
+  .navbar-collapse .navbar-nav .nav-link:active {
     background: var(--background-secondary);
-    color: var(--accent-color);
+    color: var(--accent-color) !important;
+    text-decoration: none;
+  }
+
+  .navbar-collapse .navbar-nav .nav-link.active {
+    background: var(--accent-color);
+    color: var(--text-inverse) !important;
   }
 
   /* Mobile dropdown improvements */
-  .dropdown-content {
+  .navbar-collapse .dropdown {
+    color: var(--text-primary) !important;
+  }
+
+  .navbar-collapse .dropdown-content {
     position: static;
     display: block;
     background: var(--background-secondary);
@@ -375,10 +389,41 @@ button:hover,
     box-shadow: none;
   }
 
-  .dropdown-content a {
+  .navbar-collapse .dropdown-content a {
     padding: var(--spacing-xs) var(--spacing-md);
     font-size: 0.875rem;
     margin: 0;
+    color: var(--text-primary) !important;
+    text-decoration: none;
+    transition: var(--transition-fast);
+  }
+
+  .navbar-collapse .dropdown-content a:hover,
+  .navbar-collapse .dropdown-content a:focus,
+  .navbar-collapse .dropdown-content a:active {
+    background: var(--surface-elevated);
+    color: var(--accent-color) !important;
+    text-decoration: none;
+  }
+
+  /* Mobile navbar text elements */
+  .navbar-collapse .navbar-text {
+    color: var(--text-primary) !important;
+  }
+
+  /* Ensure all text in mobile navbar uses proper colors */
+  .navbar-collapse * {
+    color: var(--text-primary);
+  }
+
+  .navbar-collapse a {
+    color: var(--text-primary) !important;
+  }
+
+  .navbar-collapse a:hover,
+  .navbar-collapse a:focus,
+  .navbar-collapse a:active {
+    color: var(--accent-color) !important;
   }
 }
 
