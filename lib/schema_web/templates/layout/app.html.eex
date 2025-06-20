@@ -184,10 +184,13 @@ limitations under the License.
 
     <!-- Sidebar Footer (Theme Toggle) - Static -->
     <div class="sidebar-footer">
-      <button id="theme-toggle" class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle dark mode">
-        <i class="fas fa-moon" id="theme-icon"></i>
-        <span id="theme-text">Dark Mode</span>
-      </button>
+      <label class="theme-toggle-switch">
+        <input type="checkbox" id="theme-toggle" onclick="toggleTheme()" title="Toggle dark mode">
+        <span class="theme-toggle-slider">
+          <i class="fas fa-sun theme-icon-light"></i>
+          <i class="fas fa-moon theme-icon-dark"></i>
+        </span>
+      </label>
     </div>
   </nav>
 
