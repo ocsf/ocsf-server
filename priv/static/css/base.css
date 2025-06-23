@@ -250,11 +250,12 @@ sup.bg-warning {
   white-space: pre-wrap;
   word-wrap: normal;
   max-width: 500px;
-  color: #2d2e2e;
+  color: var(--text-inverse);
   text-align: left;
-  background: lightyellow;
-  border: 1px solid #161616;
-  border-radius: 5px;
+  background: var(--primary-color);
+  border: 1px solid var(--primary-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
 }
 
 /* Legacy classes */
