@@ -23,6 +23,17 @@ textarea:focus,
   box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.1);
 }
 
+[data-theme="dark"] input[type="text"]:focus,
+[data-theme="dark"] input[type="search"]:focus,
+[data-theme="dark"] select:focus,
+[data-theme="dark"] textarea:focus,
+[data-theme="dark"] .form-control:focus {
+  background: var(--surface-color);
+  color: var(--text-primary);
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.2);
+}
+
 input[type="text"]::placeholder,
 input[type="search"]::placeholder,
 .form-control::placeholder {

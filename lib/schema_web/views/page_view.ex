@@ -147,7 +147,8 @@ defmodule SchemaWeb.PageView do
 
     case field[:extension] do
       nil -> name
-      extension -> name <> " <sup>#{extension}</sup>"
+      extension when extension != "" -> name <> " <span class='extension-badge'>#{extension}</span>"
+      _ -> name
     end
   end
 
@@ -181,7 +182,8 @@ defmodule SchemaWeb.PageView do
 
     case entity[:extension] do
       nil -> caption
-      extension -> [caption, " <sup>#{extension}</sup>"]
+      extension when extension != "" -> [caption, " <span class='extension-badge'>#{extension}</span>"]
+      _ -> caption
     end
   end
 

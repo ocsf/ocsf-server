@@ -14,7 +14,7 @@ limitations under the License.
   <div class="col-md move-up">
     <h3><%= @data[:caption] %>
       <span class="text-secondary">
-        [<%= @data[:uid] %>]<sup><%= @data[:extension] || "" %></sup>
+        [<%= @data[:uid] %>]<%= if @data[:extension] && @data[:extension] != "" do %><span class="extension-badge"><%= @data[:extension] %></span><% end %>
         Category
       </span>
     </h3>

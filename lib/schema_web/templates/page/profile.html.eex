@@ -14,7 +14,7 @@
     <h3>
       <%= @data[:caption] %>
       <span class="text-secondary">[<%= @data[:name] %>]</span>
-      <span class="text-secondary"><sup><%= @data[:extension] || "" %></sup>
+      <span class="text-secondary"><%= if @data[:extension] && @data[:extension] != "" do %><span class="extension-badge"><%= @data[:extension] %></span><% end %>
         Profile
       </span>
     </h3>

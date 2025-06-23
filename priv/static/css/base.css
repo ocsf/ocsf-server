@@ -92,6 +92,10 @@ pre {
 
 .uid {
   font-weight: 400;
+  color: var(--text-inverse);
+}
+
+[data-theme="dark"] .uid {
   color: var(--text-secondary);
 }
 
@@ -198,6 +202,30 @@ sup.bg-warning {
   background-color: #f59e0b !important;
   color: #1f2937 !important;
   box-shadow: 0 1px 3px rgba(245, 158, 11, 0.3);
+}
+
+
+
+/* Extension badge for attributes added by extensions */
+.extension-badge {
+  display: inline-block;
+  background: #28a745;
+  color: #ffffff;
+  padding: 1px 4px 2px 4px;
+  border-radius: var(--radius-sm);
+  font-size: 0.65rem;
+  font-weight: 600;
+  margin-left: var(--spacing-xs);
+  vertical-align: super;
+  line-height: 1.1;
+  text-align: center;
+  box-shadow: 0 1px 2px rgba(40, 167, 69, 0.2);
+}
+
+[data-theme="dark"] .extension-badge {
+  background: #a3234b;
+  color: #ffffff;
+  box-shadow: 0 1px 2px rgba(32, 201, 151, 0.2);
 }
 
 [data-theme="dark"] .deprecated {

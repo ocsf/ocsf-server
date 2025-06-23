@@ -23,11 +23,11 @@
       <a href="<%= object_graph_path(@conn, @data)  %>"><%= @data[:caption] %></a>
       <% observable = @data[:observable] %>
       <%= if is_nil(observable) do %>
-        <span class="small"><sup><%= @data[:extension] || "" %></sup>
+        <span class="small"><%= if @data[:extension] && @data[:extension] != "" do %><span class="extension-badge"><%= @data[:extension] %></span><% end %>
           object
         </span>
       <% else %>
-        <span class="small"><sup><%= @data[:extension] || "" %></sup>
+        <span class="small"><%= if @data[:extension] && @data[:extension] != "" do %><span class="extension-badge"><%= @data[:extension] %></span><% end %>
           <span data-toggle="tooltip" title="Observable Type ID <%= observable %>">[<%= observable %>]</span> object
         </span>
       <% end %>
