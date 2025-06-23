@@ -572,3 +572,104 @@ button:hover,
 [data-theme="dark"] .referenced-by-content .collapse > div:hover {
   background: var(--background-secondary);
 }
+
+/* References styling - compact and inline */
+.references-inline {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  align-items: center;
+  margin-top: var(--spacing-xs);
+}
+
+.references-inline .references-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  margin-right: var(--spacing-xs);
+}
+
+.reference-tag {
+  display: inline-flex;
+  align-items: center;
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 2px var(--spacing-xs);
+  font-size: 0.75rem;
+  text-decoration: none;
+  color: var(--text-secondary);
+  transition: var(--transition-fast);
+  line-height: 1.2;
+}
+
+.reference-tag:hover {
+  background: var(--accent-color);
+  color: var(--text-inverse);
+  text-decoration: none;
+  border-color: var(--accent-color);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.reference-tag::before {
+  content: '\f35d';
+  font-family: 'Font Awesome 6 Free';
+  font-weight: 900;
+  font-size: 0.65rem;
+  margin-right: 3px;
+  opacity: 0.7;
+}
+
+/* Main object references section */
+.object-references {
+  background: var(--background-secondary);
+  padding: var(--spacing-sm) var(--spacing-md);
+  margin: var(--spacing-md) 0;
+  border-radius: var(--radius-sm);
+}
+
+.object-references h6 {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin: 0 0 var(--spacing-xs) 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.object-references h6::before {
+  content: '\f02d';
+  font-family: 'Font Awesome 6 Free';
+  font-weight: 900;
+  color: var(--accent-color);
+  font-size: 0.7rem;
+}
+
+.object-references .references-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Dark theme adjustments */
+[data-theme="dark"] .reference-tag {
+  background: var(--surface-color);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .reference-tag:hover {
+  background: var(--accent-color);
+  color: var(--text-inverse);
+}
+
+[data-theme="dark"] .object-references {
+  background: var(--surface-color);
+  border-left-color: var(--accent-color);
+}

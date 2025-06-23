@@ -716,15 +716,7 @@ defmodule SchemaWeb.PageView do
         ""
       end
 
-    refs_html =
-      if references != nil and !Enum.empty?(references) do
-        [
-          "<dt>References",
-          Enum.map(references, fn ref -> ["<dd class=\"ml-3\">", reference_anchor(ref)] end)
-        ]
-      else
-        ""
-      end
+    refs_html = inline_references(references)
 
     if source_html != "" or refs_html != "" do
       [html, prefix_html, "<dd>", source_html, refs_html, "</dd>"]
@@ -1566,6 +1558,44 @@ defmodule SchemaWeb.PageView do
       "</a>"
     ]
   end
+
+  @spec reference_tag(map()) :: any()
+  def reference_tag(reference) do
+    # New compact reference tag styling
+    [
+      "<a class=\"reference-tag\" target=\"_blank\" href=\"",
+      URI.encode(reference[:url]),
+      "\">",
+      reference[:description] |> Phoenix.HTML.html_escape() |> Phoenix.HTML.safe_to_string(),
+      "</a>"
+    ]
+  end
+
+  @spec object_references_section(list()) :: any()
+  def object_references_section(references) when is_list(references) and length(references) > 0 do
+    [
+      "<div class=\"object-references\">",
+      "<h6>References</h6>",
+      "<ul class=\"references-list\">",
+      Enum.map(references, fn ref -> ["<li>", reference_tag(ref), "</li>"] end),
+      "</ul>",
+      "</div>"
+    ]
+  end
+
+  def object_references_section(_), do: ""
+
+  @spec inline_references(list()) :: any()
+  def inline_references(references) when is_list(references) and length(references) > 0 do
+    [
+      "<div class=\"references-inline\">",
+      "<span class=\"references-label\">Refs:</span>",
+      Enum.intersperse(Enum.map(references, &reference_tag/1), " "),
+      "</div>"
+    ]
+  end
+
+  def inline_references(_), do: ""
 
   @spec show_deprecated_css_classes(map(), String.t()) :: String.t()
   def show_deprecated_css_classes(item, initial) do
