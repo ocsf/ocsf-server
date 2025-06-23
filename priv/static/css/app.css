@@ -55,62 +55,62 @@
 /* Dark Mode Variables - Consolidated */
 [data-theme="dark"],
 :root:not([data-theme="light"]):is([data-theme="dark"], :has(*)) {
-  /* Neutral Colors - Dark Mode - Subtle pink-tinted backgrounds */
+  /* Neutral Colors - Dark Mode - Sophisticated dark backgrounds with teal accents */
   --background-primary: #141018;
-  --background-secondary: #1F1A24;
-  --surface-color: #2A2530;
-  --surface-elevated: #35303C;
-  --border-color: #35303C;
-  --border-light: #35303C;
+  --background-secondary: #1f1a24;
+  --surface-color: #2a2530;
+  --surface-elevated: #35303c;
+  --border-color: #35303c;
+  --border-light: #35303c;
   
   /* Text Colors - Dark Mode */
-  --text-primary: #F8F6FA;
-  --text-secondary: #E2D8E8;
-  --text-muted: #B8A9C9;
+  --text-primary: #f8f6fa;
+  --text-secondary: #e2d8e8;
+  --text-muted: #b8a9c9;
   --text-inverse: #141018;
   
-  /* Shadows - Dark Mode with subtle pink tint */
+  /* Shadows - Dark Mode with sophisticated depth */
   --shadow-sm: 0 1px 2px 0 rgba(20, 16, 24, 0.5);
   --shadow-md: 0 4px 6px -1px rgba(20, 16, 24, 0.6), 0 2px 4px -1px rgba(20, 16, 24, 0.5);
   --shadow-lg: 0 10px 15px -3px rgba(20, 16, 24, 0.6), 0 4px 6px -2px rgba(20, 16, 24, 0.5);
   
-  /* Muted pink accent colors to complement navy */
-  --primary-color: #C084A1;
-  --primary-light: #D4A5C2;
-  --primary-dark: #A86B88;
-  --accent-color: #E879A6;
-  --accent-light: #F0A3C4;
-  --accent-dark: #D65A8A;
+  /* Sophisticated teal accent colors to complement navy */
+  --primary-color: #14B8A6;
+  --primary-light: #5EEAD4;
+  --primary-dark: #0F766E;
+  --accent-color: #2DD4BF;
+  --accent-light: #7DD3FC;
+  --accent-dark: #0891B2;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    /* Neutral Colors - Dark Mode - Subtle pink-tinted backgrounds */
+    /* Neutral Colors - Dark Mode - Sophisticated dark backgrounds with teal accents */
     --background-primary: #141018;
-    --background-secondary: #1F1A24;
-    --surface-color: #2A2530;
-    --surface-elevated: #35303C;
-    --border-color: #35303C;
-    --border-light: #35303C;
+    --background-secondary: #1f1a24;
+    --surface-color: #2a2530;
+    --surface-elevated: #35303c;
+    --border-color: #35303c;
+    --border-light: #35303c;
     
     /* Text Colors - Dark Mode */
-    --text-primary: #F8F6FA;
-    --text-secondary: #E2D8E8;
-    --text-muted: #B8A9C9;
+    --text-primary: #f8f6fa;
+    --text-secondary: #e2d8e8;
+    --text-muted: #b8a9c9;
     --text-inverse: #141018;
     
-    /* Shadows - Dark Mode with subtle pink tint */
+    /* Shadows - Dark Mode with sophisticated depth */
     --shadow-sm: 0 1px 2px 0 rgba(20, 16, 24, 0.5);
     --shadow-md: 0 4px 6px -1px rgba(20, 16, 24, 0.6), 0 2px 4px -1px rgba(20, 16, 24, 0.5);
     --shadow-lg: 0 10px 15px -3px rgba(20, 16, 24, 0.6), 0 4px 6px -2px rgba(20, 16, 24, 0.5);
     
-    /* Muted pink accent colors to complement navy */
-    --primary-color: #C084A1;
-    --primary-light: #D4A5C2;
-    --primary-dark: #A86B88;
-    --accent-color: #E879A6;
-    --accent-light: #F0A3C4;
-    --accent-dark: #D65A8A;
+    /* Sophisticated teal accent colors to complement navy */
+    --primary-color: #14b8a6;
+    --primary-light: #5eead4;
+    --primary-dark: #0f766e;
+    --accent-color: #2dd4bf;
+    --accent-light: #7dd3fc;
+    --accent-dark: #0891b2;
   }
 }
 
@@ -120,9 +120,31 @@ body {
   font-size: 0.875rem;
   line-height: 1.6;
   color: var(--text-primary);
-  background-color: var(--background-secondary);
+  background-color: var(--background-secondary) !important;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Override Bootstrap's bg-light class in dark mode */
+[data-theme="dark"] body.bg-light {
+  background-color: var(--background-secondary) !important;
+}
+
+/* Override Bootstrap's navbar-light class in dark mode */
+[data-theme="dark"] .navbar.navbar-light {
+  background-color: var(--background-secondary) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+}
+
+[data-theme="dark"] .navbar.navbar-light .navbar-brand,
+[data-theme="dark"] .navbar.navbar-light .navbar-nav .nav-link,
+[data-theme="dark"] .navbar.navbar-light .navbar-text {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .navbar.navbar-light .navbar-nav .nav-link:hover,
+[data-theme="dark"] .navbar.navbar-light .navbar-nav .nav-link:focus {
+  color: var(--accent-color) !important;
 }
 
 /* Typography Elements */
@@ -152,7 +174,7 @@ a:hover, a:focus, a:active {
 
 /* Code Elements */
 code {
-  color: #DC2626;
+  color: #dc2626;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-size: 0.875em;
   font-weight: 500;
@@ -175,7 +197,7 @@ td:last-child code {
 }
 
 [data-theme="dark"] code {
-  color: #F87171;
+  color: #f87171;
 }
 
 pre {
@@ -302,13 +324,13 @@ button:hover,
 
   /* Dark mode adjustments for mobile navbar brand */
   [data-theme="dark"] .navbar-brand.d-md-none {
-    background: rgba(192, 132, 161, 0.15);
-    box-shadow: 0 8px 32px rgba(192, 132, 161, 0.1);
+    background: rgba(20, 184, 166, 0.15);
+    box-shadow: 0 8px 32px rgba(20, 184, 166, 0.1);
   }
 
   [data-theme="dark"] .navbar-brand.d-md-none:hover {
-    background: rgba(192, 132, 161, 0.2);
-    box-shadow: 0 12px 40px rgba(192, 132, 161, 0.15);
+    background: rgba(20, 184, 166, 0.2);
+    box-shadow: 0 12px 40px rgba(20, 184, 166, 0.15);
   }
 
   /* Top navbar styling for mobile */
@@ -648,15 +670,15 @@ button:hover,
 
   /* Dark mode adjustments for frosty logo */
   [data-theme="dark"] .ocsf-logo {
-    background: rgba(192, 132, 161, 0.15);
-    border-color: rgba(192, 132, 161, 0.25);
-    box-shadow: 0 8px 32px rgba(192, 132, 161, 0.1);
+    background: rgba(20, 184, 166, 0.15);
+    border-color: rgba(20, 184, 166, 0.25);
+    box-shadow: 0 8px 32px rgba(20, 184, 166, 0.1);
   }
 
   [data-theme="dark"] .ocsf-logo:hover {
-    background: rgba(192, 132, 161, 0.2);
-    border-color: rgba(192, 132, 161, 0.35);
-    box-shadow: 0 12px 40px rgba(192, 132, 161, 0.15);
+    background: rgba(20, 184, 166, 0.2);
+    border-color: rgba(20, 184, 166, 0.35);
+    box-shadow: 0 12px 40px rgba(20, 184, 166, 0.15);
   }
 
   .ocsf-logo img {
@@ -1014,7 +1036,7 @@ table td.name a:hover {
 
 /* Dark mode adjustments for name column */
 [data-theme="dark"] table td.name {
-  background: rgba(192, 132, 161, 0.1);
+  background: rgba(20, 184, 166, 0.1);
 }
 
 [data-theme="dark"] table td.name a {
@@ -1031,7 +1053,7 @@ table tbody tr:hover td.name {
 }
 
 [data-theme="dark"] table tbody tr:hover td.name {
-  background: rgba(192, 132, 161, 0.15);
+  background: rgba(20, 184, 166, 0.15);
 }
 
 /* Description column word wrapping */
@@ -1132,7 +1154,7 @@ table.table-borderless th {
   box-shadow: var(--shadow-sm);
 }
 
-/* Dark mode - use consistent pink accent colors */
+/* Dark mode - use consistent teal accent colors */
 [data-theme="dark"] .theme-toggle-slider {
   background: var(--primary-color);
   border: 1px solid var(--accent-color);
@@ -1349,13 +1371,13 @@ table.table-borderless th {
 
 .enum-value,
 span[style*="color: red"] {
-  color: #DC2626;
+  color: #dc2626;
   white-space: nowrap;
 }
 
 [data-theme="dark"] .enum-value,
 [data-theme="dark"] span[style*="color: red"] {
-  color: #F87171;
+  color: #f87171;
 }
 
 .text-secondary {
@@ -1419,7 +1441,7 @@ hr {
 
 /* Dark mode adjustments for hr */
 [data-theme="dark"] hr {
-  background-color: rgba(192, 132, 161, 0.5);
+  background-color: rgba(20, 184, 166, 0.5);
 }
 
 /* Legacy and utility classes */
@@ -1532,7 +1554,7 @@ div.references div.reference {
 /* Deprecated "D" notation styling */
 .bg-warning,
 sup.bg-warning {
-  background-color: #FFC107 !important;
+  background-color: #ffc107 !important;
   color: #212529 !important;
   padding: 2px 4px;
   border-radius: var(--radius-sm);
@@ -1544,8 +1566,8 @@ sup.bg-warning {
 /* Dark mode adjustments for deprecated "D" notation */
 [data-theme="dark"] .bg-warning,
 [data-theme="dark"] sup.bg-warning {
-  background-color: #F59E0B !important;
-  color: #1F2937 !important;
+  background-color: #f59e0b !important;
+  color: #1f2937 !important;
   box-shadow: 0 1px 3px rgba(245, 158, 11, 0.3);
 }
 
@@ -1788,7 +1810,7 @@ dd {
 /* Dark mode adjustments for profile badges */
 [data-theme="dark"] .profile-badge {
   background: var(--primary-color);
-  border-color: rgba(192, 132, 161, 0.3);
+  border-color: rgba(20, 184, 166, 0.3);
 }
 
 [data-theme="dark"] .profile-badge:hover {
