@@ -338,6 +338,7 @@ function initSidebarToggle() {
   const sidebarToggle = document.getElementById('sidebar-toggle');
   const sidebar = document.querySelector('.navbar.fixed-left');
   const body = document.body;
+  const toggleIcon = document.getElementById('sidebar-toggle-icon');
   
   if (!sidebarToggle || !sidebar) return;
   
@@ -348,6 +349,11 @@ function initSidebarToggle() {
   if (isCollapsed) {
     sidebar.classList.add('collapsed');
     body.classList.add('sidebar-collapsed');
+    // Update icon to show right arrow when collapsed
+    if (toggleIcon) {
+      toggleIcon.classList.remove('fa-chevron-left');
+      toggleIcon.classList.add('fa-chevron-right');
+    }
   }
   
   // Toggle sidebar on button click
@@ -358,10 +364,20 @@ function initSidebarToggle() {
       sidebar.classList.remove('collapsed');
       body.classList.remove('sidebar-collapsed');
       localStorage.setItem('sidebar-collapsed', 'false');
+      // Update icon to show left arrow when expanded
+      if (toggleIcon) {
+        toggleIcon.classList.remove('fa-chevron-right');
+        toggleIcon.classList.add('fa-chevron-left');
+      }
     } else {
       sidebar.classList.add('collapsed');
       body.classList.add('sidebar-collapsed');
       localStorage.setItem('sidebar-collapsed', 'true');
+      // Update icon to show right arrow when collapsed
+      if (toggleIcon) {
+        toggleIcon.classList.remove('fa-chevron-left');
+        toggleIcon.classList.add('fa-chevron-right');
+      }
     }
   });
 }

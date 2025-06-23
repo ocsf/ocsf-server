@@ -107,7 +107,7 @@ limitations under the License.
   </a>
 
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
-    <i class="fas fa-bars"></i>
+    <i class="fas fa-chevron-down"></i>
   </button>
 
   <nav class="navbar navbar-bg collapse navbar-collapse navbar-expand-md navbar-light fixed-left">
@@ -255,7 +255,7 @@ limitations under the License.
 
 <!-- Sidebar Toggle Button - positioned in top-left corner -->
 <button id="sidebar-toggle" class="sidebar-toggle" title="Toggle sidebar">
-  <i class="fas fa-bars"></i>
+  <i id="sidebar-toggle-icon" class="fas fa-chevron-left"></i>
 </button>
 
 <div class="main-page">
