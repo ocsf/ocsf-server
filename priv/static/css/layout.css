@@ -1,7 +1,7 @@
 /* Main Content */
 .main-page {
   z-index: -1;
-  padding: var(--spacing-xl);
+  padding: var(--spacing-xs);
   padding-bottom: 80px;
   background: var(--background-primary);
   min-height: calc(100vh - 80px);
@@ -10,7 +10,7 @@
 .page-description {
   color: var(--text-secondary);
   line-height: 1.6;
-  margin-bottom: var(--spacing-xl);
+  margin-bottom: var(--spacing-sm);
 }
 
 /* Mobile Navigation */
@@ -198,7 +198,7 @@
   }
 
   .main-page {
-    padding: var(--spacing-md);
+    padding: var(--spacing-xs);
   }
 }
 
