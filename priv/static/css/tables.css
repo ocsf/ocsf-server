@@ -230,8 +230,8 @@ section.category {
   background: var(--surface-color);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-lg);
-  padding: var(--spacing-lg);
-  margin-bottom: var(--spacing-lg);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
   box-shadow: var(--shadow-sm);
   transition: var(--transition-normal);
   -webkit-break-inside: avoid;
@@ -250,7 +250,7 @@ section.category header {
   color: var(--text-inverse);
   font-weight: 600;
   padding: var(--spacing-sm);
-  margin: calc(-1 * var(--spacing-lg)) calc(-1 * var(--spacing-lg)) var(--spacing-sm) calc(-1 * var(--spacing-lg));
+  margin: calc(-1 * var(--spacing-md)) calc(-1 * var(--spacing-md)) var(--spacing-sm) calc(-1 * var(--spacing-md));
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   display: flex;
   align-items: center;
@@ -277,6 +277,7 @@ section.category div.ocsf-class {
 
 section.category div.ocsf-class:last-child {
   border-bottom: none;
+  padding-bottom: 0;
 }
 
 section.category div.ocsf-class:hover {
