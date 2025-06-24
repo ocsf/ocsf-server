@@ -171,7 +171,7 @@ limitations under the License.
         <ul class="navbar-nav">
           <%= for {name, map} <- @profiles do %>
           <span class="d-inline-block" tabindex="0"
-           data-toggle="tooltip" data-delay='{"show": 1000}' title='<%= raw format_profile(map) %>' >
+           data-toggle="tooltip" title='<%= raw format_profile(map) %>' >
             <li class="extensions nav-item">
               <label><input type="checkbox" data-profile="<%= name %>" id="<%= String.replace(name, "/", "-") %>"> <%= map[:caption] %></label>
             </li>
@@ -279,7 +279,9 @@ limitations under the License.
 
 <script>
   $(function () {
-    $('[data-toggle="tooltip"]').tooltip()
+    $('[data-toggle="tooltip"]').tooltip({
+      delay: { "show": 300, "hide": 100 }
+    })
   });
 </script>
 
