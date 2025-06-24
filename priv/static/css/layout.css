@@ -261,8 +261,7 @@
     width: 100%;
     padding: var(--spacing-lg);
     padding-bottom: var(--spacing-xs);
-    background: var(--surface-color);
-    border-bottom: 1px solid var(--border-light);
+    
   }
 
   /* Sidebar content - scrollable */
@@ -272,7 +271,7 @@
     overflow-y: auto;
     overflow-x: hidden;
     padding: var(--spacing-md) var(--spacing-lg);
-    padding-top: var(--spacing-lg);
+    padding-top: var(--spacing-xs);
   }
 
   /* Sidebar footer (theme toggle) - static */
@@ -280,8 +279,7 @@
     flex-shrink: 0;
     width: 100%;
     padding: var(--spacing-sm);
-    background: var(--surface-color);
-    border-top: 1px solid var(--border-light);
+    
   }
 
   /* Custom scrollbar for sidebar */
