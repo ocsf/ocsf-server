@@ -319,36 +319,47 @@
   /* Sidebar toggle button */
   .sidebar-toggle {
     position: fixed;
-    top: 10px;
-    left: 205px;
-    width: 36px;
-    height: 36px;
+    top: 50%;
+    left: 180px;
+    width: 32px;
+    height: 32px;
     background: var(--primary-color);
-    border: none;
-    border-radius: var(--radius-md);
+    border: 2px solid var(--surface-color);
+    border-radius: 50%;
     color: var(--text-inverse);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.875rem;
+    font-size: 0.75rem;
     transition: var(--transition-normal);
     z-index: 1000;
     box-shadow: var(--shadow-md);
+    transform: translateY(-50%);
+    opacity: 0.9;
   }
 
   body.sidebar-collapsed .sidebar-toggle {
-    left: 8px;
+    left: -14px;
+    width: 32px;
+    height: 32px;
   }
 
   .sidebar-toggle:hover {
     background: var(--accent-color);
-    transform: scale(1.05);
+    opacity: 1;
+    transform: translateY(-50%) translateX(2px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  body.sidebar-collapsed .sidebar-toggle:hover {
+    transform: translateY(-50%) translateX(-2px);
   }
 
   .sidebar-toggle:focus {
     outline: none;
     box-shadow: var(--shadow-lg), 0 0 0 3px rgba(30, 64, 175, 0.2);
+    opacity: 1;
   }
 
   /* Sidebar navigation structure */
