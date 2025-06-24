@@ -92,10 +92,6 @@ pre {
 
 .uid {
   font-weight: 400;
-  color: var(--text-inverse);
-}
-
-[data-theme="dark"] .uid {
   color: var(--text-secondary);
 }
 
