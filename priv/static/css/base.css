@@ -202,27 +202,6 @@ sup.bg-warning {
 
 
 
-/* Extension badge for attributes added by extensions */
-.extension-badge {
-  display: inline-block;
-  background: #28a745;
-  color: #ffffff;
-  padding: 1px 4px 2px 4px;
-  border-radius: var(--radius-sm);
-  font-size: 0.65rem;
-  font-weight: 600;
-  margin-left: var(--spacing-xs);
-  vertical-align: super;
-  line-height: 1.1;
-  text-align: center;
-  box-shadow: 0 1px 2px rgba(40, 167, 69, 0.2);
-}
-
-[data-theme="dark"] .extension-badge {
-  background: #a3234b;
-  color: #ffffff;
-  box-shadow: 0 1px 2px rgba(32, 201, 151, 0.2);
-}
 
 [data-theme="dark"] .deprecated {
   opacity: 0.8;
@@ -266,4 +245,46 @@ label {
 
 li {
   margin-bottom: 4px;
+}
+
+/* Source Indicators - Icon-based approach for extensions and profiles */
+.source-indicator {
+  font-size: 0.7rem;
+  margin-left: 3px;
+  cursor: help;
+  transition: var(--transition-fast);
+}
+
+.extension-indicator {
+  color: var(--primary-color);
+}
+
+.extension-indicator:hover {
+  color: var(--accent-color);
+  transform: scale(1.1);
+}
+
+.profile-indicator {
+  color: var(--primary-color);
+}
+
+.profile-indicator:hover {
+  color: var(--accent-color);
+  transform: scale(1.1);
+}
+
+[data-theme="dark"] .extension-indicator {
+  color: var(--primary-color);
+}
+
+[data-theme="dark"] .extension-indicator:hover {
+  color: var(--accent-color);
+}
+
+[data-theme="dark"] .profile-indicator {
+  color: var(--primary-color);
+}
+
+[data-theme="dark"] .profile-indicator:hover {
+  color: var(--accent-color);
 }

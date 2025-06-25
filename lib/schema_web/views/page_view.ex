@@ -147,7 +147,7 @@ defmodule SchemaWeb.PageView do
 
     case field[:extension] do
       nil -> name
-      extension when extension != "" -> name <> " <span class='extension-badge'>#{extension}</span>"
+      extension when extension != "" -> name <> " <sup class='source-indicator extension-indicator' data-toggle='tooltip' title='From #{extension} extension'><i class='fas fa-plus-square'></i></sup>"
       _ -> name
     end
   end
@@ -180,10 +180,27 @@ defmodule SchemaWeb.PageView do
           ]
       end
 
-    case entity[:extension] do
-      nil -> caption
-      extension when extension != "" -> [caption, " <span class='extension-badge'>#{extension}</span>"]
-      _ -> caption
+    # Add subtle source indicators with icons matching the sidebar
+    source_indicators = []
+
+    source_indicators = case entity[:extension] do
+      nil -> source_indicators
+      extension when extension != "" ->
+        ["<sup class='source-indicator extension-indicator' data-toggle='tooltip' title='From #{extension} extension'><i class='fas fa-plus-square'></i></sup>" | source_indicators]
+      _ -> source_indicators
+    end
+
+    source_indicators = case entity[:profile] do
+      nil -> source_indicators
+      profile when profile != "" ->
+        ["<sup class='source-indicator profile-indicator' data-toggle='tooltip' title='From #{profile} profile'><i class='fas fa-tag'></i></sup>" | source_indicators]
+      _ -> source_indicators
+    end
+
+    if Enum.empty?(source_indicators) do
+      caption
+    else
+      [caption, " ", Enum.reverse(source_indicators)]
     end
   end
 
@@ -657,20 +674,20 @@ defmodule SchemaWeb.PageView do
       enum_values_table,
       if Map.has_key?(attribute, :sibling) do
         [
-          "<div class=\"mt-2\">ℹ️ This is an <a target=\"_blank\"\" href=\"",
+          "<div class=\"mt-2 text-secondary\"><small><i class=\"fas fa-info-circle\"></i> This is an <a target=\"_blank\"\" href=\"",
           @enum_attributes_doc_url,
           "\">enum attribute</a>; its string sibling is <code>",
           to_string(attribute[:sibling]),
-          "</code>.</div>"
+          "</code>.</small></div>"
         ]
       else
         [
-          "<div class=\"mt-2\">ℹ️ ",
+          "<div class=\"mt-2 text-secondary\"><small><i class=\"fas fa-info-circle\"></i> ",
           "This is an ",
           " <a target=\"_blank\"\" href=\"",
           @enum_attributes_doc_url,
           "\">",
-          "enum attribute</a>.</div>"
+          "enum attribute</a>.</small></div>"
         ]
       end
     ]
@@ -680,20 +697,20 @@ defmodule SchemaWeb.PageView do
     if is_dictionary_view do
       [
         description,
-        "<div class=\"mt-2\">ℹ️ This is the string sibling of <a target=\"_blank\"\" href=\"",
+        "<div class=\"mt-2 text-secondary\"><small><i class=\"fas fa-info-circle\"></i> This is the string sibling of <a target=\"_blank\"\" href=\"",
         @enum_attributes_doc_url,
         "\">enum attribute</a> <code>",
         to_string(attribute[:_sibling_of]),
-        "</code> but can also be used independently. See specific usage.</div>"
+        "</code> but can also be used independently. See specific usage.</small></div>"
       ]
     else
       [
         description,
-        "<div class=\"mt-2\">ℹ️ This is the string sibling of <a target=\"_blank\"\" href=\"",
+        "<div class=\"mt-2 text-secondary\"><small><i class=\"fas fa-info-circle\"></i> This is the string sibling of <a target=\"_blank\"\" href=\"",
         @enum_attributes_doc_url,
         "\">enum attribute</a> <code>",
         to_string(attribute[:_sibling_of]),
-        "</code>.</div>"
+        "</code>.</small></div>"
       ]
     end
   end
