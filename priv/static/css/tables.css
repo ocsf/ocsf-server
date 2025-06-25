@@ -233,16 +233,16 @@ section.category {
   padding: var(--spacing-md);
   margin-bottom: var(--spacing-md);
   box-shadow: var(--shadow-sm);
-  transition: var(--transition-normal);
+  transition: box-shadow var(--transition-normal), border-color var(--transition-normal), background-color var(--transition-normal);
   -webkit-break-inside: avoid;
   -moz-break-inside: avoid;
   break-inside: avoid;
 }
 
 section.category:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-md);
   border-color: var(--accent-color);
+  background: var(--surface-elevated);
 }
 
 section.category header {
