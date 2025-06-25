@@ -141,7 +141,7 @@ limitations under the License.
     <!-- Sidebar Content - Scrollable -->
     <div class="sidebar-content">
       <div class="navbar-brand">
-        <a target="_blank" href=https://github.com/ocsf/ocsf-schema/blob/main/extensions.md><i class="fas fa-plus-square"></i> Extensions</a>
+        <a target="_blank" href=https://github.com/ocsf/ocsf-schema/blob/main/extensions.md><i class="fas fa-layer-group"></i> Extensions</a>
         <hr class="divider"/>
       </div>
       <div class="collapse navbar-collapse" id="checkbox-extensions">

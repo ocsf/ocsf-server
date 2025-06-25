@@ -169,7 +169,7 @@ defmodule SchemaWeb.PageView do
 
     case field[:extension] do
       nil -> name
-      extension when extension != "" -> name <> " <sup class='source-indicator extension-indicator' data-toggle='tooltip' title='From #{extension} extension'><i class='fas fa-plus-square'></i></sup>"
+      extension when extension != "" -> name <> " <sup class='source-indicator extension-indicator' data-toggle='tooltip' title='From #{extension} extension'><i class='fas fa-layer-group'></i></sup>"
       _ -> name
     end
   end
@@ -208,7 +208,7 @@ defmodule SchemaWeb.PageView do
     source_indicators = case entity[:extension] do
       nil -> source_indicators
       extension when extension != "" ->
-        ["<sup class='source-indicator extension-indicator' data-toggle='tooltip' title='From #{extension} extension'><i class='fas fa-plus-square'></i></sup>" | source_indicators]
+        ["<sup class='source-indicator extension-indicator' data-toggle='tooltip' title='From #{extension} extension'><i class='fas fa-layer-group'></i></sup>" | source_indicators]
       _ -> source_indicators
     end
 

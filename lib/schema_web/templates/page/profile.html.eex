@@ -14,7 +14,7 @@
     <h3>
       <%= @data[:caption] %>
       <span class="text-secondary">[<%= @data[:name] %>]</span>
-      <span class="text-secondary"><%= if @data[:extension] && @data[:extension] != "" do %><sup class='source-indicator extension-indicator' data-toggle='tooltip' title='From <%= @data[:extension] %> extension'><i class='fas fa-plus-square'></i></sup><% end %>
+      <span class="text-secondary"><%= if @data[:extension] && @data[:extension] != "" do %><sup class='source-indicator extension-indicator' data-toggle='tooltip' title='From <%= @data[:extension] %> extension'><i class='fas fa-layer-group'></i></sup><% end %>
         Profile
       </span>
     </h3>
