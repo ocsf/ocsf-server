@@ -172,7 +172,7 @@ limitations under the License.
           <%= for {name, map} <- @profiles do %>
           <span class="d-inline-block" tabindex="0"
            data-toggle="tooltip" title='<%= raw format_profile(map) %>' >
-            <li class="extensions nav-item">
+            <li class="extensions nav-item profile-item" data-profile-name="<%= name %>">
               <label><input type="checkbox" data-profile="<%= name %>" id="<%= String.replace(name, "/", "-") %>"> <%= map[:caption] %></label>
             </li>
           </span>
@@ -283,6 +283,31 @@ limitations under the License.
       delay: { "show": 300, "hide": 100 }
     })
   });
+
+  // Profile highlighting functionality
+  window.highlightApplicableProfiles = function(applicableProfiles) {
+    // Reset all profile highlighting
+    $('.profile-item').removeClass('profile-applicable profile-not-applicable');
+
+    if (!applicableProfiles || applicableProfiles.length === 0) {
+      return;
+    }
+
+    // Add highlighting classes
+    $('.profile-item').each(function() {
+      const profileName = $(this).data('profile-name');
+      if (applicableProfiles.includes(profileName)) {
+        $(this).addClass('profile-applicable');
+      } else {
+        $(this).addClass('profile-not-applicable');
+      }
+    });
+  };
+
+  // Clear profile highlighting
+  window.clearProfileHighlighting = function() {
+    $('.profile-item').removeClass('profile-applicable profile-not-applicable');
+  };
 </script>
 
 </body>

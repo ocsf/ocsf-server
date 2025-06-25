@@ -288,3 +288,36 @@ li {
 [data-theme="dark"] .profile-indicator:hover {
   color: var(--accent-color);
 }
+
+/* Profile highlighting in sidebar */
+.profile-item {
+  transition: var(--transition-fast);
+}
+
+.profile-item.profile-applicable {
+  background: linear-gradient(90deg, rgba(8, 145, 178, 0.1) 0%, transparent 100%);
+  padding-left: 4px;
+  margin-left: -4px;
+}
+
+.profile-item.profile-applicable label {
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.profile-item.profile-not-applicable {
+  opacity: 0.4;
+}
+
+.profile-item.profile-not-applicable:hover {
+  opacity: 0.7;
+}
+
+[data-theme="dark"] .profile-item.profile-applicable {
+  background: linear-gradient(90deg, rgba(20, 184, 166, 0.15) 0%, transparent 100%);
+  border-left-color: var(--primary-color);
+}
+
+[data-theme="dark"] .profile-item.profile-applicable label {
+  color: var(--primary-color);
+}

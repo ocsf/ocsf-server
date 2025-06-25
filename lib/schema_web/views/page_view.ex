@@ -101,6 +101,28 @@ defmodule SchemaWeb.PageView do
     end
   end
 
+  @spec get_applicable_profiles(map(), map()) :: list()
+  def get_applicable_profiles(data, profiles) do
+    case data[:profiles] || [] do
+      [] -> []
+      list ->
+        Stream.filter(list, fn profile -> Map.has_key?(profiles, profile) end)
+        |> Enum.to_list()
+    end
+  end
+
+  @spec format_applicable_profiles_json(list()) :: String.t()
+  def format_applicable_profiles_json(applicable_profiles) do
+    case applicable_profiles do
+      [] -> "[]"
+      profiles ->
+        profiles
+        |> Enum.map(&("\"#{&1}\""))
+        |> Enum.join(",")
+        |> (fn str -> "[#{str}]" end).()
+    end
+  end
+
   defp profile_link(_conn, nil, name) do
     name
   end

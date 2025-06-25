@@ -10,8 +10,24 @@
   limitations under the License.
 --%>
 <script>
-  show("#sample-data");
-  show("#json-schema");
+  init_schema_buttons();
+  init_show_deprecated();
+
+  // Highlight applicable profiles in sidebar for objects
+  <% applicable_profiles = get_applicable_profiles(@data, @profiles) %>
+  <% applicable_profiles_json = format_applicable_profiles_json(applicable_profiles) %>
+  $(document).ready(function() {
+    if (typeof window.highlightApplicableProfiles === 'function') {
+      window.highlightApplicableProfiles(<%= raw applicable_profiles_json %>);
+    }
+  });
+
+  // Clear highlighting when leaving the page
+  $(window).on('beforeunload', function() {
+    if (typeof window.clearProfileHighlighting === 'function') {
+      window.clearProfileHighlighting();
+    }
+  });
 </script>
 
 <% references = @data[:references] %>
