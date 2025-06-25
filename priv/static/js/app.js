@@ -133,10 +133,17 @@ function intersection(setA, setB) {
 }
 
 function display_row(set, classList) {
-  if (set.size == 4)
+  const isDeprecated = classList.contains('deprecated');
+  const showDeprecated = window.localStorage.getItem(showDeprecatedStorageKey) === "true";
+  
+  if (set.size == 4) {
     classList.remove('d-none');
-  else
+  } else if (isDeprecated && showDeprecated) {
+    // Show deprecated rows when show deprecated is enabled, regardless of other filters
+    classList.remove('d-none');
+  } else {
     classList.add('d-none');
+  }
 }
 
 /* Search function that works for both tables and categories */
@@ -268,6 +275,19 @@ function on_click_show_deprecated(checkbox) {
   
   // Update container active state
   updateShowDeprecatedState(checkbox.checked);
+  
+  // Refresh the attribute display to show/hide deprecated rows
+  const data = window.localStorage.getItem(selectedAttributesStorageKey);
+  let selected;
+  if (data == null) {
+    selected = selectedAttributesDefaultValues;
+  } else {
+    if (data.length > 0)
+      selected = data.split(",");
+    else
+      selected = [];
+  }
+  display_attributes(array_to_set(selected));
 }
 
 function updateShowDeprecatedState(isActive) {

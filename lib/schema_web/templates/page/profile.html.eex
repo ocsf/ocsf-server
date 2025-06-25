@@ -14,7 +14,7 @@
     <h3>
       <%= @data[:caption] %>
       <span class="text-secondary">[<%= @data[:name] %>]</span>
-      <span class="text-secondary"><%= if @data[:extension] && @data[:extension] != "" do %><span class="extension-badge"><%= @data[:extension] %></span><% end %>
+      <span class="text-secondary"><%= if @data[:extension] && @data[:extension] != "" do %><sup class='source-indicator extension-indicator' data-toggle='tooltip' title='From <%= @data[:extension] %> extension'><i class='fas fa-plus-square'></i></sup><% end %>
         Profile
       </span>
     </h3>
@@ -37,12 +37,6 @@
             data-selected-text-format="count > 3"
             data-actions-box="true"
             data-width="auto">
-            <optgroup id="groups-select" label="Groups">
-              <option selected value="classification">Classification</option>
-              <option selected value="context">Context</option>
-              <option selected value="occurrence">Occurrence</option>
-              <option selected value="primary">Primary</option>
-            </optgroup>
             <optgroup id="requirements-select" label="Requirements">
               <option class="optional" value="optional" title="Optional">Optional Attributes</option>
               <option class="recommended" value="recommended" title="Recommended">Recommended Attributes</option>
