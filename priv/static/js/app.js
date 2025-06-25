@@ -253,10 +253,18 @@ function init_show_deprecated() {
       // cleared _and_ the user agent (browser) comes back to this page with the back button. The browser
       // (at least Firefox) would keep the checkbox checked since that was the state of the UI.
       document.getElementById("show-deprecated").checked = false;
-      $(".deprecated").collapse('hide');
+      // Initialize deprecated elements as hidden without animation
+      const deprecatedElements = document.querySelectorAll('.deprecated');
+      deprecatedElements.forEach(element => {
+        element.classList.add('deprecated-hidden');
+      });
     } else if (checked == "true") {
       document.getElementById("show-deprecated").checked = true;
-      $(".deprecated").collapse('show');
+      // Initialize deprecated elements as visible without animation
+      const deprecatedElements = document.querySelectorAll('.deprecated');
+      deprecatedElements.forEach(element => {
+        element.classList.add('deprecated-visible');
+      });
     }
     
     // Update container state
@@ -267,10 +275,10 @@ function init_show_deprecated() {
 function on_click_show_deprecated(checkbox) {
   if (checkbox.checked) {
     window.localStorage.setItem(showDeprecatedStorageKey, "true");
-    $(".deprecated").collapse('show');
+    smoothShowDeprecated(true);
   } else {
     window.localStorage.setItem(showDeprecatedStorageKey, "false");
-    $(".deprecated").collapse('hide');
+    smoothShowDeprecated(false);
   }
   
   // Update container active state
@@ -288,6 +296,34 @@ function on_click_show_deprecated(checkbox) {
       selected = [];
   }
   display_attributes(array_to_set(selected));
+}
+
+function smoothShowDeprecated(show) {
+  const deprecatedElements = document.querySelectorAll('.deprecated');
+  
+  deprecatedElements.forEach(element => {
+    if (show) {
+      // Remove hidden class and add showing class for smooth animation
+      element.classList.remove('deprecated-hidden');
+      element.classList.add('deprecated-showing');
+      
+      // Use requestAnimationFrame for smoother animation
+      requestAnimationFrame(() => {
+        element.classList.remove('deprecated-showing');
+        element.classList.add('deprecated-visible');
+      });
+    } else {
+      // Add hiding class for smooth animation
+      element.classList.remove('deprecated-visible');
+      element.classList.add('deprecated-hiding');
+      
+      // Hide after animation completes
+      setTimeout(() => {
+        element.classList.remove('deprecated-hiding');
+        element.classList.add('deprecated-hidden');
+      }, 300);
+    }
+  });
 }
 
 function updateShowDeprecatedState(isActive) {
@@ -424,16 +460,4 @@ document.addEventListener('DOMContentLoaded', function() {
       this.style.boxShadow = 'none';
     });
   }
-  
-  // Add hover effects to category cards
-  const categories = document.querySelectorAll('section.category');
-  categories.forEach(category => {
-    category.addEventListener('mouseenter', function() {
-      this.style.transform = 'translateY(-2px)';
-    });
-    
-    category.addEventListener('mouseleave', function() {
-      this.style.transform = 'translateY(0)';
-    });
-  });
 });

@@ -203,11 +203,60 @@ sup.bg-warning {
 
 
 
+/* Smooth deprecated element animations */
+.deprecated {
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+              transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.deprecated-hidden {
+  opacity: 0;
+  transform: scaleY(0.8) translateY(-10px);
+  max-height: 0;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  pointer-events: none;
+}
+
+.deprecated-showing {
+  opacity: 0;
+  transform: scaleY(0.8) translateY(-10px);
+  max-height: 1000px;
+}
+
+.deprecated-visible {
+  opacity: 1;
+  transform: scaleY(1) translateY(0);
+  max-height: 1000px;
+}
+
+.deprecated-hiding {
+  opacity: 0;
+  transform: scaleY(0.8) translateY(-10px);
+  max-height: 0;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
 [data-theme="dark"] .deprecated {
   opacity: 0.8;
 }
 
 [data-theme="dark"] .deprecated:hover {
+  opacity: 1;
+}
+
+[data-theme="dark"] .deprecated-visible {
+  opacity: 0.8;
+}
+
+[data-theme="dark"] .deprecated-visible:hover {
   opacity: 1;
 }
 
