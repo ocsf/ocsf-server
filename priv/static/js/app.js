@@ -366,17 +366,10 @@ function toggleTheme() {
 }
 
 function updateThemeToggle(theme) {
-  const themeIcon = document.getElementById('theme-icon');
-  const themeText = document.getElementById('theme-text');
+  const themeToggleCheckbox = document.getElementById('theme-toggle');
   
-  if (themeIcon && themeText) {
-    if (theme === 'dark') {
-      themeIcon.className = 'fas fa-sun';
-      themeText.textContent = 'Light Mode';
-    } else {
-      themeIcon.className = 'fas fa-moon';
-      themeText.textContent = 'Dark Mode';
-    }
+  if (themeToggleCheckbox) {
+    themeToggleCheckbox.checked = (theme === 'dark');
   }
 }
 

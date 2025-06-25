@@ -274,13 +274,6 @@
     padding-top: var(--spacing-xs);
   }
 
-  /* Sidebar footer (theme toggle) - static */
-  .sidebar-footer {
-    flex-shrink: 0;
-    width: 100%;
-    padding: var(--spacing-sm);
-    
-  }
 
   /* Custom scrollbar for sidebar */
   .sidebar-content::-webkit-scrollbar {

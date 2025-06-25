@@ -106,6 +106,17 @@ limitations under the License.
     <img src='<%= Routes.static_path(@conn, "/images/ocsf-logo.png") %>' alt="OCSF" height="32" class="d-inline-block align-top">
   </a>
 
+  <!-- Theme Toggle - Always Visible -->
+  <div class="navbar-theme-toggle-container">
+    <label class="theme-toggle-switch navbar-theme-toggle">
+      <input type="checkbox" id="theme-toggle" onclick="toggleTheme()" title="Toggle dark mode">
+      <span class="theme-toggle-slider">
+        <i class="fas fa-sun theme-icon-light"></i>
+        <i class="fas fa-moon theme-icon-dark"></i>
+      </span>
+    </label>
+  </div>
+
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
     <i class="fas fa-chevron-down"></i>
   </button>
@@ -182,16 +193,6 @@ limitations under the License.
       <% end %>
     </div>
 
-    <!-- Sidebar Footer (Theme Toggle) - Static -->
-    <div class="sidebar-footer">
-      <label class="theme-toggle-switch">
-        <input type="checkbox" id="theme-toggle" onclick="toggleTheme()" title="Toggle dark mode">
-        <span class="theme-toggle-slider">
-          <i class="fas fa-sun theme-icon-light"></i>
-          <i class="fas fa-moon theme-icon-dark"></i>
-        </span>
-      </label>
-    </div>
   </nav>
 
   <div class="collapse navbar-collapse" id="navbarCollapse">
