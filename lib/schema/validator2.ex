@@ -580,8 +580,10 @@ defmodule Schema.Validator2 do
               name = observable["name"]
 
               if is_binary(name) do
+                # Split the name but preserve array notation within each segment
+                name_parts = split_observable_name(name)
                 referenced_definition =
-                  get_referenced_definition(String.split(name, "."), class, profiles)
+                  get_referenced_definition(name_parts, class, profiles)
 
                 if referenced_definition do
                   # At this point we could check the definition or dictionary to make sure
@@ -626,7 +628,10 @@ defmodule Schema.Validator2 do
   @spec get_referenced_definition(list(String.t()), map(), list(String.t())) :: any()
   defp get_referenced_definition([key | remaining_keys], schema_item, profiles) do
     schema_attributes = filter_with_profiles(schema_item[:attributes], profiles)
-    key_atom = String.to_atom(key)
+
+    # Handle array notation: extract base key from "key[index]" or "key[]"
+    {base_key, is_array_access} = parse_array_notation(key)
+    key_atom = String.to_atom(base_key)
 
     attribute = Enum.find(schema_attributes, fn {a_name, _} -> key_atom == a_name end)
 
@@ -636,16 +641,50 @@ defmodule Schema.Validator2 do
       if Enum.empty?(remaining_keys) do
         schema_item
       else
-        if attribute_details[:type] == "object_t" do
-          object_type = String.to_atom(attribute_details[:object_type])
-          get_referenced_definition(remaining_keys, Schema.object(object_type), profiles)
-        else
+        # If this is array access, we need to check if the attribute is actually an array
+        if is_array_access and attribute_details[:is_array] != true do
+          # Array notation used on non-array attribute
           nil
+        else
+          if attribute_details[:type] == "object_t" do
+            object_type = String.to_atom(attribute_details[:object_type])
+            get_referenced_definition(remaining_keys, Schema.object(object_type), profiles)
+          else
+            nil
+          end
         end
       end
     else
       nil
     end
+  end
+
+  # Parse array notation from a key string
+  # Returns {base_key, is_array_access}
+  # Examples:
+  #   "resources" -> {"resources", false}
+  #   "resources[]" -> {"resources", true}
+  #   "resources[0]" -> {"resources", true}
+  #   "resources[123]" -> {"resources", true}
+  @spec parse_array_notation(String.t()) :: {String.t(), boolean()}
+  defp parse_array_notation(key) do
+    case Regex.run(~r/^([^[]+)\[.*\]$/, key) do
+      [_full_match, base_key] -> {base_key, true}
+      nil -> {key, false}
+    end
+  end
+
+  # Split observable name while preserving array notation
+  # Examples:
+  #   "resources.name" -> ["resources", "name"]
+  #   "resources[].name" -> ["resources[]", "name"]
+  #   "resources[0].name" -> ["resources[0]", "name"]
+  #   "metadata.profiles[1]" -> ["metadata", "profiles[1]"]
+  @spec split_observable_name(String.t()) :: list(String.t())
+  defp split_observable_name(name) do
+    # Use regex to split on dots that are not inside brackets
+    # This preserves array notation like "resources[0]" as a single segment
+    Regex.split(~r/\.(?![^\[]*\])/, name)
   end
 
   # Validates attributes of event or object (event_item parameter)
