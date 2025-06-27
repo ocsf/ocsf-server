@@ -8,6 +8,10 @@
   --accent-light: #06B6D4;
   --accent-dark: #0E7490;
   
+  /* RGB values for alpha transparency */
+  --accent-color-rgb: 8, 145, 178;
+  --primary-color-rgb: 15, 27, 92;
+  
   /* Neutral Colors - Light Mode */
   --background-primary: #FEFEFE;
   --background-secondary: #F9FAFB;
@@ -48,6 +52,12 @@
   /* Transitions */
   --transition-fast: 150ms ease-in-out;
   --transition-normal: 250ms ease-in-out;
+  
+  /* Theme Toggle Sizes */
+  --toggle-width: 36px;
+  --toggle-height: 18px;
+  --toggle-slider-size: 13px;
+  --toggle-icon-size: 8px;
 }
 
 /* Dark Mode Variables */
@@ -75,31 +85,8 @@
   --accent-color: #2DD4BF;
   --accent-light: #7DD3FC;
   --accent-dark: #0891B2;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --background-primary: #141018;
-    --background-secondary: #1f1a24;
-    --surface-color: #2a2530;
-    --surface-elevated: #35303c;
-    --border-color: #35303c;
-    --border-light: #35303c;
-    
-    --text-primary: #f8f6fa;
-    --text-secondary: #e2d8e8;
-    --text-muted: #b8a9c9;
-    --text-inverse: #141018;
-    
-    --shadow-sm: 0 1px 2px 0 rgba(20, 16, 24, 0.5);
-    --shadow-md: 0 4px 6px -1px rgba(20, 16, 24, 0.6), 0 2px 4px -1px rgba(20, 16, 24, 0.5);
-    --shadow-lg: 0 10px 15px -3px rgba(20, 16, 24, 0.6), 0 4px 6px -2px rgba(20, 16, 24, 0.5);
-    
-    --primary-color: #14b8a6;
-    --primary-light: #5eead4;
-    --primary-dark: #0f766e;
-    --accent-color: #2dd4bf;
-    --accent-light: #7dd3fc;
-    --accent-dark: #0891b2;
-  }
+  
+  /* RGB values for alpha transparency - Dark Mode */
+  --accent-color-rgb: 45, 212, 191;
+  --primary-color-rgb: 20, 184, 166;
 }
