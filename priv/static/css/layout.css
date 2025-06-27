@@ -141,11 +141,6 @@
     text-decoration: none;
   }
 
-  .navbar-collapse .navbar-nav .nav-link.active {
-    background: var(--accent-color);
-    color: var(--text-inverse) !important;
-  }
-
   /* Mobile dropdown improvements */
   .navbar-collapse .dropdown {
     color: var(--text-primary) !important;
@@ -526,9 +521,10 @@
 }
 
 .navbar-nav .nav-link.active {
-  background: var(--accent-color);
-  color: var(--text-inverse);
+  color: var(--accent-color);
   font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 10px;
 }
 
 /* Dropdown Menus */

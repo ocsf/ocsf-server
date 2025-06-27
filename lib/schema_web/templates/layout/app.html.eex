@@ -68,31 +68,31 @@ limitations under the License.
       // init the attributes dropdown filters
       init_selected_attributes();
 
-      $("a.nav-item.nav-link.active").removeClass("active");
+      $("a.nav-link.active").removeClass("active");
       switch (window.location.pathname) {
         case '/':
-          $('#home_id').addClass("active");
+          $('#home_id a.nav-link').addClass("active");
           break;
         case '/categories':
-          $('#categories_id').addClass("active");
+          $('#categories_id a.nav-link').addClass("active");
           break;
         case '/classes':
-          $('#classes_id').addClass("active");
+          $('#classes_id a.nav-link').addClass("active");
           break;
         case '/dictionary':
-          $('#dictionary_id').addClass("active");
+          $('#dictionary_id a.nav-link').addClass("active");
           break;
         case '/objects':
-          $('#objects_id').addClass("active");
+          $('#objects_id a.nav-link').addClass("active");
           break;
         case '/objects/observable':
-          $('#observable_id').addClass("active");
+          $('#observable_id a.nav-link').addClass("active");
           break;
         case '/classes/base_event':
-          $('#base_event_id').addClass("active");
+          $('#base_event_id a.nav-link').addClass("active");
           break;
         case '/data_types':
-          $('#data_types_id').addClass("active");
+          $('#data_types_id a.nav-link').addClass("active");
           break;
       }
     });
