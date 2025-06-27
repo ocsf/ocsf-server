@@ -82,23 +82,11 @@ pre {
   text-transform: capitalize;
 }
 
-.title-uppercase {
-  text-transform: uppercase;
-}
-
-.move-up {
-  margin-top: 0.6rem;
-}
-
 .uid {
   font-weight: 400;
   color: var(--text-secondary);
 }
 
-.reserved {
-  color: var(--primary-color);
-  font-weight: 500;
-}
 
 .enum-value,
 span[style*="color: red"] {
@@ -111,9 +99,6 @@ span[style*="color: red"] {
   color: #f87171;
 }
 
-span.hidden {
-  display: none;
-}
 
 /* Special Elements */
 blockquote {
@@ -282,19 +267,6 @@ sup.bg-warning {
   box-shadow: var(--shadow-lg);
 }
 
-/* Legacy classes */
-.active {
-  border-bottom: 2px solid var(--accent-color);
-}
-
-label {
-  display: inline-block; 
-  vertical-align: top;
-}
-
-li {
-  margin-bottom: 4px;
-}
 
 /* Source Indicators - Icon-based approach for extensions and profiles */
 .source-indicator {

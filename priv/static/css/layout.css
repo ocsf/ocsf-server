@@ -336,13 +336,6 @@
     height: 32px;
   }
 
-  .sidebar-toggle:hover {
-    background: var(--accent-color);
-    opacity: 1;
-    transform: translateY(-50%) translateX(2px);
-    box-shadow: var(--shadow-lg);
-  }
-
   body.sidebar-collapsed .sidebar-toggle:hover {
     transform: translateY(-50%) translateX(-2px);
   }
@@ -463,13 +456,6 @@
   .select-version option {
     color: var(--text-primary);
     background: var(--surface-color);
-  }
-
-  .divider {
-    margin-top: 0rem;
-    margin-bottom: 0.2rem;
-    border: 0;
-    border-top: 2px solid rgba(0, 0, 0, 0.5);
   }
 
   /* Reduce font size for Extensions and Profiles headings in sidebar */

@@ -296,22 +296,6 @@ section.category div.ocsf-class a:hover {
   color: var(--accent-color);
 }
 
-/* References section */
-div.references {
-  border: 1px solid;
-  border-color: rgb(222, 226, 230);
-  padding: 1em;
-  margin-bottom: 1em;
-  -webkit-columns: 4 18rem;
-  -moz-columns: 4 18rem;
-  columns: 4 18rem;
-}
-
-div.references div.reference {
-  -webkit-break-inside: avoid;
-  -moz-break-inside: avoid;
-  break-inside: avoid;
-}
 
 /* Responsive improvements */
 @media (max-width: 768px) {
