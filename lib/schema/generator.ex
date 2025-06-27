@@ -200,23 +200,83 @@ defmodule Schema.Generator do
   end
 
   defp generate_sample(type) do
-    Enum.reduce(type[:attributes], Map.new(), fn {name, field} = attribute, map ->
-      if field[:is_array] == true do
-        generate_array(field[:requirement], name, attribute, map)
-      else
-        case field[:type] do
-          "object_t" ->
-            generate_object(field[:requirement], name, attribute, map)
+    attributes =
+      Enum.reduce(type[:attributes], Map.new(), fn {name, field} = attribute, map ->
+        if field[:is_array] == true do
+          generate_array(field[:requirement], name, attribute, map)
+        else
+          case field[:type] do
+            "object_t" ->
+              generate_object(field[:requirement], name, attribute, map)
 
-          nil ->
-            Logger.warning("Invalid type name: #{name}")
-            map
+            nil ->
+              Logger.warning("Invalid type name: #{name}")
+              map
 
-          _other ->
-            generate(attribute, map)
+            _other ->
+              generate(attribute, map)
+          end
         end
+      end)
+
+    constraints = Map.get(type, :constraints)
+
+    if constraints do
+      apply_constraints(attributes, constraints, type)
+    else
+      attributes
+    end
+  end
+
+  defp apply_constraints(attributes, constraints, type) do
+    attributes
+    |> apply_just_one(constraints[:just_one])
+    |> apply_at_least_one(constraints[:at_least_one], type)
+  end
+
+  defp apply_just_one(attributes, nil), do: attributes
+
+  defp apply_just_one(attributes, just_one_list) do
+    valid_keys = Enum.filter(just_one_list, &Map.has_key?(attributes, String.to_atom(&1)))
+
+    if valid_keys != [] do
+      chosen_key = Enum.random(valid_keys)
+
+      Enum.reduce(valid_keys, attributes, fn key, acc ->
+        if key == chosen_key, do: acc, else: Map.delete(acc, String.to_atom(key))
+      end)
+    else
+      attributes
+    end
+  end
+
+  defp apply_at_least_one(attributes, nil, _type), do: attributes
+  defp apply_at_least_one(attributes, [], _type), do: attributes
+
+  defp apply_at_least_one(attributes, at_least_one_list, type) do
+    is_satisfied =
+      Enum.any?(at_least_one_list, fn key ->
+        Map.has_key?(attributes, String.to_atom(key))
+      end)
+
+    if is_satisfied do
+      attributes
+    else
+      key_to_add_string = Enum.random(at_least_one_list)
+      key_to_add_atom = String.to_atom(key_to_add_string)
+
+      case Enum.find(type[:attributes], fn {name, _field} -> name == key_to_add_atom end) do
+        nil ->
+          Logger.warning(
+            "Could not find attribute '#{key_to_add_string}' to satisfy at_least_one constraint."
+          )
+
+          attributes
+
+        {name, field} ->
+          generate_field(name, field, attributes)
       end
-    end)
+    end
   end
 
   defp generate({name, field}, map) do
