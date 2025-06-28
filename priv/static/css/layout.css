@@ -1,10 +1,11 @@
 /* Main Content */
 .main-page {
-  z-index: -1;
+  z-index: 1;
   padding: var(--spacing-xs);
   padding-bottom: 80px;
   background: var(--background-primary);
-  min-height: calc(100vh - 80px);
+  min-height: calc(100vh - 140px); /* Adjust for fixed navbar + footer */
+  position: relative;
 }
 
 .page-description {
@@ -23,6 +24,7 @@
   body {
     margin-left: 0;
     min-width: auto;
+    padding-top: 60px; /* Add padding for fixed navbar on mobile */
   }
 
   .sidebar-toggle {
@@ -70,8 +72,13 @@
 
   /* Top navbar styling for mobile */
   .navbar.navbar-light {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
     background: var(--surface-color) !important;
     border-bottom: 1px solid var(--border-color);
+    z-index: 999;
   }
 
   [data-theme="dark"] .navbar.navbar-light {
@@ -201,6 +208,7 @@
 @media (min-width: 768px) {
   body {
     margin-left: 200px;
+    padding-top: 60px; /* Add padding for fixed navbar */
     transition: var(--transition-normal);
   }
 
@@ -210,9 +218,19 @@
 
   /* Top navbar */
   .navbar:not(.fixed-left) {
+    position: fixed;
+    top: 0;
+    left: 200px;
+    right: 0;
     background: var(--background-secondary);
     border-bottom: 1px solid var(--border-color);
-    z-index: 998;
+    z-index: 999;
+    transition: var(--transition-normal);
+  }
+
+  /* Adjust navbar position when sidebar is collapsed */
+  body.sidebar-collapsed .navbar:not(.fixed-left) {
+    left: 0;
   }
 
   .navbar:not(.fixed-left) .navbar-brand,
