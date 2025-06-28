@@ -199,7 +199,7 @@ limitations under the License.
   </nav>
 
   <div class="collapse navbar-collapse" id="navbarCollapse">
-    <ul class="extensions navbar-nav ml-auto">
+    <ul class="top-navbar-nav navbar-nav ml-auto">
       <li id="categories_id" class="nav-item">
         <a class="nav-link" href='<%= Routes.static_path(@conn, "/categories") %>'>Categories</a>
       </li>
@@ -219,22 +219,20 @@ limitations under the License.
         <a class="nav-link" href='<%= Routes.static_path(@conn, "/classes/base_event") %>'>Base Event</a>
       </li>
       <li id="data_types_id" class="nav-item">
-      <a class="nav-link" href='<%= Routes.static_path(@conn, "/data_types") %>'>Data Types</a>
+        <a class="nav-link" href='<%= Routes.static_path(@conn, "/data_types") %>'>Data Types</a>
       </li>
 
       <div class="navbar-text">|</div>
 
-      <li id=resources_id class="nav-link">
-        <div class="dropdown">
-          Resources
-          <div class="dropdown-content">
-            <a class="nav-link" target="_blank" href='<%= Routes.static_path(@conn, "/doc") %>'>API Documentation</a>
-            <a class="nav-link" target="_blank" href="https://github.com/ocsf/ocsf-docs/blob/main/overview/understanding-ocsf.md">Understanding OCSF</a>
-            <a class="nav-link" target="_blank" href="https://github.com/ocsf/ocsf-docs/tree/main/faqs">FAQ</a>
-            <a class="nav-link" target="_blank" href="https://github.com/ocsf/examples/tree/main">Example Mappings</a>
-            <a class="nav-link" target="_blank" href="https://github.com/ocsf/ocsf-schema">Fork Me on GitHub</a>
-            <a class="nav-link" target="_blank" href="https://github.com/ocsf/ocsf-schema/blob/main/CONTRIBUTING.md">Contributing to OCSF</a>
-          </div>
+      <li id="resources_id" class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" role="button">Resources</a>
+        <div class="dropdown-content">
+          <a class="dropdown-link" target="_blank" href='<%= Routes.static_path(@conn, "/doc") %>'>API Documentation</a>
+          <a class="dropdown-link" target="_blank" href="https://github.com/ocsf/ocsf-docs/blob/main/overview/understanding-ocsf.md">Understanding OCSF</a>
+          <a class="dropdown-link" target="_blank" href="https://github.com/ocsf/ocsf-docs/tree/main/faqs">FAQ</a>
+          <a class="dropdown-link" target="_blank" href="https://github.com/ocsf/examples/tree/main">Example Mappings</a>
+          <a class="dropdown-link" target="_blank" href="https://github.com/ocsf/ocsf-schema">Fork Me on GitHub</a>
+          <a class="dropdown-link" target="_blank" href="https://github.com/ocsf/ocsf-schema/blob/main/CONTRIBUTING.md">Contributing to OCSF</a>
         </div>
       </li>
 

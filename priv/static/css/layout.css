@@ -574,7 +574,7 @@
   z-index: 1001;
 }
 
-.dropdown-content a {
+.dropdown-content .dropdown-link {
   color: var(--text-primary);
   padding: var(--spacing-sm) var(--spacing-md);
   display: block;
@@ -584,9 +584,12 @@
   margin: var(--spacing-xs);
 }
 
-.dropdown-content a:hover {
+.dropdown-content .dropdown-link:hover,
+.dropdown-content .dropdown-link:focus,
+.dropdown-content .dropdown-link:active {
   background: var(--background-secondary);
   color: var(--accent-color);
+  text-decoration: none;
 }
 
 .dropdown:hover .dropdown-content {
