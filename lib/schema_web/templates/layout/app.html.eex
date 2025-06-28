@@ -160,12 +160,12 @@ limitations under the License.
           <%= for {_key, map} <- @extensions do %>
           <% name = map[:name] %>
           <li class="nav-item">
-            <a style="display: inline-block;">
+            <label for="<%= name %>">
               <input
                 type="checkbox"
                 id="<%= name %>">
-                <label for="checkbox"><%= raw format_extension(map) %><label>
-            </a>
+              <%= raw format_extension(map) %>
+            </label>
           </li>
         <% end %>
         </ul>
