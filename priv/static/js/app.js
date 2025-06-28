@@ -40,14 +40,6 @@ function set_selected_extensions(extensions) {
 const selectedAttributesDefaultValues = ["base-event", "deprecated", "optional", "recommended", "classification", "context", "occurrence", "primary"];
 const selectedAttributesStorageKey = "selected-attributes"
 
-function hide(name) {
-  $(name).addClass('d-none');
-}
-
-function show(name) {
-  $(name).removeClass('d-none');
-}
-
 function enable_option(name) {
   $(name).removeAttr('disabled');
 }

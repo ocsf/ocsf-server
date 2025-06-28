@@ -235,21 +235,6 @@ limitations under the License.
         </div>
       </li>
 
-      <li class="nav-item">
-        <div id="json-schema" class="d-none">
-          <button type="button" id="btn-json-schema" class="btn btn-link btn-sm">JSON Schema</button>
-        </div>
-      </li>
-      <li class="nav-item">
-        <div id="schema" class="d-none">
-          <button type="button" id="btn-schema" class="btn btn-link btn-sm">Schema</button>
-        </div>
-      </li>
-      <li class="nav-item">
-        <div id="sample-data" class="d-none">
-          <button type="button" id="btn-sample-data" class="btn btn-link btn-sm">Sample</button>
-        </div>
-      </li>
     </ul>
   </div>
 </nav>

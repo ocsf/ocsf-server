@@ -630,52 +630,23 @@ body.sidebar-collapsed .footer {
   color: var(--accent-color) !important;
 }
 
-/* Schema buttons container styling */
-.navbar-nav .nav-item:has(#json-schema),
-.navbar-nav .nav-item:has(#schema),
-.navbar-nav .nav-item:has(#sample-data) {
+/* Schema action buttons styling */
+.btn-group[aria-label="Schema actions"] {
   display: flex;
-  align-items: center;
+  gap: 4px;
 }
 
-/* Responsive schema buttons */
-@media (max-width: 992px) {
-  #btn-json-schema, #btn-schema, #btn-sample-data {
-    font-size: 0.7rem;
-    padding: var(--spacing-xs) var(--spacing-sm);
-    min-width: 70px;
-  }
-  
-  #json-schema, #schema, #sample-data {
-    margin-left: var(--spacing-xs);
-  }
+.profile-badges {
+  gap: var(--spacing-xs);
 }
 
-@media (max-width: 768px) {
-  #btn-json-schema, #btn-schema, #btn-sample-data {
-    font-size: 0.65rem;
-    padding: 4px 8px;
-    min-width: 60px;
-  }
-  
-  #btn-json-schema::before,
-  #btn-schema::before,
-  #btn-sample-data::before {
-    display: none;
-  }
+.profile-badge {
+  font-size: 0.7rem;
+  padding: 2px 6px;
+}
 
-  .profile-badges {
-    gap: var(--spacing-xs);
-  }
-  
-  .profile-badge {
-    font-size: 0.7rem;
-    padding: 2px 6px;
-  }
-  
-  .profile-badge i {
-    font-size: 0.6rem;
-  }
+.profile-badge i {
+  font-size: 0.6rem;
 }
 
 /* Special profile styling */
