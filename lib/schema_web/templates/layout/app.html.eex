@@ -40,7 +40,7 @@ limitations under the License.
 
         // update the links with the selected extensions
         const params = select_extensions(selected_extensions);
-        $(".extensions a").each(function() {
+        $(".sidebar-section a").each(function() {
           this.href = this.href + params;
         });
 
@@ -51,7 +51,7 @@ limitations under the License.
 
     $(document).ready(function () {
       let selected_extensions = get_selected_extensions();
-      let extensions = $("#checkbox-extensions :checkbox");
+      let extensions = $("#extensions-list :checkbox");
       extensions.on("change", function() {
         extensions.each(function(){
           selected_extensions[this.id] = this.checked;
@@ -60,7 +60,7 @@ limitations under the License.
 
         const params = select_extensions(selected_extensions);
         window.location.search = params;
-        $(".extensions a").each(function() {
+        $(".sidebar-section a").each(function() {
           this.href = this.href + params;
         });
       });
@@ -151,44 +151,47 @@ limitations under the License.
 
     <!-- Sidebar Content - Scrollable -->
     <div class="sidebar-content">
-      <div class="navbar-brand">
-        <a target="_blank" href=https://github.com/ocsf/ocsf-schema/blob/main/extensions.md><i class="fas fa-layer-group"></i> Extensions</a>
-        <hr class="divider"/>
-      </div>
-      <div class="collapse navbar-collapse" id="checkbox-extensions">
-        <ul class="navbar-nav">
-          <%= for {_key, map} <- @extensions do %>
-          <% name = map[:name] %>
-          <li class="nav-item">
-            <label for="<%= name %>">
-              <input
-                type="checkbox"
-                id="<%= name %>">
-              <%= raw format_extension(map) %>
-            </label>
-          </li>
-        <% end %>
-        </ul>
+      <!-- Extensions Section -->
+      <div class="sidebar-section">
+        <a target="_blank" class="sidebar-section-header" href=https://github.com/ocsf/ocsf-schema/blob/main/extensions.md>
+          <i class="fas fa-layer-group"></i> Extensions
+          <hr class="divider"/>
+        </a>
+        <div class="sidebar-section-content" id="extensions-list">
+          <ul class="sidebar-nav">
+            <%= for {_key, map} <- @extensions do %>
+            <% name = map[:name] %>
+            <li class="sidebar-nav-item">
+              <label for="<%= name %>">
+                <input type="checkbox" id="<%= name %>">
+                <%= raw format_extension(map) %>
+              </label>
+            </li>
+            <% end %>
+          </ul>
+        </div>
       </div>
 
       <%= if map_size(@profiles) > 0 do %>
-      <div class="container-fluid"></div>
-      <span class="extensions">
-        <a id="profiles" class="navbar-brand" href='<%= Routes.static_path(@conn, "/profiles") %>'><i class="fas fa-tag"></i> Profiles
+      <!-- Profiles Section -->
+      <div class="sidebar-section">
+        <a id="profiles-link" class="sidebar-section-header" href='<%= Routes.static_path(@conn, "/profiles") %>'>
+          <i class="fas fa-tag"></i> Profiles
           <hr class="divider"/>
         </a>
-      </span>
-      <div class="collapse navbar-collapse" id="checkbox-profiles">
-        <ul class="navbar-nav">
-          <%= for {name, map} <- @profiles do %>
-          <span class="d-inline-block" tabindex="0"
-           data-toggle="tooltip" title='<%= raw format_profile(map) %>' >
-            <li class="extensions nav-item profile-item" data-profile-name="<%= name %>">
-              <label><input type="checkbox" data-profile="<%= name %>" id="<%= String.replace(name, "/", "-") %>"> <%= map[:caption] %></label>
+        <div class="sidebar-section-content" id="profiles-list">
+          <ul class="sidebar-nav">
+            <%= for {name, map} <- @profiles do %>
+            <li class="sidebar-nav-item profile-item" data-profile-name="<%= name %>"
+                data-toggle="tooltip" title='<%= raw format_profile(map) %>'>
+              <label>
+                <input type="checkbox" data-profile="<%= name %>" id="<%= String.replace(name, "/", "-") %>">
+                <%= map[:caption] %>
+              </label>
             </li>
-          </span>
-        <% end %>
-        </ul>
+            <% end %>
+          </ul>
+        </div>
       </div>
       <% end %>
     </div>

@@ -471,10 +471,55 @@
     background: var(--surface-color);
   }
 
-  /* Reduce font size for Extensions and Profiles headings in sidebar */
-  .sidebar-content .navbar-brand {
+  /* Sidebar sections */
+  .sidebar-section {
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .sidebar-section-header {
+    display: block;
     font-size: 1rem;
     font-weight: 500;
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: var(--transition-fast);
+  }
+
+  .sidebar-section-header:hover,
+  .sidebar-section-header:focus,
+  .sidebar-section-header:active {
+    color: var(--accent-color);
+    text-decoration: none;
+  }
+
+  .sidebar-section-content {
+    margin-top: var(--spacing-sm);
+  }
+
+  .sidebar-nav {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .sidebar-nav-item {
+    margin-bottom: 0.5rem;
+  }
+
+  .sidebar-nav-item input[type="checkbox"] {
+    margin-right: 0.5rem;
+    margin-bottom: 0;
+    flex-shrink: 0;
+  }
+
+  .sidebar-nav-item label {
+    margin-bottom: 0;
+    display: flex;
+    align-items: center;
+    font-size: 0.875rem;
+    line-height: 1.1;
+    cursor: pointer;
+    color: var(--text-primary);
   }
 }
 
@@ -489,38 +534,6 @@
 
 .navbar.fixed-left .navbar-nav .nav-item {
   margin-bottom: 0.5rem;
-}
-
-/* Extensions styling */
-#checkbox-extensions .nav-item input[type="checkbox"] {
-  margin-right: 0.5rem;
-  margin-bottom: 0;
-  flex-shrink: 0;
-}
-
-#checkbox-extensions .nav-item label {
-  margin-bottom: 0;
-  display: flex;
-  align-items: center;
-  font-size: 0.875rem;
-  line-height: 1.1;
-  cursor: pointer;
-}
-
-/* Profiles styling */
-#checkbox-profiles .nav-item input[type="checkbox"] {
-  margin-right: 0.5rem;
-  margin-bottom: 0;
-  flex-shrink: 0;
-}
-
-#checkbox-profiles .nav-item label {
-  margin-bottom: 0;
-  display: flex;
-  align-items: center;
-  font-size: 0.875rem;
-  line-height: 1.1;
-  cursor: pointer;
 }
 
 .navbar-nav .nav-link:hover {
@@ -658,16 +671,6 @@ body.sidebar-collapsed .footer {
   font-size: 0.6rem;
 }
 
-/* Special profile styling */
-#profiles {
-  color: var(--primary-color) !important;
-}
-
-#profiles a:hover, 
-#profiles a:focus, 
-#profiles a:active {
-  color: var(--accent-color) !important;
-}
 
 /* Graph defaults */
 #network {
