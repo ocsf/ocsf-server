@@ -40,22 +40,96 @@ input[type="search"]::placeholder,
   color: var(--text-muted);
 }
 
-/* Checkboxes */
+/* Custom Checkboxes - Universal Styling */
 input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
-  accent-color: var(--accent-color);
+  /* Hide the default checkbox */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  
+  /* Custom styling */
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--surface-color);
   cursor: pointer;
+  position: relative;
+  transition: var(--transition-normal);
+  flex-shrink: 0;
 }
 
+/* Hover state */
 input[type="checkbox"]:hover {
-  box-shadow: 0 0 8px rgba(var(--accent-color-rgb), 0.3);
+  border-color: var(--accent-color);
+  background: rgba(var(--accent-color-rgb), 0.05);
+  transform: scale(1.05);
+  box-shadow: 0 0 0 3px rgba(var(--accent-color-rgb), 0.1);
 }
 
-[data-theme="dark"] input[type="checkbox"]:not(:checked) {
-  border: 1px solid #475569;
-  background-color: transparent;
-  opacity: 0.7;
+/* Focus state */
+input[type="checkbox"]:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(var(--accent-color-rgb), 0.2);
+}
+
+/* Checked state */
+input[type="checkbox"]:checked {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+  color: var(--text-inverse);
+}
+
+/* Checkmark icon */
+input[type="checkbox"]:checked::after {
+  content: '\f00c';
+  font-family: 'Font Awesome 6 Free';
+  font-weight: 900;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 10px;
+  color: var(--text-inverse);
+  animation: checkmarkPop 0.2s ease-out;
+}
+
+@keyframes checkmarkPop {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Checked hover state */
+input[type="checkbox"]:checked:hover {
+  background: var(--accent-dark);
+  border-color: var(--accent-dark);
+  transform: scale(1.05);
+}
+
+/* Dark theme adjustments */
+[data-theme="dark"] input[type="checkbox"] {
+  border-color: var(--border-color);
+  background: var(--surface-elevated);
+}
+
+[data-theme="dark"] input[type="checkbox"]:hover {
+  border-color: var(--accent-color);
+  background: rgba(var(--accent-color-rgb), 0.1);
+}
+
+[data-theme="dark"] input[type="checkbox"]:checked {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
 }
 
 /* Buttons */
