@@ -1,0 +1,92 @@
+/* CSS Custom Properties - Variables Only */
+:root {
+  /* Refined Color Palette - Sophisticated blue tones */
+  --primary-color: #0F1B5C;
+  --primary-light: #1E3A8A;
+  --primary-dark: #03144e;
+  --accent-color: #0891B2;
+  --accent-light: #06B6D4;
+  --accent-dark: #0E7490;
+  
+  /* RGB values for alpha transparency */
+  --accent-color-rgb: 8, 145, 178;
+  --primary-color-rgb: 15, 27, 92;
+  
+  /* Neutral Colors - Light Mode */
+  --background-primary: #FEFEFE;
+  --background-secondary: #F9FAFB;
+  --surface-color: #FFFFFF;
+  --surface-elevated: #F8FAFC;
+  --border-color: #E2E8F0;
+  --border-light: #E2E8F0;
+  
+  /* Text Colors - Light Mode */
+  --text-primary: #1E293B;
+  --text-secondary: #55585e;
+  --text-muted: #94A3B8;
+  --text-inverse: #FFFFFF;
+  
+  /* Status Colors */
+  --success-color: #059669;
+  --warning-color: #D97706;
+  --error-color: #DC2626;
+  --info-color: #0284C7;
+  
+  /* Spacing */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  
+  /* Border Radius */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  
+  /* Shadows - Light Mode */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+  
+  /* Transitions */
+  --transition-fast: 150ms ease-in-out;
+  --transition-normal: 250ms ease-in-out;
+  
+  /* Theme Toggle Sizes */
+  --toggle-width: 36px;
+  --toggle-height: 18px;
+  --toggle-slider-size: 13px;
+  --toggle-icon-size: 8px;
+}
+
+/* Dark Mode Variables */
+[data-theme="dark"],
+:root:not([data-theme="light"]):is([data-theme="dark"], :has(*)) {
+  --background-primary: #141018;
+  --background-secondary: #1f1a24;
+  --surface-color: #2a2530;
+  --surface-elevated: #35303c;
+  --border-color: #35303c;
+  --border-light: #35303c;
+  
+  --text-primary: #f8f6fa;
+  --text-secondary: #e2d8e8;
+  --text-muted: #b8a9c9;
+  --text-inverse: #141018;
+  
+  --shadow-sm: 0 1px 2px 0 rgba(20, 16, 24, 0.5);
+  --shadow-md: 0 4px 6px -1px rgba(20, 16, 24, 0.6), 0 2px 4px -1px rgba(20, 16, 24, 0.5);
+  --shadow-lg: 0 10px 15px -3px rgba(20, 16, 24, 0.6), 0 4px 6px -2px rgba(20, 16, 24, 0.5);
+  
+  --primary-color: #14B8A6;
+  --primary-light: #5EEAD4;
+  --primary-dark: #0F766E;
+  --accent-color: #2DD4BF;
+  --accent-light: #7DD3FC;
+  --accent-dark: #0891B2;
+  
+  /* RGB values for alpha transparency - Dark Mode */
+  --accent-color-rgb: 45, 212, 191;
+  --primary-color-rgb: 20, 184, 166;
+}
