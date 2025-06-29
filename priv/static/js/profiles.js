@@ -47,7 +47,7 @@ function init_selected_profiles(profiles) {
 }
 
 function init_class_profiles() {
-  let profiles = $("#checkbox-profiles :checkbox");
+  let profiles = $("#profiles-list :checkbox");
   profiles.on("change", function() {
     selected_profiles = [];
     profiles.each(function(){
