@@ -2,10 +2,11 @@
 .main-page {
   z-index: 1;
   padding: var(--spacing-xs);
-  padding-bottom: 80px;
+  padding-bottom: var(--spacing-md);
   background: var(--background-primary);
-  min-height: calc(100vh - 140px); /* Adjust for fixed navbar + footer */
+  min-height: calc(100vh - 60px); /* Account for navbar height */
   position: relative;
+  box-sizing: border-box;
 }
 
 .page-description {
