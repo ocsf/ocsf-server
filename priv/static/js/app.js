@@ -383,43 +383,97 @@ function initSidebarToggle() {
   
   if (!sidebarToggle || !sidebar) return;
   
-  // Get saved state from localStorage
-  const isCollapsed = localStorage.getItem('sidebar-collapsed') === 'true';
-  
-  // Apply saved state
-  if (isCollapsed) {
-    sidebar.classList.add('collapsed');
-    body.classList.add('sidebar-collapsed');
-    // Update icon to show right arrow when collapsed
-    if (toggleIcon) {
-      toggleIcon.classList.remove('fa-chevron-left');
-      toggleIcon.classList.add('fa-chevron-right');
-    }
+  // Function to check if we're on mobile
+  function isMobile() {
+    return window.innerWidth <= 768;
   }
   
-  // Toggle sidebar on button click
-  sidebarToggle.addEventListener('click', function() {
-    const isCurrentlyCollapsed = sidebar.classList.contains('collapsed');
+  // Function to apply initial state based on screen size
+  function applyInitialState() {
+    // Clear all classes first
+    sidebar.classList.remove('collapsed', 'expanded');
+    body.classList.remove('sidebar-collapsed', 'sidebar-expanded');
     
-    if (isCurrentlyCollapsed) {
-      sidebar.classList.remove('collapsed');
-      body.classList.remove('sidebar-collapsed');
-      localStorage.setItem('sidebar-collapsed', 'false');
-      // Update icon to show left arrow when expanded
-      if (toggleIcon) {
-        toggleIcon.classList.remove('fa-chevron-right');
-        toggleIcon.classList.add('fa-chevron-left');
-      }
-    } else {
-      sidebar.classList.add('collapsed');
-      body.classList.add('sidebar-collapsed');
-      localStorage.setItem('sidebar-collapsed', 'true');
-      // Update icon to show right arrow when collapsed
+    if (isMobile()) {
+      // Mobile: always start collapsed (ignore localStorage for mobile)
+      // Default mobile state: collapsed
       if (toggleIcon) {
         toggleIcon.classList.remove('fa-chevron-left');
         toggleIcon.classList.add('fa-chevron-right');
       }
+    } else {
+      // Desktop: expanded by default, can be collapsed
+      const isCollapsed = localStorage.getItem('sidebar-collapsed') === 'true';
+      if (isCollapsed) {
+        sidebar.classList.add('collapsed');
+        body.classList.add('sidebar-collapsed');
+        if (toggleIcon) {
+          toggleIcon.classList.remove('fa-chevron-left');
+          toggleIcon.classList.add('fa-chevron-right');
+        }
+      } else {
+        // Default desktop state: expanded
+        if (toggleIcon) {
+          toggleIcon.classList.remove('fa-chevron-right');
+          toggleIcon.classList.add('fa-chevron-left');
+        }
+      }
     }
+  }
+  
+  // Apply initial state
+  applyInitialState();
+  
+  // Single click handler that works for both mobile and desktop
+  sidebarToggle.addEventListener('click', function() {
+    if (isMobile()) {
+      // Mobile logic
+      const isCurrentlyExpanded = sidebar.classList.contains('expanded');
+      
+      if (isCurrentlyExpanded) {
+        sidebar.classList.remove('expanded');
+        body.classList.remove('sidebar-expanded');
+        localStorage.setItem('sidebar-mobile-expanded', 'false');
+        if (toggleIcon) {
+          toggleIcon.classList.remove('fa-chevron-left');
+          toggleIcon.classList.add('fa-chevron-right');
+        }
+      } else {
+        sidebar.classList.add('expanded');
+        body.classList.add('sidebar-expanded');
+        localStorage.setItem('sidebar-mobile-expanded', 'true');
+        if (toggleIcon) {
+          toggleIcon.classList.remove('fa-chevron-right');
+          toggleIcon.classList.add('fa-chevron-left');
+        }
+      }
+    } else {
+      // Desktop logic
+      const isCurrentlyCollapsed = sidebar.classList.contains('collapsed');
+      
+      if (isCurrentlyCollapsed) {
+        sidebar.classList.remove('collapsed');
+        body.classList.remove('sidebar-collapsed');
+        localStorage.setItem('sidebar-collapsed', 'false');
+        if (toggleIcon) {
+          toggleIcon.classList.remove('fa-chevron-right');
+          toggleIcon.classList.add('fa-chevron-left');
+        }
+      } else {
+        sidebar.classList.add('collapsed');
+        body.classList.add('sidebar-collapsed');
+        localStorage.setItem('sidebar-collapsed', 'true');
+        if (toggleIcon) {
+          toggleIcon.classList.remove('fa-chevron-left');
+          toggleIcon.classList.add('fa-chevron-right');
+        }
+      }
+    }
+  });
+  
+  // Handle window resize to reapply state when switching between mobile/desktop
+  window.addEventListener('resize', function() {
+    applyInitialState();
   });
 }
 
