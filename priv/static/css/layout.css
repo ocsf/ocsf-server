@@ -175,20 +175,41 @@
   margin-bottom: var(--spacing-lg);
 }
 
+/* Sidebar section headers - increased specificity to override Bootstrap navbar styles */
+.navbar.fixed-left .sidebar-section-header,
 .sidebar-section-header {
   display: block;
   font-size: 1rem;
   font-weight: 500;
-  color: var(--primary-color);
+  color: var(--primary-color) !important;
   text-decoration: none;
   transition: var(--transition-fast);
 }
 
+.navbar.fixed-left .sidebar-section-header:hover,
+.navbar.fixed-left .sidebar-section-header:focus,
+.navbar.fixed-left .sidebar-section-header:active,
 .sidebar-section-header:hover,
 .sidebar-section-header:focus,
 .sidebar-section-header:active {
-  color: var(--accent-color);
+  color: var(--accent-color) !important;
   text-decoration: none;
+}
+
+/* Sidebar section header icons - ensure icons inherit the correct color */
+.navbar.fixed-left .sidebar-section-header i,
+.sidebar-section-header i {
+  color: var(--primary-color) !important;
+  transition: var(--transition-fast);
+}
+
+.navbar.fixed-left .sidebar-section-header:hover i,
+.navbar.fixed-left .sidebar-section-header:focus i,
+.navbar.fixed-left .sidebar-section-header:active i,
+.sidebar-section-header:hover i,
+.sidebar-section-header:focus i,
+.sidebar-section-header:active i {
+  color: var(--accent-color) !important;
 }
 
 .sidebar-section-content {

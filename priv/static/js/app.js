@@ -395,11 +395,21 @@ function initSidebarToggle() {
     body.classList.remove('sidebar-collapsed', 'sidebar-expanded');
     
     if (isMobile()) {
-      // Mobile: always start collapsed (ignore localStorage for mobile)
-      // Default mobile state: collapsed
-      if (toggleIcon) {
-        toggleIcon.classList.remove('fa-chevron-left');
-        toggleIcon.classList.add('fa-chevron-right');
+      // Mobile: check localStorage to remember sidebar state
+      const isMobileExpanded = localStorage.getItem('sidebar-mobile-expanded') === 'true';
+      if (isMobileExpanded) {
+        sidebar.classList.add('expanded');
+        body.classList.add('sidebar-expanded');
+        if (toggleIcon) {
+          toggleIcon.classList.remove('fa-chevron-right');
+          toggleIcon.classList.add('fa-chevron-left');
+        }
+      } else {
+        // Default mobile state: collapsed
+        if (toggleIcon) {
+          toggleIcon.classList.remove('fa-chevron-left');
+          toggleIcon.classList.add('fa-chevron-right');
+        }
       }
     } else {
       // Desktop: expanded by default, can be collapsed
