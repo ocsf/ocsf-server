@@ -89,7 +89,7 @@
 
 /* OCSF Logo - Shared Styles */
 .ocsf-logo {
-  background: #0F1B5C;
+  background: var(--primary-color);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border-radius: var(--radius-lg);
@@ -101,14 +101,14 @@
   text-align: center;
   width: 100%;
   box-sizing: border-box;
-  box-shadow: 0 8px 32px rgba(15, 27, 92, 0.2);
+  box-shadow: 0 8px 32px rgba(var(--primary-color-rgb), 0.2);
   transition: var(--transition-normal);
 }
 
 .ocsf-logo:hover {
-  background: #0F1B5C;
+  background: var(--primary-color);
   transform: translateY(-2px);
-  box-shadow: 0 12px 40px rgba(15, 27, 92, 0.3);
+  box-shadow: 0 12px 40px rgba(var(--primary-color-rgb), 0.3);
 }
 
 .ocsf-logo img {
@@ -120,15 +120,15 @@
 }
 
 [data-theme="dark"] .ocsf-logo {
-  background: rgba(20, 184, 166, 0.15);
-  border-color: rgba(20, 184, 166, 0.25);
-  box-shadow: 0 8px 32px rgba(20, 184, 166, 0.1);
+  background: rgba(var(--primary-color-rgb), 0.15);
+  border-color: rgba(var(--primary-color-rgb), 0.25);
+  box-shadow: 0 8px 32px rgba(var(--primary-color-rgb), 0.1);
 }
 
 [data-theme="dark"] .ocsf-logo:hover {
-  background: rgba(20, 184, 166, 0.2);
-  border-color: rgba(20, 184, 166, 0.35);
-  box-shadow: 0 12px 40px rgba(20, 184, 166, 0.15);
+  background: rgba(var(--primary-color-rgb), 0.2);
+  border-color: rgba(var(--primary-color-rgb), 0.35);
+  box-shadow: 0 12px 40px rgba(var(--primary-color-rgb), 0.15);
 }
 
 /* Version Selector - Shared Styles */
@@ -162,7 +162,7 @@
 .select-version:focus {
   outline: none;
   border-color: var(--accent-color);
-  box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.1);
+  box-shadow: 0 0 0 3px rgba(var(--accent-color-rgb), 0.1);
 }
 
 .select-version option {
@@ -283,7 +283,7 @@
 
 .sidebar-toggle:focus {
   outline: none;
-  box-shadow: var(--shadow-lg), 0 0 0 3px rgba(30, 64, 175, 0.2);
+  box-shadow: var(--shadow-lg), 0 0 0 3px rgba(var(--primary-color-rgb), 0.2);
   opacity: 1;
 }
 
@@ -336,7 +336,7 @@
 
   /* Mobile navbar brand styling */
   .navbar-brand.d-md-none {
-    background: #0F1B5C;
+    background: var(--primary-color);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border-radius: var(--radius-md);
@@ -344,15 +344,15 @@
     display: flex;
     align-items: center;
     text-decoration: none;
-    box-shadow: 0 8px 32px rgba(15, 27, 92, 0.2);
+    box-shadow: 0 8px 32px rgba(var(--primary-color-rgb), 0.2);
     transition: var(--transition-normal);
   }
 
   .navbar-brand.d-md-none:hover {
-    background: #0F1B5C;
+    background: var(--primary-color);
     text-decoration: none;
     transform: translateY(-2px);
-    box-shadow: 0 12px 40px rgba(15, 27, 92, 0.3);
+    box-shadow: 0 12px 40px rgba(var(--primary-color-rgb), 0.3);
   }
 
   .navbar-brand.d-md-none img {
@@ -364,13 +364,13 @@
   }
 
   [data-theme="dark"] .navbar-brand.d-md-none {
-    background: rgba(20, 184, 166, 0.15);
-    box-shadow: 0 8px 32px rgba(20, 184, 166, 0.1);
+    background: rgba(var(--primary-color-rgb), 0.15);
+    box-shadow: 0 8px 32px rgba(var(--primary-color-rgb), 0.1);
   }
 
   [data-theme="dark"] .navbar-brand.d-md-none:hover {
-    background: rgba(20, 184, 166, 0.2);
-    box-shadow: 0 12px 40px rgba(20, 184, 166, 0.15);
+    background: rgba(var(--primary-color-rgb), 0.2);
+    box-shadow: 0 12px 40px rgba(var(--primary-color-rgb), 0.15);
   }
 
   /* Top navbar styling for mobile */
@@ -420,7 +420,7 @@
 
   .navbar-toggler:focus {
     outline: none;
-    box-shadow: var(--shadow-lg), 0 0 0 3px rgba(30, 64, 175, 0.2);
+    box-shadow: var(--shadow-lg), 0 0 0 3px rgba(var(--primary-color-rgb), 0.2);
   }
 
   /* Mobile navigation menu improvements */
