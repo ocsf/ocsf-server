@@ -297,10 +297,8 @@
   color: var(--text-muted);
   box-shadow: var(--shadow-sm);
   z-index: 2;
-  position: fixed;
-  bottom: 0;
+  position: relative;
   line-height: 1;
-  right: 0;
   transition: var(--transition-normal);
 }
 
@@ -564,14 +562,6 @@
     left: 200px;
   }
 
-  /* Mobile footer positioning */
-  .footer {
-    left: 0;
-  }
-
-  body.sidebar-expanded .footer {
-    left: 200px;
-  }
 
   .main-page {
     padding: var(--spacing-xs);
@@ -716,14 +706,6 @@
     vertical-align: baseline;
   }
 
-  /* Desktop footer positioning */
-  .footer {
-    left: 200px;
-  }
-
-  body.sidebar-collapsed .footer {
-    left: 0;
-  }
 }
 
 /* Bootstrap overrides */
