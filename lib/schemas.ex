@@ -70,7 +70,7 @@ defmodule Schemas do
       |> Stream.map(fn {_, version, path} ->
         {version, path, Schema.Utils.parse_version(version)}
       end)
-      |> Enum.sort(fn {_, _, v1}, {_, _, v2} -> Schema.Utils.version_sorter(v1, v2) end)
+      |> Enum.sort(fn {_, _, v1}, {_, _, v2} -> Schema.Utils.version_sorter_desc(v1, v2) end)
       |> Enum.map(fn {version, path, _parsed_version} -> {version, path} end)
     else
       {:error, reason} ->
