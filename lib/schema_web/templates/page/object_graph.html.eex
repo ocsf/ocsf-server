@@ -17,7 +17,7 @@ limitations under the License.
   <div class="col-md move-up">
     <h3 class="extensions">
       <a href="<%= object_path(@conn, class)  %>"><%= name %></a>
-      <sup><%= extension || "" %></sup>
+      <%= if extension && extension != "" do %><span class="extension-badge"><%= extension %></span><% end %>
       <% observable = class[:observable] %>
       <%= unless is_nil(observable) do %>
         [<%= observable %>]
