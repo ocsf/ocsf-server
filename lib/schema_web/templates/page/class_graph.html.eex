@@ -18,7 +18,7 @@ limitations under the License.
     <% path = Routes.static_path(@conn, "/categories/" <> category) %>
     <h3 class="extensions">
       <%= class[:caption] %>
-      <span class="text-secondary">[<a href="<%= class_path(@conn, class)  %>"><%= class[:uid] %></a>]<sup><%= extension || "" %></sup>
+      <span class="text-secondary">[<a href="<%= class_path(@conn, class)  %>"><%= class[:uid] %></a>]<%= if extension && extension != "" do %><span class="extension-badge"><%= extension %></span><% end %>
         Class
       </span>
     </h3>

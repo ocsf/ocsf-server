@@ -40,14 +40,6 @@ function set_selected_extensions(extensions) {
 const selectedAttributesDefaultValues = ["base-event", "deprecated", "optional", "recommended", "classification", "context", "occurrence", "primary"];
 const selectedAttributesStorageKey = "selected-attributes"
 
-function hide(name) {
-  $(name).addClass('d-none');
-}
-
-function show(name) {
-  $(name).removeClass('d-none');
-}
-
 function enable_option(name) {
   $(name).removeAttr('disabled');
 }
@@ -133,18 +125,33 @@ function intersection(setA, setB) {
 }
 
 function display_row(set, classList) {
-  if (set.size == 4)
+  const isDeprecated = classList.contains('deprecated');
+  const showDeprecated = window.localStorage.getItem(showDeprecatedStorageKey) === "true";
+  
+  if (set.size == 4) {
     classList.remove('d-none');
-  else
+  } else if (isDeprecated && showDeprecated) {
+    // Show deprecated rows when show deprecated is enabled, regardless of other filters
+    classList.remove('d-none');
+  } else {
     classList.add('d-none');
+  }
 }
 
-/* Table search function */
+/* Search function that works for both tables and categories */
 function searchInTable() {
   const input = document.getElementById("tableSearch");
   const filter = input.value.toUpperCase();
+  
+  // Check if we're on the categories page (has section.category elements)
+  const categories = document.querySelectorAll('section.category');
+  if (categories.length > 0) {
+    searchInCategories(filter);
+    return;
+  }
+  
+  // Otherwise, search in tables
   const tbody = document.getElementsByClassName("searchable");
-
   for (let t = 0; t < tbody.length; t++) {
     let tr = tbody[t].children;
 
@@ -170,6 +177,45 @@ function searchInTable() {
         row.style.display = "";
     }
   }
+}
+
+/* Search function for categories page */
+function searchInCategories(filter) {
+  const categories = document.querySelectorAll('section.category');
+  
+  categories.forEach(category => {
+    let categoryHasMatch = false;
+    const categoryHeader = category.querySelector('header');
+    const categoryName = categoryHeader ? categoryHeader.innerText.toUpperCase() : '';
+    
+    // Check if category name matches
+    if (categoryName.indexOf(filter) >= 0) {
+      categoryHasMatch = true;
+    }
+    
+    // Check classes within the category
+    const classes = category.querySelectorAll('div.ocsf-class');
+    let visibleClassCount = 0;
+    
+    classes.forEach(classDiv => {
+      const className = classDiv.innerText.toUpperCase();
+      const classMatches = className.indexOf(filter) >= 0;
+      
+      if (filter === '' || classMatches || categoryHasMatch) {
+        classDiv.style.display = '';
+        visibleClassCount++;
+      } else {
+        classDiv.style.display = 'none';
+      }
+    });
+    
+    // Show/hide the entire category based on matches
+    if (filter === '' || categoryHasMatch || visibleClassCount > 0) {
+      category.style.display = '';
+    } else {
+      category.style.display = 'none';
+    }
+  });
 }
 
 function init_schema_buttons() {
@@ -199,18 +245,268 @@ function init_show_deprecated() {
       // cleared _and_ the user agent (browser) comes back to this page with the back button. The browser
       // (at least Firefox) would keep the checkbox checked since that was the state of the UI.
       document.getElementById("show-deprecated").checked = false;
-      $(".deprecated").collapse('hide')
+      // Initialize deprecated elements as hidden without animation
+      const deprecatedElements = document.querySelectorAll('.deprecated');
+      deprecatedElements.forEach(element => {
+        element.classList.add('deprecated-hidden');
+      });
     } else if (checked == "true") {
       document.getElementById("show-deprecated").checked = true;
-      $(".deprecated").collapse('show')
+      // Initialize deprecated elements as visible without animation
+      const deprecatedElements = document.querySelectorAll('.deprecated');
+      deprecatedElements.forEach(element => {
+        element.classList.add('deprecated-visible');
+      });
     }
+    
+    // Update container state
+    updateShowDeprecatedState(checked == "true");
   });
 }
 
 function on_click_show_deprecated(checkbox) {
   if (checkbox.checked) {
     window.localStorage.setItem(showDeprecatedStorageKey, "true");
+    smoothShowDeprecated(true);
   } else {
     window.localStorage.setItem(showDeprecatedStorageKey, "false");
+    smoothShowDeprecated(false);
+  }
+  
+  // Update container active state
+  updateShowDeprecatedState(checkbox.checked);
+  
+  // Refresh the attribute display to show/hide deprecated rows
+  const data = window.localStorage.getItem(selectedAttributesStorageKey);
+  let selected;
+  if (data == null) {
+    selected = selectedAttributesDefaultValues;
+  } else {
+    if (data.length > 0)
+      selected = data.split(",");
+    else
+      selected = [];
+  }
+  display_attributes(array_to_set(selected));
+}
+
+function smoothShowDeprecated(show) {
+  const deprecatedElements = document.querySelectorAll('.deprecated');
+  
+  deprecatedElements.forEach(element => {
+    if (show) {
+      // Remove hidden class and add showing class for smooth animation
+      element.classList.remove('deprecated-hidden');
+      element.classList.add('deprecated-showing');
+      
+      // Use requestAnimationFrame for smoother animation
+      requestAnimationFrame(() => {
+        element.classList.remove('deprecated-showing');
+        element.classList.add('deprecated-visible');
+      });
+    } else {
+      // Add hiding class for smooth animation
+      element.classList.remove('deprecated-visible');
+      element.classList.add('deprecated-hiding');
+      
+      // Hide after animation completes
+      setTimeout(() => {
+        element.classList.remove('deprecated-hiding');
+        element.classList.add('deprecated-hidden');
+      }, 300);
+    }
+  });
+}
+
+function updateShowDeprecatedState(isActive) {
+  const container = document.querySelector('.show-deprecated-container');
+  if (container) {
+    if (isActive) {
+      container.classList.add('active');
+    } else {
+      container.classList.remove('active');
+    }
   }
 }
+
+
+// Dark Mode Management
+function initTheme() {
+  const savedTheme = localStorage.getItem('ocsf-theme');
+  const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  
+  let theme = savedTheme;
+  if (!savedTheme) {
+    theme = systemPrefersDark ? 'dark' : 'light';
+  }
+  
+  setTheme(theme);
+  updateThemeToggle(theme);
+}
+
+function setTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('ocsf-theme', theme);
+}
+
+function toggleTheme() {
+  const currentTheme = document.documentElement.getAttribute('data-theme');
+  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  
+  setTheme(newTheme);
+  updateThemeToggle(newTheme);
+}
+
+function updateThemeToggle(theme) {
+  const themeToggleCheckbox = document.getElementById('theme-toggle');
+  
+  if (themeToggleCheckbox) {
+    themeToggleCheckbox.checked = (theme === 'dark');
+  }
+}
+
+// Listen for system theme changes
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+  if (!localStorage.getItem('ocsf-theme')) {
+    const theme = e.matches ? 'dark' : 'light';
+    setTheme(theme);
+    updateThemeToggle(theme);
+  }
+});
+
+// Sidebar collapse functionality
+function initSidebarToggle() {
+  const sidebarToggle = document.getElementById('sidebar-toggle');
+  const sidebar = document.querySelector('.navbar.fixed-left');
+  const body = document.body;
+  const toggleIcon = document.getElementById('sidebar-toggle-icon');
+  
+  if (!sidebarToggle || !sidebar) return;
+  
+  // Function to check if we're on mobile
+  function isMobile() {
+    return window.innerWidth <= 768;
+  }
+  
+  // Function to apply initial state based on screen size
+  function applyInitialState() {
+    // Clear all classes first
+    sidebar.classList.remove('collapsed', 'expanded');
+    body.classList.remove('sidebar-collapsed', 'sidebar-expanded');
+    
+    if (isMobile()) {
+      // Mobile: check localStorage to remember sidebar state
+      const isMobileExpanded = localStorage.getItem('sidebar-mobile-expanded') === 'true';
+      if (isMobileExpanded) {
+        sidebar.classList.add('expanded');
+        body.classList.add('sidebar-expanded');
+        if (toggleIcon) {
+          toggleIcon.classList.remove('fa-chevron-right');
+          toggleIcon.classList.add('fa-chevron-left');
+        }
+      } else {
+        // Default mobile state: collapsed
+        if (toggleIcon) {
+          toggleIcon.classList.remove('fa-chevron-left');
+          toggleIcon.classList.add('fa-chevron-right');
+        }
+      }
+    } else {
+      // Desktop: expanded by default, can be collapsed
+      const isCollapsed = localStorage.getItem('sidebar-collapsed') === 'true';
+      if (isCollapsed) {
+        sidebar.classList.add('collapsed');
+        body.classList.add('sidebar-collapsed');
+        if (toggleIcon) {
+          toggleIcon.classList.remove('fa-chevron-left');
+          toggleIcon.classList.add('fa-chevron-right');
+        }
+      } else {
+        // Default desktop state: expanded
+        if (toggleIcon) {
+          toggleIcon.classList.remove('fa-chevron-right');
+          toggleIcon.classList.add('fa-chevron-left');
+        }
+      }
+    }
+  }
+  
+  // Apply initial state
+  applyInitialState();
+  
+  // Single click handler that works for both mobile and desktop
+  sidebarToggle.addEventListener('click', function() {
+    if (isMobile()) {
+      // Mobile logic
+      const isCurrentlyExpanded = sidebar.classList.contains('expanded');
+      
+      if (isCurrentlyExpanded) {
+        sidebar.classList.remove('expanded');
+        body.classList.remove('sidebar-expanded');
+        localStorage.setItem('sidebar-mobile-expanded', 'false');
+        if (toggleIcon) {
+          toggleIcon.classList.remove('fa-chevron-left');
+          toggleIcon.classList.add('fa-chevron-right');
+        }
+      } else {
+        sidebar.classList.add('expanded');
+        body.classList.add('sidebar-expanded');
+        localStorage.setItem('sidebar-mobile-expanded', 'true');
+        if (toggleIcon) {
+          toggleIcon.classList.remove('fa-chevron-right');
+          toggleIcon.classList.add('fa-chevron-left');
+        }
+      }
+    } else {
+      // Desktop logic
+      const isCurrentlyCollapsed = sidebar.classList.contains('collapsed');
+      
+      if (isCurrentlyCollapsed) {
+        sidebar.classList.remove('collapsed');
+        body.classList.remove('sidebar-collapsed');
+        localStorage.setItem('sidebar-collapsed', 'false');
+        if (toggleIcon) {
+          toggleIcon.classList.remove('fa-chevron-right');
+          toggleIcon.classList.add('fa-chevron-left');
+        }
+      } else {
+        sidebar.classList.add('collapsed');
+        body.classList.add('sidebar-collapsed');
+        localStorage.setItem('sidebar-collapsed', 'true');
+        if (toggleIcon) {
+          toggleIcon.classList.remove('fa-chevron-left');
+          toggleIcon.classList.add('fa-chevron-right');
+        }
+      }
+    }
+  });
+  
+  // Handle window resize to reapply state when switching between mobile/desktop
+  window.addEventListener('resize', function() {
+    applyInitialState();
+  });
+}
+
+// Modern enhancements
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize theme
+  initTheme();
+  
+  // Initialize sidebar toggle
+  initSidebarToggle();
+  
+  
+  // Enhance search input with focus styling
+  const searchInput = document.getElementById('tableSearch');
+  if (searchInput) {
+    searchInput.addEventListener('focus', function() {
+      this.style.borderColor = 'var(--accent-color)';
+      this.style.boxShadow = '0 0 0 3px rgba(0, 164, 183, 0.1)';
+    });
+    
+    searchInput.addEventListener('blur', function() {
+      this.style.borderColor = 'var(--border-color)';
+      this.style.boxShadow = 'none';
+    });
+  }
+});
