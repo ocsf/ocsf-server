@@ -644,4 +644,7 @@ defmodule Schema.Utils do
         false
     end
   end
+
+  @spec version_sorter_desc(version_or_error_t(), version_or_error_t()) :: boolean()
+  def version_sorter_desc(v1, v2), do: not version_sorter(v1, v2)
 end
