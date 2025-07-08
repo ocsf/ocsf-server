@@ -133,8 +133,30 @@
 }
 
 /* Version Selector - Shared Styles */
+/* Changelog Link Positioning */
+.changelog-container {
+  margin-top: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.changelog-link {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  color: var(--primary-color);
+  text-decoration: none;
+  font-size: 0.875rem;
+}
+
+.changelog-link:hover,
+.changelog-link:active,
+.changelog-link:focus {
+  color: var(--accent-color);
+  text-decoration: none;
+}
+
 .version {
-  margin-bottom: var(--spacing-xl);
+  margin-bottom: var(--spacing-lg);
 }
 
 .select-version {
@@ -498,6 +520,28 @@
   .navbar-collapse a:hover,
   .navbar-collapse a:focus,
   .navbar-collapse a:active {
+    color: var(--accent-color) !important;
+  }
+
+  /* Mobile changelog link overrides */
+  .navbar-collapse .changelog-link {
+    color: var(--primary-color) !important;
+  }
+
+  .navbar-collapse .changelog-link:hover,
+  .navbar-collapse .changelog-link:active,
+  .navbar-collapse .changelog-link:focus {
+    color: var(--accent-color) !important;
+  }
+
+  /* Mobile changelog link icon overrides */
+  .navbar-collapse .changelog-link i {
+    color: var(--primary-color) !important;
+  }
+
+  .navbar-collapse .changelog-link:hover i,
+  .navbar-collapse .changelog-link:active i,
+  .navbar-collapse .changelog-link:focus i {
     color: var(--accent-color) !important;
   }
 

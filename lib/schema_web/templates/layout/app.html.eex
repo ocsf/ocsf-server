@@ -150,6 +150,12 @@ limitations under the License.
         window.open(x, "_self");
       }
       </script>
+      <div class="changelog-container">
+        <a class="changelog-link" target="_blank" href="https://github.com/ocsf/ocsf-schema/blob/main/CHANGELOG.md">
+          <i class="fas fa-history"></i>
+          Changelog
+        </a>
+      </div>
     </div>
 
     <!-- Sidebar Content - Scrollable -->
