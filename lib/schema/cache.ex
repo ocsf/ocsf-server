@@ -1009,6 +1009,9 @@ defmodule Schema.Cache do
               # Only occurs in classes, but is safe to do for objects too.
               |> Utils.put_non_nil(:observables, item[:observables])
               |> Utils.put_non_nil(:references, item[:references])
+              # Top-level attribute associations.
+              # Only occurs in classes, but is safe to do for objects too.
+              |> Utils.put_non_nil(:associations, item[:associations])
               |> patch_constraints(item)
 
             Map.put(acc, base_key, patched_base)
