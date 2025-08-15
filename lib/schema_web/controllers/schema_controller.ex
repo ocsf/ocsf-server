@@ -1331,8 +1331,6 @@ defmodule SchemaWeb.SchemaController do
   end
 
   defp sample_class(conn, id, options) do
-    # TODO: honor constraints
-
     extension = extension(options)
     profiles = profiles(options) |> parse_options()
 
@@ -1386,8 +1384,6 @@ defmodule SchemaWeb.SchemaController do
 
   @spec sample_object(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def sample_object(conn, %{"id" => id} = options) do
-    # TODO: honor constraints
-
     extension = extension(options)
     profiles = profiles(options) |> parse_options()
 
