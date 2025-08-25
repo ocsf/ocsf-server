@@ -293,6 +293,8 @@ function init_show_deprecated() {
       const deprecatedElements = document.querySelectorAll('.deprecated');
       deprecatedElements.forEach(element => {
         element.classList.add('deprecated-hidden');
+        // Ensure Bootstrap collapse state is also hidden
+        element.classList.remove('show');
       });
     } else if (checked == "true") {
       document.getElementById("show-deprecated").checked = true;
@@ -300,11 +302,26 @@ function init_show_deprecated() {
       const deprecatedElements = document.querySelectorAll('.deprecated');
       deprecatedElements.forEach(element => {
         element.classList.add('deprecated-visible');
+        // Ensure Bootstrap collapse state is also shown
+        element.classList.add('show');
       });
     }
     
     // Update container state
     updateShowDeprecatedState(checked == "true");
+    
+    // Refresh the attribute display to show/hide deprecated rows based on stored state
+    const data = window.localStorage.getItem(selectedAttributesStorageKey);
+    let selected;
+    if (data == null) {
+      selected = selectedAttributesDefaultValues;
+    } else {
+      if (data.length > 0)
+        selected = data.split(",");
+      else
+        selected = [];
+    }
+    display_attributes(array_to_set(selected));
   });
 }
 
