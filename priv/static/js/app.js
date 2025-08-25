@@ -272,6 +272,11 @@ function init_schema_buttons() {
     const url = '/api' + window.location.pathname + "?profiles=" + get_selected_profiles().toString();
     window.open(url,'_blank');
   });
+
+  $('#btn-validate').on('click', function(event) {
+    const url = '/doc/index.html#/Tools/SchemaWeb.SchemaController.validate2';
+    window.open(url,'_blank');
+  });
 }
 
 const showDeprecatedStorageKey = "show-deprecated";
