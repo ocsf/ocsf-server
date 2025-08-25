@@ -210,6 +210,24 @@ limitations under the License.
         </div>
       </div>
       <% end %>
+
+      <!-- Display Options Section -->
+      <div class="sidebar-section">
+        <div class="sidebar-section-header">
+          <i class="fas fa-cog"></i> Options
+          <hr class="divider"/>
+        </div>
+        <div class="sidebar-section-content">
+          <ul class="sidebar-nav">
+            <li class="sidebar-nav-item">
+              <label>
+                <input type="checkbox" id="show-deprecated-global" class="show-deprecated-checkbox" data-toggle="collapse" data-target=".deprecated" onclick="on_click_show_deprecated(this)">
+                Show deprecated items
+              </label>
+            </li>
+          </ul>
+        </div>
+      </div>
     </div>
 
   </nav>

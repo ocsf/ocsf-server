@@ -284,27 +284,31 @@ const showDeprecatedStorageKey = "show-deprecated";
 function init_show_deprecated() {
   $(document).ready(function () {
     let checked = window.localStorage.getItem(showDeprecatedStorageKey);
-    if (checked == null || checked == "false") {
-      // Handling this case is needed in case where the prior state was checked _and_ local storage was
-      // cleared _and_ the user agent (browser) comes back to this page with the back button. The browser
-      // (at least Firefox) would keep the checkbox checked since that was the state of the UI.
-      document.getElementById("show-deprecated").checked = false;
-      // Initialize deprecated elements as hidden without animation
-      const deprecatedElements = document.querySelectorAll('.deprecated');
-      deprecatedElements.forEach(element => {
-        element.classList.add('deprecated-hidden');
-        // Ensure Bootstrap collapse state is also hidden
-        element.classList.remove('show');
-      });
-    } else if (checked == "true") {
-      document.getElementById("show-deprecated").checked = true;
-      // Initialize deprecated elements as visible without animation
-      const deprecatedElements = document.querySelectorAll('.deprecated');
-      deprecatedElements.forEach(element => {
-        element.classList.add('deprecated-visible');
-        // Ensure Bootstrap collapse state is also shown
-        element.classList.add('show');
-      });
+    const showDeprecatedCheckbox = document.getElementById("show-deprecated-global");
+    
+    if (showDeprecatedCheckbox) {
+      if (checked == null || checked == "false") {
+        // Handling this case is needed in case where the prior state was checked _and_ local storage was
+        // cleared _and_ the user agent (browser) comes back to this page with the back button. The browser
+        // (at least Firefox) would keep the checkbox checked since that was the state of the UI.
+        showDeprecatedCheckbox.checked = false;
+        // Initialize deprecated elements as hidden without animation
+        const deprecatedElements = document.querySelectorAll('.deprecated');
+        deprecatedElements.forEach(element => {
+          element.classList.add('deprecated-hidden');
+          // Ensure Bootstrap collapse state is also hidden
+          element.classList.remove('show');
+        });
+      } else if (checked == "true") {
+        showDeprecatedCheckbox.checked = true;
+        // Initialize deprecated elements as visible without animation
+        const deprecatedElements = document.querySelectorAll('.deprecated');
+        deprecatedElements.forEach(element => {
+          element.classList.add('deprecated-visible');
+          // Ensure Bootstrap collapse state is also shown
+          element.classList.add('show');
+        });
+      }
     }
     
     // Update container state
