@@ -29,7 +29,46 @@ function select_extensions(selected) {
   return '';
 }
 
+function build_url_params(extensions, profiles) {
+  let params = [];
+  
+  // Add extensions parameter
+  if (extensions) {
+    const extensionParams = [];
+    Object.entries(extensions).forEach(function ([name, value]) {
+      if (value) {
+        extensionParams.push(name);
+      }
+    });
+    if (extensionParams.length > 0) {
+      params.push('extensions=' + extensionParams.join(','));
+    }
+  }
+  
+  // Add profiles parameter
+  if (profiles && profiles.length > 0) {
+    params.push('profiles=' + profiles.join(','));
+  }
+  
+  return params.length > 0 ? '?' + params.join('&') : '';
+}
+
 function get_selected_extensions() {
+  // First check URL parameters, then fall back to localStorage
+  const urlParams = new URLSearchParams(window.location.search);
+  const extensionsParam = urlParams.get('extensions');
+  
+  if (extensionsParam !== null) {
+    const extensions = {};
+    if (extensionsParam !== '') {
+      const extensionList = extensionsParam.split(',').map(e => e.trim());
+      extensionList.forEach(extension => {
+        extensions[extension] = true;
+      });
+    }
+    return extensions;
+  }
+  
   return JSON.parse(localStorage.getItem('schema_extensions')) || {};
 }
 
