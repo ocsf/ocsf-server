@@ -162,8 +162,9 @@ defmodule SchemaWeb.PageController do
   @spec classes(Plug.Conn.t(), any) :: Plug.Conn.t()
   def classes(conn, %{"id" => id} = params) do
     extension = params["extension"]
+    profiles = parse_profiles_from_params(params)
 
-    case Schema.class(extension, id) do
+    case Schema.class(extension, id, profiles) do
       nil ->
         send_resp(conn, 404, "Not Found: #{id}")
 
@@ -248,5 +249,17 @@ defmodule SchemaWeb.PageController do
     Enum.sort(map, fn {k1, _}, {k2, _} ->
       Schema.Utils.descope(k1) <= Schema.Utils.descope(k2)
     end)
+  end
+
+  defp parse_profiles_from_params(params) do
+    case params["profiles"] do
+      nil -> nil
+      "" -> MapSet.new()
+      profiles_string ->
+        profiles_string
+        |> String.split(",")
+        |> Enum.map(&String.trim/1)
+        |> MapSet.new()
+    end
   end
 end

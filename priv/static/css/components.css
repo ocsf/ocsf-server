@@ -158,7 +158,7 @@ button:hover,
 }
 
 /* Schema Action Buttons */
-#btn-json-schema, #btn-schema, #btn-sample-data {
+#btn-json-schema, #btn-schema, #btn-sample-data, #btn-validate {
   background: var(--primary-color);
   color: var(--text-inverse);
   border-radius: var(--radius-md);
@@ -177,7 +177,7 @@ button:hover,
   justify-content: center;
 }
 
-#btn-json-schema:hover, #btn-schema:hover, #btn-sample-data:hover {
+#btn-json-schema:hover, #btn-schema:hover, #btn-sample-data:hover, #btn-validate:hover {
   background: var(--accent-color);
   border-color: var(--accent-color);
   color: var(--text-inverse);
@@ -186,12 +186,12 @@ button:hover,
   box-shadow: var(--shadow-md);
 }
 
-#btn-json-schema:focus, #btn-schema:focus, #btn-sample-data:focus {
+#btn-json-schema:focus, #btn-schema:focus, #btn-sample-data:focus, #btn-validate:focus {
   outline: none;
   box-shadow: var(--shadow-md), 0 0 0 3px rgba(var(--primary-color-rgb), 0.2);
 }
 
-#btn-json-schema:active, #btn-schema:active, #btn-sample-data:active {
+#btn-json-schema:active, #btn-schema:active, #btn-sample-data:active, #btn-validate:active {
   transform: translateY(0);
   box-shadow: var(--shadow-sm);
 }
@@ -213,6 +213,13 @@ button:hover,
 
 #btn-sample-data::before {
   content: '\f1c0';
+  font-family: 'Font Awesome 6 Free';
+  font-weight: 900;
+  margin-right: var(--spacing-xs);
+}
+
+#btn-validate::before {
+  content: '\f058';
   font-family: 'Font Awesome 6 Free';
   font-weight: 900;
   margin-right: var(--spacing-xs);
