@@ -20,7 +20,7 @@
       <% observable = @data[:observable] %>
       <%= if is_nil(observable) do %>
         <span class="small"><%= if @data[:extension] && @data[:extension] != "" do %><span class="extension-badge"><%= @data[:extension] %></span><% end %>
-          object
+          Object
         </span>
       <% else %>
         <span class="small"><%= if @data[:extension] && @data[:extension] != "" do %><span class="extension-badge"><%= @data[:extension] %></span><% end %>
