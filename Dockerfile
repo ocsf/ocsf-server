@@ -5,7 +5,11 @@ FROM ${elixir_image} AS builder
 # prepare build dir
 WORKDIR /app
 
-RUN apk --update add openssl
+# Install updates and required packages
+RUN apk update && \
+    apk upgrade --no-cache && \
+    apk add --no-cache openssl && \
+    rm -rf /var/cache/apk/*
 
 # install hex + rebar
 RUN mix local.hex --force && \
@@ -50,6 +54,11 @@ RUN mix release
 # start a new build stage so that the final image will only contain
 # the compiled release and other runtime necessities
 FROM ${elixir_image}
+
+# Install updates in runtime stage
+RUN apk update && \
+    apk upgrade --no-cache && \
+    rm -rf /var/cache/apk/*
 
 ENV LANG=en_US.UTF-8
 ENV LANGUAGE=en_US:en
