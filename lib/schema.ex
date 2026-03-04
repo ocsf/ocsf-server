@@ -50,7 +50,7 @@ defmodule Schema do
   @spec profiles :: map()
   def profiles(), do: Repo.profiles()
 
-  @spec profiles(Repo.extensions_t()) :: map()
+  @spec profiles(Repo.extensions_t() | nil) :: map()
   def profiles(extensions) do
     Repo.profiles(extensions)
   end
@@ -100,10 +100,10 @@ defmodule Schema do
   @spec category(atom | String.t()) :: nil | Cache.category_t()
   def category(id), do: get_category(Utils.to_uid(id))
 
-  @spec category(Repo.extensions_t(), String.t()) :: nil | Cache.category_t()
-  def category(extensions, id), do: get_category(extensions, Utils.to_uid(id))
+  @spec category(Repo.extensions_t() | nil, String.t()) :: nil | Cache.category_t()
+  defp category(extensions, id), do: get_category(extensions, Utils.to_uid(id))
 
-  @spec category(Repo.extensions_t(), String.t(), String.t()) :: nil | Cache.category_t()
+  @spec category(Repo.extensions_t() | nil, String.t(), String.t()) :: nil | Cache.category_t()
   def category(extensions, extension, id),
     do: get_category(extensions, Utils.to_uid(extension, id))
 
@@ -116,7 +116,7 @@ defmodule Schema do
   @doc """
     Returns the attribute dictionary including the extension.
   """
-  @spec dictionary(Repo.extensions_t()) :: Cache.dictionary_t()
+  @spec dictionary(Repo.extensions_t() | nil) :: Cache.dictionary_t()
   def dictionary(extensions) do
     Repo.dictionary(extensions)
     |> Map.update!(:attributes, &Schema.Utils.add_sibling_of_to_attributes/1)
@@ -159,10 +159,10 @@ defmodule Schema do
   @spec classes() :: map()
   def classes(), do: Repo.classes()
 
-  @spec classes(Repo.extensions_t()) :: map()
+  @spec classes(Repo.extensions_t() | nil) :: map()
   def classes(extensions), do: Repo.classes(extensions)
 
-  @spec classes(Repo.extensions_t(), Repo.profiles_t()) :: map()
+  @spec classes(Repo.extensions_t() | nil, Repo.profiles_t() | nil) :: map()
   def classes(extensions, profiles) do
     extensions
     |> Repo.classes()
@@ -237,15 +237,8 @@ defmodule Schema do
   @spec objects() :: map()
   def objects(), do: Repo.objects()
 
-  @spec objects(Repo.extensions_t()) :: map()
+  @spec objects(Repo.extensions_t() | nil) :: map()
   def objects(extensions), do: Repo.objects(extensions)
-
-  @spec objects(Repo.extensions_t(), Repo.profiles_t()) :: map()
-  def objects(extensions, profiles) do
-    extensions
-    |> Repo.objects()
-    |> apply_profiles(profiles, MapSet.size(profiles))
-  end
 
   @doc """
     Returns a single object.
@@ -259,13 +252,17 @@ defmodule Schema do
     Repo.object(Utils.to_uid(extension, id))
   end
 
-  @spec object(Repo.extensions_t(), String.t(), String.t()) :: nil | map()
-  def object(extensions, extension, id) when is_binary(id) do
+  @spec object(Repo.extensions_t() | nil, String.t(), String.t()) :: nil | map()
+  defp object(extensions, extension, id) when is_binary(id) do
     Repo.object(extensions, Utils.to_uid(extension, id))
   end
 
-  @spec object(Repo.extensions_t(), String.t(), String.t(), Repo.profiles_t() | nil) ::
-          nil | map()
+  @spec object(
+          Repo.extensions_t() | nil,
+          String.t(),
+          String.t(),
+          Repo.profiles_t() | nil
+        ) :: nil | map()
   def object(extensions, extension, id, nil),
     do: object(extensions, extension, id)
 
@@ -293,13 +290,17 @@ defmodule Schema do
     Repo.object_ex(Utils.to_uid(extension, id))
   end
 
-  @spec object_ex(Repo.extensions_t(), String.t(), String.t()) :: nil | map()
-  def object_ex(extensions, extension, id) when is_binary(id) do
+  @spec object_ex(Repo.extensions_t() | nil, String.t(), String.t()) :: nil | map()
+  defp object_ex(extensions, extension, id) when is_binary(id) do
     Repo.object_ex(extensions, Utils.to_uid(extension, id))
   end
 
-  @spec object_ex(Repo.extensions_t(), String.t(), String.t(), Repo.profiles_t() | nil) ::
-          nil | map()
+  @spec object_ex(
+          Repo.extensions_t() | nil,
+          String.t(),
+          String.t(),
+          Repo.profiles_t() | nil
+        ) :: nil | map()
   def object_ex(extensions, extension, id, nil),
     do: object_ex(extensions, extension, id)
 
@@ -364,16 +365,16 @@ defmodule Schema do
         }
   def export_schema() do
     %{
-      base_event: Schema.export_base_event(),
-      classes: Schema.export_classes(),
-      objects: Schema.export_objects(),
-      types: Schema.export_data_types(),
+      base_event: export_base_event(),
+      classes: export_classes(),
+      objects: export_objects(),
+      types: export_data_types(),
       dictionary_attributes: export_dictionary_attributes(),
-      version: Schema.version()
+      version: version()
     }
   end
 
-  @spec export_schema(Repo.extensions_t()) :: %{
+  @spec export_schema(Repo.extensions_t() | nil) :: %{
           base_event: map(),
           classes: map(),
           objects: map(),
@@ -381,18 +382,18 @@ defmodule Schema do
           dictionary_attributes: map(),
           version: String.t()
         }
-  def export_schema(extensions) do
+  defp export_schema(extensions) do
     %{
-      base_event: Schema.export_base_event(),
-      classes: Schema.export_classes(extensions),
-      objects: Schema.export_objects(extensions),
+      base_event: export_base_event(),
+      classes: export_classes(extensions),
+      objects: export_objects(extensions),
       types: Schema.export_data_types(),
       dictionary_attributes: export_dictionary_attributes(extensions),
-      version: Schema.version()
+      version: version()
     }
   end
 
-  @spec export_schema(Repo.extensions_t(), Repo.profiles_t() | nil) :: %{
+  @spec export_schema(Repo.extensions_t() | nil, Repo.profiles_t() | nil) :: %{
           base_event: map(),
           classes: map(),
           objects: map(),
@@ -406,12 +407,12 @@ defmodule Schema do
 
   def export_schema(extensions, profiles) do
     %{
-      base_event: Schema.export_base_event(profiles),
-      classes: Schema.export_classes(extensions, profiles),
-      objects: Schema.export_objects(extensions, profiles),
-      types: Schema.export_data_types(),
+      base_event: export_base_event(profiles),
+      classes: export_classes(extensions, profiles),
+      objects: export_objects(extensions, profiles),
+      types: export_data_types(),
       dictionary_attributes: export_dictionary_attributes(extensions),
-      version: Schema.version()
+      version: version()
     }
   end
 
@@ -423,16 +424,16 @@ defmodule Schema do
     Map.get(data_types(), :attributes)
   end
 
+  @spec export_classes(Repo.extensions_t() | nil) :: map()
+  defp export_classes(extensions), do: Repo.export_classes(extensions) |> reduce_objects()
+
+  @spec export_classes() :: map()
+  defp export_classes(), do: Repo.export_classes() |> reduce_objects()
+
   @doc """
     Exports the classes.
   """
-  @spec export_classes() :: map()
-  def export_classes(), do: Repo.export_classes() |> reduce_objects()
-
-  @spec export_classes(Repo.extensions_t()) :: map()
-  def export_classes(extensions), do: Repo.export_classes(extensions) |> reduce_objects()
-
-  @spec export_classes(Repo.extensions_t(), Repo.profiles_t() | nil) :: map()
+  @spec export_classes(Repo.extensions_t() | nil, Repo.profiles_t() | nil) :: map()
   def export_classes(extensions, nil), do: export_classes(extensions)
 
   def export_classes(extensions, profiles) do
@@ -440,12 +441,8 @@ defmodule Schema do
   end
 
   @spec export_base_event() :: map()
-  def export_base_event() do
-    Repo.export_base_event()
-    |> reduce_attributes()
-    |> Map.update!(:attributes, fn attributes ->
-      Utils.remove_profiles(attributes) |> Enum.into(%{})
-    end)
+  defp export_base_event() do
+    Repo.export_base_event() |> reduce_attributes()
   end
 
   @spec export_base_event(Repo.profiles_t() | nil) :: map()
@@ -467,16 +464,16 @@ defmodule Schema do
     apply_profiles(classes, profiles, MapSet.size(profiles)) |> reduce_objects()
   end
 
+  @spec export_objects() :: map()
+  defp export_objects(), do: Repo.export_objects() |> reduce_objects()
+
+  @spec export_objects(Repo.extensions_t() | nil) :: map()
+  defp export_objects(extensions), do: Repo.export_objects(extensions) |> reduce_objects()
+
   @doc """
     Exports the objects.
   """
-  @spec export_objects() :: map()
-  def export_objects(), do: Repo.export_objects() |> reduce_objects()
-
-  @spec export_objects(Repo.extensions_t()) :: map()
-  def export_objects(extensions), do: Repo.export_objects(extensions) |> reduce_objects()
-
-  @spec export_objects(Repo.extensions_t(), Repo.profiles_t() | nil) :: map()
+  @spec export_objects(Repo.extensions_t() | nil, Repo.profiles_t() | nil) :: map()
   def export_objects(extensions, nil), do: export_objects(extensions)
 
   def export_objects(extensions, profiles) do

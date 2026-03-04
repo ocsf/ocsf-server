@@ -20,13 +20,13 @@
       <% observable = @data[:observable] %>
       <%= if is_nil(observable) do %>
         <span class="small"><%= if @data[:extension] && @data[:extension] != "" do %><span class="extension-badge"><%= @data[:extension] %></span><% end %>
-          Object
         </span>
       <% else %>
         <span class="small"><%= if @data[:extension] && @data[:extension] != "" do %><span class="extension-badge"><%= @data[:extension] %></span><% end %>
-          <span data-toggle="tooltip" title="Observable Type ID <%= observable %>">[<%= observable %>]</span> object
+          <span data-toggle="tooltip" title="Observable Type ID <%= observable %>">[<%= observable %>]</span>
         </span>
       <% end %>
+      Object
       <% extends = @data[:extends] || "object" %>
       <span class="small">
         <%= if extends != "object" and not String.starts_with?(extends, "_") do %>
@@ -79,8 +79,8 @@
     <tbody class="searchable">
       <%= for {attribute_key, attribute} <- @data[:attributes] do %>
       <tr class="<%= field_classes(attribute)%>">
-        <td class="name" data-toggle="tooltip" title="<%= format_object_attribute_source(@data[:attribute_key], attribute) %>"><%= format_attribute_name(attribute_key) %></td>
-        <td><%= raw format_attribute_caption(@conn, attribute_key, attribute) %></td>
+        <td class="name" data-toggle="tooltip" title="<%= format_object_attribute_source(@all_objects, @data[:name], attribute) %>"><%= format_attribute_name(attribute_key) %></td>
+        <td><%= raw format_attribute_caption(@conn, @observable_object, attribute_key, attribute) %></td>
         <td><%= raw format_requirement(constraints, attribute_key, attribute) %></td>
         <td class="extensions"><%= raw format_type(@conn, attribute) %></td>
         <td><%= raw format_attribute_desc(attribute_key, attribute) %></td>

@@ -62,7 +62,7 @@
       <%= for {key, field} <- @data[:attributes] do %>
       <tr class="<%= field_classes(field)%>">
         <td class="name" data-toggle="tooltip" title="<%= field[:_source] %>"><%= key %></td>
-        <td><%= raw format_attribute_caption(@conn, key, field) %></td>
+        <td><%= raw format_attribute_caption(@conn, @observable_object, key, field) %></td>
         <td class="capitalize"><%= field[:group] %></td>
         <td><%= raw format_requirement(nil, key, field) %></td>
         <td><%= raw format_type(@conn, field) %></td>

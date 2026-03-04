@@ -285,54 +285,93 @@ defmodule Schema.JsonReader do
   end
 
   # used by dictionary and categories
-  defp merge_ext_file(acc, ext, file) do
+  defp merge_ext_file(base_item, ext, file) do
     path = Path.join(ext[:path], file)
 
     if File.regular?(path) do
       Logger.debug("read ext file: [#{ext[:name]}] #{path}")
 
-      ext_data = read_json_file(path)
+      ext_item = read_json_file(path)
+      ext_name = ext[:name]
+      ext_uid = ext[:uid]
 
-      Map.update!(acc, :attributes, fn attributes ->
-        ext_type = ext[:name]
-        ext_uid = ext[:uid]
-
+      base_item
+      |> Map.update!(:attributes, fn base_attributes ->
         Map.merge(
-          attributes,
-          Enum.into(ext_data[:attributes], %{}, fn {name, value} = attribute ->
-            if value[:overwrite] == true do
-              case attributes[name] do
-                nil ->
-                  attribute
+          base_attributes,
+          # Create ext attributes merged with base attributes.
+          # This base attributes not in ext attributes will not be present.
+          # Merging with base attributes create union of both.
+          Enum.into(
+            ext_item[:attributes],
+            %{},
+            fn {ext_attribute_name, ext_attribute} = ext_attribute_tuple ->
+              if ext_attribute[:overwrite] == true do
+                case base_attributes[ext_attribute_name] do
+                  nil ->
+                    Logger.debug(
+                      "Extension #{inspect(ext_name)} with overwrite and is adding dictionary" <>
+                        " attribute #{inspect(ext_attribute_name)}"
+                    )
 
-                a ->
-                  {name, Map.merge(a, value)}
+                    ext_attribute_tuple
+
+                  base_attribute ->
+                    Logger.debug(
+                      "Extension #{inspect(ext_name)} with overwrite is merging dictionary" <>
+                        " attribute #{inspect(ext_attribute_name)} with existing base attribute"
+                    )
+
+                    # Base attributes have ext attribute
+                    # Shallowly merge, preferring ext_attribute
+                    {ext_attribute_name, Map.merge(base_attribute, ext_attribute)}
+                end
+              else
+                # ext_attribute does not have overwrite, so adding with extension-scoped
+                #  attribute name, avoiding potential collision with a base attribute
+
+                ext_scoped_attribute_name = Utils.to_uid(ext_name, ext_attribute_name)
+
+                if Map.has_key?(base_attributes, ext_attribute_name) do
+                  Logger.warning(
+                    "Extension #{inspect(ext_name)} is adding scoped dictionary attribute" <>
+                      " #{inspect(ext_scoped_attribute_name)}, shadowing base attribute" <>
+                      " #{inspect(ext_attribute_name)} for this extension"
+                  )
+                else
+                  Logger.debug(
+                    "Extension #{inspect(ext_name)} is adding scoped dictionary attribute" <>
+                      " #{inspect(ext_scoped_attribute_name)}"
+                  )
+                end
+
+                {
+                  ext_scoped_attribute_name,
+                  add_extension(ext_attribute, ext_name, ext_uid)
+                }
               end
-            else
-              {
-                Utils.to_uid(ext_type, name),
-                add_extension(value, ext_type, ext_uid)
-              }
             end
-          end)
+          )
         )
       end)
-      |> merge_ext_types(ext_data)
+      |> merge_ext_types(ext_item, ext_name, ext_uid)
     else
-      acc
+      base_item
     end
   end
 
-  defp merge_ext_types(acc, ext) do
-    if acc[:types] != nil and ext[:types] != nil do
-      update_in(acc, [:types, :attributes], fn types ->
-        Utils.deep_merge(
-          types,
-          get_in(ext, [:types, :attributes])
-        )
+  defp merge_ext_types(base_item, ext_item, ext_name, ext_uid) do
+    if base_item[:types][:attributes] != nil and ext_item[:types][:attributes] != nil do
+      ext_types_attributes =
+        Enum.reduce(ext_item[:types][:attributes], %{}, fn {type_name, type}, types_attributes ->
+          Map.put(types_attributes, type_name, add_extension(type, ext_name, ext_uid))
+        end)
+
+      update_in(base_item, [:types, :attributes], fn base_types_attributes ->
+        Utils.deep_merge(base_types_attributes, ext_types_attributes)
       end)
     else
-      acc
+      base_item
     end
   end
 
@@ -441,7 +480,21 @@ defmodule Schema.JsonReader do
         attribute
 
       file ->
-        read_included_file(resolver, file) |> Utils.deep_merge(Map.delete(attribute, @include))
+        read_included_enum_file(resolver, file)
+        |> Utils.deep_merge(Map.delete(attribute, @include))
+    end
+  end
+
+  defp read_included_enum_file(resolver, file) do
+    {ext, path} = resolver.(file)
+    Logger.debug("[#{ext}] include enum file #{path}")
+
+    case cache_get(path) do
+      [] ->
+        read_json_file(path) |> cache_put(path)
+
+      [{_, cached}] ->
+        cached
     end
   end
 

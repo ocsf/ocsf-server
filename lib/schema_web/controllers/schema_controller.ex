@@ -1486,6 +1486,7 @@ defmodule SchemaWeb.SchemaController do
   defp extension(params), do: params["extension"]
   defp extensions(params), do: params["extensions"]
 
+  @spec parse_options(nil | String.t()) :: nil | MapSet.t(String.t())
   defp parse_options(nil), do: nil
   defp parse_options(""), do: MapSet.new()
 

@@ -43,7 +43,7 @@ limitations under the License.
         <% object_path = Routes.static_path(@conn, "/objects/" <> object_key_str) %>
         <tr class="<%= show_deprecated_css_classes(object, "ocsf-class") %>" <%= raw format_profiles(object[:profiles])%>>
           <td class="name"><a href="<%= object_path %>"><%= object_key_str %></a></td>
-          <td class="extensions"><%= raw format_attribute_caption(@conn, object_key_str, object) %></td>
+          <td class="extensions"><%= raw format_attribute_caption(@conn, @observable_object, object_key_str, object) %></td>
           <td class="extensions"><%= raw object_links(@conn, object[:name], object[:_links], :collapse) %></td>
           <td><%= raw description(object) %></td>
         </tr>

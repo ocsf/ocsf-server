@@ -42,7 +42,7 @@ defmodule Schema.Profiles do
   end
 
   defp remove_profiles(attributes) do
-    Enum.filter(attributes, fn {_k, v} -> Map.has_key?(v, :profile) == false end)
+    Enum.filter(attributes, fn {_k, v} -> v[:profile] == nil end)
   end
 
   @doc """

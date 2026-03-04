@@ -1,11 +1,21 @@
-ARG elixir_image=elixir:1.18.3-alpine
+ARG elixir_image=elixir:1.19.3-alpine
 
 FROM ${elixir_image} AS builder
 
 # prepare build dir
 WORKDIR /app
 
-RUN apk --update add openssl
+# Install updates and required packages
+RUN apk update && \
+    apk upgrade --no-cache && \
+    apk add --no-cache openssl && \
+    rm -rf /var/cache/apk/*
+
+# Set this magic ERL_FLAGS value to allow cross-compilation from Apple Silicon.
+# This (apparently) fixes a known QEMU issue. See:
+# * https://elixirforum.com/t/elixir-docker-image-wont-build-for-linux-arm64-v8-using-github-actions/56383/12
+# * https://elixirforum.com/t/unable-to-compile-default-elixir-project-from-the-getting-started-guide/57199/12
+ENV ERL_FLAGS="+JPperf true"
 
 # install hex + rebar
 RUN mix local.hex --force && \
@@ -13,12 +23,6 @@ RUN mix local.hex --force && \
 
 # set build ENV
 ENV MIX_ENV="prod"
-
-# Set this magic ERL_FLAGS value to allow cross-compilation from Apple Silicon.
-# This (apparently) fixes a known QEMU issue. See:
-# * https://elixirforum.com/t/elixir-docker-image-wont-build-for-linux-arm64-v8-using-github-actions/56383/12
-# * https://elixirforum.com/t/unable-to-compile-default-elixir-project-from-the-getting-started-guide/57199/12
-ENV ERL_FLAGS="+JPperf true"
 
 # install mix dependencies
 COPY mix.exs mix.lock ./
@@ -50,6 +54,11 @@ RUN mix release
 # start a new build stage so that the final image will only contain
 # the compiled release and other runtime necessities
 FROM ${elixir_image}
+
+# Install updates in runtime stage
+RUN apk update && \
+    apk upgrade --no-cache && \
+    rm -rf /var/cache/apk/*
 
 ENV LANG=en_US.UTF-8
 ENV LANGUAGE=en_US:en

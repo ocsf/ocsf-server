@@ -36,7 +36,7 @@ limitations under the License.
         <% name = Atom.to_string(key) %>
         <tr>
           <td class="name"><%= name %></td>
-          <td><%= raw format_attribute_caption(@conn, key, field) %></td>
+          <td><%= raw format_attribute_caption(@conn, @observable_object, key, field) %></td>
           <td><%= raw format_type(@conn, field) %></td>
           <td><%= raw format_constraints(key, field) %></td>
           <td><%= raw field[:description] %></td>

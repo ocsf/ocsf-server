@@ -22,7 +22,7 @@ limitations under the License.
     <% path = Routes.static_path(@conn, "/categories/" <> category) %>
     <h3 class="extensions">
       <%= @data[:caption] %>
-      <span class="text-secondary">[<a href="<%= class_graph_path(@conn, @data)  %>"><%= @data[:uid] %></a>]<%= if extension && extension != "" do %><span class="extension-badge"><%= extension %></span><% end %>
+      <span class="text-secondary">[<a href="<%= class_graph_path(@conn, @data)  %>"><%= @data[:uid] %></a>] <%= if extension && extension != "" do %><span class="extension-badge"><%= extension %></span><% end %>
         Class
       </span>
       <%= raw profile_badges(@conn, @data, @profiles) %>
@@ -90,8 +90,8 @@ limitations under the License.
     <tbody class="searchable">
       <%= for {attribute_key, attribute} <- @data[:attributes] do %>
         <tr class="<%= field_classes(attribute) %>">
-          <td class="name" data-toggle="tooltip" title="<%= format_class_attribute_source(@data[:attribute_key], attribute) %>"><%= format_attribute_name(attribute_key) %></td>
-          <td><%= raw format_attribute_caption(@conn, attribute_key, attribute) %></td>
+          <td class="name" data-toggle="tooltip" title="<%= format_class_attribute_source(@all_classes, @data[:name], attribute) %>"><%= format_attribute_name(attribute_key) %></td>
+          <td><%= raw format_attribute_caption(@conn, @observable_object, attribute_key, attribute) %></td>
           <td class="capitalize"><%= attribute[:group] %></td>
           <td><%= raw format_requirement(constraints, attribute_key, attribute) %></td>
           <td class="extensions"><%= raw format_type(@conn, attribute) %></td>

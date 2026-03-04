@@ -19,9 +19,9 @@ defmodule Schema.Repo do
   @typedoc """
   Defines a set of extensions.
   """
-  @type extensions_t() :: MapSet.t(binary())
+  @type extensions_t() :: MapSet.t(String.t())
 
-  @type profiles_t() :: MapSet.t(binary())
+  @type profiles_t() :: MapSet.t(String.t())
 
   @spec start :: {:error, any} | {:ok, pid}
   def start(), do: Agent.start(fn -> Cache.init() end, name: __MODULE__)

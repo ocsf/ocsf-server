@@ -1,5 +1,4 @@
 defmodule SchemaWeb.PageView do
-  alias SchemaWeb.SchemaController
   use SchemaWeb, :view
 
   @at_least_one_symbol "†"
@@ -79,24 +78,36 @@ defmodule SchemaWeb.PageView do
         ""
 
       list ->
-        applicable_profiles = Stream.filter(list, fn profile -> Map.has_key?(profiles, profile) end)
+        applicable_profiles =
+          Stream.filter(list, fn profile -> Map.has_key?(profiles, profile) end)
 
         if Enum.empty?(applicable_profiles) do
           ""
         else
-          badges = Enum.map(applicable_profiles, fn name ->
-            caption = get_in(profiles, [name, :caption]) || name
-            path = Routes.static_path(conn, "/profiles/" <> name)
-            [
-              "<span class='profile-badge'>",
-              "<a href='", path, "' title='Profile: ", caption, "'>",
-              "<i class='fas fa-tag'></i> ", caption,
-              "</a>",
-              "</span>"
-            ]
-          end)
+          badges =
+            Enum.map(applicable_profiles, fn name ->
+              caption = get_in(profiles, [name, :caption]) || name
+              path = Routes.static_path(conn, "/profiles/" <> name)
 
-          ["<div class='profile-badges'><span class='profile-label'>Applicable Profiles:</span> ", Enum.intersperse(badges, " "), "</div>"]
+              [
+                "<span class='profile-badge'>",
+                "<a href='",
+                path,
+                "' title='Profile: ",
+                caption,
+                "'>",
+                "<i class='fas fa-tag'></i> ",
+                caption,
+                "</a>",
+                "</span>"
+              ]
+            end)
+
+          [
+            "<div class='profile-badges'><span class='profile-label'>Applicable Profiles:</span> ",
+            Enum.intersperse(badges, " "),
+            "</div>"
+          ]
         end
     end
   end
@@ -104,7 +115,9 @@ defmodule SchemaWeb.PageView do
   @spec get_applicable_profiles(map(), map()) :: list()
   def get_applicable_profiles(data, profiles) do
     case data[:profiles] || [] do
-      [] -> []
+      [] ->
+        []
+
       list ->
         Stream.filter(list, fn profile -> Map.has_key?(profiles, profile) end)
         |> Enum.to_list()
@@ -114,10 +127,12 @@ defmodule SchemaWeb.PageView do
   @spec format_applicable_profiles_json(list()) :: String.t()
   def format_applicable_profiles_json(applicable_profiles) do
     case applicable_profiles do
-      [] -> "[]"
+      [] ->
+        "[]"
+
       profiles ->
         profiles
-        |> Enum.map(&("\"#{&1}\""))
+        |> Enum.map(&"\"#{&1}\"")
         |> Enum.join(",")
         |> (fn str -> "[#{str}]" end).()
     end
@@ -168,15 +183,26 @@ defmodule SchemaWeb.PageView do
       end
 
     case field[:extension] do
-      nil -> name
-      extension when extension != "" -> name <> " <sup class='source-indicator extension-indicator' data-toggle='tooltip' title='From #{extension} extension'><i class='fas fa-layer-group'></i></sup>"
-      _ -> name
+      nil ->
+        name
+
+      extension when extension != "" ->
+        name <>
+          " <sup class='source-indicator extension-indicator' data-toggle='tooltip' title='From #{extension} extension'><i class='fas fa-layer-group'></i></sup>"
+
+      _ ->
+        name
     end
   end
 
-  @spec format_attribute_caption(any, String.t() | atom, nil | maybe_improper_list | map) :: any
-  def format_attribute_caption(conn, entity_key, entity) do
-    {observable_type_id, observable_kind} = observable_type_id_and_kind(entity)
+  @spec format_attribute_caption(
+          any,
+          map(),
+          String.t() | atom,
+          nil | maybe_improper_list | map
+        ) :: any
+  def format_attribute_caption(conn, observable_object, entity_key, entity) do
+    {observable_type_id, observable_kind} = observable_type_id_and_kind(observable_object, entity)
 
     caption = entity[:caption] || to_string(entity_key)
 
@@ -205,19 +231,35 @@ defmodule SchemaWeb.PageView do
     # Add subtle source indicators with icons matching the sidebar
     source_indicators = []
 
-    source_indicators = case entity[:extension] do
-      nil -> source_indicators
-      extension when extension != "" ->
-        ["<sup class='source-indicator extension-indicator' data-toggle='tooltip' title='From #{extension} extension'><i class='fas fa-layer-group'></i></sup>" | source_indicators]
-      _ -> source_indicators
-    end
+    source_indicators =
+      case entity[:extension] do
+        nil ->
+          source_indicators
 
-    source_indicators = case entity[:profile] do
-      nil -> source_indicators
-      profile when profile != "" ->
-        ["<sup class='source-indicator profile-indicator' data-toggle='tooltip' title='From #{profile} profile'><i class='fas fa-tag'></i></sup>" | source_indicators]
-      _ -> source_indicators
-    end
+        extension when extension != "" ->
+          [
+            "<sup class='source-indicator extension-indicator' data-toggle='tooltip' title='From #{extension} extension'><i class='fas fa-layer-group'></i></sup>"
+            | source_indicators
+          ]
+
+        _ ->
+          source_indicators
+      end
+
+    source_indicators =
+      case entity[:profile] do
+        nil ->
+          source_indicators
+
+        profile when profile != "" ->
+          [
+            "<sup class='source-indicator profile-indicator' data-toggle='tooltip' title='From #{profile} profile'><i class='fas fa-tag'></i></sup>"
+            | source_indicators
+          ]
+
+        _ ->
+          source_indicators
+      end
 
     if Enum.empty?(source_indicators) do
       caption
@@ -226,9 +268,7 @@ defmodule SchemaWeb.PageView do
     end
   end
 
-  defp observable_type_id_and_kind(entity) do
-    observable_object = Schema.object(:observable)
-
+  defp observable_type_id_and_kind(observable_object, entity) do
     observable_type_id_map =
       if observable_object do
         observable_object[:attributes][:type_id][:enum]
@@ -295,11 +335,10 @@ defmodule SchemaWeb.PageView do
     Schema.Utils.descope(name)
   end
 
-  @spec format_class_attribute_source(atom(), map()) :: String.t()
-  def format_class_attribute_source(class_key, field) do
-    all_classes = Schema.all_classes()
+  @spec format_class_attribute_source(map(), atom() | String.t(), map()) :: list() | String.t()
+  def format_class_attribute_source(all_classes, class_name, field) do
     source = get_hierarchy_source(field)
-    {ok, path} = build_hierarchy(Schema.Utils.to_uid(class_key), source, all_classes)
+    {ok, path} = build_hierarchy(Schema.Utils.to_uid(class_name), source, all_classes)
 
     if ok do
       format_hierarchy(path, all_classes, "class")
@@ -308,11 +347,10 @@ defmodule SchemaWeb.PageView do
     end
   end
 
-  @spec format_object_attribute_source(atom(), map()) :: String.t()
-  def format_object_attribute_source(object_key, field) do
-    all_objects = Schema.all_objects()
+  @spec format_object_attribute_source(map(), atom() | String.t(), map()) :: list() | String.t()
+  def format_object_attribute_source(all_objects, object_name, field) do
     source = get_hierarchy_source(field)
-    {ok, path} = build_hierarchy(Schema.Utils.to_uid(object_key), source, all_objects)
+    {ok, path} = build_hierarchy(Schema.Utils.to_uid(object_name), source, all_objects)
 
     if ok do
       format_hierarchy(path, all_objects, "object")
@@ -850,23 +888,35 @@ defmodule SchemaWeb.PageView do
     ]
   end
 
-  @spec dictionary_links(any(), String.t(), list(Schema.Utils.link_t())) :: <<>> | list()
-  def dictionary_links(_, _, nil), do: ""
-  def dictionary_links(_, _, []), do: ""
+  @spec dictionary_links(
+          any(),
+          map(),
+          map(),
+          String.t(),
+          list(Schema.Utils.link_t())
+        ) :: <<>> | list()
+  def dictionary_links(_, _, _, _, nil), do: ""
+  def dictionary_links(_, _, _, _, []), do: ""
 
-  def dictionary_links(conn, attribute_name, links) do
+  def dictionary_links(conn, classes, all_classes, attribute_name, links) do
     groups = Enum.group_by(links, fn link -> link[:group] end)
 
     commons_html = dictionary_links_common_to_html(conn, groups[:common])
 
     classes_html =
       if Enum.empty?(commons_html) do
-        dictionary_links_class_to_html(conn, attribute_name, groups[:class])
+        dictionary_links_class_to_html(conn, classes, all_classes, attribute_name, groups[:class])
       else
         Enum.intersperse(
           [
             "Referenced by all classes",
-            dictionary_links_class_updated_to_html(conn, attribute_name, groups[:class])
+            dictionary_links_class_updated_to_html(
+              conn,
+              classes,
+              all_classes,
+              attribute_name,
+              groups[:class]
+            )
           ],
           "<br>"
         )
@@ -913,13 +963,15 @@ defmodule SchemaWeb.PageView do
     end
   end
 
-  defp dictionary_links_class_to_html(_, _, nil), do: []
+  defp dictionary_links_class_to_html(_, _, _, _, nil), do: []
 
-  defp dictionary_links_class_to_html(conn, attribute_name, linked_classes) do
-    # Strip profiles parameter to get classes with proper source attribution
-    params_without_profiles = Map.delete(conn.params, "profiles")
-    classes = SchemaController.classes(params_without_profiles)
-    all_classes = Schema.all_classes()
+  defp dictionary_links_class_to_html(
+         conn,
+         classes,
+         all_classes,
+         attribute_name,
+         linked_classes
+       ) do
     attribute_key = Schema.Utils.descope_to_uid(attribute_name)
 
     html_list =
@@ -1034,13 +1086,15 @@ defmodule SchemaWeb.PageView do
     end
   end
 
-  defp dictionary_links_class_updated_to_html(_, _, nil), do: []
+  defp dictionary_links_class_updated_to_html(_, _, _, _, nil), do: []
 
-  defp dictionary_links_class_updated_to_html(conn, attribute_name, linked_classes) do
-    # Strip profiles parameter to get classes with proper source attribution
-    params_without_profiles = Map.delete(conn.params, "profiles")
-    classes = SchemaController.classes(params_without_profiles)
-    all_classes = Schema.all_classes()
+  defp dictionary_links_class_updated_to_html(
+         conn,
+         classes,
+         all_classes,
+         attribute_name,
+         linked_classes
+       ) do
     attribute_key = Schema.Utils.descope_to_uid(attribute_name)
 
     {html_list, deprecated_count} =

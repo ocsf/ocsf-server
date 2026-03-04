@@ -14,7 +14,7 @@ limitations under the License.
   <div class="col-md move-up">
     <h3><%= @data[:caption] %>
       <span class="text-secondary">
-        [<%= @data[:uid] %>]<%= if @data[:extension] && @data[:extension] != "" do %><span class="extension-badge"><%= @data[:extension] %></span><% end %>
+        [<%= @data[:uid] %>] <%= if @data[:extension] && @data[:extension] != "" do %><span class="extension-badge"><%= @data[:extension] %></span><% end %>
         Category
       </span>
     </h3>
@@ -45,7 +45,7 @@ limitations under the License.
       <%= for {id, class} <- @data[:classes] do %>
       <% name = Atom.to_string(id) %>
       <% path = Routes.static_path(@conn, "/classes/" <> name) %>
-      <tr class="ocsf-class" <%= raw format_profiles(class[:profiles])%>>
+      <tr class="<%= show_deprecated_css_classes(class, "ocsf-class") %>" <%= raw format_profiles(class[:profiles])%>>
         <td class="name"><%= raw format_caption(name, class) %></td>
         <td class="extensions">
           <a href="<%= path %>"><%= name %></a>

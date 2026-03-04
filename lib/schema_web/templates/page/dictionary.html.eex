@@ -50,9 +50,9 @@ limitations under the License.
       <%= for {attribute_key, attribute} <- @data[:attributes] do %>
         <tr class="<%= show_deprecated_css_classes(attribute) %>">
           <td class="name"><%= format_attribute_name(attribute_key) %></td>
-          <td><%= raw format_attribute_caption(@conn, attribute_key, attribute) %></td>
+          <td><%= raw format_attribute_caption(@conn, @observable_object, attribute_key, attribute) %></td>
           <td class="extensions"><%= raw format_type(@conn, attribute) %></td>
-          <td class="extensions"><%= raw dictionary_links(@conn, attribute_key, attribute[:_links]) %></td>
+          <td class="extensions"><%= raw dictionary_links(@conn, @classes, @all_classes, attribute_key, attribute[:_links]) %></td>
           <td><%= raw format_dictionary_attribute_desc(attribute_key, attribute) %></td>
         </tr>
       <% end %>

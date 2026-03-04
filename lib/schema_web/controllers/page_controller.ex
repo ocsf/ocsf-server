@@ -59,7 +59,8 @@ defmodule SchemaWeb.PageController do
     render(conn, "data_types.html",
       extensions: Schema.extensions(),
       profiles: SchemaController.get_profiles(params),
-      data: data
+      data: data,
+      observable_object: Schema.object(:observable)
     )
   end
 
@@ -84,7 +85,8 @@ defmodule SchemaWeb.PageController do
         render(conn, "profile.html",
           extensions: Schema.extensions(),
           profiles: profiles,
-          data: sort_attributes_by_key(profile)
+          data: sort_attributes_by_key(profile),
+          observable_object: Schema.object(:observable)
         )
     end
   end
@@ -141,10 +143,17 @@ defmodule SchemaWeb.PageController do
   def dictionary(conn, params) do
     data = SchemaController.dictionary(params) |> sort_attributes_by_key()
 
+    # Strip profiles parameter to get classes with proper source attribution
+    params_without_profiles = Map.delete(conn.params, "profiles")
+    classes = SchemaController.classes(params_without_profiles)
+
     render(conn, "dictionary.html",
       extensions: Schema.extensions(),
       profiles: SchemaController.get_profiles(params),
-      data: data
+      data: data,
+      classes: classes,
+      all_classes: Schema.all_classes(),
+      observable_object: Schema.object(:observable)
     )
   end
 
@@ -177,7 +186,9 @@ defmodule SchemaWeb.PageController do
         render(conn, "class.html",
           extensions: Schema.extensions(),
           profiles: SchemaController.get_profiles(params),
-          data: data
+          data: data,
+          all_classes: Schema.all_classes(),
+          observable_object: Schema.object(:observable)
         )
     end
   end
@@ -210,7 +221,9 @@ defmodule SchemaWeb.PageController do
         render(conn, "object.html",
           extensions: Schema.extensions(),
           profiles: SchemaController.get_profiles(params),
-          data: data
+          data: data,
+          all_objects: Schema.all_objects(),
+          observable_object: Schema.object(:observable)
         )
     end
   end
@@ -221,7 +234,8 @@ defmodule SchemaWeb.PageController do
     render(conn, "objects.html",
       extensions: Schema.extensions(),
       profiles: SchemaController.get_profiles(params),
-      data: data
+      data: data,
+      observable_object: Schema.object(:observable)
     )
   end
 
@@ -253,8 +267,12 @@ defmodule SchemaWeb.PageController do
 
   defp parse_profiles_from_params(params) do
     case params["profiles"] do
-      nil -> nil
-      "" -> MapSet.new()
+      nil ->
+        nil
+
+      "" ->
+        MapSet.new()
+
       profiles_string ->
         profiles_string
         |> String.split(",")

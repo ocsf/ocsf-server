@@ -316,13 +316,7 @@ defmodule Schema.Utils do
                       update_links_fn.(item_attribute, link)
 
                     dictionary_attribute ->
-                      # We do _not_ want to merge class / object attribute observable values
-                      # back to the dictionary
-                      clean_item_attribute = Map.delete(item_attribute, :observable)
-
-                      # Merge attribute from extension class or object to the dictionary attribute
-                      deep_merge(clean_item_attribute, dictionary_attribute)
-                      |> update_links_fn.(link)
+                      update_links_fn.(dictionary_attribute, link)
                   end
 
                 Map.put(dictionary_attributes, ext_key, data)
