@@ -257,6 +257,9 @@ limitations under the License.
       <li id="data_types_id" class="nav-item">
         <a class="nav-link" href='<%= Routes.static_path(@conn, "/data_types") %>'>Data Types</a>
       </li>
+      <li id="visualizer_id" class="nav-item">
+        <a class="nav-link" href='<%= Routes.static_path(@conn, "/visualizer") %>'>Visualizer</a>
+      </li>
 
       <div class="navbar-text">|</div>
 

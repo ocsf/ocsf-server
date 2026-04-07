@@ -217,6 +217,11 @@ defmodule SchemaWeb.PageController do
     )
   end
 
+  @spec visualizer(Plug.Conn.t(), any) :: Plug.Conn.t()
+  def visualizer(conn, _params) do
+    redirect(conn, to: Routes.static_path(conn, "/visualizer/index.html"))
+  end
+
   defp sort_classes(categories) do
     Map.update!(categories, :attributes, fn list ->
       Enum.map(list, fn {name, category} ->

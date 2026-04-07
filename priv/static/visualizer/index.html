@@ -1,0 +1,1318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>OCSF Schema Visualizer</title>
+<script src="https://unpkg.com/cytoscape@3.29.2/dist/cytoscape.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #0d1117;
+  --surface:  #161b22;
+  --surface2: #1c2333;
+  --border:   #30363d;
+  --text:     #e6edf3;
+  --dim:      #8b949e;
+  --accent:   #388bfd;
+  --required: #f85149;
+  --recommended: #d29922;
+  --optional: #484f58;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-size: 13px;
+}
+
+/* ── Header ──────────────────────────────────── */
+#header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+#header h1 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--accent);
+  white-space: nowrap;
+  letter-spacing: -0.3px;
+}
+
+#browser-link {
+  color: var(--dim);
+  text-decoration: none;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+#browser-link:hover { color: var(--text); }
+
+.tabs { display: flex; gap: 4px; }
+
+.tab {
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--dim);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.12s;
+}
+.tab:hover:not(.active) { background: var(--surface2); color: var(--text); }
+.tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+#search-box {
+  flex: 1;
+  max-width: 260px;
+  min-width: 120px;
+  padding: 5px 10px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 12px;
+  outline: none;
+}
+#search-box:focus { border-color: var(--accent); }
+#search-box::placeholder { color: var(--dim); }
+
+#layout-select, #version-select {
+  padding: 5px 8px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+#version-select:disabled { opacity: 0.5; cursor: default; }
+
+#btn-fit {
+  padding: 5px 10px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--dim);
+  cursor: pointer;
+  font-size: 12px;
+}
+#btn-fit:hover { color: var(--text); }
+
+#status { margin-left: auto; font-size: 11px; color: var(--dim); white-space: nowrap; }
+
+/* ── Main layout ────────────────────────────── */
+#main { display: flex; flex: 1; overflow: hidden; position: relative; }
+
+#cy { flex: 1; background: var(--bg); overflow: hidden; }
+
+/* ── Detail panel ───────────────────────────── */
+#detail-panel {
+  width: clamp(200px, 30vw, 360px);
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  flex-shrink: 0;
+  display: flex;
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+  transition: width 0.2s, height 0.2s;
+}
+
+#panel-toggle {
+  width: 20px;
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  border-right: 1px solid var(--border);
+  color: var(--dim);
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.1s, color 0.1s;
+}
+#panel-toggle:hover { background: var(--surface2); color: var(--text); }
+
+#detail-inner {
+  flex: 1;
+  overflow-y: auto;
+  min-width: 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+  container-type: inline-size;
+}
+
+
+#main #detail-panel.collapsed {
+  width: 20px;
+  min-width: 0;
+}
+
+.detail-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--dim);
+  text-align: center;
+  padding: 24px;
+  gap: 8px;
+}
+.detail-empty .icon { font-size: 40px; opacity: 0.4; }
+.detail-empty .hint { font-size: 12px; line-height: 1.6; }
+
+.detail-content { padding: 16px; }
+
+.detail-header {
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.type-badge {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+.type-badge.category    { background: #1f3a5a; color: #79c0ff; }
+.type-badge.class       { background: #1a2e1a; color: #7ee787; }
+.type-badge.object      { background: #2a1a3e; color: #d2a8ff; }
+
+.detail-header h2 {
+  font-size: clamp(12px, 4.4cqw, 15px);
+  font-weight: 600;
+  line-height: 1.3;
+  margin-bottom: 4px;
+}
+.detail-meta { font-size: clamp(9px, 3.2cqw, 11px); color: var(--dim); margin-bottom: 7px; }
+.detail-desc {
+  font-size: clamp(10px, 3.5cqw, 12px);
+  color: var(--dim);
+  line-height: 1.55;
+  max-height: 80px;
+  overflow-y: auto;
+}
+
+/* ── Attribute sections ─────────────────────── */
+.attr-section { margin-bottom: 12px; }
+
+.attr-section-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 0;
+  cursor: pointer;
+  user-select: none;
+  border-radius: 4px;
+}
+.attr-section-header:hover { background: var(--surface2); padding-left: 4px; }
+
+.req-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.req-dot.required    { background: var(--required); }
+.req-dot.recommended { background: var(--recommended); }
+.req-dot.optional    { background: var(--optional); }
+
+.attr-section-header h3 { font-size: clamp(10px, 3.5cqw, 12px); font-weight: 600; flex: 1; }
+
+.attr-count {
+  font-size: clamp(8px, 2.9cqw, 10px);
+  color: var(--dim);
+  background: var(--surface2);
+  padding: 1px 6px;
+  border-radius: 8px;
+}
+
+.chevron { font-size: 10px; color: var(--dim); transition: transform 0.15s; }
+.collapsed .chevron { transform: rotate(-90deg); }
+.collapsed .attr-list { display: none; }
+
+.attr-list { display: flex; flex-direction: column; gap: 3px; }
+
+.attr-item {
+  background: var(--surface2);
+  border-radius: 5px;
+  padding: 7px 9px;
+  border-left: 3px solid transparent;
+}
+.attr-item.required    { border-left-color: var(--required); }
+.attr-item.recommended { border-left-color: var(--recommended); }
+.attr-item.optional    { border-left-color: var(--optional); }
+
+.attr-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-size: clamp(10px, 3.5cqw, 12px);
+  color: var(--text);
+  flex-wrap: wrap;
+}
+
+.attr-type {
+  font-size: clamp(8px, 2.9cqw, 10px);
+  color: var(--dim);
+  background: rgba(110, 118, 129, 0.15);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-family: inherit;
+}
+
+.attr-desc {
+  font-size: clamp(9px, 3.2cqw, 11px);
+  color: var(--dim);
+  margin-top: 3px;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.class-link {
+  cursor: pointer;
+  transition: opacity 0.1s;
+}
+.class-link:hover { opacity: 0.7; }
+
+/* ── Loading overlay ────────────────────────── */
+#loading-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(13, 17, 23, 0.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  flex-direction: column;
+  gap: 14px;
+}
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 2.5px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { color: var(--dim); font-size: 13px; }
+.load-items { list-style: none; font-size: 12px; color: var(--dim); line-height: 1.8; }
+.load-items li::before { content: '○  '; }
+.load-items li.done::before { content: '✓  '; color: #3fb950; }
+.load-items li.active::before { content: '⟳  '; color: var(--accent); }
+
+/* ── Footer legend ──────────────────────────── */
+#legend {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 5px 16px;
+  padding-bottom: max(5px, env(safe-area-inset-bottom));
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  font-size: 11px;
+  color: var(--dim);
+}
+.legend-group { display: flex; align-items: center; gap: 10px; }
+.legend-item { display: flex; align-items: center; gap: 4px; }
+.l-dot  { width: 9px; height: 9px; border-radius: 50%; }
+.l-rect { width: 12px; height: 9px; border-radius: 2px; }
+.l-dia  { width: 9px; height: 9px; transform: rotate(45deg); border-radius: 1px; }
+
+/* ── Portrait / mobile layout ───────────────── */
+@media (orientation: portrait), (max-width: 767px) {
+  #main {
+    flex-direction: column;
+  }
+
+  #cy {
+    flex: 1;
+    min-height: 0;
+  }
+
+  #detail-panel {
+    width: 100%;
+    min-width: unset;
+    height: 45%;
+    border-left: none;
+    border-top: 1px solid var(--border);
+    flex-direction: column;
+  }
+
+  #main #detail-panel.collapsed {
+    width: 100%;
+    min-width: 0;
+    height: 28px;
+  }
+
+  #panel-toggle {
+    width: 100%;
+    height: 28px;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+
+  .detail-content         { padding: 12px; }
+  .detail-header h2       { font-size: 13px; }
+  .detail-meta            { font-size: 10px; }
+  .detail-desc            { font-size: 11px; }
+  .attr-section-header h3 { font-size: 11px; }
+  .attr-count             { font-size: 9px; }
+  .attr-name              { font-size: 11px; }
+  .attr-type              { font-size: 9px; }
+  .attr-desc              { font-size: 10px; }
+  .attr-item              { padding: 5px 7px; }
+
+  label[for="version-select"] {
+    display: none;
+  }
+
+  #search-box {
+    max-width: 100%;
+  }
+
+  #legend {
+    gap: 8px;
+    padding: 4px 10px;
+    font-size: 10px;
+  }
+}
+
+/* ── Tooltip ────────────────────────────────── */
+#tooltip {
+  position: fixed;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 5px 9px;
+  font-size: 11px;
+  color: var(--text);
+  pointer-events: none;
+  z-index: 999;
+  max-width: 220px;
+  word-wrap: break-word;
+  display: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <h1>OCSF Visualizer</h1>
+  <a id="browser-link" href="/categories">Schema Browser</a>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('events')">Events</button>
+    <button class="tab" onclick="switchTab('objects')">Objects</button>
+  </div>
+  <input id="search-box" type="text" placeholder="Search…" oninput="onSearch(this.value)" autocomplete="off">
+  <select id="layout-select" onchange="relayout(this.value)">
+    <option value="cose">Force-directed</option>
+    <option value="breadthfirst">Hierarchical</option>
+    <option value="circle">Circle</option>
+    <option value="grid">Grid</option>
+  </select>
+  <label for="version-select" style="font-size:11px;color:var(--dim);white-space:nowrap">OCSF API Version</label>
+  <select id="version-select" onchange="switchVersion(this.value)" title="OCSF schema version" disabled>
+    <option value="">Loading versions…</option>
+  </select>
+  <button id="btn-fit" onclick="fitGraph()" title="Fit to screen">⊡ Fit</button>
+  <span id="status">Loading…</span>
+</div>
+
+<div id="main">
+  <div id="cy"></div>
+
+  <div id="detail-panel">
+    <button id="panel-toggle" onclick="togglePanel()" title="Toggle detail panel">»</button>
+    <div id="detail-inner">
+      <div class="detail-empty">
+        <div class="icon">◈</div>
+        <div>Select a node to view details</div>
+        <div class="hint">Click any category, event class,<br>or object in the graph</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="loading-overlay">
+    <div class="spinner"></div>
+    <div class="loading-text">Fetching OCSF schema…</div>
+    <ul class="load-items">
+      <li id="ll-categories" class="active">Categories</li>
+      <li id="ll-classes">Event Classes</li>
+      <li id="ll-objects">Objects</li>
+    </ul>
+  </div>
+</div>
+
+<div id="legend" style="justify-content: space-between">
+  <span>Nodes:</span>
+  <div class="legend-group">
+    <span class="legend-item"><span class="l-rect" style="background:#388bfd"></span> Category</span>
+    <span class="legend-item"><span class="l-dot"  style="background:#3fb950"></span> Event Class</span>
+    <span class="legend-item"><span class="l-dia"  style="background:#a371f7"></span> Object</span>
+  </div>
+  <span style="margin-left:6px">Attributes:</span>
+  <div class="legend-group">
+    <span class="legend-item"><span class="l-dot" style="background:#f85149"></span> Required</span>
+    <span class="legend-item"><span class="l-dot" style="background:#d29922"></span> Recommended</span>
+    <span class="legend-item"><span class="l-dot" style="background:#484f58"></span> Optional</span>
+  </div>
+  <a href="/categories"
+     style="margin-left:auto;font-size:10px;color:var(--dim);text-decoration:none;font-family:'SF Mono','Fira Code',monospace;white-space:nowrap"
+     title="Open the schema browser">/categories</a>
+</div>
+
+<div id="tooltip"></div>
+
+<script>
+'use strict';
+
+// ─── Config ──────────────────────────────────────────────────────────────────
+
+const CURRENT_ORIGIN = window.location.origin;
+const ROOT_API = `${CURRENT_ORIGIN}/api`;
+const PUBLIC_MULTI_VERSION_HOST = 'schema.ocsf.io';
+const HAS_PUBLIC_VERSION_ROUTING = window.location.hostname === PUBLIC_MULTI_VERSION_HOST;
+let   API      = ROOT_API;
+
+const CAT_COLOR = {
+  1: '#1158d4', // System Activity
+  2: '#b91c1c', // Findings
+  3: '#7c2d9e', // Identity & Access
+  4: '#0e7490', // Network Activity
+  5: '#166534', // Discovery
+  6: '#0f766e', // Application Activity
+  7: '#92400e', // Remediation
+  8: '#374151', // Unmanned Systems
+};
+const CAT_COLOR_LIGHT = {
+  1: '#58a6ff', // System Activity
+  2: '#f85149', // Findings
+  3: '#d2a8ff', // Identity & Access
+  4: '#56d364', // Network Activity → using green for vis contrast
+  5: '#3fb950', // Discovery
+  6: '#39d353', // Application Activity
+  7: '#e3b341', // Remediation
+  8: '#8b949e', // Unmanned Systems
+};
+// More distinct class node colors by category
+const CAT_CLASS_COLOR = {
+  1: '#388bfd', 2: '#ff7b72', 3: '#c084fc',
+  4: '#34d399', 5: '#4ade80', 6: '#22d3ee',
+  7: '#fbbf24', 8: '#94a3b8',
+};
+
+// ─── State ───────────────────────────────────────────────────────────────────
+
+const S = {
+  tab:       'events',
+  version:   null,           // currently loaded version string
+  categories:    [],
+  classes:       [],
+  objects:       [],
+  classDetails:  {},
+  objectDetails: {},
+  cy:     null,
+  search: '',
+};
+
+// ─── API ─────────────────────────────────────────────────────────────────────
+
+async function apiFetch(path) {
+  const r = await fetch(API + path, { headers: { Accept: 'application/json' } });
+  if (!r.ok) throw new Error(`HTTP ${r.status} – ${API + path}`);
+  return r.json();
+}
+
+function parseAttrs(raw) {
+  if (!raw || typeof raw !== 'object') return {};
+  const keys = Object.keys(raw);
+  if (!keys.length) return {};
+  // Old format: {"0": {"attrName": {...}}} – numeric outer keys
+  if (!isNaN(keys[0])) {
+    const out = {};
+    for (const v of Object.values(raw)) if (v && typeof v === 'object') Object.assign(out, v);
+    return out;
+  }
+  return raw;
+}
+
+function normCats(data) {
+  if (!data) return [];
+  const src = data.attributes || data;
+  if (typeof src !== 'object' || Array.isArray(src)) return Array.isArray(src) ? src : [];
+  return Object.entries(src)
+    .filter(([, v]) => v && typeof v === 'object' && typeof v.uid === 'number')
+    .map(([name, c]) => ({ name, uid: c.uid, caption: c.caption, description: c.description }));
+}
+
+function normClasses(data) {
+  if (!data) return [];
+  if (Array.isArray(data)) return data;
+  return Object.values(data).filter(v => v && typeof v === 'object');
+}
+
+function normObjects(data) {
+  if (!data) return [];
+  if (Array.isArray(data)) return data;
+  return Object.values(data).filter(v => v && typeof v === 'object');
+}
+
+// ─── Cytoscape styles ─────────────────────────────────────────────────────────
+
+function buildStyles() {
+  return [
+    {
+      selector: 'node',
+      style: {
+        label: 'data(label)',
+        'text-valign': 'center',
+        'text-halign': 'center',
+        'font-family': '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        'font-size': '9px',
+        color: '#e6edf3',
+        'text-wrap': 'wrap',
+        'text-max-width': '72px',
+        'text-overflow-wrap': 'whitespace',
+        'min-zoomed-font-size': 4,
+      },
+    },
+    {
+      selector: 'node[type="category"]',
+      style: {
+        'background-color': 'data(color)',
+        width: 90, height: 90,
+        shape: 'roundrectangle',
+        'font-size': '10px',
+        'font-weight': 'bold',
+        'border-width': 1.5,
+        'border-color': 'rgba(255,255,255,0.15)',
+        'text-max-width': '80px',
+      },
+    },
+    {
+      selector: 'node[type="class"]',
+      style: {
+        'background-color': 'data(color)',
+        width: 56, height: 56,
+        shape: 'ellipse',
+      },
+    },
+    {
+      selector: 'node[type="object"]',
+      style: {
+        'background-color': '#6d28d9',
+        width: 48, height: 48,
+        shape: 'diamond',
+      },
+    },
+    {
+      selector: 'node[type="object-root"]',
+      style: {
+        'background-color': '#4c1d95',
+        width: 72, height: 72,
+        shape: 'diamond',
+        'font-size': '10px',
+        'font-weight': 'bold',
+      },
+    },
+    {
+      selector: 'edge',
+      style: {
+        width: 1,
+        'line-color': '#21262d',
+        'target-arrow-color': '#21262d',
+        'target-arrow-shape': 'triangle',
+        'arrow-scale': 0.7,
+        'curve-style': 'bezier',
+      },
+    },
+    {
+      selector: 'edge[type="contains"]',
+      style: {
+        'line-color': '#1c3a5e',
+        'target-arrow-color': '#1c3a5e',
+      },
+    },
+    {
+      selector: 'edge[type="extends"]',
+      style: {
+        'line-color': '#3b1f6e',
+        'target-arrow-color': '#3b1f6e',
+        'line-style': 'dashed',
+        'line-dash-pattern': [5, 3],
+      },
+    },
+    {
+      selector: 'node:selected',
+      style: {
+        'border-width': 3,
+        'border-color': '#e6edf3',
+        'overlay-color': '#ffffff',
+        'overlay-opacity': 0.06,
+      },
+    },
+    { selector: '.faded',       style: { opacity: 0.12 } },
+    { selector: '.highlighted', style: { 'border-width': 2.5, 'border-color': '#d29922' } },
+    { selector: '.dim-edge',    style: { opacity: 0.05 } },
+  ];
+}
+
+// ─── Graph builders ────────────────────────────────────────────────────────────
+
+function buildEventEls() {
+  const els = [];
+
+  // Index classes by name for fast extends lookup
+  const classMap = new Map(S.classes.map(c => [c.name, c]));
+
+  for (const cat of S.categories) {
+    els.push({ data: {
+      id:          `cat_${cat.uid}`,
+      label:       (cat.caption || cat.name || '').replace(/ /g, '\n'),
+      type:        'category',
+      nodeType:    'category',
+      uid:         cat.uid,
+      name:        cat.name,
+      caption:     cat.caption || cat.name,
+      description: cat.description,
+      color:       CAT_COLOR[cat.uid] || '#30363d',
+    }});
+  }
+
+  for (const cls of S.classes) {
+    const catUid = cls.category_uid || (cls.uid ? Math.floor(cls.uid / 1000) : null);
+    const color  = CAT_CLASS_COLOR[catUid] || '#8b949e';
+
+    els.push({ data: {
+      id:          `cls_${cls.name}`,
+      label:       (cls.caption || cls.name || '').replace(/ /g, '\n'),
+      type:        'class',
+      nodeType:    'class',
+      uid:         cls.uid,
+      name:        cls.name,
+      extension:   cls.extension || null,
+      caption:     cls.caption || cls.name,
+      categoryUid: catUid,
+      description: cls.description,
+      deprecated:  cls['@deprecated'] ? true : false,
+      color,
+    }});
+
+    // If this class extends another class that lives in the SAME category,
+    // use an extends edge (creates real depth). Otherwise connect to category.
+    const parentCls    = cls.extends ? classMap.get(cls.extends) : null;
+    const parentCatUid = parentCls
+      ? (parentCls.category_uid || (parentCls.uid ? Math.floor(parentCls.uid / 1000) : null))
+      : null;
+    const extendsInSameCat = parentCls && parentCatUid === catUid;
+
+    if (extendsInSameCat) {
+      els.push({ data: {
+        id:     `e_ext_${cls.name}`,
+        source: `cls_${cls.extends}`,
+        target: `cls_${cls.name}`,
+        type:   'extends',
+      }});
+    } else if (catUid && S.categories.some(c => c.uid === catUid)) {
+      els.push({ data: {
+        id:     `e_cc_${cls.name}`,
+        source: `cat_${catUid}`,
+        target: `cls_${cls.name}`,
+        type:   'contains',
+      }});
+    }
+  }
+
+  return els;
+}
+
+function buildObjectEls() {
+  const els = [];
+  const knownIds = new Set(['obj__root_']);
+
+  els.push({ data: {
+    id:       'obj__root_',
+    label:    'object\n(base)',
+    type:     'object-root',
+    nodeType: 'object',
+    name:     'object',
+    caption:  'Base Object',
+    description: 'Root base type for all OCSF objects.',
+  }});
+
+  for (const obj of S.objects) {
+    const id = objId(obj);
+    knownIds.add(id);
+    els.push({ data: {
+      id,
+      label:       objLabel(obj),
+      type:        'object',
+      nodeType:    'object',
+      name:        obj.name,
+      extension:   obj.extension || null,
+      caption:     obj.caption || obj.name,
+      extends:     obj.extends || 'object',
+      description: obj.description,
+    }});
+  }
+
+  for (const obj of S.objects) {
+    const parentRaw = obj.extends || 'object';
+    const parentId  = parentRaw === 'object' ? 'obj__root_' : `obj_${parentRaw}`;
+    const src = knownIds.has(parentId) ? parentId : 'obj__root_';
+    els.push({ data: {
+      id:     `e_obj_${objId(obj)}`,
+      source: src,
+      target: objId(obj),
+      type:   'extends',
+    }});
+  }
+
+  return els;
+}
+
+function objId(obj) {
+  return obj.extension ? `obj_${obj.extension}_${obj.name}` : `obj_${obj.name}`;
+}
+function objLabel(obj) {
+  const name = obj.extension ? `${obj.extension}/${obj.name}` : (obj.caption || obj.name);
+  return name.replace(/ /g, '\n');
+}
+function objApiPath(obj) {
+  return obj.extension ? `/objects/${obj.extension}/${obj.name}` : `/objects/${obj.name}`;
+}
+
+// ─── Cytoscape init ───────────────────────────────────────────────────────────
+
+function initCy(elements, layoutName) {
+  if (S.cy) { S.cy.destroy(); S.cy = null; }
+
+  S.cy = cytoscape({
+    container:    document.getElementById('cy'),
+    elements,
+    style:        buildStyles(),
+    layout:       layoutOpts(layoutName),
+    minZoom:      0.04,
+    maxZoom:      4,
+    wheelSensitivity: 0.25,
+  });
+
+  S.cy.on('tap', 'node', async (e) => { await onNodeClick(e.target); });
+  S.cy.on('tap', (e)    => { if (e.target === S.cy) clearSel(); });
+  S.cy.on('mouseover', 'node', (e) => {
+    const r = e.renderedPosition;
+    tt(r.x + 12, r.y + 8, e.target.data('caption') || e.target.data('name'));
+  });
+  S.cy.on('mouseout', 'node', () => noTt());
+}
+
+function layoutOpts(name) {
+  if (name === 'breadthfirst') {
+    // Must be a CSS selector string — an array of strings is NOT valid for Cytoscape roots
+    const roots = S.tab === 'events'
+      ? S.categories.map(c => `#cat_${c.uid}`).join(', ')
+      : '#obj__root_';
+    return {
+      name: 'breadthfirst',
+      directed: true,
+      roots: roots || undefined,
+      spacingFactor: 1.25,
+      avoidOverlap: true,
+      padding: 40,
+    };
+  }
+  if (name === 'cose') {
+    return {
+      name: 'cose',
+      animate: false,
+      randomize: false,
+      nodeRepulsion: 8000,
+      gravity: 0.4,
+      padding: 40,
+      avoidOverlap: true,
+    };
+  }
+  return { name, padding: 40 };
+}
+
+function relayout(name) {
+  if (!S.cy) return;
+  S.cy.layout(layoutOpts(name)).run();
+}
+
+function fitGraph() {
+  S.cy && S.cy.fit(undefined, 40);
+}
+
+// ─── Tab switch ───────────────────────────────────────────────────────────────
+
+function switchTab(tab) {
+  S.tab = tab;
+  document.querySelectorAll('.tab').forEach(t =>
+    t.classList.toggle('active', t.textContent.toLowerCase() === tab)
+  );
+  const layoutSel = document.getElementById('layout-select');
+  layoutSel.value = 'cose';
+
+  clearDetailPanel();
+  const els = tab === 'events' ? buildEventEls() : buildObjectEls();
+  initCy(els, layoutSel.value);
+  if (S.search) onSearch(S.search);
+}
+
+// ─── Node click / detail panel ───────────────────────────────────────────────
+
+async function onNodeClick(node) {
+  const { nodeType, name } = node.data();
+
+  S.cy.elements().removeClass('faded highlighted dim-edge');
+  const conn = node.closedNeighborhood();
+  S.cy.elements().not(conn).addClass('faded');
+  node.connectedEdges().not(conn).addClass('dim-edge');
+
+  setDetailLoading(node);
+
+  try {
+    if (nodeType === 'category') {
+      renderCategoryDetail(node);
+    } else if (nodeType === 'class') {
+      const ext      = node.data('extension');
+      const cacheKey = ext ? `${ext}/${name}` : name;
+      if (!S.classDetails[cacheKey]) S.classDetails[cacheKey] = await apiFetch(ext ? `/classes/${ext}/${name}` : `/classes/${name}`);
+      renderNodeDetail(S.classDetails[cacheKey], 'class', ext);
+    } else if (nodeType === 'object') {
+      if (!S.objectDetails[name]) {
+        const obj = S.objects.find(o => o.name === node.data('name') && (o.extension || null) === node.data('extension'));
+        const path = obj ? objApiPath(obj) : `/objects/${name}`;
+        S.objectDetails[name] = await apiFetch(path);
+      }
+      renderNodeDetail(S.objectDetails[name], 'object', node.data('extension'));
+    }
+  } catch (e) {
+    setDetailError(e.message);
+  }
+}
+
+function clearSel() {
+  S.cy && S.cy.elements().removeClass('faded highlighted dim-edge');
+  clearDetailPanel();
+}
+
+function focusNode(id) {
+  if (!S.cy) return;
+  const n = S.cy.$(`#${id}`);
+  if (!n.length) return;
+  S.cy.animate({ center: { eles: n }, zoom: 1.4 }, { duration: 350 });
+  onNodeClick(n);
+}
+
+// ─── Detail renderers ─────────────────────────────────────────────────────────
+
+function renderCategoryDetail(node) {
+  const { uid, caption, name, description } = node.data();
+  const classes = S.classes.filter(c => {
+    const cu = c.category_uid || (c.uid ? Math.floor(c.uid / 1000) : null);
+    return cu === uid;
+  });
+
+  const catPageUrl = schemaPageUrl('category', null, name);
+
+  document.getElementById('detail-inner').innerHTML = `
+    <div class="detail-content">
+      <div class="detail-header">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+          <span class="type-badge category" style="margin-bottom:0">Category</span>
+          <a href="${catPageUrl}" target="_blank" rel="noopener"
+             style="margin-left:auto;font-size:10px;color:var(--accent);text-decoration:none;white-space:nowrap"
+             title="Open in the schema browser">↗ browser</a>
+        </div>
+        <h2>${caption || name}</h2>
+        <div class="detail-meta">UID: ${uid} &nbsp;·&nbsp; ${classes.length} event classes</div>
+        ${description ? `<p class="detail-desc">${description}</p>` : ''}
+      </div>
+      <div class="attr-section">
+        <div class="attr-section-header">
+          <h3>Event Classes</h3>
+          <span class="attr-count">${classes.length}</span>
+        </div>
+        <div class="attr-list">
+          ${classes.map(c => `
+            <div class="attr-item optional class-link" onclick="focusNode('cls_${c.name}')">
+              <div class="attr-name">
+                ${c.caption || c.name}
+                <span class="attr-type">${c.uid}</span>
+              </div>
+              ${c.description ? `<div class="attr-desc">${c.description}</div>` : ''}
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>`;
+}
+
+function schemaPageUrl(type, extension, name) {
+  const verPart =
+    HAS_PUBLIC_VERSION_ROUTING && S.version && S.version !== '__default__' ? `/${S.version}` : '';
+  const extPart = extension ? `/${extension}` : '';
+  const apiType = type === 'class' ? 'classes' : type === 'object' ? 'objects' : 'categories';
+  return `${CURRENT_ORIGIN}${verPart}/${apiType}${extPart}/${name}`;
+}
+
+function renderNodeDetail(data, type, extension) {
+  const attrs  = parseAttrs(data.attributes);
+  const groups = { required: [], recommended: [], optional: [] };
+
+  for (const [n, a] of Object.entries(attrs)) {
+    const req = (a.requirement || 'optional').toLowerCase();
+    (groups[req] || groups.optional).push({ attrName: n, ...a });
+  }
+
+  const caption  = data.caption || data.name || '';
+  const uid      = data.uid      ? `UID: ${data.uid}`             : '';
+  const cat      = data.category ? `Category: ${data.category}`   : '';
+  const ext      = data.extends  ? `Extends: ${data.extends}`     : '';
+  const meta     = [uid, cat, ext].filter(Boolean).join('&nbsp;·&nbsp;');
+  const dep      = data['@deprecated'];
+  const pageUrl  = data.name ? schemaPageUrl(type, extension, data.name) : null;
+
+  document.getElementById('detail-inner').innerHTML = `
+    <div class="detail-content">
+      <div class="detail-header">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+          <span class="type-badge ${type}" style="margin-bottom:0">${type === 'class' ? 'Event Class' : 'Object'}</span>
+          ${dep ? `<span style="font-size:10px;color:#d29922">⚠ deprecated</span>` : ''}
+          ${pageUrl ? `<a href="${pageUrl}" target="_blank" rel="noopener"
+              style="margin-left:auto;font-size:10px;color:var(--accent);text-decoration:none;white-space:nowrap"
+              title="Open in the schema browser">↗ browser</a>` : ''}
+        </div>
+        <h2>${caption}</h2>
+        ${meta ? `<div class="detail-meta">${meta}</div>` : ''}
+        ${data.description ? `<p class="detail-desc">${data.description}</p>` : ''}
+      </div>
+      ${attrSection('required',    groups.required,    'Required')}
+      ${attrSection('recommended', groups.recommended, 'Recommended')}
+      ${attrSection('optional',    groups.optional,    'Optional')}
+      ${!Object.keys(attrs).length ? '<p style="color:var(--dim);font-size:12px;padding:4px 0">No attributes defined.</p>' : ''}
+    </div>`;
+}
+
+function attrSection(key, items, label) {
+  if (!items.length) return '';
+  const id = `sec_${key}_${Date.now()}`;
+  return `
+    <div class="attr-section" id="${id}">
+      <div class="attr-section-header" onclick="toggleSec('${id}')">
+        <span class="req-dot ${key}"></span>
+        <h3>${label}</h3>
+        <span class="attr-count">${items.length}</span>
+        <span class="chevron">▾</span>
+      </div>
+      <div class="attr-list">
+        ${items.map(a => attrItem(a, key)).join('')}
+      </div>
+    </div>`;
+}
+
+function attrItem(a, cls) {
+  const typeName = a.object_type || a.object_name || a.type || '—';
+  const isArr    = a.is_array ? '[]' : '';
+  const cap      = a.caption ? ` <span style="color:var(--dim);font-size:10px">(${a.caption})</span>` : '';
+  return `
+    <div class="attr-item ${cls}">
+      <div class="attr-name">
+        ${a.attrName}${cap}
+        <span class="attr-type">${typeName}${isArr}</span>
+      </div>
+      ${a.description ? `<div class="attr-desc">${a.description}</div>` : ''}
+    </div>`;
+}
+
+function toggleSec(id) {
+  document.getElementById(id)?.classList.toggle('collapsed');
+}
+
+// ─── Search ───────────────────────────────────────────────────────────────────
+
+function onSearch(q) {
+  S.search = q.toLowerCase().trim();
+  if (!S.cy) return;
+
+  S.cy.elements().removeClass('highlighted faded');
+  if (!S.search) return;
+
+  const matches = S.cy.nodes().filter(n => {
+    const s = `${n.data('label')} ${n.data('name')} ${n.data('caption')}`.toLowerCase();
+    return s.includes(S.search);
+  });
+
+  if (matches.length) {
+    S.cy.elements().not(matches).not(matches.connectedEdges()).addClass('faded');
+    matches.addClass('highlighted');
+    S.cy.animate({ fit: { eles: matches, padding: 80 } }, { duration: 420 });
+  }
+}
+
+// ─── UI helpers ───────────────────────────────────────────────────────────────
+
+function setDetailLoading(node) {
+  const caption = node.data('caption') || node.data('name');
+  document.getElementById('detail-inner').innerHTML = `
+    <div class="detail-empty">
+      <div class="spinner"></div>
+      <div>Loading ${caption}…</div>
+    </div>`;
+}
+
+function setDetailError(msg) {
+  document.getElementById('detail-inner').innerHTML = `
+    <div class="detail-empty">
+      <div style="font-size:32px;opacity:.5;margin-bottom:8px">⚠</div>
+      <div style="color:var(--required)">Failed to load details</div>
+      <div class="hint" style="word-break:break-all">${msg}</div>
+    </div>`;
+}
+
+function clearDetailPanel() {
+  document.getElementById('detail-inner').innerHTML = `
+    <div class="detail-empty">
+      <div class="icon">◈</div>
+      <div>Select a node to view details</div>
+      <div class="hint">Click any category, event class,<br>or object in the graph</div>
+    </div>`;
+}
+
+function setLoadMark(id, state) {
+  const el = document.getElementById(`ll-${id}`);
+  if (el) el.className = state;
+}
+
+function setStatus(t) { document.getElementById('status').textContent = t; }
+
+function isPortraitMode() {
+  return window.matchMedia('(orientation: portrait)').matches
+      || window.matchMedia('(max-width: 767px)').matches;
+}
+
+function updateToggleBtn() {
+  const btn       = document.getElementById('panel-toggle');
+  const collapsed = document.getElementById('detail-panel').classList.contains('collapsed');
+  const portrait  = isPortraitMode();
+  btn.textContent = portrait ? (collapsed ? '▴' : '▾') : (collapsed ? '«' : '»');
+}
+
+function togglePanel() {
+  document.getElementById('detail-panel').classList.toggle('collapsed');
+  updateToggleBtn();
+  setTimeout(() => S.cy && S.cy.resize(), 220);
+}
+
+window.matchMedia('(orientation: portrait)').addEventListener('change', () => {
+  updateToggleBtn();
+  setTimeout(() => S.cy && S.cy.resize(), 220);
+});
+
+function tt(x, y, text) {
+  const el = document.getElementById('tooltip');
+  el.textContent = text;
+  el.style.left = x + 'px';
+  el.style.top  = y + 'px';
+  el.style.display = 'block';
+}
+function noTt() { document.getElementById('tooltip').style.display = 'none'; }
+
+// ─── Version switching ────────────────────────────────────────────────────────
+
+async function switchVersion(version) {
+  if (!version || version === S.version) return;
+
+  API =
+    HAS_PUBLIC_VERSION_ROUTING && version !== '__default__'
+      ? `${CURRENT_ORIGIN}/${version}/api`
+      : ROOT_API;
+
+  // Flush per-version caches
+  S.classDetails  = {};
+  S.objectDetails = {};
+
+  await loadSchema(version);
+}
+
+// ─── Schema loading ───────────────────────────────────────────────────────────
+
+function showOverlay(msg) {
+  const ov = document.getElementById('loading-overlay');
+  ov.style.display = 'flex';
+  ov.innerHTML = `
+    <div class="spinner"></div>
+    <div class="loading-text">${msg}</div>
+    <ul class="load-items">
+      <li id="ll-categories" class="active">Categories</li>
+      <li id="ll-classes">Event Classes</li>
+      <li id="ll-objects">Objects</li>
+    </ul>`;
+}
+
+async function loadSchema(version) {
+  const vsel = document.getElementById('version-select');
+  const allowVersionSwitching = HAS_PUBLIC_VERSION_ROUTING && vsel.options.length > 1;
+  vsel.disabled = true;
+
+  showOverlay(`Loading OCSF ${!version || version === '__default__' ? '(current)' : version}…`);
+  clearDetailPanel();
+
+  try {
+    setLoadMark('categories', 'active');
+
+    const [catData, clsData, objData] = await Promise.all([
+      apiFetch('/categories').then(d => { setLoadMark('categories', 'done'); setLoadMark('classes', 'active'); return d; }),
+      apiFetch('/classes')   .then(d => { setLoadMark('classes',    'done'); setLoadMark('objects', 'active'); return d; }),
+      apiFetch('/objects')   .then(d => { setLoadMark('objects',    'done'); return d; }),
+    ]);
+
+    S.version    = version;
+    S.categories = normCats(catData);
+    S.classes    = normClasses(clsData);
+    S.objects    = normObjects(objData);
+
+    S.categories.sort((a, b) => a.uid - b.uid);
+    S.classes.sort((a, b)    => (a.uid || 0) - (b.uid || 0));
+    S.objects.sort((a, b)    => (a.name || '').localeCompare(b.name || ''));
+
+    setStatus(`${S.categories.length} categories · ${S.classes.length} classes · ${S.objects.length} objects`);
+
+    document.getElementById('loading-overlay').style.display = 'none';
+    vsel.disabled = !allowVersionSwitching;
+
+    // Rebuild graph preserving current tab
+    const layoutSel = document.getElementById('layout-select');
+    const els = S.tab === 'events' ? buildEventEls() : buildObjectEls();
+    initCy(els, layoutSel.value || 'cose');
+    if (S.search) onSearch(S.search);
+
+  } catch (err) {
+    vsel.disabled = !allowVersionSwitching;
+    document.getElementById('loading-overlay').innerHTML = `
+      <div style="text-align:center;padding:24px;max-width:380px">
+        <div style="font-size:36px;opacity:.4;margin-bottom:12px">⚠</div>
+        <div style="color:var(--required);font-size:15px;font-weight:600;margin-bottom:8px">
+          Could not load OCSF schema
+        </div>
+        <div style="color:var(--dim);font-size:12px;line-height:1.6;margin-bottom:16px">
+          ${err.message}<br><br>
+          Verify the local schema server is running and that the expected
+          schema file is loaded.
+        </div>
+        <button onclick="init()"
+          style="padding:7px 18px;background:var(--accent);color:#fff;border:none;
+                 border-radius:6px;cursor:pointer;font-size:13px">
+          Retry
+        </button>
+      </div>`;
+  }
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+
+async function init() {
+  try {
+    const vsel = document.getElementById('version-select');
+    const [currentData, verData] = await Promise.all([
+      fetch(`${ROOT_API}/version`, { headers: { Accept: 'application/json' } })
+        .then(r => r.ok ? r.json() : null)
+        .catch(() => null),
+      fetch(`${ROOT_API}/versions`, { headers: { Accept: 'application/json' } })
+        .then(r => r.ok ? r.json() : null)
+        .catch(() => null),
+    ]);
+    const currentVersion = currentData?.version || '__default__';
+
+    if (HAS_PUBLIC_VERSION_ROUTING && verData && verData.versions && verData.versions.length) {
+      const defaultVer = verData.default?.version || null;
+
+      // Sort: stable releases first (no pre-release suffix), then dev/rc
+      const sorted = [...verData.versions].sort((a, b) => {
+        const aStable = !a.version.includes('-');
+        const bStable = !b.version.includes('-');
+        if (aStable !== bStable) return bStable ? 1 : -1;
+        return b.version.localeCompare(a.version, undefined, { numeric: true });
+      });
+
+      vsel.innerHTML = sorted.map(v => {
+        const isDefault = v.version === defaultVer;
+        const label     = isDefault ? `${v.version} (default)` : v.version;
+        return `<option value="${v.version}"${isDefault ? ' selected' : ''}>${label}</option>`;
+      }).join('');
+
+      vsel.disabled = false;
+
+      // Load the default version
+      const initial = defaultVer || sorted[0].version;
+      API = `${CURRENT_ORIGIN}/${initial}/api`;
+      await loadSchema(initial);
+
+    } else {
+      const label = currentVersion === '__default__' ? 'current' : currentVersion;
+      vsel.innerHTML = `<option value="${currentVersion}" selected>${label}</option>`;
+      vsel.disabled = true;
+      API = ROOT_API;
+      await loadSchema(currentVersion);
+    }
+
+  } catch (err) {
+    document.getElementById('loading-overlay').innerHTML = `
+      <div style="text-align:center;padding:24px;max-width:380px">
+        <div style="font-size:36px;opacity:.4;margin-bottom:12px">⚠</div>
+        <div style="color:var(--required);font-size:15px;font-weight:600;margin-bottom:8px">
+          Could not load OCSF schema
+        </div>
+        <div style="color:var(--dim);font-size:12px;line-height:1.6;margin-bottom:16px">
+          ${err.message}
+        </div>
+        <button onclick="init()"
+          style="padding:7px 18px;background:var(--accent);color:#fff;border:none;
+                 border-radius:6px;cursor:pointer;font-size:13px">
+          Retry
+        </button>
+      </div>`;
+  }
+}
+
+updateToggleBtn();
+init();
+</script>
+</body>
+</html>

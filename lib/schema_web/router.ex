@@ -52,6 +52,7 @@ defmodule SchemaWeb.Router do
 
     get "/dictionary", PageController, :dictionary
     get "/data_types", PageController, :data_types
+    get "/visualizer", PageController, :visualizer
   end
 
   # Other scopes may use custom stacks.
