@@ -258,24 +258,31 @@ function searchInCategories(filter) {
 }
 
 function init_schema_buttons() {
+  // Strip any version prefix (e.g. /1.3.0) from the pathname so the
+  // /sample, /schema, and /api routes resolve correctly when the server
+  // is fronted by a versioned URL prefix.
+  const basePath = window.location.pathname.replace(/^\/[\d.]+(?:-[^\/]+)?/, '');
+
+  function buttonParams() {
+    const extensions = get_selected_extensions();
+    const profiles = get_selected_profiles();
+    return build_url_params(extensions, profiles);
+  }
+
   $('#btn-sample-data').on('click', function(event) {
-    const url = '/sample' + window.location.pathname + "?profiles=" + get_selected_profiles().toString();
-    window.open(url,'_blank');
+    window.open('/sample' + basePath + buttonParams(), '_blank');
   });
 
   $('#btn-json-schema').on('click', function(event) {
-    const url = '/schema' + window.location.pathname + "?profiles=" + get_selected_profiles().toString();
-    window.open(url,'_blank');
+    window.open('/schema' + basePath + buttonParams(), '_blank');
   });
 
   $('#btn-schema').on('click', function(event) {
-    const url = '/api' + window.location.pathname + "?profiles=" + get_selected_profiles().toString();
-    window.open(url,'_blank');
+    window.open('/api' + basePath + buttonParams(), '_blank');
   });
 
   $('#btn-validate').on('click', function(event) {
-    const url = '/doc/index.html#/Tools/SchemaWeb.SchemaController.validate2';
-    window.open(url,'_blank');
+    window.open('/doc/index.html#/Tools/SchemaWeb.SchemaController.validate2', '_blank');
   });
 }
 
