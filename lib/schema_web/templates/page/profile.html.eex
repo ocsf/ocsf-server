@@ -25,6 +25,7 @@ limitations under the License.
     <div class="text-secondary description-content">
       <%= raw @data[:description] %>
     </div>
+    <%= raw object_references_section(@data[:references]) %>
   </div>
   <div class="navbar-nav col-md-auto fixed-right mt-2">
     <input type="text" id="tableSearch" onkeyup="searchInTable()" class="form-control border-dark" placeholder="Search" autofocus>
