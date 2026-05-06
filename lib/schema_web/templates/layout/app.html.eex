@@ -46,9 +46,24 @@ limitations under the License.
           this.href = this.href + params;
         });
 
-        // Also update main navigation links
+        // Also update main navigation links (skip dropdown toggles and hash-only links)
         $(".top-navbar-nav a.nav-link").each(function() {
+          if (this.getAttribute('href') === '#' || this.classList.contains('dropdown-toggle')) {
+            return;
+          }
           this.href = this.href + params;
+        });
+
+        // Update content links (class, object, category, profile links in page body)
+        $(".main-page a").each(function() {
+          const href = this.getAttribute('href');
+          if (!href || href.startsWith('http') || href.startsWith('#') || href.startsWith('javascript:') || href.includes('?')) {
+            return;
+          }
+          // Only update internal schema navigation links
+          if (href.match(/^\/(classes|objects|categories|profiles|dictionary|data_types)/)) {
+            this.href = this.href + params;
+          }
         });
 
         // set the profile checkboxes
@@ -267,7 +282,7 @@ limitations under the License.
       <div class="navbar-text">|</div>
 
       <li id="resources_id" class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" role="button">Resources</a>
+        <a class="nav-link dropdown-toggle" href="javascript:void(0)" role="button">Resources</a>
         <div class="dropdown-content">
           <a class="dropdown-link" target="_blank" href='<%= Routes.static_path(@conn, "/doc") %>'>API Documentation</a>
           <a class="dropdown-link" target="_blank" href="https://github.com/ocsf/ocsf-docs/blob/main/overview/understanding-ocsf.md">Understanding OCSF</a>

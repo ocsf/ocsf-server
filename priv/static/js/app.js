@@ -32,7 +32,7 @@ function select_extensions(selected) {
 function build_url_params(extensions, profiles) {
   let params = [];
   
-  // Add extensions parameter
+  // Always add extensions parameter (empty string means core-only)
   if (extensions) {
     const extensionParams = [];
     Object.entries(extensions).forEach(function ([name, value]) {
@@ -40,9 +40,9 @@ function build_url_params(extensions, profiles) {
         extensionParams.push(name);
       }
     });
-    if (extensionParams.length > 0) {
-      params.push('extensions=' + extensionParams.join(','));
-    }
+    params.push('extensions=' + extensionParams.join(','));
+  } else {
+    params.push('extensions=');
   }
   
   // Add profiles parameter

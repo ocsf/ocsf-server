@@ -32,6 +32,8 @@ defmodule SchemaWeb.PageController do
 
   @spec category_by_id(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def category_by_id(conn, params) do
+    params = Map.put_new(params, "extensions", "")
+
     case SchemaController.category_classes(params) do
       nil ->
         send_resp(conn, 404, "Not Found: #{SchemaController.params_to_uid(params)}")
@@ -49,6 +51,7 @@ defmodule SchemaWeb.PageController do
 
   @spec profiles(Plug.Conn.t(), map) :: Plug.Conn.t()
   def profiles(conn, params) do
+    params = Map.put_new(params, "extensions", "")
     profiles = get_profiles(params)
     sorted_profiles = sort_by_descoped_key(profiles)
 
@@ -81,7 +84,10 @@ defmodule SchemaWeb.PageController do
 
   @spec classes(Plug.Conn.t(), any) :: Plug.Conn.t()
   def classes(conn, params) do
-    data = SchemaController.classes(params) |> sort_by(:uid)
+    data =
+      Map.put_new(params, "extensions", "")
+      |> SchemaController.classes()
+      |> sort_by(:uid)
 
     render(conn, "classes.html",
       extensions: Schema.extensions(),
@@ -137,6 +143,8 @@ defmodule SchemaWeb.PageController do
 
   @spec objects(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def objects(conn, params) do
+    params = Map.put_new(params, "extensions", "")
+
     data =
       SchemaController.parse_options(SchemaController.extensions(params))
       |> Schema.objects_filter_extensions()
@@ -190,6 +198,7 @@ defmodule SchemaWeb.PageController do
 
   @spec dictionary(Plug.Conn.t(), any) :: Plug.Conn.t()
   def dictionary(conn, params) do
+    params = Map.put_new(params, "extensions", "")
     schema = Schema.schema()
 
     data =
