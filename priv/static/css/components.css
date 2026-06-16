@@ -764,3 +764,56 @@ button:hover,
   background: var(--surface-color);
   border-left-color: var(--accent-color);
 }
+
+/* Deprecated Attributes Badge - shown on classes/objects that contain deprecated attributes */
+.deprecated-attr-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--warning-color);
+  font-size: 0.75rem;
+  cursor: help;
+  opacity: 0.85;
+  transition: var(--transition-fast);
+}
+
+.deprecated-attr-badge:hover {
+  opacity: 1;
+  transform: scale(1.15);
+}
+
+[data-theme="dark"] .deprecated-attr-badge {
+  color: #FBBF24;
+}
+
+/* Deprecated Attributes Notice - banner on class/object detail pages */
+.deprecated-attr-notice {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  background: rgba(217, 119, 6, 0.08);
+  border: 1px solid rgba(217, 119, 6, 0.3);
+  border-left: 3px solid var(--warning-color);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  margin-top: var(--spacing-md);
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  width: fit-content;
+}
+
+.deprecated-attr-notice i {
+  color: var(--warning-color);
+  font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
+[data-theme="dark"] .deprecated-attr-notice {
+  background: rgba(251, 191, 36, 0.08);
+  border-color: rgba(251, 191, 36, 0.3);
+  border-left-color: #FBBF24;
+}
+
+[data-theme="dark"] .deprecated-attr-notice i {
+  color: #FBBF24;
+}

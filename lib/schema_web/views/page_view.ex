@@ -1743,4 +1743,36 @@ defmodule SchemaWeb.PageView do
   def show_deprecated_css_classes(item) do
     show_deprecated_css_classes(item, "")
   end
+
+  @doc """
+  Returns true if the item (class or object) contains at least one deprecated attribute.
+  """
+  @spec has_deprecated_attributes?(map()) :: boolean()
+  def has_deprecated_attributes?(item) do
+    deprecated_attributes_count(item) > 0
+  end
+
+  @doc """
+  Returns the count of deprecated attributes in the item (class or object).
+  """
+  @spec deprecated_attributes_count(map()) :: non_neg_integer()
+  def deprecated_attributes_count(item) do
+    case item[:attributes] do
+      nil ->
+        0
+
+      attributes when is_map(attributes) ->
+        Enum.count(attributes, fn {_key, attr} ->
+          attr[:"@deprecated"] != nil
+        end)
+
+      attributes when is_list(attributes) ->
+        Enum.count(attributes, fn {_key, attr} ->
+          attr[:"@deprecated"] != nil
+        end)
+
+      _ ->
+        0
+    end
+  end
 end
