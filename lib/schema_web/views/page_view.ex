@@ -833,18 +833,10 @@ defmodule SchemaWeb.PageView do
     source = obj[:source]
     references = obj[:references]
 
-    source_html =
-      if source != nil do
-        # source can have embedded markup
-        ["<dt>Source<dd class=\"ml-3\">", source]
-      else
-        ""
-      end
+    refs_html = inline_references(references, source)
 
-    refs_html = inline_references(references)
-
-    if source_html != "" or refs_html != "" do
-      [html, prefix_html, "<dd>", source_html, refs_html, "</dd>"]
+    if refs_html != "" do
+      [html, prefix_html, refs_html]
     else
       html
     end
@@ -1718,17 +1710,28 @@ defmodule SchemaWeb.PageView do
 
   def object_references_section(_), do: ""
 
-  @spec inline_references(list()) :: any()
-  def inline_references(references) when is_list(references) and length(references) > 0 do
+  @spec inline_references(list(), String.t() | nil) :: any()
+  def inline_references(references, source \\ nil)
+
+  def inline_references(references, source)
+      when is_list(references) and length(references) > 0 do
+    source_html =
+      if source != nil do
+        [" <span class=\"references-source\">(as <code>", source, "</code>)</span>"]
+      else
+        ""
+      end
+
     [
       "<div class=\"references-inline\">",
       "<span class=\"references-label\">Refs:</span>",
       Enum.intersperse(Enum.map(references, &reference_tag/1), " "),
+      source_html,
       "</div>"
     ]
   end
 
-  def inline_references(_), do: ""
+  def inline_references(_, _), do: ""
 
   @spec show_deprecated_css_classes(map(), String.t()) :: String.t()
   def show_deprecated_css_classes(item, initial) do

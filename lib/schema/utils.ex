@@ -203,6 +203,12 @@ defmodule Schema.Utils do
   end
 
   @spec filter_attributes_by_profiles_set(Enum.t(), string_set_t()) :: Enum.t()
+  defp filter_attributes_by_profiles_set(attributes, profiles) when is_map(attributes) do
+    Map.filter(attributes, fn {_k, a} ->
+      a[:profiles] == nil || Enum.any?(a[:profiles], fn ap -> MapSet.member?(profiles, ap) end)
+    end)
+  end
+
   defp filter_attributes_by_profiles_set(attributes, profiles) do
     Enum.filter(attributes, fn {_k, a} ->
       a[:profiles] == nil || Enum.any?(a[:profiles], fn ap -> MapSet.member?(profiles, ap) end)
