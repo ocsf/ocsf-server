@@ -25,6 +25,16 @@ limitations under the License.
     <div class="text-secondary description-content">
       <%= raw @data[:description] %>
     </div>
+    <%= if has_deprecated_attributes?(@data) do %>
+    <% dep_count = deprecated_attributes_count(@data) %>
+    <div class="deprecated-attr-notice" id="deprecated-attr-notice">
+      <i class="fas fa-exclamation-triangle"></i>
+      <span>
+        This profile contains <strong><%= dep_count %></strong> deprecated <%= if dep_count == 1, do: "attribute", else: "attributes" %>.
+        Check the <strong>Show deprecated items</strong> box in the sidebar to view <%= if dep_count == 1, do: "it", else: "them" %>.
+      </span>
+    </div>
+    <% end %>
     <%= raw object_references_section(@data[:references]) %>
   </div>
   <div class="navbar-nav col-md-auto fixed-right mt-2">

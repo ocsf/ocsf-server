@@ -51,6 +51,16 @@ limitations under the License.
     <div class="text-secondary description-content">
       <%= raw description(@data) %>
     </div>
+    <%= if has_deprecated_attributes?(@data) do %>
+    <% dep_count = deprecated_attributes_count(@data) %>
+    <div class="deprecated-attr-notice" id="deprecated-attr-notice">
+      <i class="fas fa-exclamation-triangle"></i>
+      <span>
+        This class contains <strong><%= dep_count %></strong> deprecated <%= if dep_count == 1, do: "attribute", else: "attributes" %>.
+        Check the <strong>Show deprecated items</strong> box in the sidebar to view <%= if dep_count == 1, do: "it", else: "them" %>.
+      </span>
+    </div>
+    <% end %>
     <%= if observables != nil and !Enum.empty?(observables) do %>
     <div class="text-secondary mt-2">
       Class-specific attribute path observables are <a href="#observables">at the bottom of this page</a>.
