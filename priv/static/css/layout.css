@@ -793,10 +793,15 @@
 }
 
 /* Content Layout Improvements */
+.main-page > .container-fluid {
+  max-width: 1600px;
+  padding: var(--spacing-lg) var(--spacing-xl);
+}
+
 .description-content {
   line-height: 1.7;
   font-size: 0.875rem;
-  max-width: none; /* Remove any width restrictions */
+  max-width: none;
 }
 
 /* Horizontal Controls Bar */

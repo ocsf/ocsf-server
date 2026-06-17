@@ -19,6 +19,10 @@ limitations under the License.
   <meta name="description" content="Open Cybersecurity Schema Framework">
   <title>Open Cybersecurity Schema Framework</title>
 
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href='<%= Routes.static_path(@conn, "/css/bootstrap-4.6.2.min.css") %>'/>
   <link rel="stylesheet" href='<%= Routes.static_path(@conn, "/css/bootstrap.select-1.13.18.min.css") %>'/>
   <link rel="stylesheet" href='<%= Routes.static_path(@conn, "/css/fontawesome-6.4.0.min.css") %>'/>
@@ -57,12 +61,13 @@ limitations under the License.
         // Update content links (class, object, category, profile links in page body)
         $(".main-page a").each(function() {
           const href = this.getAttribute('href');
-          if (!href || href.startsWith('http') || href.startsWith('#') || href.startsWith('javascript:') || href.includes('?')) {
+          if (!href || href.startsWith('http') || href.startsWith('#') || href.startsWith('javascript:')) {
             return;
           }
           // Only update internal schema navigation links
-          if (href.match(/^\/(classes|objects|categories|profiles|dictionary|data_types)/)) {
-            this.href = this.href + params;
+          if (href.match(/^\/(classes|objects|categories|profiles|dictionary|data_types|visualizer)/)) {
+            const joiner = href.includes('?') ? '&' : '';
+            this.href = this.href + (joiner ? params.replace('?', '&') : params);
           }
         });
 
@@ -86,7 +91,16 @@ limitations under the License.
         // Get current profiles and build complete URL
         const selected_profiles = get_selected_profiles();
         const params = build_url_params(selected_extensions, selected_profiles);
-        window.location.search = params;
+
+        // Preserve non-filter query params (e.g. class=X, object=X)
+        const currentParams = new URLSearchParams(window.location.search);
+        const newParams = new URLSearchParams(params.replace('?', ''));
+        currentParams.forEach(function(value, key) {
+          if (key !== 'extensions' && key !== 'profiles') {
+            newParams.set(key, value);
+          }
+        });
+        window.location.search = '?' + newParams.toString();
       });
 
       // init the attributes dropdown filters

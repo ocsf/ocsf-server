@@ -71,25 +71,31 @@ function init_class_profiles() {
     });
 
     set_selected_profiles(selected_profiles);
-    
-    // Update URL with both extensions and profiles using the unified function
+
+    // Update URL with both extensions and profiles, preserving other params
     const selected_extensions = get_selected_extensions();
     const params = build_url_params(selected_extensions, selected_profiles);
-    
-    // Update the URL
-    window.location.search = params;
+    const newParams = new URLSearchParams(params.replace('?', ''));
+    const currentParams = new URLSearchParams(window.location.search);
+    currentParams.forEach(function(value, key) {
+      if (key !== 'extensions' && key !== 'profiles') {
+        newParams.set(key, value);
+      }
+    });
+    window.location.search = '?' + newParams.toString();
   });
 }
 
 function init_extension_profile_dependencies() {
   // Hide/show profiles based on extension selection on page load
-  updateProfileVisibility();
-  
+  // Pass false to suppress localStorage writes during initialization
+  updateProfileVisibility(false);
+
   let extensions = $("#extensions-list :checkbox");
   extensions.on("change", function() {
     const extensionName = this.id;
     const isExtensionChecked = this.checked;
-    
+
     if (!isExtensionChecked) {
       // When extension is unchecked, uncheck all profiles that belong to this extension
       let profiles = $("#profiles-list :checkbox");
@@ -99,30 +105,17 @@ function init_extension_profile_dependencies() {
           this.checked = false;
         }
       });
-      
-      // Update the selected profiles list
-      let selected_profiles = [];
-      profiles.each(function(){
-        if (this.checked)
-          selected_profiles.push(this.dataset["profile"])
-      });
-      
-      set_selected_profiles(selected_profiles);
-      init_selected_profiles(selected_profiles);
-      if (typeof refresh_selected_profiles === 'function') {
-        refresh_selected_profiles();
-      }
     }
-    
-    // Update profile visibility when extension selection changes
-    updateProfileVisibility();
+
+    // Update profile visibility and persist (user-initiated)
+    updateProfileVisibility(true);
   });
 }
 
-function updateProfileVisibility() {
+function updateProfileVisibility(persist) {
   let extensions = $("#extensions-list :checkbox");
   let profiles = $("#profiles-list .profile-item");
-  
+
   // Get list of selected extensions
   let selectedExtensions = [];
   extensions.each(function() {
@@ -130,53 +123,44 @@ function updateProfileVisibility() {
       selectedExtensions.push(this.id);
     }
   });
-  
+
   // Show/hide profiles based on extension selection
   profiles.each(function() {
     const profileItem = $(this);
     const profileName = profileItem.data("profile-name");
-    
+
     if (profileName) {
-      // Check if this profile belongs to an extension
-      let belongsToExtension = false;
       let shouldShow = true;
-      
-      for (let extension of selectedExtensions) {
-        if (profileName.startsWith(extension + "/")) {
-          belongsToExtension = true;
-          break;
-        }
-      }
-      
+
       // If profile belongs to an extension, only show it if that extension is selected
       if (profileName.includes("/")) {
-        // This is an extension profile
-        shouldShow = belongsToExtension;
-      } else {
-        // This is a core profile, always show it
-        shouldShow = true;
+        shouldShow = false;
+        for (let extension of selectedExtensions) {
+          if (profileName.startsWith(extension + "/")) {
+            shouldShow = true;
+            break;
+          }
+        }
       }
-      
+
       if (shouldShow) {
         profileItem.show();
       } else {
         profileItem.hide();
-        // Also uncheck hidden profiles
         profileItem.find("input[type='checkbox']").prop('checked', false);
       }
     }
   });
-  
-  // Update the selected profiles list after hiding profiles
-  let selected_profiles = [];
-  $("#profiles-list :checkbox:visible").each(function(){
-    if (this.checked)
-      selected_profiles.push(this.dataset["profile"])
-  });
-  
-  set_selected_profiles(selected_profiles);
-  init_selected_profiles(selected_profiles);
-  if (typeof refresh_selected_profiles === 'function') {
-    refresh_selected_profiles();
+
+  // Only persist to localStorage when triggered by user action
+  if (persist) {
+    let selected_profiles = [];
+    $("#profiles-list :checkbox:visible").each(function(){
+      if (this.checked)
+        selected_profiles.push(this.dataset["profile"])
+    });
+
+    set_selected_profiles(selected_profiles);
+    init_selected_profiles(selected_profiles);
   }
 }

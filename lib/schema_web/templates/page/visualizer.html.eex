@@ -1,0 +1,76 @@
+<%!--
+OCSF Schema Visualizer - Interactive graph visualization of the schema.
+Supports scoped views via query params: ?class=X or ?object=X
+--%>
+
+<div class="row">
+  <div class="col-md move-up">
+    <h3 class="extensions">
+      <%= @scope_data[:caption] %>
+      <span class="text-secondary">
+        <span class="small">
+          <%= if @scope_data[:uid] do %>[<%= @scope_data[:uid] %>]<% end %>
+          <%= if @scope_data[:extension] && @scope_data[:extension] != "" do %>
+            <span class="extension-badge"><%= @scope_data[:extension] %></span>
+          <% end %>
+        </span>
+        <%= if @scope_data[:scope_type] == :class, do: "Class", else: "Object" %>
+      </span>
+    </h3>
+    <div class="text-secondary description-content">
+      <%= raw @scope_data[:description] %>
+    </div>
+  </div>
+</div>
+
+<div id="visualizer-container">
+  <div id="header">
+    <select id="layout-select" onchange="relayout(this.value)">
+      <option value="cose">Force-directed</option>
+      <option value="breadthfirst">Hierarchical</option>
+      <option value="circle">Circle</option>
+    </select>
+    <button id="btn-fit" onclick="fitGraph()" title="Fit to screen">⊡ Fit</button>
+    <span id="status"></span>
+  </div>
+
+  <div id="main">
+    <div id="cy"></div>
+
+    <div id="detail-panel">
+      <button id="panel-toggle" onclick="togglePanel()" title="Toggle detail panel">»</button>
+      <div id="detail-inner">
+        <div class="detail-empty">
+          <div class="icon">◈</div>
+          <div class="hint">Click a node to see its attributes</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="loading-overlay">
+      <div class="spinner"></div>
+      <div class="loading-text">Loading schema…</div>
+      <ul class="load-items">
+        <li id="ll-categories" class="active">Categories</li>
+        <li id="ll-classes">Event Classes</li>
+        <li id="ll-objects">Objects</li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="legend">
+    <div class="legend-group">
+      <span class="legend-item"><span class="l-rect" style="background:var(--accent-color)"></span> Category</span>
+      <span class="legend-item"><span class="l-dot" style="background:#3fb950"></span> Event Class</span>
+      <span class="legend-item"><span class="l-dia" style="background:#a371f7"></span> Object</span>
+    </div>
+  </div>
+
+  <div id="tooltip"></div>
+</div>
+
+<script type="text/javascript" src='<%= Routes.static_path(@conn, "/js/cytoscape-3.29.2.min.js") %>'></script>
+<script type="text/javascript" src='<%= Routes.static_path(@conn, "/js/visualizer.js") %>'></script>
+<script>
+  init_class_profiles();
+</script>

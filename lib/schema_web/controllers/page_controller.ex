@@ -116,22 +116,6 @@ defmodule SchemaWeb.PageController do
     end
   end
 
-  @spec class_graph(Plug.Conn.t(), any) :: Plug.Conn.t()
-  def class_graph(conn, params) do
-    case SchemaController.class_ex(params) do
-      nil ->
-        send_resp(conn, 404, "Not Found: #{SchemaController.params_to_uid(params)}")
-
-      class ->
-        data = Schema.Graph.build(class)
-
-        render(conn, "class_graph.html",
-          extensions: Schema.extensions(),
-          profiles: get_profiles(params),
-          data: data
-        )
-    end
-  end
 
   @doc """
   Redirects from the older /base_event URL to /classes/base_event.
@@ -179,22 +163,6 @@ defmodule SchemaWeb.PageController do
     end
   end
 
-  @spec object_graph(Plug.Conn.t(), any) :: Plug.Conn.t()
-  def object_graph(conn, params) do
-    case SchemaController.object_ex(params) do
-      nil ->
-        send_resp(conn, 404, "Not Found: #{SchemaController.params_to_uid(params)}")
-
-      obj ->
-        data = Schema.Graph.build(obj)
-
-        render(conn, "object_graph.html",
-          extensions: Schema.extensions(),
-          profiles: get_profiles(params),
-          data: data
-        )
-    end
-  end
 
   @spec dictionary(Plug.Conn.t(), any) :: Plug.Conn.t()
   def dictionary(conn, params) do
@@ -224,6 +192,42 @@ defmodule SchemaWeb.PageController do
       profiles: get_profiles(params),
       data: data
     )
+  end
+
+  @spec visualizer(Plug.Conn.t(), any) :: Plug.Conn.t()
+  def visualizer(conn, params) do
+    cond do
+      params["class"] ->
+        id = String.to_atom(params["class"])
+        case Schema.SingleRepo.clean_classes()[id] do
+          nil ->
+            send_resp(conn, 404, "Not Found: #{params["class"]}")
+
+          class ->
+            render(conn, "visualizer.html",
+              extensions: Schema.extensions(),
+              profiles: get_profiles(params),
+              scope_data: Map.put(class, :scope_type, :class)
+            )
+        end
+
+      params["object"] ->
+        id = String.to_atom(params["object"])
+        case Schema.SingleRepo.clean_objects()[id] do
+          nil ->
+            send_resp(conn, 404, "Not Found: #{params["object"]}")
+
+          obj ->
+            render(conn, "visualizer.html",
+              extensions: Schema.extensions(),
+              profiles: get_profiles(params),
+              scope_data: Map.put(obj, :scope_type, :object)
+            )
+        end
+
+      true ->
+        redirect(conn, to: Routes.static_path(conn, "/classes"))
+    end
   end
 
   defp sort_classes(categories) do

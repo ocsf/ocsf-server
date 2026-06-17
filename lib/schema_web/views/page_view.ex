@@ -8,17 +8,6 @@ defmodule SchemaWeb.PageView do
   @unknown_constraint_symbol "*"
   @enum_attributes_doc_url "https://github.com/ocsf/ocsf-docs/blob/main/overview/understanding-ocsf.md#enum-attributes"
 
-  def class_graph_path(conn, data) do
-    class_name = data[:name]
-
-    case data[:extension] do
-      nil ->
-        Routes.static_path(conn, "/class/graph/" <> class_name)
-
-      extension ->
-        Routes.static_path(conn, "/class/graph/" <> extension <> "/" <> class_name)
-    end
-  end
 
   def class_path(conn, data) do
     class_name = data[:name]
@@ -32,17 +21,6 @@ defmodule SchemaWeb.PageView do
     end
   end
 
-  def object_graph_path(conn, data) do
-    object_name = data[:name]
-
-    case data[:extension] do
-      nil ->
-        Routes.static_path(conn, "/object/graph/" <> object_name)
-
-      extension ->
-        Routes.static_path(conn, "/object/graph/" <> extension <> "/" <> object_name)
-    end
-  end
 
   def object_path(conn, data) do
     object_name = data[:name]

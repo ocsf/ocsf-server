@@ -16,7 +16,7 @@ limitations under the License.
 <div class="row">
   <div class="col-md move-up">
     <h3 class="extensions">
-      <a href="<%= object_graph_path(@conn, @data)  %>"><%= @data[:caption] %></a>
+      <%= @data[:caption] %>
       <span class="text-secondary">
         <span class="small">
           <%= if @data[:extension] && @data[:extension] != "" do %><span class="extension-badge"><%= @data[:extension] %></span><% end %>
@@ -68,6 +68,7 @@ limitations under the License.
     <div class="btn-group" role="group" aria-label="Schema actions">
       <button type="button" id="btn-json-schema" class="btn btn-sm btn-outline-primary" title="View JSON Schema">JSON Schema</button>
       <button type="button" id="btn-sample-data" class="btn btn-sm btn-outline-primary" title="View Sample Data">Sample</button>
+      <a href="<%= Routes.static_path(@conn, "/visualizer?object=#{@data[:name]}") %>" id="btn-visualizer" class="btn btn-sm btn-outline-primary" title="View relationship graph">Visualizer</a>
     </div>
   </div>
   <div class="col-auto">
