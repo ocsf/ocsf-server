@@ -170,8 +170,8 @@ button:hover,
   box-shadow: var(--shadow-sm);
 }
 
-/* Visualizer button */
-#btn-visualizer {
+/* Visualizer and Table buttons */
+#btn-visualizer, #btn-table {
   background: var(--primary-color);
   color: var(--text-inverse);
   border: none;
@@ -189,7 +189,7 @@ button:hover,
   gap: var(--spacing-xs);
 }
 
-#btn-visualizer:hover {
+#btn-visualizer:hover, #btn-table:hover {
   background: var(--primary-dark);
   color: var(--text-inverse);
   text-decoration: none;
@@ -199,6 +199,13 @@ button:hover,
 
 #btn-visualizer::before {
   content: '\f542';
+  font-family: 'Font Awesome 6 Free';
+  font-weight: 900;
+  margin-right: var(--spacing-xs);
+}
+
+#btn-table::before {
+  content: '\f0ce';
   font-family: 'Font Awesome 6 Free';
   font-weight: 900;
   margin-right: var(--spacing-xs);

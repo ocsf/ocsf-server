@@ -225,6 +225,24 @@ defmodule SchemaWeb.PageController do
             )
         end
 
+      params["category"] ->
+        id = String.to_atom(params["category"])
+        case Schema.SingleRepo.categories()[:attributes][id] do
+          nil ->
+            send_resp(conn, 404, "Not Found: #{params["category"]}")
+
+          cat ->
+            scope_data = cat
+              |> Map.put(:scope_type, :category)
+              |> Map.put_new(:name, params["category"])
+
+            render(conn, "visualizer.html",
+              extensions: Schema.extensions(),
+              profiles: get_profiles(params),
+              scope_data: scope_data
+            )
+        end
+
       true ->
         redirect(conn, to: Routes.static_path(conn, "/classes"))
     end

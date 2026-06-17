@@ -35,6 +35,14 @@ limitations under the License.
   </div>
 </div>
 
+<div class="row align-items-center mb-3">
+  <div class="col-auto">
+    <div class="btn-group" role="group" aria-label="Schema actions">
+      <a href="<%= Routes.static_path(@conn, "/visualizer?category=#{@data[:name]}") %>" id="btn-visualizer" class="btn btn-sm btn-outline-primary" title="View relationship graph">Visualizer</a>
+    </div>
+  </div>
+</div>
+
 <div class="mt-4">
   <table class="table table-bordered sortable">
     <thead>

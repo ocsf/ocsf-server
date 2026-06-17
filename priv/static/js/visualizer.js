@@ -42,6 +42,7 @@ const S = {
 const SCOPE_PARAMS = new URLSearchParams(window.location.search);
 const SCOPE_CLASS = SCOPE_PARAMS.get('class');
 const SCOPE_OBJECT = SCOPE_PARAMS.get('object');
+const SCOPE_CATEGORY = SCOPE_PARAMS.get('category');
 
 // ─── Color maps ──────────────────────────────────────────────────────────────
 
@@ -249,7 +250,7 @@ async function onNodeClick(node) {
       if (!S.classDetails[cacheKey]) {
         S.classDetails[cacheKey] = await apiFetch(ext ? `/classes/${ext}/${name}` : `/classes/${name}`);
       }
-      renderNodeDetail(S.classDetails[cacheKey], 'class');
+      renderNodeDetail(S.classDetails[cacheKey], 'class', name);
     } else if (nodeType === 'object') {
       const ext = node.data('extension');
       const cacheKey = ext ? `${ext}/${name}` : name;
@@ -258,7 +259,7 @@ async function onNodeClick(node) {
         const path = obj && obj.extension ? `/objects/${obj.extension}/${name}` : `/objects/${name}`;
         S.objectDetails[cacheKey] = await apiFetch(path);
       }
-      renderNodeDetail(S.objectDetails[cacheKey], 'object');
+      renderNodeDetail(S.objectDetails[cacheKey], 'object', name);
     }
   } catch (e) {
     document.getElementById('detail-inner').innerHTML =
@@ -269,6 +270,30 @@ async function onNodeClick(node) {
 function clearSelection() {
   S.cy && S.cy.elements().removeClass('faded highlighted');
   clearDetailPanel();
+}
+
+// Navigate on double-click
+function initNodeNavigation() {
+  S.cy.on('dbltap', 'node', function(e) {
+    const d = e.target.data();
+    if (d.nodeType === 'object' && d.name) {
+      const params = new URLSearchParams(window.location.search);
+      params.delete('class');
+      params.set('object', d.name);
+      window.location.search = '?' + params.toString();
+    } else if (d.nodeType === 'class' && d.name) {
+      const params = new URLSearchParams(window.location.search);
+      params.delete('object');
+      params.set('class', d.name);
+      window.location.search = '?' + params.toString();
+    } else if (d.nodeType === 'category' && d.name) {
+      const params = new URLSearchParams(window.location.search);
+      params.delete('class');
+      params.delete('object');
+      params.set('category', d.name);
+      window.location.search = '?' + params.toString();
+    }
+  });
 }
 
 // ─── Detail panel rendering ──────────────────────────────────────────────────
@@ -316,7 +341,7 @@ function renderCategoryDetail(node) {
     </div>`;
 }
 
-function renderNodeDetail(data, type) {
+function renderNodeDetail(data, type, nodeName) {
   const attrs = data.attributes || {};
   const groups = { required: [], recommended: [], optional: [] };
 
@@ -326,12 +351,15 @@ function renderNodeDetail(data, type) {
   }
 
   const caption = data.caption || data.name || '';
+  const isCurrent = (type === 'class' && nodeName === SCOPE_CLASS) || (type === 'object' && nodeName === SCOPE_OBJECT);
+  const navHint = !isCurrent ? `<p style="font-size:11px;color:var(--text-muted);margin-top:8px">Double-click to explore this ${type}</p>` : '';
 
   document.getElementById('detail-inner').innerHTML = `
     <div class="detail-content">
       <div class="detail-header">
         <span class="type-badge ${type}">${type === 'class' ? 'Class' : 'Object'}</span>
         <h2>${caption}</h2>
+        ${navHint}
       </div>
       ${attrSection('required', groups.required, 'Required')}
       ${attrSection('recommended', groups.recommended, 'Recommended')}
@@ -443,20 +471,6 @@ async function buildScopedClassGraph(className) {
       });
       addEdge(`e_cc_${className}`, `cat_${catUid}`, `cls_${className}`, { type: 'contains' });
 
-      // Sibling classes in same category
-      const siblings = S.classes.filter(c => {
-        const cu = c.category_uid || (c.uid ? Math.floor(c.uid / 1000) : null);
-        return cu === catUid && c.name !== className;
-      });
-      for (const sib of siblings) {
-        addNode(`cls_${sib.name}`, {
-          label: (sib.caption || sib.name).replace(/ /g, '\n'),
-          type: 'class', nodeType: 'class', name: sib.name,
-          caption: sib.caption || sib.name,
-          color: CAT_CLASS_COLOR[catUid] || '#8b949e',
-        });
-        addEdge(`e_cc_${sib.name}`, `cat_${catUid}`, `cls_${sib.name}`, { type: 'contains' });
-      }
     }
   }
 
@@ -565,6 +579,55 @@ async function buildScopedObjectGraph(objectName) {
   return els;
 }
 
+async function buildScopedCategoryGraph(categoryName) {
+  const cat = S.categories.find(c => c.name === categoryName);
+  if (!cat) return [];
+
+  const els = [];
+  const addedIds = new Set();
+
+  function addNode(id, data) { if (!addedIds.has(id)) { addedIds.add(id); els.push({ data: { id, ...data } }); } }
+  function addEdge(id, src, tgt, data) { if (!addedIds.has(id)) { addedIds.add(id); els.push({ data: { id, source: src, target: tgt, ...data } }); } }
+
+  // Category node
+  addNode(`cat_${cat.uid}`, {
+    label: (cat.caption || cat.name).replace(/ /g, '\n'),
+    type: 'category', nodeType: 'category', name: cat.name,
+    caption: cat.caption || cat.name, uid: cat.uid,
+    color: CAT_COLOR[cat.uid] || '#374151',
+  });
+
+  // All classes in this category
+  const classMap = new Map(S.classes.map(c => [c.name, c]));
+  const catClasses = S.classes.filter(c => {
+    const cu = c.category_uid || (c.uid ? Math.floor(c.uid / 1000) : null);
+    return cu === cat.uid;
+  });
+
+  for (const cls of catClasses) {
+    addNode(`cls_${cls.name}`, {
+      label: (cls.caption || cls.name).replace(/ /g, '\n'),
+      type: 'class', nodeType: 'class', name: cls.name,
+      caption: cls.caption || cls.name,
+      color: CAT_CLASS_COLOR[cat.uid] || '#8b949e',
+    });
+
+    // Check if class extends another class in the same category
+    const parentCls = cls.extends ? classMap.get(cls.extends) : null;
+    const parentCatUid = parentCls
+      ? (parentCls.category_uid || (parentCls.uid ? Math.floor(parentCls.uid / 1000) : null))
+      : null;
+
+    if (parentCls && parentCatUid === cat.uid) {
+      addEdge(`e_ext_${cls.name}`, `cls_${cls.extends}`, `cls_${cls.name}`, { type: 'extends' });
+    } else {
+      addEdge(`e_cc_${cls.name}`, `cat_${cat.uid}`, `cls_${cls.name}`, { type: 'contains' });
+    }
+  }
+
+  return els;
+}
+
 // ─── Schema loading & init ───────────────────────────────────────────────────
 
 async function loadSchema() {
@@ -592,11 +655,14 @@ async function loadSchema() {
       els = await buildScopedClassGraph(SCOPE_CLASS);
     } else if (SCOPE_OBJECT) {
       els = await buildScopedObjectGraph(SCOPE_OBJECT);
+    } else if (SCOPE_CATEGORY) {
+      els = await buildScopedCategoryGraph(SCOPE_CATEGORY);
     } else {
       els = buildEventEls();
     }
 
     initCy(els, 'cose');
+    initNodeNavigation();
 
     const nodeCount = els.filter(e => !e.data.source).length;
     setStatus(`${nodeCount} nodes`);

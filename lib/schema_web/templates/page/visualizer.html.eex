@@ -3,6 +3,14 @@ OCSF Schema Visualizer - Interactive graph visualization of the schema.
 Supports scoped views via query params: ?class=X or ?object=X
 --%>
 
+<% scope_type = @scope_data[:scope_type] %>
+<% entity_name = to_string(@scope_data[:name]) %>
+<% entity_path = case scope_type do
+  :class -> "/classes/" <> entity_name
+  :object -> "/objects/" <> entity_name
+  :category -> "/categories/" <> entity_name
+end %>
+
 <div class="row">
   <div class="col-md move-up">
     <h3 class="extensions">
@@ -11,14 +19,35 @@ Supports scoped views via query params: ?class=X or ?object=X
         <span class="small">
           <%= if @scope_data[:uid] do %>[<%= @scope_data[:uid] %>]<% end %>
           <%= if @scope_data[:extension] && @scope_data[:extension] != "" do %>
-            <span class="extension-badge"><%= @scope_data[:extension] %></span>
+            <span class="extension-badge"> <%= @scope_data[:extension] %></span>
           <% end %>
         </span>
-        <%= if @scope_data[:scope_type] == :class, do: "Class", else: "Object" %>
+        <%= case scope_type do
+          :class -> "Class"
+          :object -> "Object"
+          :category -> "Category"
+        end %>
       </span>
+      <%= raw profile_badges(@conn, @scope_data, @profiles) %>
     </h3>
-    <div class="text-secondary description-content">
+
+    <%= if scope_type == :class && @scope_data[:category_name] do %>
+      <h4 class="extensions">
+        <a href="<%= Routes.static_path(@conn, "/categories/" <> to_string(@scope_data[:category])) %>"><%= @scope_data[:category_name] %></a>
+         Category
+      </h4>
+    <% end %>
+
+    <div class="text-secondary">
       <%= raw @scope_data[:description] %>
+    </div>
+  </div>
+</div>
+
+<div class="row align-items-center mb-3">
+  <div class="col-auto">
+    <div class="btn-group" role="group" aria-label="Schema actions">
+      <a href="<%= Routes.static_path(@conn, entity_path) %>" id="btn-table" class="btn btn-sm btn-outline-primary" title="Back to tabular view">← Tabular View</a>
     </div>
   </div>
 </div>
@@ -58,13 +87,6 @@ Supports scoped views via query params: ?class=X or ?object=X
     </div>
   </div>
 
-  <div id="legend">
-    <div class="legend-group">
-      <span class="legend-item"><span class="l-rect" style="background:var(--accent-color)"></span> Category</span>
-      <span class="legend-item"><span class="l-dot" style="background:#3fb950"></span> Event Class</span>
-      <span class="legend-item"><span class="l-dia" style="background:#a371f7"></span> Object</span>
-    </div>
-  </div>
 
   <div id="tooltip"></div>
 </div>
