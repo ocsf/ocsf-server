@@ -680,6 +680,12 @@ button:hover,
   margin-right: var(--spacing-xs);
 }
 
+.references-inline .references-source {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-left: var(--spacing-xs);
+}
+
 .reference-tag {
   display: inline-flex;
   align-items: center;
