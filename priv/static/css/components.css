@@ -499,6 +499,68 @@ button:hover,
   color: var(--text-inverse);
 }
 
+/* Pill toggle options */
+.sidebar-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pill-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pill-label {
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  font-weight: 400;
+}
+
+.pill-toggle {
+  position: relative;
+  display: inline-block;
+  width: 32px;
+  height: 18px;
+  cursor: pointer;
+  margin: 0;
+}
+
+.pill-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.pill-slider {
+  position: absolute;
+  inset: 0;
+  background: var(--border-color);
+  border-radius: 9px;
+  transition: var(--transition-fast);
+}
+
+.pill-slider::before {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  left: 2px;
+  bottom: 2px;
+  background: var(--surface-color);
+  border-radius: 50%;
+  transition: var(--transition-fast);
+}
+
+.pill-toggle input:checked + .pill-slider {
+  background: var(--primary-color);
+}
+
+.pill-toggle input:checked + .pill-slider::before {
+  transform: translateX(14px);
+}
+
 /* Bootstrap component overrides */
 .bootstrap-select .dropdown-toggle {
   color: var(--text-primary);

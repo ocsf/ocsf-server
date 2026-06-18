@@ -51,7 +51,7 @@ end %>
       <i class="fas fa-exclamation-triangle"></i>
       <span>
         This <%= if scope_type == :class, do: "class", else: "object" %> contains <strong><%= dep_count %></strong> deprecated <%= if dep_count == 1, do: "attribute", else: "attributes" %>.
-        Check the <strong>Show deprecated items</strong> box in the sidebar to view <%= if dep_count == 1, do: "it", else: "them" %>.
+        Toggle <strong>Show deprecated</strong> in the sidebar to view <%= if dep_count == 1, do: "it", else: "them" %>.
       </span>
     </div>
     <% end %>

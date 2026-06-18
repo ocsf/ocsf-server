@@ -148,16 +148,6 @@ limitations under the License.
     <img src='<%= Routes.static_path(@conn, "/images/ocsf-logo.png") %>' alt="OCSF" height="32" class="d-inline-block align-top">
   </a>
 
-  <!-- Theme Toggle - Always Visible -->
-  <div class="navbar-theme-toggle-container">
-    <label class="theme-toggle-switch navbar-theme-toggle">
-      <input type="checkbox" id="theme-toggle" onclick="toggleTheme()" title="Toggle dark mode">
-      <span class="theme-toggle-slider">
-        <i class="fas fa-sun theme-icon-light"></i>
-        <i class="fas fa-moon theme-icon-dark"></i>
-      </span>
-    </label>
-  </div>
 
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
     <i class="fas fa-chevron-down"></i>
@@ -251,15 +241,28 @@ limitations under the License.
           <i class="fas fa-cog"></i> Options
           <hr class="divider"/>
         </div>
-        <div class="sidebar-section-content">
-          <ul class="sidebar-nav">
-            <li class="sidebar-nav-item">
-              <label>
-                <input type="checkbox" id="show-deprecated-global" class="show-deprecated-checkbox" data-toggle="collapse" data-target=".deprecated" onclick="on_click_show_deprecated(this)">
-                Show deprecated items
-              </label>
-            </li>
-          </ul>
+        <div class="sidebar-section-content sidebar-options">
+          <div class="pill-group">
+            <span class="pill-label">Dark mode</span>
+            <label class="pill-toggle">
+              <input type="checkbox" id="theme-toggle" onclick="toggleTheme(); updateThemePill()">
+              <span class="pill-slider"></span>
+            </label>
+          </div>
+          <div class="pill-group">
+            <span class="pill-label">Compact view</span>
+            <label class="pill-toggle">
+              <input type="checkbox" id="compact-view-toggle" onclick="toggleCompactView(this)" checked>
+              <span class="pill-slider"></span>
+            </label>
+          </div>
+          <div class="pill-group">
+            <span class="pill-label">Show deprecated</span>
+            <label class="pill-toggle">
+              <input type="checkbox" id="show-deprecated-global" class="show-deprecated-checkbox" data-toggle="collapse" data-target=".deprecated" onclick="on_click_show_deprecated(this)">
+              <span class="pill-slider"></span>
+            </label>
+          </div>
         </div>
       </div>
     </div>
@@ -366,6 +369,29 @@ limitations under the License.
   window.clearProfileHighlighting = function() {
     $('.profile-item').removeClass('profile-applicable profile-not-applicable');
   };
+
+  // Pill toggle helpers
+  function updateThemePill() {
+    const theme = document.documentElement.getAttribute('data-theme');
+    document.getElementById('theme-toggle').checked = (theme === 'dark');
+  }
+
+  function toggleCompactView(el) {
+    document.body.classList.toggle('full-width-mode', !el.checked);
+    localStorage.setItem('schema_compact_view', el.checked);
+  }
+
+  // Initialize pill states
+  (function() {
+    // Theme pill
+    updateThemePill();
+
+    // Compact view
+    const isCompact = localStorage.getItem('schema_compact_view');
+    const compact = isCompact === null ? true : isCompact === 'true';
+    document.getElementById('compact-view-toggle').checked = compact;
+    if (!compact) document.body.classList.add('full-width-mode');
+  })();
 </script>
 
 </body>

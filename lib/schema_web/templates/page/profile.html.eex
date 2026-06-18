@@ -31,7 +31,7 @@ limitations under the License.
       <i class="fas fa-exclamation-triangle"></i>
       <span>
         This profile contains <strong><%= dep_count %></strong> deprecated <%= if dep_count == 1, do: "attribute", else: "attributes" %>.
-        Check the <strong>Show deprecated items</strong> box in the sidebar to view <%= if dep_count == 1, do: "it", else: "them" %>.
+        Toggle <strong>Show deprecated</strong> in the sidebar to view <%= if dep_count == 1, do: "it", else: "them" %>.
       </span>
     </div>
     <% end %>

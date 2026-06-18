@@ -798,6 +798,10 @@
   padding: var(--spacing-lg) var(--spacing-xl);
 }
 
+body.full-width-mode .main-page > .container-fluid {
+  max-width: none;
+}
+
 .description-content {
   line-height: 1.7;
   font-size: 0.875rem;
