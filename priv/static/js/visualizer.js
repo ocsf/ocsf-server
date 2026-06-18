@@ -306,12 +306,19 @@ function initCy(elements, layoutName) {
 }
 
 function layoutOpts(name) {
-  const base = { animate: false, nodeDimensionsIncludeLabels: true };
+  const base = { animate: false, nodeDimensionsIncludeLabels: true, padding: 40 };
   switch (name) {
-    case 'breadthfirst': return { name, ...base, directed: true, spacingFactor: 1.2 };
-    case 'circle': return { name, ...base };
-    case 'grid': return { name, ...base };
-    default: return { name: 'cose', ...base, nodeRepulsion: 50000, idealEdgeLength: 80, gravity: 0.1, numIter: 300 };
+    case 'breadthfirst': return { name, ...base, directed: true, spacingFactor: 1.5 };
+    case 'circle': return { name, ...base, spacingFactor: 1.2 };
+    default: return {
+      name: 'cose', ...base,
+      nodeRepulsion: 120000,
+      idealEdgeLength: 120,
+      nodeOverlap: 20,
+      gravity: 0.05,
+      numIter: 500,
+      edgeElasticity: 100,
+    };
   }
 }
 
