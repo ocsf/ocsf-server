@@ -110,7 +110,8 @@ function buildEventEls() {
 
     els.push({ data: {
       id: `cls_${cls.name}`, label: (cls.caption || cls.name).replace(/ /g, '\n'),
-      type: 'class', nodeType: 'class', name: cls.name,
+      type: cls['@deprecated'] ? 'class-deprecated' : 'class',
+      nodeType: 'class', name: cls.name,
       extension: cls.extension || null, caption: cls.caption || cls.name,
       categoryUid: catUid, description: cls.description, color,
     }});
@@ -175,51 +176,113 @@ function buildObjectEls() {
 
 function buildStyles() {
   return [
+    // Base node style
     { selector: 'node', style: {
-      label: 'data(label)', color: '#fff',
-      'font-size': 9, 'font-weight': 500,
-      'text-valign': 'center', 'text-halign': 'center',
-      'text-wrap': 'wrap', 'text-max-width': 70,
+      label: 'data(label)',
+      color: '#e2e8f0',
+      'font-size': 10,
+      'font-weight': 500,
+      'text-valign': 'center',
+      'text-halign': 'center',
+      'text-wrap': 'wrap',
+      'text-max-width': 80,
       'font-family': 'Inter, -apple-system, sans-serif',
     }},
+
+    // Category: solid rounded pill
     { selector: 'node[type="category"]', style: {
-      shape: 'round-rectangle', width: 90, height: 45,
-      'background-color': 'data(color)', 'background-opacity': 0.9,
-      'font-size': 10, 'font-weight': 700,
+      shape: 'round-rectangle', width: 90, height: 34,
+      'background-color': 'data(color)',
+      color: '#fff',
+      'font-size': 8, 'font-weight': 500,
     }},
+
+    // Class: filled circle with white text
     { selector: 'node[type="class"]', style: {
-      shape: 'ellipse', width: 60, height: 60,
-      'background-color': 'data(color)', 'background-opacity': 0.85,
-      'font-size': 8,
+      shape: 'ellipse', width: 64, height: 64,
+      'background-color': 'data(color)',
+      color: '#fff',
+      'font-size': 9, 'font-weight': 500,
     }},
+
+    // Deprecated class: dimmed
+    { selector: 'node[type="class-deprecated"]', style: {
+      shape: 'ellipse', width: 64, height: 64,
+      'background-color': 'data(color)', 'background-opacity': 0.4,
+      color: '#fff',
+      'font-size': 9, 'font-weight': 500,
+      'border-width': 2, 'border-color': '#d29922', 'border-style': 'dashed',
+    }},
+
+    // Object: rounded rectangle, filled with subtle color
     { selector: 'node[type="object"], node[type="object-root"]', style: {
-      shape: 'diamond', width: 55, height: 55,
-      'background-color': '#a371f7', 'background-opacity': 0.8,
-      'font-size': 8,
+      shape: 'round-rectangle', width: 80, height: 36,
+      'background-color': '#2d2640',
+      'border-width': 1.5, 'border-color': '#a371f7',
+      color: '#e9d5ff',
+      'font-size': 9, 'font-weight': 500,
     }},
+
+    // Deprecated object: dimmed with dashed border
+    { selector: 'node[type="object-deprecated"]', style: {
+      shape: 'round-rectangle', width: 80, height: 36,
+      'background-color': '#2d2640', 'background-opacity': 0.4,
+      'border-width': 1.5, 'border-color': '#d29922', 'border-style': 'dashed',
+      color: '#94a3b8',
+      'font-size': 9, 'font-weight': 500,
+    }},
+
+    // Profile object: amber-tinted
     { selector: 'node[type="object-profile"]', style: {
-      shape: 'diamond', width: 55, height: 55,
-      'background-color': '#f59e0b', 'background-opacity': 0.85,
-      'font-size': 8, 'border-width': 2, 'border-color': '#d97706',
+      shape: 'round-rectangle', width: 80, height: 36,
+      'background-color': '#2d2214',
+      'border-width': 1.5, 'border-color': '#f59e0b',
+      color: '#fde68a',
+      'font-size': 9, 'font-weight': 500,
     }},
+
+    // Edges
     { selector: 'edge', style: {
-      width: 1, 'curve-style': 'bezier',
-      'target-arrow-shape': 'triangle', 'arrow-scale': 0.6,
-      'line-color': '#30363d', 'target-arrow-color': '#30363d',
-      opacity: 0.6,
+      width: 1.5, 'curve-style': 'bezier',
+      'target-arrow-shape': 'triangle', 'arrow-scale': 0.5,
+      'line-color': '#475569', 'target-arrow-color': '#475569',
+      opacity: 0.5,
     }},
+
+    // Extends: dashed
     { selector: 'edge[type="extends"]', style: {
-      'line-color': '#8b949e', 'target-arrow-color': '#8b949e',
-      'line-style': 'dashed', 'line-dash-pattern': [5, 3], width: 1.5,
+      'line-color': '#64748b', 'target-arrow-color': '#64748b',
+      'line-style': 'dashed', 'line-dash-pattern': [6, 4], width: 1,
+      opacity: 0.4,
     }},
+
+    // has_attr: purple, labeled
     { selector: 'edge[type="has_attr"]', style: {
-      'line-color': '#a371f7', 'target-arrow-color': '#a371f7',
-      width: 1.5, opacity: 0.8,
-      label: 'data(label)', 'font-size': 7, color: '#8b949e',
+      'line-color': '#7c3aed', 'target-arrow-color': '#7c3aed',
+      width: 1.5, opacity: 0.6,
+      label: 'data(label)', 'font-size': 8, color: '#a78bfa',
       'text-rotation': 'autorotate', 'text-margin-y': -8,
+      'font-family': 'Inter, -apple-system, sans-serif',
     }},
-    { selector: ':selected', style: { 'border-width': 3, 'border-color': '#22D3EE' }},
-    { selector: '.faded', style: { opacity: 0.12 }},
+
+    // has_attr_deprecated: yellow/amber dashed, labeled
+    { selector: 'edge[type="has_attr_deprecated"]', style: {
+      'line-color': '#d29922', 'target-arrow-color': '#d29922',
+      'line-style': 'dashed', 'line-dash-pattern': [4, 3],
+      width: 1.5, opacity: 0.6,
+      label: 'data(label)', 'font-size': 8, color: '#d29922',
+      'text-rotation': 'autorotate', 'text-margin-y': -8,
+      'font-family': 'Inter, -apple-system, sans-serif',
+    }},
+
+    // Selection: teal highlight
+    { selector: ':selected', style: {
+      'border-width': 2.5, 'border-color': '#22d3ee',
+      'overlay-opacity': 0,
+    }},
+
+    // Faded/highlight states
+    { selector: '.faded', style: { opacity: 0.1 }},
     { selector: '.highlighted', style: { opacity: 1 }},
   ];
 }
@@ -298,15 +361,18 @@ function clearSelection() {
 function initNodeNavigation() {
   S.cy.on('dbltap', 'node', function(e) {
     const d = e.target.data();
+    const scopedName = d.extension ? `${d.extension}/${d.name}` : d.name;
     if (d.nodeType === 'object' && d.name) {
       const params = new URLSearchParams(window.location.search);
       params.delete('class');
-      params.set('object', d.name);
+      params.delete('category');
+      params.set('object', scopedName);
       window.location.search = '?' + params.toString();
     } else if (d.nodeType === 'class' && d.name) {
       const params = new URLSearchParams(window.location.search);
       params.delete('object');
-      params.set('class', d.name);
+      params.delete('category');
+      params.set('class', scopedName);
       window.location.search = '?' + params.toString();
     } else if (d.nodeType === 'category' && d.name) {
       const params = new URLSearchParams(window.location.search);
@@ -367,7 +433,15 @@ function renderNodeDetail(data, type, nodeName) {
 
   for (const [n, a] of Object.entries(attrs)) {
     const req = (a.requirement || 'optional').toLowerCase();
-    (groups[req] || groups.optional).push({ attrName: n, ...a });
+    const entry = { attrName: n, ...a };
+    // Mark as deprecated if the attribute itself OR its referenced object is deprecated
+    if (!entry['@deprecated'] && entry.object_type) {
+      const refObj = S.objects.find(o => o.name === entry.object_type);
+      if (refObj && refObj['@deprecated']) {
+        entry['@deprecated'] = refObj['@deprecated'];
+      }
+    }
+    (groups[req] || groups.optional).push(entry);
   }
 
   const isCurrent = (type === 'class' && nodeName === SCOPE_CLASS) || (type === 'object' && nodeName === SCOPE_OBJECT);
@@ -396,15 +470,20 @@ function attrSection(key, items, label) {
       </div>
       <div class="attr-list">
         ${items.map(a => {
+          const isDeprecated = a['@deprecated'];
           const profileBadge = a.profiles && a.profiles.length
             ? `<span class="attr-profile-badge">${a.profiles.join(', ')}</span>`
             : '';
+          const depBadge = isDeprecated
+            ? `<span class="attr-deprecated-badge">D</span>`
+            : '';
           return `
-            <div class="attr-item ${key}${a.profiles && a.profiles.length ? ' from-profile' : ''}">
+            <div class="attr-item ${key}${a.profiles && a.profiles.length ? ' from-profile' : ''}${isDeprecated ? ' is-deprecated' : ''}">
               <div class="attr-name">
                 ${a.attrName}
                 <span class="attr-type">${a.object_type || a.type_name || a.type || ''}</span>
                 ${profileBadge}
+                ${depBadge}
               </div>
             </div>`;
         }).join('')}
@@ -518,19 +597,26 @@ async function buildScopedClassGraph(className) {
       if (attr.object_type) {
         const objName = attr.object_type;
         const fromProfile = attr.profiles && attr.profiles.length > 0;
+        const objDef = S.objects.find(o => o.name === objName);
+        const objDefDeprecated = objDef && objDef['@deprecated'];
         if (!addedObjs.has(objName)) {
           addedObjs.add(objName);
+          let nodeType = 'object';
+          if (objDefDeprecated) nodeType = 'object-deprecated';
+          else if (fromProfile) nodeType = 'object-profile';
           addNode(`obj_${objName}`, {
             label: objName.replace(/_/g, '\n'),
-            type: fromProfile ? 'object-profile' : 'object',
+            type: nodeType,
             nodeType: 'object', name: objName,
             caption: objName,
             fromProfile: fromProfile,
             profiles: attr.profiles || [],
           });
         }
+        const edgeDeprecated = !!attr['@deprecated'];
         addEdge(`e_attr_${className}_${key}`, `cls_${className}`, `obj_${objName}`, {
-          type: 'has_attr', label: key, requirement: attr.requirement || 'optional',
+          type: edgeDeprecated ? 'has_attr_deprecated' : 'has_attr',
+          label: key, requirement: attr.requirement || 'optional',
         });
       }
     }
@@ -573,9 +659,11 @@ async function buildScopedObjectGraph(objectName) {
   // Child objects that extend this one
   const children = S.objects.filter(o => o.extends === objectName);
   for (const child of children) {
+    const childIsDeprecated = child['@deprecated'];
     addNode(`obj_${child.name}`, {
       label: (child.caption || child.name).replace(/ /g, '\n'),
-      type: 'object', nodeType: 'object', name: child.name,
+      type: childIsDeprecated ? 'object-deprecated' : 'object',
+      nodeType: 'object', name: child.name,
       caption: child.caption || child.name,
     });
     addEdge(`e_ext_${child.name}`, `obj_${objectName}`, `obj_${child.name}`, { type: 'extends' });
@@ -588,19 +676,26 @@ async function buildScopedObjectGraph(objectName) {
       if (attr.object_type) {
         const childName = attr.object_type;
         const fromProfile = attr.profiles && attr.profiles.length > 0;
+        const childDef = S.objects.find(o => o.name === childName);
+        const childDeprecated = childDef && childDef['@deprecated'];
         if (!addedObjs.has(childName)) {
           addedObjs.add(childName);
+          let nodeType = 'object';
+          if (childDeprecated) nodeType = 'object-deprecated';
+          else if (fromProfile) nodeType = 'object-profile';
           addNode(`obj_${childName}`, {
             label: childName.replace(/_/g, '\n'),
-            type: fromProfile ? 'object-profile' : 'object',
+            type: nodeType,
             nodeType: 'object', name: childName,
             caption: childName,
             fromProfile: fromProfile,
             profiles: attr.profiles || [],
           });
         }
+        const edgeDeprecated = !!attr['@deprecated'];
         addEdge(`e_attr_${objectName}_${key}`, `obj_${objectName}`, `obj_${childName}`, {
-          type: 'has_attr', label: key, requirement: attr.requirement || 'optional',
+          type: edgeDeprecated ? 'has_attr_deprecated' : 'has_attr',
+          label: key, requirement: attr.requirement || 'optional',
         });
       }
     }

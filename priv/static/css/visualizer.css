@@ -310,6 +310,32 @@
   border-left-color: #f59e0b;
 }
 
+#visualizer-container .attr-item.is-deprecated {
+  opacity: 0.5;
+  border-left-color: #d29922;
+}
+
+#visualizer-container .vis-deprecated-banner {
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: rgba(217, 119, 6, 0.1);
+  border: 1px solid rgba(217, 119, 6, 0.3);
+  border-left: 3px solid #d29922;
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--spacing-sm);
+  font-size: 0.75rem;
+  color: #fbbf24;
+}
+
+#visualizer-container .attr-deprecated-badge {
+  font-size: 0.6rem;
+  padding: 1px 4px;
+  background: rgba(217, 119, 6, 0.15);
+  border: 1px solid rgba(217, 119, 6, 0.4);
+  border-radius: var(--radius-sm);
+  color: #d29922;
+  font-weight: 700;
+}
+
 #visualizer-container .attr-type {
   font-size: clamp(8px, 2.9cqw, 10px);
   color: var(--text-muted);

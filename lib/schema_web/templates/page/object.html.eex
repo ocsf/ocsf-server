@@ -68,7 +68,8 @@ limitations under the License.
     <div class="btn-group" role="group" aria-label="Schema actions">
       <button type="button" id="btn-json-schema" class="btn btn-sm btn-outline-primary" title="View JSON Schema">JSON Schema</button>
       <button type="button" id="btn-sample-data" class="btn btn-sm btn-outline-primary" title="View Sample Data">Sample</button>
-      <a href="<%= Routes.static_path(@conn, "/visualizer?object=#{@data[:name]}") %>" id="btn-visualizer" class="btn btn-sm btn-outline-primary" title="View relationship graph">Visualizer</a>
+      <% vis_obj = if @data[:extension] && @data[:extension] != "", do: "#{@data[:extension]}/#{@data[:name]}", else: @data[:name] %>
+      <a href="<%= Routes.static_path(@conn, "/visualizer?object=#{vis_obj}") %>" id="btn-visualizer" class="btn btn-sm btn-outline-primary" title="View relationship graph">Visualizer</a>
     </div>
   </div>
   <div class="col-auto">

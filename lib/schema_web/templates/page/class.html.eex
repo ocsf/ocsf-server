@@ -79,7 +79,8 @@ limitations under the License.
       <button type="button" id="btn-json-schema" class="btn btn-sm btn-outline-primary" title="View JSON Schema">JSON Schema</button>
       <button type="button" id="btn-sample-data" class="btn btn-sm btn-outline-primary" title="View Sample Data">Sample</button>
       <button type="button" id="btn-validate" class="btn btn-sm btn-outline-primary" title="Validation API">Validate</button>
-      <a href="<%= Routes.static_path(@conn, "/visualizer?class=#{@data[:name]}") %>" id="btn-visualizer" class="btn btn-sm btn-outline-primary" title="View relationship graph">Visualizer</a>
+      <% vis_class = if @data[:extension] && @data[:extension] != "", do: "#{@data[:extension]}/#{@data[:name]}", else: @data[:name] %>
+      <a href="<%= Routes.static_path(@conn, "/visualizer?class=#{vis_class}") %>" id="btn-visualizer" class="btn btn-sm btn-outline-primary" title="View relationship graph">Visualizer</a>
     </div>
   </div>
   <div class="col-auto">

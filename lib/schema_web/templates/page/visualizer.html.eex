@@ -4,11 +4,15 @@ Supports scoped views via query params: ?class=X or ?object=X
 --%>
 
 <% scope_type = @scope_data[:scope_type] %>
-<% entity_name = to_string(@scope_data[:name]) %>
+<% scoped_name = if @scope_data[:extension] && @scope_data[:extension] != "" do
+  "#{@scope_data[:extension]}/#{@scope_data[:name]}"
+else
+  to_string(@scope_data[:name])
+end %>
 <% entity_path = case scope_type do
-  :class -> "/classes/" <> entity_name
-  :object -> "/objects/" <> entity_name
-  :category -> "/categories/" <> entity_name
+  :class -> "/classes/" <> scoped_name
+  :object -> "/objects/" <> scoped_name
+  :category -> "/categories/" <> scoped_name
 end %>
 
 <div class="row">
@@ -39,8 +43,18 @@ end %>
     <% end %>
 
     <div class="text-secondary">
-      <%= raw @scope_data[:description] %>
+      <%= raw description(@scope_data) %>
     </div>
+    <%= if has_deprecated_attributes?(@scope_data) do %>
+    <% dep_count = deprecated_attributes_count(@scope_data) %>
+    <div class="deprecated-attr-notice" id="deprecated-attr-notice">
+      <i class="fas fa-exclamation-triangle"></i>
+      <span>
+        This <%= if scope_type == :class, do: "class", else: "object" %> contains <strong><%= dep_count %></strong> deprecated <%= if dep_count == 1, do: "attribute", else: "attributes" %>.
+        Check the <strong>Show deprecated items</strong> box in the sidebar to view <%= if dep_count == 1, do: "it", else: "them" %>.
+      </span>
+    </div>
+    <% end %>
   </div>
 </div>
 
@@ -95,6 +109,34 @@ end %>
 <script type="text/javascript" src='<%= Routes.static_path(@conn, "/js/visualizer.js") %>'></script>
 <script>
   init_class_profiles();
+  init_show_deprecated();
+
+  // Toggle deprecated nodes and edges in graph when checkbox changes
+  function updateDeprecatedVisibility() {
+    if (!S.cy) return;
+    const showDep = $('#show-deprecated-global').is(':checked');
+    const depNodes = S.cy.nodes('[type="object-deprecated"], [type="class-deprecated"]');
+    const depEdges = S.cy.edges('[type="has_attr_deprecated"]');
+    if (showDep) {
+      depNodes.style('display', 'element');
+      depNodes.connectedEdges().style('display', 'element');
+      depEdges.style('display', 'element');
+    } else {
+      depNodes.style('display', 'none');
+      depNodes.connectedEdges().style('display', 'none');
+      depEdges.style('display', 'none');
+    }
+  }
+
+  $('#show-deprecated-global').on('change', updateDeprecatedVisibility);
+
+  // Apply initial deprecated state once graph is ready
+  const checkGraphReady = setInterval(function() {
+    if (S.cy) {
+      clearInterval(checkGraphReady);
+      updateDeprecatedVisibility();
+    }
+  }, 500);
 
   // Highlight applicable profiles in sidebar
   <% applicable_profiles = get_applicable_profiles(@scope_data, @profiles) %>

@@ -196,16 +196,20 @@ defmodule SchemaWeb.PageController do
 
   @spec visualizer(Plug.Conn.t(), any) :: Plug.Conn.t()
   def visualizer(conn, params) do
+    schema = Schema.schema()
+    profiles = parse_profiles_from_params(params)
+    extensions = SchemaController.parse_options(SchemaController.extensions(params))
+
     cond do
       params["class"] ->
         id = String.to_atom(params["class"])
-        case Schema.SingleRepo.clean_classes()[id] do
+        case Schema.class_filter_profiles(schema, id, profiles) do
           nil ->
             send_resp(conn, 404, "Not Found: #{params["class"]}")
 
           class ->
             render(conn, "visualizer.html",
-              extensions: Schema.extensions(),
+              extensions: schema[:extensions],
               profiles: get_profiles(params),
               scope_data: Map.put(class, :scope_type, :class)
             )
@@ -213,13 +217,13 @@ defmodule SchemaWeb.PageController do
 
       params["object"] ->
         id = String.to_atom(params["object"])
-        case Schema.SingleRepo.clean_objects()[id] do
+        case Schema.object_filter_extensions_profiles(schema, id, extensions, profiles) do
           nil ->
             send_resp(conn, 404, "Not Found: #{params["object"]}")
 
           obj ->
             render(conn, "visualizer.html",
-              extensions: Schema.extensions(),
+              extensions: schema[:extensions],
               profiles: get_profiles(params),
               scope_data: Map.put(obj, :scope_type, :object)
             )
