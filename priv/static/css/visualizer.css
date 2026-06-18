@@ -291,6 +291,25 @@
   font-weight: 500;
 }
 
+#visualizer-container .attr-profile-badge {
+  font-size: 0.65rem;
+  padding: 1px 5px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: var(--radius-sm);
+  color: #d97706;
+  font-weight: 500;
+}
+
+[data-theme="dark"] #visualizer-container .attr-profile-badge {
+  background: rgba(245, 158, 11, 0.1);
+  color: #fbbf24;
+}
+
+#visualizer-container .attr-item.from-profile {
+  border-left-color: #f59e0b;
+}
+
 #visualizer-container .attr-type {
   font-size: clamp(8px, 2.9cqw, 10px);
   color: var(--text-muted);

@@ -9,10 +9,27 @@ const API = `${CURRENT_ORIGIN}/api`;
 function getSchemaFilterParams() {
   const params = new URLSearchParams(window.location.search);
   const parts = [];
+
+  // Extensions: forward from URL, or read from localStorage
   const ext = params.get('extensions');
-  if (ext !== null) parts.push('extensions=' + encodeURIComponent(ext));
+  if (ext !== null) {
+    parts.push('extensions=' + encodeURIComponent(ext));
+  } else if (typeof get_selected_extensions === 'function') {
+    const stored = get_selected_extensions();
+    const active = Object.entries(stored).filter(([_, v]) => v).map(([k]) => k);
+    parts.push('extensions=' + encodeURIComponent(active.join(',')));
+  }
+
+  // Profiles: forward from URL, or read from localStorage
+  // Always include profiles param so API filters correctly
   const prof = params.get('profiles');
-  if (prof !== null) parts.push('profiles=' + encodeURIComponent(prof));
+  if (prof !== null) {
+    parts.push('profiles=' + encodeURIComponent(prof));
+  } else if (typeof get_selected_profiles === 'function') {
+    const stored = get_selected_profiles();
+    parts.push('profiles=' + encodeURIComponent(stored.join(',')));
+  }
+
   return parts.length ? '?' + parts.join('&') : '';
 }
 
@@ -180,6 +197,11 @@ function buildStyles() {
       'background-color': '#a371f7', 'background-opacity': 0.8,
       'font-size': 8,
     }},
+    { selector: 'node[type="object-profile"]', style: {
+      shape: 'diamond', width: 55, height: 55,
+      'background-color': '#f59e0b', 'background-opacity': 0.85,
+      'font-size': 8, 'border-width': 2, 'border-color': '#d97706',
+    }},
     { selector: 'edge', style: {
       width: 1, 'curve-style': 'bezier',
       'target-arrow-shape': 'triangle', 'arrow-scale': 0.6,
@@ -239,7 +261,7 @@ async function onNodeClick(node) {
   const conn = node.closedNeighborhood();
   S.cy.elements().not(conn).addClass('faded');
 
-  setDetailLoading(node);
+  setDetailLoading();
 
   try {
     if (nodeType === 'category') {
@@ -298,11 +320,9 @@ function initNodeNavigation() {
 
 // ─── Detail panel rendering ──────────────────────────────────────────────────
 
-function setDetailLoading(node) {
+function setDetailLoading() {
   document.getElementById('detail-inner').innerHTML = `
     <div class="detail-content">
-      <span class="type-badge ${node.data('nodeType')}">${node.data('nodeType')}</span>
-      <h2>${node.data('caption') || node.data('name')}</h2>
       <p style="color:var(--text-muted)">Loading…</p>
     </div>`;
 }
@@ -350,17 +370,14 @@ function renderNodeDetail(data, type, nodeName) {
     (groups[req] || groups.optional).push({ attrName: n, ...a });
   }
 
-  const caption = data.caption || data.name || '';
   const isCurrent = (type === 'class' && nodeName === SCOPE_CLASS) || (type === 'object' && nodeName === SCOPE_OBJECT);
-  const navHint = !isCurrent ? `<p style="font-size:11px;color:var(--text-muted);margin-top:8px">Double-click to explore this ${type}</p>` : '';
+  const navHint = !isCurrent
+    ? `<p style="font-size:11px;color:var(--text-muted);margin-bottom:8px">Double-click to explore this ${type}</p>`
+    : '';
 
   document.getElementById('detail-inner').innerHTML = `
     <div class="detail-content">
-      <div class="detail-header">
-        <span class="type-badge ${type}">${type === 'class' ? 'Class' : 'Object'}</span>
-        <h2>${caption}</h2>
-        ${navHint}
-      </div>
+      ${navHint}
       ${attrSection('required', groups.required, 'Required')}
       ${attrSection('recommended', groups.recommended, 'Recommended')}
       ${attrSection('optional', groups.optional, 'Optional')}
@@ -378,14 +395,19 @@ function attrSection(key, items, label) {
         <span class="chevron">▾</span>
       </div>
       <div class="attr-list">
-        ${items.map(a => `
-          <div class="attr-item ${key}">
-            <div class="attr-name">
-              ${a.attrName}
-              <span class="attr-type">${a.object_type || a.type_name || a.type || ''}</span>
-            </div>
-          </div>
-        `).join('')}
+        ${items.map(a => {
+          const profileBadge = a.profiles && a.profiles.length
+            ? `<span class="attr-profile-badge">${a.profiles.join(', ')}</span>`
+            : '';
+          return `
+            <div class="attr-item ${key}${a.profiles && a.profiles.length ? ' from-profile' : ''}">
+              <div class="attr-name">
+                ${a.attrName}
+                <span class="attr-type">${a.object_type || a.type_name || a.type || ''}</span>
+                ${profileBadge}
+              </div>
+            </div>`;
+        }).join('')}
       </div>
     </div>`;
 }
@@ -495,12 +517,16 @@ async function buildScopedClassGraph(className) {
     for (const [key, attr] of Object.entries(clsDetail.attributes)) {
       if (attr.object_type) {
         const objName = attr.object_type;
+        const fromProfile = attr.profiles && attr.profiles.length > 0;
         if (!addedObjs.has(objName)) {
           addedObjs.add(objName);
           addNode(`obj_${objName}`, {
             label: objName.replace(/_/g, '\n'),
-            type: 'object', nodeType: 'object', name: objName,
+            type: fromProfile ? 'object-profile' : 'object',
+            nodeType: 'object', name: objName,
             caption: objName,
+            fromProfile: fromProfile,
+            profiles: attr.profiles || [],
           });
         }
         addEdge(`e_attr_${className}_${key}`, `cls_${className}`, `obj_${objName}`, {
@@ -561,12 +587,16 @@ async function buildScopedObjectGraph(objectName) {
     for (const [key, attr] of Object.entries(objDetail.attributes)) {
       if (attr.object_type) {
         const childName = attr.object_type;
+        const fromProfile = attr.profiles && attr.profiles.length > 0;
         if (!addedObjs.has(childName)) {
           addedObjs.add(childName);
           addNode(`obj_${childName}`, {
             label: childName.replace(/_/g, '\n'),
-            type: 'object', nodeType: 'object', name: childName,
+            type: fromProfile ? 'object-profile' : 'object',
+            nodeType: 'object', name: childName,
             caption: childName,
+            fromProfile: fromProfile,
+            profiles: attr.profiles || [],
           });
         }
         addEdge(`e_attr_${objectName}_${key}`, `obj_${objectName}`, `obj_${childName}`, {
@@ -664,8 +694,25 @@ async function loadSchema() {
     initCy(els, 'cose');
     initNodeNavigation();
 
-    const nodeCount = els.filter(e => !e.data.source).length;
-    setStatus(`${nodeCount} nodes`);
+    // Show contextual stats
+    if (SCOPE_CLASS && S.classDetails[SCOPE_CLASS]) {
+      const attrs = S.classDetails[SCOPE_CLASS].attributes || {};
+      const total = Object.keys(attrs).length;
+      const objCount = Object.values(attrs).filter(a => a.object_type).length;
+      const scalarCount = total - objCount;
+      setStatus(`${total} attributes · ${scalarCount} scalar · ${objCount} objects`);
+    } else if (SCOPE_OBJECT && S.objectDetails[SCOPE_OBJECT]) {
+      const attrs = S.objectDetails[SCOPE_OBJECT].attributes || {};
+      const total = Object.keys(attrs).length;
+      const objCount = Object.values(attrs).filter(a => a.object_type).length;
+      const scalarCount = total - objCount;
+      setStatus(`${total} attributes · ${scalarCount} scalar · ${objCount} objects`);
+    } else if (SCOPE_CATEGORY) {
+      const catClasses = els.filter(e => e.data.nodeType === 'class').length;
+      setStatus(`${catClasses} classes`);
+    } else {
+      setStatus('');
+    }
 
     // Auto-select center node
     if (SCOPE_CLASS || SCOPE_OBJECT) {

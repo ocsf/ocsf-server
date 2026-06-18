@@ -95,4 +95,19 @@ end %>
 <script type="text/javascript" src='<%= Routes.static_path(@conn, "/js/visualizer.js") %>'></script>
 <script>
   init_class_profiles();
+
+  // Highlight applicable profiles in sidebar
+  <% applicable_profiles = get_applicable_profiles(@scope_data, @profiles) %>
+  <% applicable_profiles_json = format_applicable_profiles_json(applicable_profiles) %>
+  $(document).ready(function() {
+    if (typeof window.highlightApplicableProfiles === 'function') {
+      window.highlightApplicableProfiles(<%= raw applicable_profiles_json %>);
+    }
+  });
+
+  $(window).on('beforeunload', function() {
+    if (typeof window.clearProfileHighlighting === 'function') {
+      window.clearProfileHighlighting();
+    }
+  });
 </script>
