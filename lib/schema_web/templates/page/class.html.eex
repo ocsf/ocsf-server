@@ -24,7 +24,7 @@ limitations under the License.
       <%= @data[:caption] %>
       <span class="text-secondary">
         <span class="small">
-          [<a href="<%= class_graph_path(@conn, @data)  %>"><%= @data[:uid] %></a>]
+          [<%= @data[:uid] %>]
           <%= if extension && extension != "" do %><span class="extension-badge"> <%= extension %></span><% end %>
         </span>
         Class
@@ -57,7 +57,7 @@ limitations under the License.
       <i class="fas fa-exclamation-triangle"></i>
       <span>
         This class contains <strong><%= dep_count %></strong> deprecated <%= if dep_count == 1, do: "attribute", else: "attributes" %>.
-        Check the <strong>Show deprecated items</strong> box in the sidebar to view <%= if dep_count == 1, do: "it", else: "them" %>.
+        Toggle <strong>Show deprecated</strong> in the sidebar to view <%= if dep_count == 1, do: "it", else: "them" %>.
       </span>
     </div>
     <% end %>
@@ -79,6 +79,8 @@ limitations under the License.
       <button type="button" id="btn-json-schema" class="btn btn-sm btn-outline-primary" title="View JSON Schema">JSON Schema</button>
       <button type="button" id="btn-sample-data" class="btn btn-sm btn-outline-primary" title="View Sample Data">Sample</button>
       <button type="button" id="btn-validate" class="btn btn-sm btn-outline-primary" title="Validation API">Validate</button>
+      <% vis_class = if @data[:extension] && @data[:extension] != "", do: "#{@data[:extension]}/#{@data[:name]}", else: @data[:name] %>
+      <a href="<%= Routes.static_path(@conn, "/visualizer?class=#{vis_class}") %>" id="btn-visualizer" class="btn btn-sm btn-outline-primary" title="View relationship graph">Visualizer</a>
     </div>
   </div>
   <div class="col-auto">

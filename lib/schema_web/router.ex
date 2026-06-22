@@ -38,8 +38,6 @@ defmodule SchemaWeb.Router do
     get "/classes/:id", PageController, :class_by_id
     get "/classes/:extension/:id", PageController, :class_by_id
 
-    get "/class/graph/:id", PageController, :class_graph
-    get "/class/graph/:extension/:id", PageController, :class_graph
 
     get "/base_event", PageController, :base_event
 
@@ -47,11 +45,10 @@ defmodule SchemaWeb.Router do
     get "/objects/:id", PageController, :object_by_id
     get "/objects/:extension/:id", PageController, :object_by_id
 
-    get "/object/graph/:id", PageController, :object_graph
-    get "/object/graph/:extension/:id", PageController, :object_graph
 
     get "/dictionary", PageController, :dictionary
     get "/data_types", PageController, :data_types
+    get "/visualizer", PageController, :visualizer
   end
 
   # Other scopes may use custom stacks.

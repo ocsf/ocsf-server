@@ -1,0 +1,155 @@
+<%!--
+OCSF Schema Visualizer - Interactive graph visualization of the schema.
+Supports scoped views via query params: ?class=X or ?object=X
+--%>
+
+<% scope_type = @scope_data[:scope_type] %>
+<% scoped_name = if @scope_data[:extension] && @scope_data[:extension] != "" do
+  "#{@scope_data[:extension]}/#{@scope_data[:name]}"
+else
+  to_string(@scope_data[:name])
+end %>
+<% entity_path = case scope_type do
+  :class -> "/classes/" <> scoped_name
+  :object -> "/objects/" <> scoped_name
+  :category -> "/categories/" <> scoped_name
+end %>
+
+<div class="row">
+  <div class="col-md move-up">
+    <h3 class="extensions">
+      <%= @scope_data[:caption] %>
+      <span class="text-secondary">
+        <span class="small">
+          <%= if @scope_data[:uid] do %>[<%= @scope_data[:uid] %>]<% end %>
+          <%= if @scope_data[:extension] && @scope_data[:extension] != "" do %>
+            <span class="extension-badge"> <%= @scope_data[:extension] %></span>
+          <% end %>
+        </span>
+        <%= case scope_type do
+          :class -> "Class"
+          :object -> "Object"
+          :category -> "Category"
+        end %>
+      </span>
+      <%= raw profile_badges(@conn, @scope_data, @profiles) %>
+    </h3>
+
+    <%= if scope_type == :class && @scope_data[:category_name] do %>
+      <h4 class="extensions">
+        <a href="<%= Routes.static_path(@conn, "/categories/" <> to_string(@scope_data[:category])) %>"><%= @scope_data[:category_name] %></a>
+         Category
+      </h4>
+    <% end %>
+
+    <div class="text-secondary">
+      <%= raw description(@scope_data) %>
+    </div>
+    <%= if has_deprecated_attributes?(@scope_data) do %>
+    <% dep_count = deprecated_attributes_count(@scope_data) %>
+    <div class="deprecated-attr-notice" id="deprecated-attr-notice">
+      <i class="fas fa-exclamation-triangle"></i>
+      <span>
+        This <%= if scope_type == :class, do: "class", else: "object" %> contains <strong><%= dep_count %></strong> deprecated <%= if dep_count == 1, do: "attribute", else: "attributes" %>.
+        Toggle <strong>Show deprecated</strong> in the sidebar to view <%= if dep_count == 1, do: "it", else: "them" %>.
+      </span>
+    </div>
+    <% end %>
+  </div>
+</div>
+
+<div class="row align-items-center mb-3">
+  <div class="col-auto">
+    <div class="btn-group" role="group" aria-label="Schema actions">
+      <a href="<%= Routes.static_path(@conn, entity_path) %>" id="btn-table" class="btn btn-sm btn-outline-primary" title="Back to tabular view">← Tabular View</a>
+    </div>
+  </div>
+</div>
+
+<div id="visualizer-container">
+  <div id="header">
+    <select id="layout-select" onchange="relayout(this.value)">
+      <option value="cose">Force-directed</option>
+      <option value="breadthfirst">Hierarchical</option>
+      <option value="circle">Circle</option>
+    </select>
+    <button id="btn-fit" onclick="fitGraph()" title="Fit to screen">⊡ Fit</button>
+    <span id="status"></span>
+  </div>
+
+  <div id="main">
+    <div id="cy"></div>
+
+    <div id="detail-panel">
+      <button id="panel-toggle" onclick="togglePanel()" title="Toggle detail panel">»</button>
+      <div id="detail-inner">
+        <div class="detail-empty">
+          <div class="icon">◈</div>
+          <div class="hint">Click a node to see its attributes</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="loading-overlay">
+      <div class="spinner"></div>
+      <div class="loading-text">Loading schema…</div>
+      <ul class="load-items">
+        <li id="ll-categories" class="active">Categories</li>
+        <li id="ll-classes">Event Classes</li>
+        <li id="ll-objects">Objects</li>
+      </ul>
+    </div>
+  </div>
+
+
+  <div id="tooltip"></div>
+</div>
+
+<script type="text/javascript" src='<%= Routes.static_path(@conn, "/js/cytoscape-3.29.2.min.js") %>'></script>
+<script type="text/javascript" src='<%= Routes.static_path(@conn, "/js/visualizer.js") %>'></script>
+<script>
+  init_class_profiles();
+  init_show_deprecated();
+
+  // Toggle deprecated nodes and edges in graph when checkbox changes
+  function updateDeprecatedVisibility() {
+    if (!S.cy) return;
+    const showDep = $('#show-deprecated-global').is(':checked');
+    const depNodes = S.cy.nodes('[type="object-deprecated"], [type="class-deprecated"]');
+    const depEdges = S.cy.edges('[type="has_attr_deprecated"]');
+    if (showDep) {
+      depNodes.style('display', 'element');
+      depNodes.connectedEdges().style('display', 'element');
+      depEdges.style('display', 'element');
+    } else {
+      depNodes.style('display', 'none');
+      depNodes.connectedEdges().style('display', 'none');
+      depEdges.style('display', 'none');
+    }
+  }
+
+  $('#show-deprecated-global').on('change', updateDeprecatedVisibility);
+
+  // Apply initial deprecated state once graph is ready
+  const checkGraphReady = setInterval(function() {
+    if (S.cy) {
+      clearInterval(checkGraphReady);
+      updateDeprecatedVisibility();
+    }
+  }, 500);
+
+  // Highlight applicable profiles in sidebar
+  <% applicable_profiles = get_applicable_profiles(@scope_data, @profiles) %>
+  <% applicable_profiles_json = format_applicable_profiles_json(applicable_profiles) %>
+  $(document).ready(function() {
+    if (typeof window.highlightApplicableProfiles === 'function') {
+      window.highlightApplicableProfiles(<%= raw applicable_profiles_json %>);
+    }
+  });
+
+  $(window).on('beforeunload', function() {
+    if (typeof window.clearProfileHighlighting === 'function') {
+      window.clearProfileHighlighting();
+    }
+  });
+</script>

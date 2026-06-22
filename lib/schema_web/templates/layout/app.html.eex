@@ -19,6 +19,10 @@ limitations under the License.
   <meta name="description" content="Open Cybersecurity Schema Framework">
   <title>Open Cybersecurity Schema Framework</title>
 
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href='<%= Routes.static_path(@conn, "/css/bootstrap-4.6.2.min.css") %>'/>
   <link rel="stylesheet" href='<%= Routes.static_path(@conn, "/css/bootstrap.select-1.13.18.min.css") %>'/>
   <link rel="stylesheet" href='<%= Routes.static_path(@conn, "/css/fontawesome-6.4.0.min.css") %>'/>
@@ -57,12 +61,13 @@ limitations under the License.
         // Update content links (class, object, category, profile links in page body)
         $(".main-page a").each(function() {
           const href = this.getAttribute('href');
-          if (!href || href.startsWith('http') || href.startsWith('#') || href.startsWith('javascript:') || href.includes('?')) {
+          if (!href || href.startsWith('http') || href.startsWith('#') || href.startsWith('javascript:')) {
             return;
           }
           // Only update internal schema navigation links
-          if (href.match(/^\/(classes|objects|categories|profiles|dictionary|data_types)/)) {
-            this.href = this.href + params;
+          if (href.match(/^\/(classes|objects|categories|profiles|dictionary|data_types|visualizer)/)) {
+            const joiner = href.includes('?') ? '&' : '';
+            this.href = this.href + (joiner ? params.replace('?', '&') : params);
           }
         });
 
@@ -86,7 +91,16 @@ limitations under the License.
         // Get current profiles and build complete URL
         const selected_profiles = get_selected_profiles();
         const params = build_url_params(selected_extensions, selected_profiles);
-        window.location.search = params;
+
+        // Preserve non-filter query params (e.g. class=X, object=X)
+        const currentParams = new URLSearchParams(window.location.search);
+        const newParams = new URLSearchParams(params.replace('?', ''));
+        currentParams.forEach(function(value, key) {
+          if (key !== 'extensions' && key !== 'profiles') {
+            newParams.set(key, value);
+          }
+        });
+        window.location.search = '?' + newParams.toString();
       });
 
       // init the attributes dropdown filters
@@ -134,16 +148,6 @@ limitations under the License.
     <img src='<%= Routes.static_path(@conn, "/images/ocsf-logo.png") %>' alt="OCSF" height="32" class="d-inline-block align-top">
   </a>
 
-  <!-- Theme Toggle - Always Visible -->
-  <div class="navbar-theme-toggle-container">
-    <label class="theme-toggle-switch navbar-theme-toggle">
-      <input type="checkbox" id="theme-toggle" onclick="toggleTheme()" title="Toggle dark mode">
-      <span class="theme-toggle-slider">
-        <i class="fas fa-sun theme-icon-light"></i>
-        <i class="fas fa-moon theme-icon-dark"></i>
-      </span>
-    </label>
-  </div>
 
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
     <i class="fas fa-chevron-down"></i>
@@ -237,15 +241,28 @@ limitations under the License.
           <i class="fas fa-cog"></i> Options
           <hr class="divider"/>
         </div>
-        <div class="sidebar-section-content">
-          <ul class="sidebar-nav">
-            <li class="sidebar-nav-item">
-              <label>
-                <input type="checkbox" id="show-deprecated-global" class="show-deprecated-checkbox" data-toggle="collapse" data-target=".deprecated" onclick="on_click_show_deprecated(this)">
-                Show deprecated items
-              </label>
-            </li>
-          </ul>
+        <div class="sidebar-section-content sidebar-options">
+          <div class="pill-group">
+            <span class="pill-label">Dark mode</span>
+            <label class="pill-toggle">
+              <input type="checkbox" id="theme-toggle" onclick="toggleTheme(); updateThemePill()">
+              <span class="pill-slider"></span>
+            </label>
+          </div>
+          <div class="pill-group">
+            <span class="pill-label">Compact view</span>
+            <label class="pill-toggle">
+              <input type="checkbox" id="compact-view-toggle" onclick="toggleCompactView(this)" checked>
+              <span class="pill-slider"></span>
+            </label>
+          </div>
+          <div class="pill-group">
+            <span class="pill-label">Show deprecated</span>
+            <label class="pill-toggle">
+              <input type="checkbox" id="show-deprecated-global" class="show-deprecated-checkbox" data-toggle="collapse" data-target=".deprecated" onclick="on_click_show_deprecated(this)">
+              <span class="pill-slider"></span>
+            </label>
+          </div>
         </div>
       </div>
     </div>
@@ -352,6 +369,29 @@ limitations under the License.
   window.clearProfileHighlighting = function() {
     $('.profile-item').removeClass('profile-applicable profile-not-applicable');
   };
+
+  // Pill toggle helpers
+  function updateThemePill() {
+    const theme = document.documentElement.getAttribute('data-theme');
+    document.getElementById('theme-toggle').checked = (theme === 'dark');
+  }
+
+  function toggleCompactView(el) {
+    document.body.classList.toggle('full-width-mode', !el.checked);
+    localStorage.setItem('schema_compact_view', el.checked);
+  }
+
+  // Initialize pill states
+  (function() {
+    // Theme pill
+    updateThemePill();
+
+    // Compact view
+    const isCompact = localStorage.getItem('schema_compact_view');
+    const compact = isCompact === null ? true : isCompact === 'true';
+    document.getElementById('compact-view-toggle').checked = compact;
+    if (!compact) document.body.classList.add('full-width-mode');
+  })();
 </script>
 
 </body>
