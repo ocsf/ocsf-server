@@ -8,7 +8,6 @@ defmodule SchemaWeb.PageView do
   @unknown_constraint_symbol "*"
   @enum_attributes_doc_url "https://github.com/ocsf/ocsf-docs/blob/main/overview/understanding-ocsf.md#enum-attributes"
 
-
   def class_path(conn, data) do
     class_name = data[:name]
 
@@ -20,7 +19,6 @@ defmodule SchemaWeb.PageView do
         Routes.static_path(conn, "/classes/" <> extension <> "/" <> class_name)
     end
   end
-
 
   def object_path(conn, data) do
     object_name = data[:name]

@@ -33,6 +33,16 @@ config :phoenix_swagger, json_library: Jason
 config :schema_server, Schema.Application, schema_file: System.get_env("SCHEMA_FILE")
 config :schema_server, Schema.Application, schemas_home: System.get_env("SCHEMAS_HOME")
 
+config :schema_server, :json_formats,
+  datetime_t: "date-time",
+  ip_t: "ipv6",
+  email_t: "email",
+  hostname_t: "hostname",
+  url_t: "uri",
+  uuid_t: "uuid"
+
+config :schema_server, :json_java_names, class: "objectClass"
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{Mix.env()}.exs"
