@@ -258,10 +258,13 @@ function searchInCategories(filter) {
 }
 
 function init_schema_buttons() {
-  // Strip any version prefix (e.g. /1.3.0) from the pathname so the
-  // /sample, /schema, and /api routes resolve correctly when the server
-  // is fronted by a versioned URL prefix.
-  const basePath = window.location.pathname.replace(/^\/[\d.]+(?:-[^\/]+)?/, '');
+  // Split any version prefix (e.g. /1.8.0) from the rest of the path so the
+  // /sample, /schema, and /api routes can be requested under the same prefix
+  // the page is served from. Without a prefix, versionPrefix is empty and
+  // the routes resolve at the root as before.
+  const prefixMatch = window.location.pathname.match(/^(\/[\d.]+(?:-[^\/]+)?)?(\/.*)$/);
+  const versionPrefix = (prefixMatch && prefixMatch[1]) || '';
+  const basePath = (prefixMatch && prefixMatch[2]) || window.location.pathname;
 
   function buttonParams() {
     const extensions = get_selected_extensions();
@@ -270,19 +273,19 @@ function init_schema_buttons() {
   }
 
   $('#btn-sample-data').on('click', function(event) {
-    window.open('/sample' + basePath + buttonParams(), '_blank');
+    window.open(versionPrefix + '/sample' + basePath + buttonParams(), '_blank');
   });
 
   $('#btn-json-schema').on('click', function(event) {
-    window.open('/schema' + basePath + buttonParams(), '_blank');
+    window.open(versionPrefix + '/schema' + basePath + buttonParams(), '_blank');
   });
 
   $('#btn-schema').on('click', function(event) {
-    window.open('/api' + basePath + buttonParams(), '_blank');
+    window.open(versionPrefix + '/api' + basePath + buttonParams(), '_blank');
   });
 
   $('#btn-validate').on('click', function(event) {
-    window.open('/doc/index.html#/Tools/SchemaWeb.SchemaController.validate2', '_blank');
+    window.open(versionPrefix + '/doc/index.html#/Tools/SchemaWeb.SchemaController.validate2', '_blank');
   });
 }
 

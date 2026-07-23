@@ -122,7 +122,7 @@ defmodule SchemaWeb.PageController do
   """
   @spec base_event(Plug.Conn.t(), any) :: Plug.Conn.t()
   def base_event(conn, _params) do
-    redirect(conn, to: "/classes/base_event")
+    redirect(conn, to: Routes.static_path(conn, "/classes/base_event"))
   end
 
   @spec objects(Plug.Conn.t(), map()) :: Plug.Conn.t()

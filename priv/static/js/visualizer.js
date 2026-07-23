@@ -3,7 +3,10 @@
 // ─── Config ──────────────────────────────────────────────────────────────────
 
 const CURRENT_ORIGIN = window.location.origin;
-const API = `${CURRENT_ORIGIN}/api`;
+// Preserve any version prefix (e.g. /1.8.0) the page is served under so API
+// calls resolve under the same prefix. Empty when served at the root.
+const VERSION_PREFIX = (window.location.pathname.match(/^(\/[\d.]+(?:-[^\/]+)?)\//) || [])[1] || '';
+const API = `${CURRENT_ORIGIN}${VERSION_PREFIX}/api`;
 
 // Forward current extension/profile selection to API calls
 function getSchemaFilterParams() {
