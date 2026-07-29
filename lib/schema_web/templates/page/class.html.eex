@@ -51,6 +51,7 @@ limitations under the License.
     <div class="text-secondary description-content">
       <%= raw description(@data) %>
     </div>
+    <%= raw format_item_supersedes(@conn, @data, "classes") %>
     <%= if has_deprecated_attributes?(@data) do %>
     <% dep_count = deprecated_attributes_count(@data) %>
     <div class="deprecated-attr-notice" id="deprecated-attr-notice">
@@ -120,7 +121,7 @@ limitations under the License.
           <td class="capitalize"><%= attribute[:group] %></td>
           <td><%= raw format_requirement(constraints, attribute_key, attribute) %></td>
           <td class="extensions"><%= raw format_type(@conn, attribute) %></td>
-          <td><%= raw format_attribute_desc(attribute_key, attribute) %></td>
+          <td><%= raw format_attribute_desc(attribute_key, attribute, @conn) %></td>
         </tr>
       <% end %>
     </tbody>

@@ -672,20 +672,34 @@ defmodule SchemaWeb.PageView do
     end
   end
 
-  @spec format_attribute_desc(String.t() | atom(), map()) :: any
-  def format_attribute_desc(attribute_key, attribute) do
-    append_source_references(
-      base_format_attribute_desc(attribute_key, attribute, false),
-      "<p><hr>",
+  @spec format_attribute_desc(String.t() | atom(), map(), Plug.Conn.t() | nil) :: any
+  def format_attribute_desc(attribute_key, attribute, conn \\ nil) do
+    append_supersedes(
+      append_superseded_by(
+        append_source_references(
+          base_format_attribute_desc(attribute_key, attribute, false),
+          "<p><hr>",
+          attribute
+        ),
+        attribute,
+        conn
+      ),
       attribute
     )
   end
 
-  @spec format_dictionary_attribute_desc(String.t() | atom(), map()) :: any
-  def format_dictionary_attribute_desc(attribute_key, attribute) do
-    append_source_references(
-      base_format_attribute_desc(attribute_key, attribute, true),
-      "<p><hr>",
+  @spec format_dictionary_attribute_desc(String.t() | atom(), map(), Plug.Conn.t() | nil) :: any
+  def format_dictionary_attribute_desc(attribute_key, attribute, conn \\ nil) do
+    append_supersedes(
+      append_superseded_by(
+        append_source_references(
+          base_format_attribute_desc(attribute_key, attribute, true),
+          "<p><hr>",
+          attribute
+        ),
+        attribute,
+        conn
+      ),
       attribute
     )
   end
@@ -745,6 +759,7 @@ defmodule SchemaWeb.PageView do
                 Map.get(item, :caption, id),
                 "<div class=\"text-secondary\">",
                 append_source_references(description(item), item),
+                format_enum_supersedes(item, enum_values),
                 "</div></td><tr>" | acc
               ]
             end
@@ -817,6 +832,168 @@ defmodule SchemaWeb.PageView do
       [html, prefix_html, refs_html]
     else
       html
+    end
+  end
+
+  # Appends a "Supersedes" note when this (non-deprecated) attribute replaces one or
+  # more deprecated attributes. The reverse reference is precomputed by the schema
+  # compiler in browser mode as the :_supersedes marker. Unlike the deprecation notice,
+  # this is shown by default so consumers migrating off a deprecated attribute can
+  # discover its replacement from the live attribute.
+  @spec append_supersedes(any(), map()) :: any()
+  defp append_supersedes(html, attribute) do
+    case attribute[:_supersedes] do
+      supersedes when is_list(supersedes) and supersedes != [] ->
+        [html, format_supersedes(supersedes)]
+
+      _ ->
+        html
+    end
+  end
+
+  @spec format_supersedes([map()]) :: any()
+  defp format_supersedes(supersedes) do
+    names =
+      supersedes
+      |> Enum.map(fn entry -> entry[:type] end)
+      |> Enum.map(fn name ->
+        ["<code>", Phoenix.HTML.html_escape(name) |> Phoenix.HTML.safe_to_string(), "</code>"]
+      end)
+      |> Enum.intersperse(", ")
+
+    [
+      "<div class='supersedes-note mt-2'><i class='fas fa-arrow-right'></i> Supersedes deprecated ",
+      names,
+      "</div>"
+    ]
+  end
+
+  # Appends a "Replaced by" forward link on a DEPRECATED attribute whose replacement
+  # lives in another object or class (a dotted path in @deprecated.superseded_by, e.g.
+  # "job_action.cmd_line"). Renders each replacement path as a link to the target's
+  # page. conn is required to build URLs; when nil (callers that don't pass it) nothing
+  # is appended. Same-scope replacements are handled by the reverse note instead.
+  @spec append_superseded_by(any(), map(), Plug.Conn.t() | nil) :: any()
+  defp append_superseded_by(html, _attribute, nil), do: html
+
+  defp append_superseded_by(html, attribute, conn) do
+    deprecated = attribute[:"@deprecated"]
+
+    superseded_by =
+      if is_map(deprecated), do: deprecated[:superseded_by], else: nil
+
+    case superseded_by do
+      paths when is_list(paths) and paths != [] ->
+        # Only render forward links for cross-container (dotted path) replacements.
+        cross = Enum.filter(paths, fn p -> String.contains?(to_string(p), ".") end)
+
+        if cross == [] do
+          html
+        else
+          [html, format_superseded_by(cross, conn)]
+        end
+
+      _ ->
+        html
+    end
+  end
+
+  @spec format_superseded_by([String.t()], Plug.Conn.t()) :: any()
+  defp format_superseded_by(paths, conn) do
+    links =
+      paths
+      |> Enum.map(fn path -> superseded_by_link(to_string(path), conn) end)
+      |> Enum.intersperse(", ")
+
+    [
+      "<div class='superseded-by-note mt-2'><i class='fas fa-arrow-right'></i> Replaced by ",
+      links,
+      "</div>"
+    ]
+  end
+
+  # Builds a link to the replacement attribute's containing class or object page.
+  # The path's first segment names the container; if it resolves to a class it links
+  # to /classes/<name>, otherwise to /objects/<name>. The full path is shown as the
+  # link text.
+  @spec superseded_by_link(String.t(), Plug.Conn.t()) :: any()
+  defp superseded_by_link(path, conn) do
+    base = path |> String.split(".") |> hd() |> String.split("[") |> hd()
+    escaped = Phoenix.HTML.html_escape(path) |> Phoenix.HTML.safe_to_string()
+
+    kind = if Schema.class(base) != nil, do: "classes", else: "objects"
+    href = SchemaWeb.Router.Helpers.static_path(conn, "/#{kind}/#{base}")
+    ["<a href=\"", href, "\"><code>", escaped, "</code></a>"]
+  end
+
+  # Renders a "Supersedes" note for an enum value that replaces one or more deprecated
+  # enum values of the same attribute. The :_supersedes marker (precomputed by the
+  # compiler in browser mode) holds the deprecated enum value keys; enum_values is the
+  # full enum map, used to look up each deprecated value's caption for display.
+  @spec format_enum_supersedes(map(), map() | list()) :: any()
+  defp format_enum_supersedes(item, enum_values) do
+    case item[:_supersedes] do
+      supersedes when is_list(supersedes) and supersedes != [] ->
+        labels =
+          supersedes
+          |> Enum.map(fn entry -> to_string(entry[:type]) end)
+          |> Enum.map(fn key ->
+            caption = enum_value_caption(enum_values, key)
+            escaped = Phoenix.HTML.html_escape(caption) |> Phoenix.HTML.safe_to_string()
+            ["<code>", escaped, "</code> [", key, "]"]
+          end)
+          |> Enum.intersperse(", ")
+
+        [
+          "<div class='supersedes-note mt-2'><i class='fas fa-arrow-right'></i> Supersedes deprecated ",
+          labels,
+          "</div>"
+        ]
+
+      _ ->
+        ""
+    end
+  end
+
+  @spec enum_value_caption(map() | list(), String.t()) :: String.t()
+  defp enum_value_caption(enum_values, key) do
+    entry =
+      Enum.find_value(enum_values, nil, fn {k, v} ->
+        if to_string(k) == key, do: v, else: nil
+      end)
+
+    case entry do
+      nil -> key
+      value -> Map.get(value, :caption, key)
+    end
+  end
+
+  # Renders a "Supersedes" note for a whole class or object that replaces one or more
+  # deprecated classes/objects. The :_supersedes marker is precomputed by the schema
+  # compiler in browser mode. kind is "classes" or "objects" (the route segment), used
+  # to link each deprecated item to its page. Shown by default on the live item's page.
+  @spec format_item_supersedes(any(), map(), String.t()) :: any()
+  def format_item_supersedes(conn, item, kind) do
+    case item[:_supersedes] do
+      supersedes when is_list(supersedes) and supersedes != [] ->
+        links =
+          supersedes
+          |> Enum.map(fn entry -> entry[:type] end)
+          |> Enum.map(fn name ->
+            path = SchemaWeb.Router.Helpers.static_path(conn, "/#{kind}/#{name}")
+            escaped = Phoenix.HTML.html_escape(name) |> Phoenix.HTML.safe_to_string()
+            ["<a href=\"", path, "\"><code>", escaped, "</code></a>"]
+          end)
+          |> Enum.intersperse(", ")
+
+        [
+          "<div class='supersedes-note mt-2'><i class='fas fa-arrow-right'></i> Supersedes deprecated ",
+          links,
+          "</div>"
+        ]
+
+      _ ->
+        ""
     end
   end
 

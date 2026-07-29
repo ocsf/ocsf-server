@@ -17,6 +17,12 @@ limitations under the License.
     <div class="text-secondary description-content">
       <%= raw @data[:description] %>
     </div>
+    <%= raw object_references_section([
+      %{
+        url: "https://github.com/ocsf/ocsf-docs/blob/main/articles/OCSF-Storage-Strategies.md#data-type-mappings",
+        description: "Data Type Mappings (storage formats, e.g. Apache Iceberg)"
+      }
+    ]) %>
   </div>
 </div>
 

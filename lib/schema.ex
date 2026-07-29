@@ -230,6 +230,16 @@ defmodule Schema do
     SingleRepo.classes()
   end
 
+  @doc """
+  Returns all event classes (with browser information) filtered by extensions.
+  This is meant for the classes HTML page, which needs browser-only metadata such
+  as :_supersedes. Mirrors objects_filter_extensions/1.
+  """
+  @spec classes_filter_extensions(Utils.string_set_t() | nil) :: map()
+  def classes_filter_extensions(extensions) do
+    SingleRepo.classes() |> Utils.filter_items_by_extensions(extensions)
+  end
+
   @spec clean_classes_filter_extensions(Utils.string_set_t() | nil) :: map()
   def clean_classes_filter_extensions(extensions) do
     SingleRepo.clean_classes() |> Utils.filter_items_by_extensions(extensions)

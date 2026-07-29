@@ -45,7 +45,7 @@ limitations under the License.
           <td class="name"><a href="<%= object_path %>"><%= object_key_str %></a></td>
           <td class="extensions"><%= raw format_attribute_caption(@conn, @schema, object_key_str, object, false) %></td>
           <td class="extensions"><%= raw object_links(@conn, object[:name], object[:_links], :collapse) %></td>
-          <td><%= raw description(object) %></td>
+          <td><%= raw description(object) %><%= raw format_item_supersedes(@conn, object, "objects") %></td>
         </tr>
       <% end %>
     </tbody>

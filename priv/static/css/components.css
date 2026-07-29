@@ -883,3 +883,60 @@ button:hover,
 [data-theme="dark"] .deprecated-attr-notice i {
   color: #FBBF24;
 }
+
+.supersedes-note {
+  display: block;
+  background: rgba(8, 145, 178, 0.06);
+  border-left: 3px solid var(--accent-color);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: 1.8;
+}
+
+.supersedes-note i {
+  color: var(--accent-color);
+  font-size: var(--text-sm);
+  margin-right: var(--spacing-sm);
+}
+
+.supersedes-note code {
+  background: transparent;
+  padding: 0;
+  white-space: nowrap;
+}
+
+.superseded-by-note {
+  display: block;
+  background: rgba(217, 119, 6, 0.06);
+  border-left: 3px solid var(--warning-color);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: 1.8;
+}
+
+.superseded-by-note i {
+  color: var(--warning-color);
+  font-size: var(--text-sm);
+  margin-right: var(--spacing-sm);
+}
+
+.superseded-by-note code {
+  background: transparent;
+  padding: 0;
+  white-space: nowrap;
+}
+
+[data-theme="dark"] .superseded-by-note {
+  background: rgba(251, 191, 36, 0.06);
+  border-left-color: #FBBF24;
+}
+
+[data-theme="dark"] .superseded-by-note i {
+  color: #FBBF24;
+}

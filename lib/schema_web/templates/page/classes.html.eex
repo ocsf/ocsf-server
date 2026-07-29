@@ -44,7 +44,7 @@ limitations under the License.
           <% else %>
             <td></td>
           <% end %>
-          <td><%= raw description(class) %></td>
+          <td><%= raw description(class) %><%= raw format_item_supersedes(@conn, class, "classes") %></td>
         </tr>
       <% end %>
     </tbody>

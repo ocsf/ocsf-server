@@ -84,9 +84,11 @@ defmodule SchemaWeb.PageController do
 
   @spec classes(Plug.Conn.t(), any) :: Plug.Conn.t()
   def classes(conn, params) do
+    params = Map.put_new(params, "extensions", "")
+
     data =
-      Map.put_new(params, "extensions", "")
-      |> SchemaController.classes()
+      SchemaController.parse_options(SchemaController.extensions(params))
+      |> Schema.classes_filter_extensions()
       |> sort_by(:uid)
 
     render(conn, "classes.html",
