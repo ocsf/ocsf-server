@@ -118,7 +118,6 @@ defmodule SchemaWeb.PageController do
     end
   end
 
-
   @doc """
   Redirects from the older /base_event URL to /classes/base_event.
   """
@@ -165,7 +164,6 @@ defmodule SchemaWeb.PageController do
     end
   end
 
-
   @spec dictionary(Plug.Conn.t(), any) :: Plug.Conn.t()
   def dictionary(conn, params) do
     params = Map.put_new(params, "extensions", "")
@@ -205,6 +203,7 @@ defmodule SchemaWeb.PageController do
     cond do
       params["class"] ->
         id = String.to_atom(params["class"])
+
         case Schema.class_filter_profiles(schema, id, profiles) do
           nil ->
             send_resp(conn, 404, "Not Found: #{params["class"]}")
@@ -219,6 +218,7 @@ defmodule SchemaWeb.PageController do
 
       params["object"] ->
         id = String.to_atom(params["object"])
+
         case Schema.object_filter_extensions_profiles(schema, id, extensions, profiles) do
           nil ->
             send_resp(conn, 404, "Not Found: #{params["object"]}")
@@ -233,12 +233,14 @@ defmodule SchemaWeb.PageController do
 
       params["category"] ->
         id = String.to_atom(params["category"])
+
         case Schema.SingleRepo.categories()[:attributes][id] do
           nil ->
             send_resp(conn, 404, "Not Found: #{params["category"]}")
 
           cat ->
-            scope_data = cat
+            scope_data =
+              cat
               |> Map.put(:scope_type, :category)
               |> Map.put_new(:name, params["category"])
 

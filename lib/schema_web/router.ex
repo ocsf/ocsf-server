@@ -38,13 +38,11 @@ defmodule SchemaWeb.Router do
     get "/classes/:id", PageController, :class_by_id
     get "/classes/:extension/:id", PageController, :class_by_id
 
-
     get "/base_event", PageController, :base_event
 
     get "/objects", PageController, :objects
     get "/objects/:id", PageController, :object_by_id
     get "/objects/:extension/:id", PageController, :object_by_id
-
 
     get "/dictionary", PageController, :dictionary
     get "/data_types", PageController, :data_types
@@ -54,6 +52,11 @@ defmodule SchemaWeb.Router do
   # Other scopes may use custom stacks.
   scope "/api", SchemaWeb do
     pipe_through :api
+
+    scope "/v2" do
+      resources "/objects", ObjectSchemaController, only: [:show]
+      resources "/classes", ClassSchemaController, only: [:show]
+    end
 
     get "/version", SchemaController, :version
     get "/versions", SchemaController, :versions

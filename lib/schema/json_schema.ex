@@ -12,7 +12,7 @@ defmodule Schema.JsonSchema do
   Json schema generator. This module defines functions that generate JSON schema (see http://json-schema.org) schemas for OCSF schema.
   """
   @schema_base_uri "https://schema.ocsf.io/schema/classes"
-  @schema_version "http://json-schema.org/draft-07/schema#"
+  @schema_version "http://json-schema.org/draft-07/schema"
 
   @doc """
   Generates a JSON schema corresponding to the `type` parameter.
@@ -33,6 +33,10 @@ defmodule Schema.JsonSchema do
     end
   end
 
+  def encode(nil, _) do
+    %{}
+  end
+
   @spec encode_item(map(), map()) :: map()
   defp encode_item(item, data_types) do
     name = item[:name]
@@ -44,6 +48,7 @@ defmodule Schema.JsonSchema do
     else
       Map.new()
       |> add_java_class(name)
+      |> add_object_id(name)
     end
     |> Map.put("title", item[:caption])
     |> Map.put("type", "object")
@@ -54,6 +59,17 @@ defmodule Schema.JsonSchema do
     |> put_at_least_one(at_least_one)
     |> encode_objects(item[:objects], data_types)
     |> empty_object(properties)
+  end
+
+  defp add_object_id(obj, name) do
+    ref_base =
+      Process.get(:options, [])
+      |> Keyword.get(:ref_base)
+
+    case ref_base do
+      nil -> obj
+      _ -> obj |> Map.put("$id", make_object_ref(name)) |> Map.put("$schema", @schema_version)
+    end
   end
 
   defp add_java_class(obj, name) do
@@ -88,15 +104,27 @@ defmodule Schema.JsonSchema do
   end
 
   defp make_object_ref(name) do
-    Path.join([ref_object(), String.replace(name, "/", "_")])
-  end
+    base =
+      Process.get(:options, [])
+      |> Keyword.get(:ref_base, "#/$defs")
 
-  defp ref_object() do
-    "#/$defs"
+    endpoint =
+      Process.get(:options, [])
+      |> Keyword.get(:ref_endpoint_objects, "")
+
+    Path.join([base, endpoint, String.replace(name, "/", "_")])
   end
 
   defp make_class_ref(name) do
-    Path.join([@schema_base_uri, name])
+    base =
+      Process.get(:options, [])
+      |> Keyword.get(:ref_base, @schema_base_uri)
+
+    endpoint =
+      Process.get(:options, [])
+      |> Keyword.get(:ref_endpoint_classes, "")
+
+    Path.join([base, endpoint, name])
   end
 
   defp empty_object(map, properties) do
@@ -155,13 +183,20 @@ defmodule Schema.JsonSchema do
   end
 
   defp encode_objects(schema, objects, data_types) do
+    ref_base =
+      Process.get(:options, [])
+      |> Keyword.get(:ref_base)
+
     defs =
       Enum.into(objects, %{}, fn {name, object} ->
         key = Atom.to_string(name) |> String.replace("/", "_")
         {key, encode_item(object, data_types)}
       end)
 
-    Map.put(schema, "$defs", defs)
+    case ref_base do
+      nil -> Map.put(schema, "$defs", defs)
+      _ -> schema
+    end
   end
 
   defp map_reduce(type_name, type, data_types) do
@@ -190,7 +225,9 @@ defmodule Schema.JsonSchema do
           |> (fn {required, just_one, at_least_one} ->
                 schema =
                   encode_attribute(type_name, attribute[:type], attribute, data_types)
+                  |> encode_format(attribute[:type])
                   |> encode_array(attribute[:is_array])
+                  |> encode_java_names(name)
 
                 {{name, schema}, {required, just_one, at_least_one}}
               end).()
@@ -279,6 +316,38 @@ defmodule Schema.JsonSchema do
     {type, schema} = items_type(schema)
 
     Map.put(schema, "type", "array") |> Map.put("items", type)
+  end
+
+  defp encode_format(schema, type) do
+    include_formats =
+      Process.get(:options, [])
+      |> Keyword.get(:include_formats)
+
+    format =
+      Application.get_env(:schema_server, :json_formats)
+      |> Keyword.get(String.to_atom(type))
+
+    cond do
+      include_formats == nil -> schema
+      format == nil -> schema
+      true -> Map.put(schema, "format", format)
+    end
+  end
+
+  defp encode_java_names(schema, name) do
+    include_java_names =
+      Process.get(:options, [])
+      |> Keyword.get(:include_java_names)
+
+    java_name =
+      Application.get_env(:schema_server, :json_java_names)
+      |> Keyword.get(String.to_atom(name))
+
+    cond do
+      include_java_names == nil -> schema
+      java_name == nil -> schema
+      true -> Map.put(schema, "javaName", java_name)
+    end
   end
 
   defp encode_array(schema, _is_array) do
