@@ -884,6 +884,33 @@ button:hover,
   color: #FBBF24;
 }
 
+.enum-values-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  color: var(--primary-color);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.enum-values-toggle:hover {
+  color: var(--accent-color);
+  text-decoration: underline;
+}
+
+.enum-values-toggle::after {
+  content: '\f078';
+  font-family: 'Font Awesome 6 Free';
+  font-weight: 900;
+  font-size: var(--text-xs);
+}
+
+.enum-values-toggle[data-expanded="true"]::after {
+  content: '\f077';
+}
+
 .supersedes-note {
   display: block;
   background: rgba(8, 145, 178, 0.06);
