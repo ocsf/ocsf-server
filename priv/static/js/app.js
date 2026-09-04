@@ -393,6 +393,47 @@ function smoothShowDeprecated(show) {
   });
 }
 
+/* Enum values past the first few are rendered hidden; this reveals or re-hides them. */
+function toggle_enum_values(link) {
+  const container = link.closest('.enum-values');
+
+  if (container) {
+    const expanded = link.getAttribute('data-expanded') === 'true';
+
+    container.querySelectorAll('tr.enum-value-extra').forEach(function (row) {
+      row.classList.toggle('d-none', expanded);
+    });
+
+    link.setAttribute('data-expanded', expanded ? 'false' : 'true');
+    link.textContent = expanded
+      ? link.getAttribute('data-more-label')
+      : link.getAttribute('data-less-label');
+  }
+
+  return false;
+}
+
+/* Deep links can point at a hidden enum value, e.g. /objects/observable#type_id-13. */
+function expand_enum_values_for_hash() {
+  const hash = window.location.hash;
+
+  if (hash.length < 2) {
+    return;
+  }
+
+  const target = document.getElementById(decodeURIComponent(hash.substring(1)));
+  const row = target ? target.closest('tr.enum-value-extra') : null;
+
+  if (row) {
+    const toggle = row.closest('.enum-values').querySelector('.enum-values-toggle');
+
+    if (toggle && toggle.getAttribute('data-expanded') !== 'true') {
+      toggle_enum_values(toggle);
+      target.scrollIntoView();
+    }
+  }
+}
+
 function updateShowDeprecatedState(isActive) {
   const container = document.querySelector('.show-deprecated-container');
   if (container) {
@@ -569,6 +610,9 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Initialize sidebar toggle
   initSidebarToggle();
+
+  expand_enum_values_for_hash();
+  window.addEventListener('hashchange', expand_enum_values_for_hash);
   
   
   // Enhance search input with focus styling

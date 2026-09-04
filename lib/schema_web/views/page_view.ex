@@ -8,6 +8,9 @@ defmodule SchemaWeb.PageView do
   @unknown_constraint_symbol "*"
   @enum_attributes_doc_url "https://github.com/ocsf/ocsf-docs/blob/main/overview/understanding-ocsf.md#enum-attributes"
 
+  # Number of enum values rendered up front; the rest are hidden behind a toggle.
+  @enum_values_display_limit 6
+
 
   def class_path(conn, data) do
     class_name = data[:name]
@@ -737,34 +740,20 @@ defmodule SchemaWeb.PageView do
             Enum.sort(enum_values, fn {k1, _}, {k2, _} -> k1 >= k2 end)
           end
 
-        [
-          "<table class=\"mt-1 table-borderless\"><tbody>",
-          Enum.reduce(
-            sorted,
-            [],
-            fn {id, item}, acc ->
-              id = to_string(id)
-              css_classes = show_deprecated_css_classes(item, "bg-transparent")
+        # The rows are sorted in descending order and displayed in ascending order.
+        displayed = Enum.reverse(sorted)
 
-              [
-                "<tr class=\"",
-                css_classes,
-                "\"><td style=\"width: 25px\" class=\"text-right\" id=\"",
-                to_string(attribute_key),
-                "-",
-                id,
-                "\"><code>",
-                id,
-                "</code></td><td class=\"textnowrap\">",
-                Map.get(item, :caption, id),
-                "<div class=\"text-secondary\">",
-                append_source_references(description(item), item),
-                format_enum_supersedes(item, enum_values),
-                "</div></td><tr>" | acc
-              ]
-            end
-          ),
-          "</tbody></table>"
+        [
+          "<div class=\"enum-values\">",
+          "<table class=\"mt-1 table-borderless\"><tbody>",
+          displayed
+          |> Enum.with_index()
+          |> Enum.map(fn {{id, item}, index} ->
+            enum_value_row(attribute_key, id, item, enum_values, index)
+          end),
+          "</tbody></table>",
+          enum_values_toggle(length(displayed)),
+          "</div>"
         ]
       else
         ""
@@ -791,6 +780,53 @@ defmodule SchemaWeb.PageView do
           "enum attribute</a>.</small></div>"
         ]
       end
+    ]
+  end
+
+  # Rows past @enum_values_display_limit are marked "enum-value-extra d-none" and are
+  # revealed by the toggle rendered by enum_values_toggle/1. A row that is both extra and
+  # deprecated stays hidden until both the toggle and "show deprecated" are on.
+  defp enum_value_row(attribute_key, id, item, enum_values, index) do
+    id = to_string(id)
+
+    initial_css_classes =
+      if index < @enum_values_display_limit do
+        "bg-transparent"
+      else
+        "bg-transparent enum-value-extra d-none"
+      end
+
+    [
+      "<tr class=\"",
+      show_deprecated_css_classes(item, initial_css_classes),
+      "\"><td style=\"width: 25px\" class=\"text-right\" id=\"",
+      to_string(attribute_key),
+      "-",
+      id,
+      "\"><code>",
+      id,
+      "</code></td><td class=\"textnowrap\">",
+      Map.get(item, :caption, id),
+      "<div class=\"text-secondary\">",
+      append_source_references(description(item), item),
+      format_enum_supersedes(item, enum_values),
+      "</div></td><tr>"
+    ]
+  end
+
+  @spec enum_values_toggle(non_neg_integer()) :: any()
+  defp enum_values_toggle(total_count) when total_count <= @enum_values_display_limit, do: ""
+
+  defp enum_values_toggle(total_count) do
+    show_all_label = "Show all #{total_count} values"
+
+    [
+      "<a href=\"#\" class=\"enum-values-toggle small\" onclick=\"return toggle_enum_values(this)\"",
+      " data-more-label=\"",
+      show_all_label,
+      "\" data-less-label=\"Show fewer values\">",
+      show_all_label,
+      "</a>"
     ]
   end
 
