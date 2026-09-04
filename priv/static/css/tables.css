@@ -128,6 +128,13 @@ table .description-column {
   white-space: normal;
 }
 
+/* Bootstrap sets white-space: nowrap on .dropdown-toggle. In table cells that makes
+   the collapse toggles, such as "Updated in 79 classes (22 deprecated)" in the
+   dictionary "Referenced By" column, overflow into the neighboring column. */
+table td a.dropdown-toggle {
+  white-space: normal;
+}
+
 /* Code elements in table description columns should wrap */
 table td code,
 .col-description code,
