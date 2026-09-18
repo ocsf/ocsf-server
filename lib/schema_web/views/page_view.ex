@@ -1846,7 +1846,9 @@ defmodule SchemaWeb.PageView do
   end
 
   def description(map) do
-    deprecated(map, Map.get(map, :"@deprecated"))
+    map
+    |> deprecated(Map.get(map, :"@deprecated"))
+    |> recursive(Map.get(map, :"@recursive"))
   end
 
   defp deprecated(map, nil) do
@@ -1860,6 +1862,47 @@ defmodule SchemaWeb.PageView do
       Map.get(deprecated, :since),
       "</span></div>",
       Map.get(deprecated, :message)
+    ]
+  end
+
+  defp recursive(description, nil), do: description
+
+  # An attribute whose type can reappear inside its own value. The notice tells a
+  # reader walking the schema by hand what the `@recursive` annotation tells a tool
+  # walking it programmatically: this branch reenters itself, so it has to be
+  # bounded somewhere.
+  defp recursive(description, recursive) do
+    [
+      description,
+      "<div class='text-dark mt-2'><span class='bg-warning'>RECURSIVE",
+      recursion_limit(Map.get(recursive, :limit)),
+      "</span></div>",
+      Map.get(recursive, :message) || "",
+      recursion_path(Map.get(recursive, :path))
+    ]
+  end
+
+  defp recursion_limit(nil), do: ""
+  defp recursion_limit(limit), do: [" — nests at most ", to_string(limit), " deep"]
+
+  defp recursion_path(nil), do: ""
+  defp recursion_path([]), do: ""
+
+  # Indirect recursion reenters the type by way of other objects, so naming the
+  # chain saves the reader from rediscovering it.
+  defp recursion_path(path) do
+    [
+      "<div class='text-secondary mt-1'>Recursion closes through ",
+      path
+      |> Enum.map(fn hop ->
+        [
+          "<code>",
+          hop |> Phoenix.HTML.html_escape() |> Phoenix.HTML.safe_to_string(),
+          "</code>"
+        ]
+      end)
+      |> Enum.intersperse(" &rarr; "),
+      ".</div>"
     ]
   end
 
