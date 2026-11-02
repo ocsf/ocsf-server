@@ -20,9 +20,8 @@ jobs:
     - name: Set up Elixir
       uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
       with:
-        # Keep in sync with elixir_image in the Dockerfile (elixir:1.19.5-alpine, OTP 28)
-        elixir-version: '1.19.5'
-        otp-version: '28'
+        version-file: .tool-versions
+        version-type: strict
     - name: Restore dependencies cache
       uses: actions/cache@v6
       with:
