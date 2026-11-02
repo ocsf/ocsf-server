@@ -45,6 +45,12 @@ async function apiFetch(path) {
   return r.json();
 }
 
+// Encode each segment of a possibly extension-scoped name (e.g. "ext/name")
+// taken from the page URL before it goes into an API path.
+function encodeNamePath(name) {
+  return name.split('/').map(encodeURIComponent).join('/');
+}
+
 // ─── State ───────────────────────────────────────────────────────────────────
 
 const S = {
@@ -357,8 +363,9 @@ async function onNodeClick(node) {
       renderNodeDetail(S.objectDetails[cacheKey], 'object', name);
     }
   } catch (e) {
-    document.getElementById('detail-inner').innerHTML =
-      `<div class="detail-content"><p style="color:var(--error-color)">${e.message}</p></div>`;
+    const inner = document.getElementById('detail-inner');
+    inner.innerHTML = `<div class="detail-content"><p style="color:var(--error-color)"></p></div>`;
+    inner.querySelector('p').textContent = e.message;
   }
 }
 
@@ -549,7 +556,7 @@ function setStatus(t) {
 // ─── Scoped graph builders ───────────────────────────────────────────────────
 
 async function buildScopedClassGraph(className) {
-  const clsDetail = await apiFetch(`/classes/${className}`);
+  const clsDetail = await apiFetch(`/classes/${encodeNamePath(className)}`);
   S.classDetails[className] = clsDetail;
 
   const els = [];
@@ -636,7 +643,7 @@ async function buildScopedClassGraph(className) {
 }
 
 async function buildScopedObjectGraph(objectName) {
-  const objDetail = await apiFetch(`/objects/${objectName}`);
+  const objDetail = await apiFetch(`/objects/${encodeNamePath(objectName)}`);
   S.objectDetails[objectName] = objDetail;
 
   const els = [];
@@ -831,12 +838,14 @@ async function loadSchema() {
     }
 
   } catch (err) {
-    document.getElementById('loading-overlay').innerHTML = `
+    const overlay = document.getElementById('loading-overlay');
+    overlay.innerHTML = `
       <div style="text-align:center;padding:24px;color:var(--text-muted)">
         <p style="color:var(--error-color);font-weight:600">Could not load schema</p>
-        <p style="font-size:12px;margin-top:8px">${err.message}</p>
+        <p class="load-error-message" style="font-size:12px;margin-top:8px"></p>
         <button onclick="loadSchema()" style="margin-top:12px;padding:6px 14px;background:var(--accent-color);color:#fff;border:none;border-radius:var(--radius-md);cursor:pointer">Retry</button>
       </div>`;
+    overlay.querySelector('.load-error-message').textContent = err.message;
   }
 }
 
