@@ -18,7 +18,6 @@ defmodule Schema do
 
   alias Schema.SingleRepo
   alias Schema.Utils
-  require Logger
 
   @dialyzer :no_improper_lists
 

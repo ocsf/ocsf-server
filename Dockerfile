@@ -1,4 +1,6 @@
-ARG elixir_image=elixir:1.19.5-alpine
+# Keep in step with .tool-versions (the CI toolchain): elixir:1.19.7-alpine is
+# Elixir 1.19.7 on erlang:28-alpine.
+ARG elixir_image=elixir:1.19.7-alpine
 
 FROM ${elixir_image} AS builder
 

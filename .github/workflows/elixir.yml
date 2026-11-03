@@ -13,17 +13,17 @@ jobs:
   build:
 
     name: Build and test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v7
     - name: Set up Elixir
-      uses: erlef/setup-beam@v1
+      uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
       with:
-        elixir-version: '1.14.0' # Define the elixir version [required]
-        otp-version: '25'        # Define the OTP version [required]
+        version-file: .tool-versions
+        version-type: strict
     - name: Restore dependencies cache
-      uses: actions/cache@v3
+      uses: actions/cache@v6
       with:
         path: deps
         key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
@@ -31,4 +31,4 @@ jobs:
     - name: Install dependencies
       run: mix deps.get
     - name: Run tests
-      run: mix compile
+      run: mix compile --warnings-as-errors

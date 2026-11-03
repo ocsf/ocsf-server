@@ -1,0 +1,4 @@
+# Toolchain used by CI (erlef/setup-beam) and by asdf/mise locally.
+# Keep elixir_image in the Dockerfile in step with these versions.
+erlang 28.5.0.8
+elixir 1.19.7-otp-28
