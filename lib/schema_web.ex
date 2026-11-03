@@ -28,7 +28,9 @@ defmodule SchemaWeb do
 
   def controller do
     quote do
-      use Phoenix.Controller, namespace: SchemaWeb
+      use Phoenix.Controller,
+        formats: [html: "View", json: "View"],
+        layouts: [html: SchemaWeb.LayoutView]
 
       import Plug.Conn
       alias SchemaWeb.Router.Helpers, as: Routes
@@ -42,7 +44,7 @@ defmodule SchemaWeb do
         namespace: SchemaWeb
 
       # Import convenience functions from controllers
-      import Phoenix.Controller, only: [get_flash: 1, get_flash: 2, view_module: 1]
+      import Phoenix.Controller, only: [view_module: 1]
 
       # Use all HTML functionality (forms, tags, etc)
       import Phoenix.HTML
