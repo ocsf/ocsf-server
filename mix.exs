@@ -10,7 +10,7 @@
 defmodule Schema.MixProject do
   use Mix.Project
 
-  @version "4.6.1"
+  @version "4.6.2"
 
   def project do
     build = System.get_env("GITHUB_RUN_NUMBER") || "SNAPSHOT"
@@ -51,16 +51,14 @@ defmodule Schema.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
-      {:phoenix, "~> 1.7.0"},
+      {:phoenix, "~> 1.8.16"},
       {:phoenix_view, "~> 2.0"},
-      {:phoenix_html, "~> 4.0"},
+      {:phoenix_html, "~> 4.4"},
       {:phoenix_live_reload, "~> 1.5", only: :dev},
       {:jason, "~> 1.4"},
-      {:plug_cowboy, "~> 2.8"},
-      {:number, "~> 1.0"},
+      {:plug_cowboy, "~> 2.9"},
       {:elixir_uuid, "~> 1.6", hex: :uuid_utils},
       {:phoenix_swagger, "~> 0.8"},
-      {:logger_file_backend, "~> 0.0.14"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:sobelow, "~> 0.14", only: [:dev, :test], runtime: false}
     ]

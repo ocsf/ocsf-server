@@ -6,12 +6,6 @@ config :schema_server, SchemaWeb.Endpoint,
   http: [port: System.get_env("PORT") || 8000],
   server: false
 
-# Configure the logger to write to a file in test mode
+# Only log warnings and errors in test mode
 config :logger,
   level: :warning
-
-config :logger, :test_log,
-  path: "log/test_#{System.system_time(:millisecond)}.log",
-  level: :debug,
-  format: "$time $metadata[$level] $message\n",
-  metadata: [:request_id]
